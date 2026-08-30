@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MathsAvecMoi - 5ème</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-guard.js"></script>
   <style>
     :root{ --indigo:#2c3e8c; --indigo-dark:#1e2c66; --amber:#f39c12; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -45,6 +49,7 @@
       <li><a href="videos.html">Vidéos</a></li>
       <li><a href="profil.html">Mon profil</a></li>
       <li><a href="contact.html">Contact</a></li>
+      <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
     </ul>
   </nav>
 
