@@ -467,7 +467,9 @@
 
 <script>
 (function(){
-  const STORAGE_KEY = 'cf_profile';
+  const STORAGE_PROFILES = 'cf_profiles'; // { [id]: profil }
+  const STORAGE_ACTIVE = 'cf_active';     // id du profil connecté
+  const OLD_STORAGE_KEY = 'cf_profile';   // ancien format (un seul profil)
 
   const BADGES = [
     { id:'streak3',  icon:'🔥', name:'3 jours',  test:p => p.bestStreak >= 3 },
@@ -488,14 +490,52 @@
     return Math.round((new Date(b) - new Date(a)) / 86400000);
   }
 
-  function loadProfile(){
+  function loadAllProfiles(){
     try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    }catch(e){ return null; }
+      const raw = localStorage.getItem(STORAGE_PROFILES);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveAllProfiles(all){
+    localStorage.setItem(STORAGE_PROFILES, JSON.stringify(all));
+  }
+  function getActiveId(){
+    return localStorage.getItem(STORAGE_ACTIVE);
+  }
+  function setActiveId(id){
+    localStorage.setItem(STORAGE_ACTIVE, id);
+  }
+
+  // Migration ponctuelle depuis l'ancien format à un seul profil
+  function migrerAncienFormatSiBesoin(){
+    const ancien = localStorage.getItem(OLD_STORAGE_KEY);
+    if (!ancien) return;
+    try{
+      const p = JSON.parse(ancien);
+      if (p && p.telephone){
+        const id = p.telephone.replace(/\s+/g, '');
+        const all = loadAllProfiles();
+        if (!all[id]){
+          p.id = id;
+          all[id] = p;
+          saveAllProfiles(all);
+        }
+        setActiveId(id);
+      }
+    }catch(e){}
+    localStorage.removeItem(OLD_STORAGE_KEY);
+  }
+
+  function loadProfile(){
+    const id = getActiveId();
+    if (!id) return null;
+    const all = loadAllProfiles();
+    return all[id] || null;
   }
   function saveProfile(p){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+    const all = loadAllProfiles();
+    all[p.id] = p;
+    saveAllProfiles(all);
   }
 
   function showToast(msg){
@@ -590,17 +630,40 @@
     $('formError').style.display = 'none';
 
     const indicatif = paysCode === 'autre' ? '' : paysCode;
-    const p = {
-      nom, prenom, classe,
-      pays: paysNom,
-      telephone: indicatif ? `${indicatif} ${telLocal}` : telLocal,
-      points: 0,
-      streak: 0,
-      bestStreak: 0,
-      lastCheckin: null
-    };
+    const id = (indicatif + telLocal).replace(/\s+/g, '');
+    const telephoneAffiche = indicatif ? `${indicatif} ${telLocal}` : telLocal;
+
+    const all = loadAllProfiles();
+    const existant = all[id];
+    let p;
+
+    if (existant){
+      // Carnet déjà existant pour ce numéro : on retrouve l'historique
+      p = existant;
+      p.nom = nom;
+      p.prenom = prenom;
+      p.classe = classe;
+      p.pays = paysNom;
+      p.telephone = telephoneAffiche;
+    } else {
+      p = {
+        id, nom, prenom, classe,
+        pays: paysNom,
+        telephone: telephoneAffiche,
+        points: 0,
+        streak: 0,
+        bestStreak: 0,
+        lastCheckin: null
+      };
+    }
+
     saveProfile(p);
+    setActiveId(id);
     renderDashboard(p);
+
+    if (existant){
+      showToast(`Bon retour, ${prenom} ! Ton historique a été retrouvé.`);
+    }
   }
 
   function editProfile(){
@@ -633,6 +696,8 @@
   $('editBtn').addEventListener('click', editProfile);
   $('pays').addEventListener('change', updatePhonePrefix);
   updatePhonePrefix();
+
+  migrerAncienFormatSiBesoin();
 
   const existing = loadProfile();
   if (existing && existing.prenom && existing.classe){

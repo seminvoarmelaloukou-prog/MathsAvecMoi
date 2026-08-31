@@ -1,34 +1,38 @@
 // auth-guard.js
-// Protège les pages contre l'accès non connecté et gère la déconnexion.
+// Protège les pages contre l'accès sans session active, et gère la déconnexion.
+// Ne supprime jamais les données des carnets : seule la "session active" est retirée.
 
 (function () {
-  // Nom du fichier de la page où l'utilisateur doit atterrir
-  // s'il n'est pas connecté (aussi la page de destination après déconnexion).
+  var STORAGE_PROFILES = "cf_profiles"; // { [id]: profil }
+  var STORAGE_ACTIVE = "cf_active";     // id du profil actuellement connecté
   var PAGE_PROFIL = "profil.html";
 
-  // Récupère le nom du fichier de la page actuelle (ex: "epreuves.html")
   function pageActuelle() {
     var chemin = window.location.pathname;
     return chemin.substring(chemin.lastIndexOf("/") + 1);
   }
 
-  // Vérifie l'état de connexion à chaque chargement de page
-  firebase.auth().onAuthStateChanged(function (utilisateur) {
-    if (!utilisateur && pageActuelle() !== PAGE_PROFIL) {
-      // Pas connecté et pas déjà sur la page de profil -> redirection
-      window.location.href = PAGE_PROFIL;
+  function sessionActive() {
+    try {
+      var id = localStorage.getItem(STORAGE_ACTIVE);
+      if (!id) return false;
+      var raw = localStorage.getItem(STORAGE_PROFILES);
+      var all = raw ? JSON.parse(raw) : {};
+      return !!all[id];
+    } catch (e) {
+      return false;
     }
-  });
+  }
+
+  // Si aucune session active et qu'on n'est pas déjà sur profil.html -> redirection
+  if (!sessionActive() && pageActuelle() !== PAGE_PROFIL) {
+    window.location.href = PAGE_PROFIL;
+  }
 
   // Fonction appelée par le lien "Déconnexion" du menu
+  // Retire uniquement la session active — les données du carnet restent sauvegardées.
   window.deconnexion = function () {
-    firebase.auth().signOut()
-      .then(function () {
-        window.location.href = PAGE_PROFIL;
-      })
-      .catch(function (erreur) {
-        console.error("Erreur lors de la déconnexion :", erreur);
-        alert("Une erreur est survenue lors de la déconnexion. Réessaie.");
-      });
+    localStorage.removeItem(STORAGE_ACTIVE);
+    window.location.href = PAGE_PROFIL;
   };
 })();
