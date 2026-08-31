@@ -174,6 +174,52 @@
     display:none;
   }
 
+  .saved-profiles{ margin-bottom:22px; }
+  .saved-title{
+    font-size:.8rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--forest-dark);
+    margin-bottom:10px;
+  }
+  .saved-profile-btn{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#FCFAF4;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    cursor:pointer;
+    font-family:'Work Sans', sans-serif;
+  }
+  .saved-profile-btn:active{ background:#EFEAD8; }
+  .saved-name{ font-weight:600; color:var(--ink); font-size:.95rem; }
+  .saved-classe{
+    font-size:.75rem;
+    color:var(--forest-dark);
+    background:#EAF2ED;
+    padding:3px 10px;
+    border-radius:20px;
+  }
+  .saved-divider{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:4px 0 18px;
+    color:var(--muted);
+    font-size:.78rem;
+  }
+  .saved-divider::before, .saved-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
   .greet{
     display:flex;
     justify-content:space-between;
@@ -292,6 +338,161 @@
     margin:26px 0 12px;
   }
 
+  /* ---- Nora, la coach ---- */
+  :root{
+    --nora-bg:#FBF6FF;
+    --nora-lav:#C9AEE0;
+    --nora-lav-dark:#8C6BAE;
+    --nora-blush:#F6C9CE;
+    --nora-ink:#3A2E4D;
+    --nora-muted:#8A7A9B;
+  }
+  .nora-card{
+    margin-top:22px;
+    background:var(--nora-bg);
+    border:1px solid #EADFF5;
+    border-radius:16px;
+    padding:20px;
+  }
+  .nora-head{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+  }
+  .nora-avatar{
+    flex-shrink:0;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:#fff;
+    border:1.5px solid #EADFF5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px;
+  }
+  .nora-bubble{
+    background:#fff;
+    border:1px solid #EADFF5;
+    border-radius:14px 14px 14px 4px;
+    padding:12px 14px;
+    font-size:.92rem;
+    color:var(--nora-ink);
+    line-height:1.45;
+  }
+  .nora-bubble strong{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    color:var(--nora-lav-dark);
+  }
+
+  .nora-block-title{
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--nora-lav-dark);
+    margin:20px 0 8px;
+  }
+
+  .mood-row{
+    display:flex;
+    gap:8px;
+    justify-content:space-between;
+  }
+  .mood-btn{
+    flex:1;
+    background:#fff;
+    border:1.5px solid #EADFF5;
+    border-radius:10px;
+    padding:10px 4px;
+    font-size:1.3rem;
+    cursor:pointer;
+  }
+  .mood-btn.selected{
+    border-color:var(--nora-lav);
+    background:#F3E9FA;
+  }
+  .mood-reply{
+    margin-top:10px;
+    background:#fff;
+    border:1px solid #EADFF5;
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:.87rem;
+    color:var(--nora-ink);
+    display:none;
+  }
+  .mood-reply.show{ display:block; }
+
+  .goal-row{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+  }
+  .goal-row input[type=text]{
+    flex:1;
+    background:#fff;
+  }
+  .goal-save{
+    padding:0 16px;
+    border:none;
+    border-radius:9px;
+    background:var(--nora-lav-dark);
+    color:#fff;
+    font-weight:600;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .goal-current{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#fff;
+    border:1px solid #EADFF5;
+    border-radius:10px;
+    padding:10px 12px;
+  }
+  .goal-current[hidden]{ display:none; }
+  .goal-current input[type=checkbox]{
+    width:18px;
+    height:18px;
+    accent-color:var(--nora-lav-dark);
+    flex-shrink:0;
+  }
+  .goal-current span{
+    font-size:.88rem;
+    color:var(--nora-ink);
+  }
+  .goal-current span.done{
+    text-decoration:line-through;
+    color:var(--nora-muted);
+  }
+
+  .nora-chat-row{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+  }
+  .nora-chat-row input[type=text]{
+    flex:1;
+    background:#F3EEF7;
+    color:var(--nora-muted);
+  }
+  .nora-chat-row button{
+    padding:0 16px;
+    border:none;
+    border-radius:9px;
+    background:#E4D8EF;
+    color:var(--nora-lav-dark);
+    font-weight:600;
+    font-size:.85rem;
+  }
+  .nora-soon{
+    margin-top:6px;
+    font-size:.76rem;
+    color:var(--nora-muted);
+  }
+
   .badges{
     display:grid;
     grid-template-columns:repeat(3, 1fr);
@@ -367,6 +568,9 @@
 <div class="wrap">
 
   <section id="onboarding" class="card">
+    <div id="savedProfiles" class="saved-profiles" hidden></div>
+    <div id="savedDivider" class="saved-divider" hidden><span>ou crée un nouveau carnet</span></div>
+
     <h1>Ton carnet de bord</h1>
     <p class="lead">Indique ton prénom et ta classe pour commencer à suivre ta progression.</p>
 
@@ -455,6 +659,51 @@
     <div class="stats-row">
       <div class="stat"><div class="num" id="pointsNum">0</div><div class="lbl">Points</div></div>
       <div class="stat"><div class="num" id="bestStreakNum">0</div><div class="lbl">Meilleure série</div></div>
+    </div>
+
+    <div class="nora-card">
+      <div class="nora-head">
+        <div class="nora-avatar">
+          <svg viewBox="0 0 64 64" width="40" height="40">
+            <circle cx="32" cy="32" r="30" fill="#F3E9FA"/>
+            <circle cx="32" cy="26" r="11" fill="#F6C9CE"/>
+            <path d="M14 54c1-11 8-17 18-17s17 6 18 17" fill="#C9AEE0"/>
+            <path d="M22 46c3 4 17 4 20 0" stroke="#8C6BAE" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="27" cy="25" r="1.6" fill="#3A2E4D"/>
+            <circle cx="37" cy="25" r="1.6" fill="#3A2E4D"/>
+          </svg>
+        </div>
+        <div class="nora-bubble" id="noraGreeting">
+          <strong>Nora</strong><br>Salut ! Contente de te retrouver 🌸
+        </div>
+      </div>
+
+      <div class="nora-block-title">Comment tu te sens aujourd'hui ?</div>
+      <div class="mood-row" id="moodRow">
+        <button class="mood-btn" data-mood="top">😄</button>
+        <button class="mood-btn" data-mood="bien">🙂</button>
+        <button class="mood-btn" data-mood="neutre">😐</button>
+        <button class="mood-btn" data-mood="fatigue">😴</button>
+        <button class="mood-btn" data-mood="stresse">😟</button>
+      </div>
+      <div class="mood-reply" id="moodReply"></div>
+
+      <div class="nora-block-title">Ton objectif du jour</div>
+      <div class="goal-row" id="goalForm">
+        <input type="text" id="goalInput" placeholder="Ex : Faire 10 exercices sur les fractions">
+        <button class="goal-save" id="goalSaveBtn">OK</button>
+      </div>
+      <div class="goal-current" id="goalCurrent" hidden>
+        <input type="checkbox" id="goalCheck">
+        <span id="goalText"></span>
+      </div>
+
+      <div class="nora-block-title">Discuter avec Nora</div>
+      <div class="nora-chat-row">
+        <input type="text" placeholder="Écris à Nora..." disabled>
+        <button disabled>Envoyer</button>
+      </div>
+      <p class="nora-soon">💬 Le dialogue avec Nora arrive très bientôt.</p>
     </div>
 
     <div class="section-title">Mes badges</div>
@@ -602,6 +851,7 @@
     const before = BADGES.filter(b => b.test({...p, streak:p.streak-1})).map(b=>b.id);
     saveProfile(p);
     renderDashboard(p);
+    $('noraGreeting').innerHTML = `<strong>Nora</strong><br>${noraGreetingText(p)}`;
 
     const newlyUnlocked = BADGES.filter(b => b.test(p) && !before.includes(b.id));
     if (newlyUnlocked.length){
@@ -660,6 +910,7 @@
     saveProfile(p);
     setActiveId(id);
     renderDashboard(p);
+    initNora(p);
 
     if (existant){
       showToast(`Bon retour, ${prenom} ! Ton historique a été retrouvé.`);
@@ -691,6 +942,114 @@
     }
   }
 
+  // ---- Nora, la coach ----
+  const MOOD_REPLIES = {
+    top:      "Trop bien, garde cette énergie ! C'est le moment parfait pour avancer sur une notion un peu plus difficile. 🌟",
+    bien:     "Content de l'entendre ! Une petite session de révision te fera du bien aujourd'hui. 💪",
+    neutre:   "Pas de souci, tout le monde a des jours neutres. Commence petit : 10 minutes suffisent pour se relancer. 🙂",
+    fatigue:  "Repose-toi un peu si tu peux. Même 15 minutes de révision légère valent mieux que rien. 🌙",
+    stresse:  "Respire un grand coup. Un examen ne définit pas ta valeur — avance étape par étape, je suis avec toi. 🌸"
+  };
+
+  function noraGreetingText(p){
+    const h = new Date().getHours();
+    const moment = h < 12 ? "Bonjour" : (h < 18 ? "Bon après-midi" : "Bonsoir");
+    if (p.streak >= 3){
+      return `${moment}, ${p.prenom} ! ${p.streak} jours de suite, bravo pour ta régularité 🌸`;
+    }
+    return `${moment}, ${p.prenom} ! Contente de te retrouver 🌸`;
+  }
+
+  function goalKey(id){ return 'cf_goal_' + id; }
+
+  function renderGoal(id){
+    const raw = localStorage.getItem(goalKey(id));
+    const goalForm = $('goalForm');
+    const goalCurrent = $('goalCurrent');
+    if (!raw){
+      goalForm.hidden = false;
+      goalCurrent.hidden = true;
+      return;
+    }
+    let g;
+    try{ g = JSON.parse(raw); }catch(e){ g = null; }
+    if (!g || g.date !== todayStr()){
+      localStorage.removeItem(goalKey(id));
+      goalForm.hidden = false;
+      goalCurrent.hidden = true;
+      return;
+    }
+    goalForm.hidden = true;
+    goalCurrent.hidden = false;
+    $('goalCheck').checked = !!g.done;
+    $('goalText').textContent = g.text;
+    $('goalText').classList.toggle('done', !!g.done);
+  }
+
+  function initNora(p){
+    $('noraGreeting').innerHTML = `<strong>Nora</strong><br>${noraGreetingText(p)}`;
+
+    document.querySelectorAll('.mood-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        const reply = $('moodReply');
+        reply.textContent = MOOD_REPLIES[btn.dataset.mood];
+        reply.classList.add('show');
+      });
+    });
+
+    renderGoal(p.id);
+
+    $('goalSaveBtn').addEventListener('click', () => {
+      const text = $('goalInput').value.trim();
+      if (!text) return;
+      localStorage.setItem(goalKey(p.id), JSON.stringify({ text, done:false, date: todayStr() }));
+      $('goalInput').value = '';
+      renderGoal(p.id);
+    });
+
+    $('goalCheck').addEventListener('change', () => {
+      const raw = localStorage.getItem(goalKey(p.id));
+      if (!raw) return;
+      const g = JSON.parse(raw);
+      g.done = $('goalCheck').checked;
+      localStorage.setItem(goalKey(p.id), JSON.stringify(g));
+      renderGoal(p.id);
+    });
+  }
+
+  function renderSavedProfilesList(){
+    const all = loadAllProfiles();
+    const ids = Object.keys(all);
+    const box = $('savedProfiles');
+    const divider = $('savedDivider');
+
+    if (ids.length === 0){
+      box.hidden = true;
+      divider.hidden = true;
+      return;
+    }
+
+    box.hidden = false;
+    divider.hidden = false;
+    box.innerHTML = '<p class="saved-title">Reprendre un carnet</p>';
+
+    ids.forEach(id => {
+      const p = all[id];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'saved-profile-btn';
+      btn.innerHTML = `<span class="saved-name">${p.prenom} ${p.nom || ''}</span><span class="saved-classe">${p.classe}</span>`;
+      btn.addEventListener('click', () => {
+        setActiveId(id);
+        renderDashboard(p);
+        initNora(p);
+      });
+      box.appendChild(btn);
+    });
+  }
+
   $('createBtn').addEventListener('click', createProfile);
   $('checkinBtn').addEventListener('click', checkin);
   $('editBtn').addEventListener('click', editProfile);
@@ -702,6 +1061,9 @@
   const existing = loadProfile();
   if (existing && existing.prenom && existing.classe){
     renderDashboard(existing);
+    initNora(existing);
+  } else {
+    renderSavedProfilesList();
   }
 })();
 </script>
