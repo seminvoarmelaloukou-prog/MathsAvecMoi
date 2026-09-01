@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://seminvoarmelaloukou-prog.github.io/MathsAvecMoi/sitemap.xml
