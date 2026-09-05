@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer une épreuve — Campus Flex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+  :root{
+    --ink:#1B2B22; --paper:#F5F1E4; --card:#FFFFFF;
+    --forest:#2F6F4E; --forest-dark:#1F4E36;
+    --amber:#E8A33D; --line:#DCD5C1; --muted:#6B7568;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; padding-bottom:60px; }
+  nav{ background-color:#2c3e8c; padding:14px 20px; position:sticky; top:0; z-index:100; }
+  nav h1{ color:#fff; font-family:'Fraunces', serif; font-weight:700; font-size:1.05rem; margin:0; }
+  .wrap{ max-width:700px; margin:0 auto; padding:0 18px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; margin-top:20px; }
+  .card h1{ font-family:'Fraunces', serif; font-size:1.3rem; margin:0 0 16px; }
+  label{ display:block; font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--forest-dark); margin:14px 0 6px; }
+  input[type=text], input[type=password], select, textarea{
+    width:100%; padding:11px 12px; border:1.5px solid var(--line); border-radius:9px;
+    font-family:'Work Sans', sans-serif; font-size:.95rem; background:#FCFAF4; color:var(--ink);
+  }
+  button.primary{
+    width:100%; margin-top:18px; padding:13px; border:none; border-radius:9px;
+    background:var(--forest); color:#fff; font-weight:600; font-size:1rem; cursor:pointer;
+  }
+  button.secondary{
+    width:100%; margin-top:10px; padding:11px; border:1.5px dashed var(--line); border-radius:9px;
+    background:transparent; color:var(--forest-dark); font-weight:600; font-size:.9rem; cursor:pointer;
+  }
+  .question-block{ border:1.5px solid var(--line); border-radius:12px; padding:14px; margin-top:16px; position:relative; background:#FCFAF4; }
+  .question-block .del{
+    position:absolute; top:10px; right:10px; background:none; border:none;
+    color:#B3401F; font-size:.8rem; cursor:pointer;
+  }
+  .choix-row{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .choix-row input[type=radio]{ width:18px; height:18px; accent-color:var(--forest); flex-shrink:0; }
+  .choix-row input[type=text]{ flex:1; }
+  .error{ color:#B3401F; font-size:.85rem; margin-top:8px; display:none; }
+  .success{ color:var(--forest-dark); font-size:.9rem; margin-top:8px; display:none; font-weight:600; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<nav><h1>📐 MathsAvecMoi — Créer une épreuve</h1></nav>
+
+<div class="wrap">
+
+  <section id="login" class="card">
+    <h1>Accès enseignant</h1>
+    <input type="password" id="pwdInput" placeholder="Mot de passe">
+    <p class="error" id="pwdError">Mot de passe incorrect.</p>
+    <button class="primary" id="pwdBtn">Entrer</button>
+  </section>
+
+  <section id="form" hidden>
+    <div class="card">
+      <h1>Nouvelle épreuve (QCM)</h1>
+
+      <label for="titre">Titre de l'épreuve</label>
+      <input type="text" id="titre" placeholder="Ex : Trigonométrie SA1">
+
+      <label for="classe">Classe concernée</label>
+      <select id="classe">
+        <option value="6ème">6ème</option>
+        <option value="5ème">5ème</option>
+        <option value="4ème">4ème</option>
+        <option value="3ème">3ème</option>
+        <option value="2nde A-B">2nde A-B</option>
+        <option value="2nde C">2nde C</option>
+        <option value="2nde D">2nde D</option>
+        <option value="1ère A-B">1ère A-B</option>
+        <option value="1ère C">1ère C</option>
+        <option value="1ère D">1ère D</option>
+        <option value="Tle A-B">Tle A-B</option>
+        <option value="Tle C">Tle C</option>
+        <option value="Tle D">Tle D</option>
+      </select>
+
+      <div id="questionsContainer"></div>
+
+      <button class="secondary" id="addQuestionBtn">+ Ajouter une question</button>
+      <p class="error" id="formError">Merci de compléter toutes les questions (texte, 4 choix, et la bonne réponse cochée).</p>
+      <p class="success" id="formSuccess">Épreuve enregistrée avec succès !</p>
+      <button class="primary" id="saveBtn">Enregistrer l'épreuve</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const MOT_DE_PASSE = "campusflex2026";
+  const $ = id => document.getElementById(id);
+  let compteurQuestions = 0;
+
+  function ajouterQuestion(){
+    const idx = compteurQuestions++;
+    const div = document.createElement('div');
+    div.className = 'question-block';
+    div.dataset.idx = idx;
+    div.innerHTML = `
+      <button type="button" class="del">Supprimer</button>
+      <label>Question ${idx + 1}</label>
+      <textarea rows="2" class="q-texte" placeholder="Ex : Combien vaut 12 x 8 ?"></textarea>
+      <label>Choix de réponses (coche la bonne)</label>
+      <div class="choix-row"><input type="radio" name="bonne-${idx}" value="0" checked><input type="text" class="q-choix" placeholder="Choix 1"></div>
+      <div class="choix-row"><input type="radio" name="bonne-${idx}" value="1"><input type="text" class="q-choix" placeholder="Choix 2"></div>
+      <div class="choix-row"><input type="radio" name="bonne-${idx}" value="2"><input type="text" class="q-choix" placeholder="Choix 3"></div>
+      <div class="choix-row"><input type="radio" name="bonne-${idx}" value="3"><input type="text" class="q-choix" placeholder="Choix 4"></div>
+    `;
+    div.querySelector('.del').addEventListener('click', () => div.remove());
+    $('questionsContainer').appendChild(div);
+  }
+
+  function collecterQuestions(){
+    const blocks = document.querySelectorAll('.question-block');
+    const questions = [];
+    for (const b of blocks){
+      const texte = b.querySelector('.q-texte').value.trim();
+      const choixInputs = b.querySelectorAll('.q-choix');
+      const choix = Array.from(choixInputs).map(i => i.value.trim());
+      const idx = b.dataset.idx;
+      const radio = b.querySelector(`input[name="bonne-${idx}"]:checked`);
+      const bonneReponse = radio ? parseInt(radio.value, 10) : 0;
+
+      if (!texte || choix.some(c => !c)) return null;
+      questions.push({ texte, choix, bonneReponse });
+    }
+    return questions;
+  }
+
+  $('addQuestionBtn').addEventListener('click', ajouterQuestion);
+  ajouterQuestion(); // une première question par défaut
+
+  $('saveBtn').addEventListener('click', () => {
+    const titre = $('titre').value.trim();
+    const classe = $('classe').value;
+    const questions = collecterQuestions();
+
+    $('formError').style.display = 'none';
+    $('formSuccess').style.display = 'none';
+
+    if (!titre || !questions || questions.length === 0){
+      $('formError').style.display = 'block';
+      return;
+    }
+
+    const nouvelleRef = db.ref('epreuves/' + classe).push();
+    nouvelleRef.set({ titre, classe, questions }).then(() => {
+      $('formSuccess').style.display = 'block';
+      $('titre').value = '';
+      $('questionsContainer').innerHTML = '';
+      compteurQuestions = 0;
+      ajouterQuestion();
+    }).catch(e => {
+      console.error(e);
+      $('formError').textContent = "Erreur d'enregistrement : " + e.message;
+      $('formError').style.display = 'block';
+    });
+  });
+
+  $('pwdBtn').addEventListener('click', () => {
+    if ($('pwdInput').value === MOT_DE_PASSE){
+      $('login').hidden = true;
+      $('form').hidden = false;
+      sessionStorage.setItem('cf_teacher_ok', '1');
+    } else {
+      $('pwdError').style.display = 'block';
+    }
+  });
+  $('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('pwdBtn').click(); });
+
+  if (sessionStorage.getItem('cf_teacher_ok') === '1'){
+    $('login').hidden = true;
+    $('form').hidden = false;
+  }
+})();
+</script>
+
+</body>
+  </html>
