@@ -4,40 +4,174 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MathsAvecMoi - 6ème</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="auth-guard.js"></script>
-  <style>
-    :root{ --indigo:#2c3e8c; --indigo-dark:#1e2c66; --amber:#f39c12; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background-color: #f5f7ff; color: #333; }
 
-    nav { background-color: var(--indigo); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
-    nav h1 { color: white; font-size: 20px; }
-    .nav-toggle{ display:none; }
-    .nav-toggle-label{ display:none; color:#fff; font-size:26px; cursor:pointer; }
-    nav ul { list-style: none; display: flex; gap: 20px; }
-    nav ul li a { color: white; text-decoration: none; font-size: 14px; padding-bottom: 4px; border-bottom: 2px solid transparent; transition: border-color .2s; }
-    nav ul li a:hover, nav ul li a.active { border-color: var(--amber); }
-    @media (max-width: 640px){
-      .nav-toggle-label{ display:block; }
-      nav ul{ position:absolute; top:100%; left:0; right:0; background:var(--indigo-dark); flex-direction:column; gap:0; max-height:0; overflow:hidden; transition:max-height .3s ease; }
-      nav ul li{ border-top:1px solid rgba(255,255,255,.1); }
-      nav ul li a{ display:block; padding:14px 20px; border-bottom:none; }
-      .nav-toggle:checked ~ ul{ max-height:300px; }
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
     }
 
-    header { background-color: #2c3e8c; color: white; text-align: center; padding: 30px 20px; }
-    header h2 { font-size: 26px; }
-    section { padding: 20px; }
-    h3.sa-title { color: white; background-color: #2c3e8c; padding: 10px 15px; border-radius: 8px; margin: 30px 0 15px; font-size: 18px; }
-    h3.sa-title .duree { font-weight: normal; font-size: 13px; opacity: 0.85; }
-    h4.seq-title { color: #2c3e8c; margin: 18px 0 8px; font-size: 15px; border-bottom: 2px solid #e0e4f7; padding-bottom: 4px; }
-    .devoir { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); line-height: 2.2; }
-    .devoir a { color: #f39c12; text-decoration: none; font-weight: bold; margin-right: 8px; }
-    .a-venir { color:#999; font-size:13px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7ff;
+      color: #333;
+    }
+
+    nav {
+      background-color: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-label {
+      display: none;
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+      transition: border-color .2s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      border-color: var(--amber);
+    }
+
+    @media (max-width: 640px) {
+
+      .nav-toggle-label {
+        display: block;
+      }
+
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .3s ease;
+      }
+
+      nav ul li {
+        border-top: 1px solid rgba(255,255,255,.1);
+      }
+
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 300px;
+      }
+    }
+
+    header {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    header h2 {
+      font-size: 26px;
+    }
+
+    section {
+      padding: 20px;
+    }
+
+    h3.sa-title {
+      color: white;
+      background-color: #2c3e8c;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 30px 0 15px;
+      font-size: 18px;
+    }
+
+    h3.sa-title .duree {
+      font-weight: normal;
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    h4.seq-title {
+      color: #2c3e8c;
+      margin: 18px 0 8px;
+      font-size: 15px;
+      border-bottom: 2px solid #e0e4f7;
+      padding-bottom: 4px;
+    }
+
+    .devoir {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      line-height: 2.2;
+    }
+
+    .devoir a {
+      color: #f39c12;
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .a-venir {
+      color: #999;
+      font-size: 13px;
+    }
+
     .qcm-link {
       display: inline-block;
       background: #2F6F4E;
@@ -49,143 +183,350 @@
       text-decoration: none;
       margin-top: 4px;
     }
-    .qcm-link:hover { background: #1F4E36; }
-    footer { background-color: #2c3e8c; color: white; text-align: center; padding: 15px; font-size: 13px; margin-top: 30px; }
+
+    .qcm-link:hover {
+      background: #1F4E36;
+    }
+
+    footer {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      margin-top: 30px;
+    }
   </style>
 </head>
+
 <body>
-<nav>
+
+  <nav>
+
     <h1>📐 MathsAvecMoi</h1>
+
     <input type="checkbox" id="nav-toggle" class="nav-toggle">
-    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+
+    <label for="nav-toggle" class="nav-toggle-label">
+      ☰
+    </label>
+
     <ul>
-      <li><a href="index.html">Accueil</a></li>
-      <li><a href="epreuves.html" class="active">Épreuves</a></li>
-      <li><a href="videos.html">Vidéos</a></li>
-      <li><a href="profil.html">Mon profil</a></li>
-      <li><a href="contact.html">Contact</a></li>
-      <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
+
+      <!-- Accueil protégé -->
+      <li>
+        <a href="accueil.html">Accueil</a>
+      </li>
+
+      <li>
+        <a href="epreuves.html" class="active">Épreuves</a>
+      </li>
+
+      <li>
+        <a href="videos.html">Vidéos</a>
+      </li>
+
+      <li>
+        <a href="profil.html">Mon profil</a>
+      </li>
+
+      <li>
+        <a href="contact.html">Contact</a>
+      </li>
+
+      <li>
+        <a href="#" onclick="deconnexion(); return false;">
+          Déconnexion
+        </a>
+      </li>
+
     </ul>
   </nav>
+
+
   <header>
+
     <h2>📚 Épreuves - 6ème</h2>
-    <p style="font-size:13px; margin-top:8px; opacity:0.9;">Classées dans l'ordre du programme officiel (SA1 → SA4)</p>
+
+    <p style="font-size:13px; margin-top:8px; opacity:0.9;">
+      Classées dans l'ordre du programme officiel (SA1 → SA4)
+    </p>
+
   </header>
+
 
   <section>
 
     <!-- ===== SA 1 : Configurations de l'espace ===== -->
-    <h3 class="sa-title">SA 1 — Configurations de l'espace </></h3>
 
-    <h4 class="seq-title">Séquence 1 — Cube et pavé droit</h4>
-    <div class="devoir" data-seq="sa1-seq1"><p class="a-venir">Bientôt disponible</p></div>
+    <h3 class="sa-title">
+      SA 1 — Configurations de l'espace
+    </h3>
 
-    <h4 class="seq-title">Séquence 2 — Cône de révolution</h4>
-    <div class="devoir" data-seq="sa1-seq2"><p class="a-venir">Bientôt disponible</p></div>
+    <h4 class="seq-title">
+      Séquence 1 — Cube et pavé droit
+    </h4>
 
-    <h4 class="seq-title">Séquence 3 — Sphère</h4>
-    <div class="devoir" data-seq="sa1-seq3"><p class="a-venir">Bientôt disponible</p></div>
+    <div class="devoir" data-seq="sa1-seq1">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 2 — Cône de révolution
+    </h4>
+
+    <div class="devoir" data-seq="sa1-seq2">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 3 — Sphère
+    </h4>
+
+    <div class="devoir" data-seq="sa1-seq3">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
 
     <!-- ===== SA 2 : Configurations du plan ===== -->
-    <h3 class="sa-title">SA 2 — Configurations du plan </></h3>
 
-    <h4 class="seq-title">Séquence 1 — Droites du plan</h4>
-    <div class="devoir" data-seq="sa2-seq1"><p class="a-venir">Bientôt disponible</p></div>
+    <h3 class="sa-title">
+      SA 2 — Configurations du plan
+    </h3>
 
-    <h4 class="seq-title">Séquence 2 — Segment de droite</h4>
-    <div class="devoir" data-seq="sa2-seq2"><p class="a-venir">Bientôt disponible</p></div>
+    <h4 class="seq-title">
+      Séquence 1 — Droites du plan
+    </h4>
 
-    <h4 class="seq-title">Séquence 3 — Cercle</h4>
-    <div class="devoir" data-seq="sa2-seq3"><p class="a-venir">Bientôt disponible</p></div>
+    <div class="devoir" data-seq="sa2-seq1">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
 
-    <h4 class="seq-title">Séquence 4 — Angles</h4>
-    <div class="devoir" data-seq="sa2-seq4"><p class="a-venir">Bientôt disponible</p></div>
 
-    <h4 class="seq-title">Séquence 5 — Triangles</h4>
-    <div class="devoir" data-seq="sa2-seq5"><p class="a-venir">Bientôt disponible</p></div>
+    <h4 class="seq-title">
+      Séquence 2 — Segment de droite
+    </h4>
 
-    <h4 class="seq-title">Séquence 6 — Parallélogramme</h4>
-    <div class="devoir" data-seq="sa2-seq6"><p class="a-venir">Bientôt disponible</p></div>
+    <div class="devoir" data-seq="sa2-seq2">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
 
-    <h4 class="seq-title">Séquence 7 — Entiers naturels (multiples, diviseurs, opérations)</h4>
-    <div class="devoir" data-seq="sa2-seq7"><p class="a-venir">Bientôt disponible</p></div>
 
-    <h4 class="seq-title">Séquence 8 — Nombres décimaux</h4>
-    <div class="devoir" data-seq="sa2-seq8"><p class="a-venir">Bientôt disponible</p></div>
+    <h4 class="seq-title">
+      Séquence 3 — Cercle
+    </h4>
 
-    <h4 class="seq-title">Séquence 9 — Fractions</h4>
-    <div class="devoir" data-seq="sa2-seq9"><p class="a-venir">Bientôt disponible</p></div>
+    <div class="devoir" data-seq="sa2-seq3">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
 
-    <h4 class="seq-title">Séquence 11 — Calcul littéral</h4>
-    <div class="devoir" data-seq="sa2-seq11"><p class="a-venir">Bientôt disponible</p></div>
+
+    <h4 class="seq-title">
+      Séquence 4 — Angles
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq4">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 5 — Triangles
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq5">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 6 — Parallélogramme
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq6">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 7 — Entiers naturels (multiples, diviseurs, opérations)
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq7">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 8 — Nombres décimaux
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq8">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 9 — Fractions
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq9">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 11 — Calcul littéral
+    </h4>
+
+    <div class="devoir" data-seq="sa2-seq11">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
 
     <!-- ===== SA 3 : Applications du plan ===== -->
-    <h3 class="sa-title">SA 3 — Applications du plan </></h3>
 
-    <h4 class="seq-title">Séquence 1 — Figures symétriques par rapport à une droite</h4>
-    <div class="devoir" data-seq="sa3-seq1"><p class="a-venir">Bientôt disponible</p></div>
+    <h3 class="sa-title">
+      SA 3 — Applications du plan
+    </h3>
 
-    <h4 class="seq-title">Séquence 2 — Figures symétriques par rapport à un point</h4>
-    <div class="devoir" data-seq="sa3-seq2"><p class="a-venir">Bientôt disponible</p></div>
+    <h4 class="seq-title">
+      Séquence 1 — Figures symétriques par rapport à une droite
+    </h4>
 
-    <h4 class="seq-title">Séquence 3 — Glissement</h4>
-    <div class="devoir" data-seq="sa3-seq3"><p class="a-venir">Bientôt disponible</p></div>
+    <div class="devoir" data-seq="sa3-seq1">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 2 — Figures symétriques par rapport à un point
+    </h4>
+
+    <div class="devoir" data-seq="sa3-seq2">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 3 — Glissement
+    </h4>
+
+    <div class="devoir" data-seq="sa3-seq3">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
 
     <!-- ===== SA 4 : Organisation des données ===== -->
-    <h3 class="sa-title">SA 4 — Organisation des données </></h3>
 
-    <h4 class="seq-title">Séquence 1 — Proportionnalité</h4>
-    <div class="devoir" data-seq="sa4-seq1"><p class="a-venir">Bientôt disponible</p></div>
+    <h3 class="sa-title">
+      SA 4 — Organisation des données
+    </h3>
 
-    <h4 class="seq-title">Séquence 2 — Statistiques</h4>
-    <div class="devoir" data-seq="sa4-seq2"><p class="a-venir">Bientôt disponible</p></div>
+    <h4 class="seq-title">
+      Séquence 1 — Proportionnalité
+    </h4>
+
+    <div class="devoir" data-seq="sa4-seq1">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <h4 class="seq-title">
+      Séquence 2 — Statistiques
+    </h4>
+
+    <div class="devoir" data-seq="sa4-seq2">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
 
   </section>
 
+
   <footer>
-    <p>© 2026 MathsAvecMoi.fr — Tous droits réservés</p>
+
+    <p>
+      © 2026 MathsAvecMoi.fr — Tous droits réservés
+    </p>
+
   </footer>
 
+
   <script>
-    // Va chercher, dans Firebase, les QCM créés pour la 6ème et ajoute
-    // un bouton "Faire le QCM" à côté du devoir correspondant, repéré
-    // par son identifiant de séquence (data-seq).
+
+    // Va chercher, dans Firebase, les QCM créés pour la 6ème
+    // et ajoute un bouton "Faire le QCM" à côté du devoir
+    // correspondant.
+
     (function(){
+
       const CLASSE = "6ème";
 
       if (typeof db === "undefined") {
-        console.error("Firebase / db non disponible, impossible de charger les QCM.");
+        console.error(
+          "Firebase / db non disponible, impossible de charger les QCM."
+        );
         return;
       }
 
-      db.ref("epreuves/" + CLASSE).once("value").then(function(snap){
-        const data = snap.val() || {};
+      db.ref("epreuves/" + CLASSE)
+        .once("value")
+        .then(function(snap){
 
-        Object.entries(data).forEach(function([id, epreuve]){
-          if (!epreuve.sequenceId) return;
+          const data = snap.val() || {};
 
-          const cible = document.querySelector(
-            '.devoir[data-seq="' + epreuve.sequenceId + '"]'
+          Object.entries(data).forEach(function([id, epreuve]){
+
+            if (!epreuve.sequenceId) return;
+
+            const cible = document.querySelector(
+              '.devoir[data-seq="' +
+              epreuve.sequenceId +
+              '"]'
+            );
+
+            if (!cible) return;
+
+            // Retire "Bientôt disponible"
+            // lorsqu'un QCM existe.
+            const enAttente = cible.querySelector(".a-venir");
+
+            if (enAttente) {
+              enAttente.remove();
+            }
+
+            const lien = document.createElement("a");
+
+            lien.className = "qcm-link";
+
+            lien.href =
+              "passer-epreuve.html?classe=" +
+              encodeURIComponent(CLASSE) +
+              "&id=" +
+              encodeURIComponent(id);
+
+            lien.textContent =
+              "📝 Faire le QCM — " + epreuve.titre;
+
+            cible.appendChild(lien);
+
+          });
+
+        })
+        .catch(function(e){
+
+          console.error(
+            "Erreur de chargement des QCM :",
+            e
           );
-          if (!cible) return;
 
-          // Retire le "Bientôt disponible" s'il est encore là
-          const enAttente = cible.querySelector(".a-venir");
-          if (enAttente) enAttente.remove();
-
-          const lien = document.createElement("a");
-          lien.className = "qcm-link";
-          lien.href = "passer-epreuve.html?classe=" + encodeURIComponent(CLASSE) + "&id=" + encodeURIComponent(id);
-          lien.textContent = "📝 Faire le QCM — " + epreuve.titre;
-
-          cible.appendChild(lien);
         });
-      }).catch(function(e){
-        console.error("Erreur de chargement des QCM :", e);
-      });
+
     })();
+
   </script>
 
 </body>
 </html>
-                                                                                       
