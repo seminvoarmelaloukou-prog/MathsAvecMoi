@@ -4,6 +4,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyCWKJQ_Cj4mdeGLQKDDEsH8M3QtWKWOLeY",
   authDomain: "campus-flex.firebaseapp.com",
+  databaseURL: "https://campus-flex-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "campus-flex",
   storageBucket: "campus-flex.firebasestorage.app",
   messagingSenderId: "279122888771",
@@ -12,3 +13,4 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.database();
