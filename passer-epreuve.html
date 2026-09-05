@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QCM — MathsAvecMoi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
+<style>
+  :root{
+    --ink:#1B2B22;
+    --paper:#F5F1E4;
+    --card:#FFFFFF;
+    --forest:#2F6F4E;
+    --forest-dark:#1F4E36;
+    --amber:#E8A33D;
+    --line:#DCD5C1;
+    --muted:#6B7568;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    padding-bottom:50px;
+  }
+  nav{
+    background-color:#2c3e8c;
+    padding:14px 20px;
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  nav h1{
+    color:#fff;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.05rem;
+    margin:0;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:0 18px; }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px;
+    margin-top:20px;
+  }
+  .card h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.3rem;
+    margin:0 0 6px;
+  }
+  .sous-titre{
+    color:var(--muted);
+    font-size:.88rem;
+    margin-bottom:10px;
+  }
+
+  .question-block{
+    border:1.5px solid var(--line);
+    border-radius:12px;
+    padding:16px;
+    margin-top:16px;
+    background:#FCFAF4;
+  }
+  .question-block .num{
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--forest-dark);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    margin-bottom:6px;
+  }
+  .question-block .texte{
+    font-size:1rem;
+    margin-bottom:10px;
+    line-height:1.4;
+  }
+  .question-block img{
+    max-width:100%;
+    border-radius:8px;
+    border:1px solid var(--line);
+    margin-bottom:12px;
+    display:block;
+  }
+  .choix-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    margin-top:8px;
+    background:#fff;
+    cursor:pointer;
+  }
+  .choix-row input[type=radio]{
+    width:18px;
+    height:18px;
+    accent-color:var(--forest);
+    flex-shrink:0;
+  }
+  .choix-row.correct{
+    border-color:var(--forest);
+    background:#EAF2ED;
+  }
+  .choix-row.incorrect{
+    border-color:#B3401F;
+    background:#FBEAE5;
+  }
+
+  button.primary{
+    width:100%;
+    margin-top:22px;
+    padding:14px;
+    border:none;
+    border-radius:9px;
+    background:var(--forest);
+    color:#fff;
+    font-weight:600;
+    font-size:1rem;
+    cursor:pointer;
+  }
+  button.primary:disabled{ opacity:.6; cursor:not-allowed; }
+
+  .error{ color:#B3401F; font-size:.88rem; margin-top:10px; }
+
+  .resultat{
+    text-align:center;
+    padding:10px 0 4px;
+  }
+  .resultat .score{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:2.4rem;
+    color:var(--forest-dark);
+  }
+  .resultat .lbl{ color:var(--muted); font-size:.9rem; margin-top:4px; }
+  .resultat .points{
+    margin-top:14px;
+    display:inline-block;
+    background:#FFF7E9;
+    border:1.5px solid var(--amber);
+    border-radius:20px;
+    padding:8px 18px;
+    font-weight:600;
+    color:#8A5A10;
+  }
+  .retour-link{
+    display:block;
+    text-align:center;
+    margin-top:20px;
+    color:var(--forest-dark);
+    font-weight:600;
+    text-decoration:none;
+  }
+
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<nav><h1>📐 MathsAvecMoi — QCM</h1></nav>
+
+<div class="wrap">
+
+  <section id="chargement" class="card">
+    <p>Chargement du QCM...</p>
+  </section>
+
+  <section id="pasConnecte" class="card" hidden>
+    <h1>Connecte-toi d'abord</h1>
+    <p class="sous-titre">Il faut un carnet actif pour passer un QCM.</p>
+    <a class="retour-link" href="profil.html">→ Aller à Mon profil</a>
+  </section>
+
+  <section id="quiz" class="card" hidden>
+    <h1 id="quizTitre">Épreuve</h1>
+    <p class="sous-titre" id="quizClasse"></p>
+    <div id="questionsWrap"></div>
+    <p class="error" id="quizError" hidden>Merci de répondre à toutes les questions avant de valider.</p>
+    <button class="primary" id="validerBtn">Valider mes réponses</button>
+  </section>
+
+  <section id="resultat" class="card" hidden>
+    <div class="resultat">
+      <div class="score" id="scoreTexte">0 / 0</div>
+      <div class="lbl">bonnes réponses</div>
+      <div class="points" id="pointsTexte">+0 points</div>
+    </div>
+    <a class="retour-link" href="epreuves.html">→ Retour aux épreuves</a>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  const params = new URLSearchParams(window.location.search);
+  const classe = params.get("classe");
+  const epreuveId = params.get("id");
+
+  const POINTS_PAR_BONNE_REPONSE = 2;
+
+  function afficherSection(id){
+    ["chargement","pasConnecte","quiz","resultat"].forEach(s => {
+      $(s).hidden = (s !== id);
+    });
+  }
+
+  // ---- Récupération du profil actif (mêmes clés que profil.html) ----
+  function getProfilActif(){
+    try{
+      const activeId = localStorage.getItem("cf_active");
+      if (!activeId) return null;
+      const profiles = JSON.parse(localStorage.getItem("cf_profiles") || "{}");
+      const profil = profiles[activeId];
+      if (!profil) return null;
+      return { id: activeId, profil: profil, profiles: profiles };
+    }catch(e){
+      console.error("Erreur lecture profil local :", e);
+      return null;
+    }
+  }
+
+  function sauvegarderProfilLocal(profiles, activeId, profilMisAJour){
+    profiles[activeId] = profilMisAJour;
+    localStorage.setItem("cf_profiles", JSON.stringify(profiles));
+  }
+
+  if (!classe || !epreuveId){
+    afficherSection("pasConnecte");
+    $("pasConnecte").querySelector("h1").textContent = "Lien invalide";
+    $("pasConnecte").querySelector(".sous-titre").textContent = "Ce lien de QCM est incomplet.";
+    return;
+  }
+
+  const session = getProfilActif();
+  if (!session){
+    afficherSection("pasConnecte");
+    return;
+  }
+
+  if (typeof db === "undefined"){
+    console.error("Firebase / db non disponible.");
+    afficherSection("pasConnecte");
+    $("pasConnecte").querySelector("h1").textContent = "Erreur de connexion";
+    $("pasConnecte").querySelector(".sous-titre").textContent = "Impossible de joindre le serveur.";
+    return;
+  }
+
+  let epreuveActuelle = null;
+
+  db.ref("epreuves/" + classe + "/" + epreuveId).once("value").then(function(snap){
+    const epreuve = snap.val();
+    if (!epreuve){
+      afficherSection("pasConnecte");
+      $("pasConnecte").querySelector("h1").textContent = "QCM introuvable";
+      $("pasConnecte").querySelector(".sous-titre").textContent = "Cette épreuve n'existe pas ou plus.";
+      return;
+    }
+
+    epreuveActuelle = epreuve;
+    construireQuiz(epreuve);
+    afficherSection("quiz");
+  }).catch(function(e){
+    console.error("Erreur de chargement du QCM :", e);
+    afficherSection("pasConnecte");
+    $("pasConnecte").querySelector("h1").textContent = "Erreur";
+    $("pasConnecte").querySelector(".sous-titre").textContent = "Impossible de charger ce QCM.";
+  });
+
+  function construireQuiz(epreuve){
+    $("quizTitre").textContent = epreuve.titre || "Épreuve";
+    $("quizClasse").textContent = epreuve.classe || classe;
+
+    const wrap = $("questionsWrap");
+    wrap.innerHTML = "";
+
+    (epreuve.questions || []).forEach(function(q, i){
+      const bloc = document.createElement("div");
+      bloc.className = "question-block";
+      bloc.dataset.idx = i;
+
+      let html = `<div class="num">Question ${i + 1}</div>`;
+      html += `<div class="texte">${q.texte || ""}</div>`;
+      if (q.imageUrl){
+        html += `<img src="${q.imageUrl}" alt="Figure de la question ${i + 1}">`;
+      }
+
+      (q.choix || []).forEach(function(c, j){
+        html += `
+          <label class="choix-row" data-choix="${j}">
+            <input type="radio" name="q${i}" value="${j}">
+            <span>${c}</span>
+          </label>
+        `;
+      });
+
+      bloc.innerHTML = html;
+      wrap.appendChild(bloc);
+    });
+  }
+
+  $("validerBtn").addEventListener("click", function(){
+    const questions = epreuveActuelle.questions || [];
+    const blocs = document.querySelectorAll(".question-block");
+
+    let toutesRepondues = true;
+    const reponses = [];
+
+    blocs.forEach(function(bloc, i){
+      const radio = bloc.querySelector(`input[name="q${i}"]:checked`);
+      if (!radio){
+        toutesRepondues = false;
+        reponses.push(null);
+      } else {
+        reponses.push(parseInt(radio.value, 10));
+      }
+    });
+
+    if (!toutesRepondues){
+      $("quizError").hidden = false;
+      return;
+    }
+    $("quizError").hidden = true;
+    $("validerBtn").disabled = true;
+
+    // Correction + affichage visuel
+    let bonnesReponses = 0;
+    blocs.forEach(function(bloc, i){
+      const bonneIdx = questions[i].bonneReponse;
+      const donneeIdx = reponses[i];
+      if (donneeIdx === bonneIdx) bonnesReponses++;
+
+      bloc.querySelectorAll(".choix-row").forEach(function(row){
+        const idx = parseInt(row.dataset.choix, 10);
+        if (idx === bonneIdx) row.classList.add("correct");
+        else if (idx === donneeIdx) row.classList.add("incorrect");
+        row.querySelector("input").disabled = true;
+      });
+    });
+
+    const total = questions.length;
+    const pointsGagnes = bonnesReponses * POINTS_PAR_BONNE_REPONSE;
+
+    enregistrerResultat(bonnesReponses, total, pointsGagnes);
+
+    setTimeout(function(){
+      $("scoreTexte").textContent = bonnesReponses + " / " + total;
+      $("pointsTexte").textContent = "+" + pointsGagnes + " points";
+      afficherSection("resultat");
+    }, 1200);
+  });
+
+  function enregistrerResultat(bonnesReponses, total, pointsGagnes){
+    const { id: telephone, profil, profiles } = session;
+
+    // 1. Mettre à jour les points en local
+    const profilMisAJour = Object.assign({}, profil, {
+      points: (profil.points || 0) + pointsGagnes
+    });
+    sauvegarderProfilLocal(profiles, telephone, profilMisAJour);
+
+    // 2. Mettre à jour les points côté serveur (Firebase)
+    db.ref("eleves/" + telephone).update({
+      points: profilMisAJour.points
+    }).catch(function(e){
+      console.error("Erreur de synchronisation des points :", e);
+    });
+
+    // 3. Enregistrer le résultat de ce QCM (visible plus tard dans le tableau de bord)
+    db.ref("resultats/" + classe + "/" + epreuveId + "/" + telephone).set({
+      prenom: profil.prenom || "",
+      nom: profil.nom || "",
+      titre: epreuveActuelle.titre || "",
+      score: bonnesReponses,
+      total: total,
+      pointsGagnes: pointsGagnes,
+      date: new Date().toISOString()
+    }).catch(function(e){
+      console.error("Erreur d'enregistrement du résultat :", e);
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
+
