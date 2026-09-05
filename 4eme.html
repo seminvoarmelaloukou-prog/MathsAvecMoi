@@ -4,112 +4,287 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MathsAvecMoi - 4ème</title>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="auth-guard.js"></script>
-  <style>
-    :root{ --indigo:#2c3e8c; --indigo-dark:#1e2c66; --amber:#f39c12; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background-color: #f5f7ff; color: #333; }
 
-    nav { background-color: var(--indigo); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
-    nav h1 { color: white; font-size: 20px; }
-    .nav-toggle{ display:none; }
-    .nav-toggle-label{ display:none; color:#fff; font-size:26px; cursor:pointer; }
-    nav ul { list-style: none; display: flex; gap: 20px; }
-    nav ul li a { color: white; text-decoration: none; font-size: 14px; padding-bottom: 4px; border-bottom: 2px solid transparent; transition: border-color .2s; }
-    nav ul li a:hover, nav ul li a.active { border-color: var(--amber); }
-    @media (max-width: 640px){
-      .nav-toggle-label{ display:block; }
-      nav ul{ position:absolute; top:100%; left:0; right:0; background:var(--indigo-dark); flex-direction:column; gap:0; max-height:0; overflow:hidden; transition:max-height .3s ease; }
-      nav ul li{ border-top:1px solid rgba(255,255,255,.1); }
-      nav ul li a{ display:block; padding:14px 20px; border-bottom:none; }
-      .nav-toggle:checked ~ ul{ max-height:300px; }
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
     }
 
-    header { background-color: #2c3e8c; color: white; text-align: center; padding: 30px 20px; }
-    header h2 { font-size: 26px; }
-    section { padding: 20px; }
-    h3 { color: #2c3e8c; margin: 25px 0 10px; border-bottom: 2px solid #2c3e8c; padding-bottom: 5px; }
-    h4 { color: #f39c12; margin: 12px 0 6px; font-size: 15px; }
-    .devoir { background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); color: #999; font-style: italic; }
-    footer { background-color: #2c3e8c; color: white; text-align: center; padding: 15px; font-size: 13px; margin-top: 30px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7ff;
+      color: #333;
+    }
+
+    nav {
+      background-color: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-label {
+      display: none;
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+      transition: border-color .2s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      border-color: var(--amber);
+    }
+
+    @media (max-width: 640px) {
+      .nav-toggle-label {
+        display: block;
+      }
+
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .3s ease;
+      }
+
+      nav ul li {
+        border-top: 1px solid rgba(255,255,255,.1);
+      }
+
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 300px;
+      }
+    }
+
+    header {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    header h2 {
+      font-size: 26px;
+    }
+
+    section {
+      padding: 20px;
+    }
+
+    h3 {
+      color: #2c3e8c;
+      margin: 25px 0 10px;
+      border-bottom: 2px solid #2c3e8c;
+      padding-bottom: 5px;
+    }
+
+    h4 {
+      color: #f39c12;
+      margin: 12px 0 6px;
+      font-size: 15px;
+    }
+
+    .devoir {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      color: #999;
+      font-style: italic;
+    }
+
+    footer {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      margin-top: 30px;
+    }
   </style>
 </head>
+
 <body>
 
   <nav>
     <h1>📐 MathsAvecMoi</h1>
+
     <input type="checkbox" id="nav-toggle" class="nav-toggle">
     <label for="nav-toggle" class="nav-toggle-label">☰</label>
+
     <ul>
-      <li><a href="index.html">Accueil</a></li>
-      <li><a href="epreuves.html" class="active">Épreuves</a></li>
-      <li><a href="videos.html">Vidéos</a></li>
-      <li><a href="profil.html">Mon profil</a></li>
-      <li><a href="contact.html">Contact</a></li>
-      <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
+
+      <!-- Accueil protégé -->
+      <li>
+        <a href="accueil.html">Accueil</a>
+      </li>
+
+      <li>
+        <a href="epreuves.html" class="active">Épreuves</a>
+      </li>
+
+      <li>
+        <a href="videos.html">Vidéos</a>
+      </li>
+
+      <li>
+        <a href="profil.html">Mon profil</a>
+      </li>
+
+      <li>
+        <a href="contact.html">Contact</a>
+      </li>
+
+      <li>
+        <a href="#" onclick="deconnexion(); return false;">
+          Déconnexion
+        </a>
+      </li>
+
     </ul>
   </nav>
+
   <header>
     <h2>📚 Épreuves - 4ème</h2>
   </header>
+
   <section>
 
     <h3>SA1 — Configurations du plan</h3>
+
     <h4>Séquence 1 : Angle au centre d'un cercle</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 2 : Distance</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 3 : Triangles</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 4 : Polygones réguliers</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 5 : Nombres décimaux</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 6 : Nombres rationnels</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 7 : Puissances</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 8 : Calculs sur les expressions algébriques</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
+
     <h3>SA2 — Configurations de l'espace</h3>
+
     <h4>Séquence 1 : Pyramide</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 2 : Cône de révolution</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 3 : Représentation en perspective cavalière</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 4 : Boule et Sphère</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 5 : Notion de droites et plans</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 6 : Arithmétique - PPCM et PGCD</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
+
     <h3>SA3 — Applications du plan</h3>
+
     <h4>Séquence 1 : Symétrie centrale</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 2 : Symétrie orthogonale</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 3 : Translation</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 4 : Projection</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
+
     <h3>SA4 — Organisation des données</h3>
+
     <h4>Séquence 1 : Équations et inéquations</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 2 : Proportionnalité</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
+
     <h4>Séquence 3 : Statistique</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
   </section>
+
   <footer>
     <p>© 2026 MathsAvecMoi.fr — Tous droits réservés</p>
   </footer>
+
 </body>
 </html>
