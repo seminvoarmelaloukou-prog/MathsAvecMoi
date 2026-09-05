@@ -127,6 +127,13 @@
     border-color:var(--forest);
   }
 
+  .section-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.1rem;
+    margin:28px 0 4px;
+  }
+
   table{
     width:100%;
     border-collapse:collapse;
@@ -159,6 +166,22 @@
     font-weight:600;
   }
   .stale{ color:#B3401F; font-weight:600; }
+  .score-badge{
+    display:inline-block;
+    padding:2px 9px;
+    border-radius:20px;
+    font-size:.72rem;
+    font-weight:700;
+  }
+  .score-badge.bon{ background:#EAF2ED; color:var(--forest-dark); }
+  .score-badge.moyen{ background:#FFF3DA; color:#8A5A10; }
+  .score-badge.faible{ background:#FBEAE5; color:#B3401F; }
+  .empty-msg{
+    color:var(--muted);
+    font-size:.85rem;
+    margin-top:16px;
+    text-align:center;
+  }
   [hidden]{ display:none !important; }
 
   .btn-whatsapp{
@@ -215,6 +238,22 @@
       </thead>
       <tbody id="tbody"></tbody>
     </table>
+
+    <div class="section-title">Résultats des évaluations</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Élève</th>
+          <th>Classe</th>
+          <th>Épreuve</th>
+          <th>Score</th>
+          <th>Points</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="resultatsBody"></tbody>
+    </table>
+    <p class="empty-msg" id="resultatsVide" hidden>Aucun résultat d'évaluation pour l'instant.</p>
   </section>
 
 </div>
@@ -225,6 +264,7 @@
 
   const $ = id => document.getElementById(id);
   let tousLesEleves = [];
+  let tousLesResultats = [];
   let classeActive = "";
 
   function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -254,7 +294,7 @@
   window.contacterWhatsApp = contacterWhatsApp;
 
   function chargerDonnees(){
-    db.ref('eleves').once('value').then(snap => {
+    const chargerEleves = db.ref('eleves').once('value').then(snap => {
       const data = snap.val() || {};
       // La clé de chaque nœud est le numéro de téléphone : on la récupère
       // même si le champ "telephone" n'est pas dupliqué dans l'objet.
@@ -262,8 +302,37 @@
         ...e,
         telephone: e.telephone || tel
       }));
+    });
+
+    const chargerResultats = db.ref('resultats').once('value').then(snap => {
+      const data = snap.val() || {};
+      const liste = [];
+      // Structure : resultats/{classe}/{epreuveId}/{telephone} => {prenom, nom, titre, score, total, pointsGagnes, date}
+      Object.entries(data).forEach(([classe, epreuves]) => {
+        Object.entries(epreuves || {}).forEach(([epreuveId, parTelephone]) => {
+          Object.entries(parTelephone || {}).forEach(([telephone, r]) => {
+            liste.push({
+              classe: classe,
+              epreuveId: epreuveId,
+              telephone: telephone,
+              prenom: r.prenom || '',
+              nom: r.nom || '',
+              titre: r.titre || '',
+              score: r.score || 0,
+              total: r.total || 0,
+              pointsGagnes: r.pointsGagnes || 0,
+              date: r.date || null
+            });
+          });
+        });
+      });
+      tousLesResultats = liste;
+    });
+
+    Promise.all([chargerEleves, chargerResultats]).then(() => {
       construireFiltres();
       afficherTableau();
+      afficherResultats();
       afficherStats();
     }).catch(e => {
       console.error("Erreur de chargement", e);
@@ -271,7 +340,10 @@
   }
 
   function construireFiltres(){
-    const classes = [...new Set(tousLesEleves.map(e => e.classe).filter(Boolean))].sort();
+    const classesEleves = tousLesEleves.map(e => e.classe).filter(Boolean);
+    const classesResultats = tousLesResultats.map(r => r.classe).filter(Boolean);
+    const classes = [...new Set([...classesEleves, ...classesResultats])].sort();
+
     const row = $('filterRow');
     row.innerHTML = '<button class="filter-btn active" data-classe="">Toutes classes</button>';
     classes.forEach(c => {
@@ -287,6 +359,7 @@
         btn.classList.add('active');
         classeActive = btn.dataset.classe;
         afficherTableau();
+        afficherResultats();
       });
     });
   }
@@ -338,6 +411,51 @@
     });
   }
 
+  function formaterDate(iso){
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return '—';
+    return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' })
+      + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  }
+
+  function classeScoreBadge(score, total){
+    if (!total) return 'faible';
+    const ratio = score / total;
+    if (ratio >= 0.7) return 'bon';
+    if (ratio >= 0.4) return 'moyen';
+    return 'faible';
+  }
+
+  function afficherResultats(){
+    const liste = classeActive
+      ? tousLesResultats.filter(r => r.classe === classeActive)
+      : tousLesResultats;
+
+    // Les plus récents en premier
+    liste.sort((a,b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    const tbody = $('resultatsBody');
+    tbody.innerHTML = '';
+
+    $('resultatsVide').hidden = liste.length > 0;
+
+    liste.forEach(r => {
+      const badgeClasse = classeScoreBadge(r.score, r.total);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.prenom || ''} ${r.nom || ''}</td>
+        <td><span class="classe-tag">${r.classe || '—'}</span></td>
+        <td>${r.titre || '—'}</td>
+        <td><span class="score-badge ${badgeClasse}">${r.score} / ${r.total}</span></td>
+        <td>+${r.pointsGagnes}</td>
+        <td>${formaterDate(r.date)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
   $('pwdBtn').addEventListener('click', () => {
     if ($('pwdInput').value === MOT_DE_PASSE){
       $('login').hidden = true;
@@ -363,3 +481,4 @@
 
 </body>
 </html>
+                     
