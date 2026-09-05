@@ -160,6 +160,22 @@
   }
   .stale{ color:#B3401F; font-weight:600; }
   [hidden]{ display:none !important; }
+
+  .btn-whatsapp{
+    background:#25D366;
+    color:#fff;
+    border:none;
+    padding:6px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:.78rem;
+    white-space:nowrap;
+  }
+  .btn-whatsapp:hover{ background:#1ebe5d; }
+  .btn-whatsapp:disabled{
+    background:#C9C4B4;
+    cursor:not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -194,6 +210,7 @@
           <th>Points</th>
           <th>Série</th>
           <th>Dernier passage</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -217,10 +234,34 @@
     return Math.round((new Date(todayStr()) - new Date(dateStr)) / 86400000);
   }
 
+  // Nettoie un numéro pour le format attendu par wa.me : chiffres uniquement, sans "+"
+  function formaterNumeroWhatsApp(telephone){
+    if (!telephone) return null;
+    return telephone.replace(/[^0-9]/g, '');
+  }
+
+  function contacterWhatsApp(telephone, prenom){
+    const numero = formaterNumeroWhatsApp(telephone);
+    if (!numero){
+      alert("Numéro introuvable pour cet élève.");
+      return;
+    }
+    const message = `Bonjour ${prenom || ''}, ici ton enseignant de Campus Flex. J'espère que tes révisions se passent bien !`;
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  }
+  // Rendue accessible depuis les attributs onclick générés dynamiquement
+  window.contacterWhatsApp = contacterWhatsApp;
+
   function chargerDonnees(){
     db.ref('eleves').once('value').then(snap => {
       const data = snap.val() || {};
-      tousLesEleves = Object.values(data);
+      // La clé de chaque nœud est le numéro de téléphone : on la récupère
+      // même si le champ "telephone" n'est pas dupliqué dans l'objet.
+      tousLesEleves = Object.entries(data).map(([tel, e]) => ({
+        ...e,
+        telephone: e.telephone || tel
+      }));
       construireFiltres();
       afficherTableau();
       afficherStats();
@@ -276,6 +317,9 @@
         ? (gap === 0 ? "Aujourd'hui" : `il y a ${gap} j`)
         : "Jamais";
 
+      const numero = formaterNumeroWhatsApp(e.telephone);
+      const prenomEch = (e.prenom || '').replace(/'/g, "\\'");
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${e.prenom || ''} ${e.nom || ''}</td>
@@ -283,6 +327,12 @@
         <td>${e.points || 0}</td>
         <td>${e.streak || 0} (max ${e.bestStreak || 0})</td>
         <td class="${staleClass}">${dernierTexte}</td>
+        <td>
+          <button class="btn-whatsapp" ${numero ? '' : 'disabled'}
+            onclick="contacterWhatsApp('${e.telephone || ''}', '${prenomEch}')">
+            📱 Contacter
+          </button>
+        </td>
       `;
       tbody.appendChild(tr);
     });
