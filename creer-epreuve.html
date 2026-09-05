@@ -1282,3 +1282,56 @@ button.secondary{
 
           $("pwdError")
             .style.display =
+            "block";
+
+        }
+
+      }
+    );
+
+
+  /* Entrée clavier */
+
+  $("pwdInput")
+    .addEventListener(
+      "keydown",
+      function(e){
+
+        if (
+          e.key === "Enter"
+        ){
+
+          $("pwdBtn").click();
+
+        }
+
+      }
+    );
+
+
+  /* ================================
+     SESSION EXISTANTE
+  ================================= */
+
+  if (
+    sessionStorage.getItem(
+      "cf_teacher_ok"
+    ) === "1"
+  ){
+
+    $("login").hidden =
+      true;
+
+    $("form").hidden =
+      false;
+
+  }
+
+})();
+
+</script>
+
+</body>
+
+</html>
+  
