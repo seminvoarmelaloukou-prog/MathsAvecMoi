@@ -11,10 +11,28 @@ const firebaseConfig = {
   appId: "1:279122888771:web:51a4bcce98c4a7e269acf6"
 };
 
-// Initialisation Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialisation de Firebase une seule fois
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
-// Services Firebase
+// Firebase Authentication
 const auth = firebase.auth();
-const db = firebase.database();
-const storage = firebase.storage();
+
+// Conserver la connexion localement
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .catch(function(erreur) {
+    console.warn("Persistance de la connexion impossible :", erreur);
+  });
+
+// Firebase Database
+// Disponible uniquement sur les pages qui chargent le SDK Database
+const db = firebase.database
+  ? firebase.database()
+  : null;
+
+// Firebase Storage
+// Disponible uniquement sur les pages qui chargent le SDK Storage
+const storage = firebase.storage
+  ? firebase.storage()
+  : null;
