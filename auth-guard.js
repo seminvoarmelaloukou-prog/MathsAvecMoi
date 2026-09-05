@@ -1,38 +1,75 @@
 // auth-guard.js
-// Protège les pages contre l'accès sans session active, et gère la déconnexion.
-// Ne supprime jamais les données des carnets : seule la "session active" est retirée.
+// Protection des pages de MathsAvecMoi avec Firebase Authentication.
 
 (function () {
-  var STORAGE_PROFILES = "cf_profiles"; // { [id]: profil }
-  var STORAGE_ACTIVE = "cf_active";     // id du profil actuellement connecté
-  var PAGE_PROFIL = "profil.html";
 
-  function pageActuelle() {
-    var chemin = window.location.pathname;
-    return chemin.substring(chemin.lastIndexOf("/") + 1);
-  }
+// Pages accessibles sans connexion
+var PAGES_PUBLIQUES = [
+"",
+"index.html",
+"inscription.html",
+"connexion.html"
+];
 
-  function sessionActive() {
-    try {
-      var id = localStorage.getItem(STORAGE_ACTIVE);
-      if (!id) return false;
-      var raw = localStorage.getItem(STORAGE_PROFILES);
-      var all = raw ? JSON.parse(raw) : {};
-      return !!all[id];
-    } catch (e) {
-      return false;
+function pageActuelle() {
+var chemin = window.location.pathname;
+return chemin.substring(chemin.lastIndexOf("/") + 1);
+}
+
+function estPagePublique() {
+return PAGES_PUBLIQUES.indexOf(pageActuelle()) !== -1;
+}
+
+// Attendre que Firebase Authentication soit disponible
+function verifierConnexion() {
+
+if (typeof firebase === "undefined" || !firebase.auth) {
+  console.error("Firebase Authentication n'est pas disponible.");
+  return;
+}
+
+firebase.auth().onAuthStateChanged(function (user) {
+
+  // Si l'utilisateur n'est pas connecté
+  if (!user) {
+
+    // Les pages publiques restent accessibles
+    if (!estPagePublique()) {
+      window.location.href = "index.html";
     }
+
+    return;
   }
 
-  // Si aucune session active et qu'on n'est pas déjà sur profil.html -> redirection
-  if (!sessionActive() && pageActuelle() !== PAGE_PROFIL) {
-    window.location.href = PAGE_PROFIL;
+  // Si l'utilisateur est déjà connecté et arrive
+  // sur la page publique, on peut l'envoyer vers l'accueil.
+  if (
+    pageActuelle() === "index.html" ||
+    pageActuelle() === "connexion.html" ||
+    pageActuelle() === "inscription.html" ||
+    pageActuelle() === ""
+  ) {
+    window.location.href = "accueil.html";
   }
 
-  // Fonction appelée par le lien "Déconnexion" du menu
-  // Retire uniquement la session active — les données du carnet restent sauvegardées.
-  window.deconnexion = function () {
-    localStorage.removeItem(STORAGE_ACTIVE);
-    window.location.href = PAGE_PROFIL;
-  };
+});
+
+}
+
+// Fonction de déconnexion
+window.deconnexion = function () {
+
+firebase.auth()
+  .signOut()
+  .then(function () {
+    window.location.href = "index.html";
+  })
+  .catch(function (erreur) {
+    console.error("Erreur lors de la déconnexion :", erreur);
+  });
+
+};
+
+verifierConnexion();
+
 })();
