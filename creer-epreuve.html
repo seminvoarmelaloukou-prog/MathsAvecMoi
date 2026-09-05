@@ -90,6 +90,16 @@ label{
   margin:14px 0 6px;
 }
 
+.hint{
+  font-size:.78rem;
+  color:var(--muted);
+  margin-top:-4px;
+  margin-bottom:6px;
+  text-transform:none;
+  letter-spacing:normal;
+  font-weight:400;
+}
+
 input[type=text],
 input[type=password],
 select,
@@ -434,6 +444,24 @@ button.secondary{
         </option>
 
       </select>
+
+
+      <!-- IDENTIFIANT DE SÉQUENCE -->
+
+      <label for="sequenceId">
+        Identifiant de séquence
+      </label>
+
+      <p class="hint">
+        Doit correspondre exactement à l'identifiant mis sur la page Épreuves de la classe
+        (ex : sa2-seq9). C'est ce qui permet au QCM d'apparaître au bon endroit.
+      </p>
+
+      <input
+        type="text"
+        id="sequenceId"
+        placeholder="Ex : sa2-seq9"
+      >
 
 
       <!-- QUESTIONS -->
@@ -946,6 +974,11 @@ button.secondary{
         const classe =
           $("classe").value;
 
+        const sequenceId =
+          $("sequenceId")
+            .value
+            .trim();
+
 
         const questions =
           collecterQuestions();
@@ -965,13 +998,14 @@ button.secondary{
 
         if (
           !titre ||
+          !sequenceId ||
           !questions ||
           questions.length === 0
         ){
 
           $("formError")
             .textContent =
-            "Merci de compléter toutes les questions (texte, 4 choix, et la bonne réponse cochée).";
+            "Merci de compléter le titre, l'identifiant de séquence, et toutes les questions (texte, 4 choix, et la bonne réponse cochée).";
 
           $("formError")
             .style.display =
@@ -1136,6 +1170,9 @@ button.secondary{
             classe:
               classe,
 
+            sequenceId:
+              sequenceId,
+
             questions:
               questionsFinales
 
@@ -1159,6 +1196,9 @@ button.secondary{
           /* Réinitialiser */
 
           $("titre").value =
+            "";
+
+          $("sequenceId").value =
             "";
 
 
@@ -1242,55 +1282,3 @@ button.secondary{
 
           $("pwdError")
             .style.display =
-            "block";
-
-        }
-
-      }
-    );
-
-
-  /* Entrée clavier */
-
-  $("pwdInput")
-    .addEventListener(
-      "keydown",
-      function(e){
-
-        if (
-          e.key === "Enter"
-        ){
-
-          $("pwdBtn").click();
-
-        }
-
-      }
-    );
-
-
-  /* ================================
-     SESSION EXISTANTE
-  ================================= */
-
-  if (
-    sessionStorage.getItem(
-      "cf_teacher_ok"
-    ) === "1"
-  ){
-
-    $("login").hidden =
-      true;
-
-    $("form").hidden =
-      false;
-
-  }
-
-})();
-
-</script>
-
-</body>
-
-      </html>
