@@ -1323,4 +1323,528 @@ button.secondary{
       );
 
 
-      container.
+    container.appendChild(label);
+
+    });
+
+
+    $('validerBtn').disabled = true;
+
+
+    $('validerBtn').textContent =
+      'Valider ma réponse';
+
+  }
+
+
+  /* ============================================
+     VALIDATION
+  ============================================ */
+
+  function validerReponse(){
+
+    if(reponseValidee){
+
+      const total =
+        Object.keys(
+          epreuveActuelle.questions || {}
+        ).length;
+
+
+      questionIndex++;
+
+
+      if(questionIndex < total){
+
+        afficherQuestion();
+
+      }else{
+
+        terminerEpreuve();
+
+      }
+
+
+      return;
+
+    }
+
+
+    const ids =
+      Object.keys(
+        epreuveActuelle.questions || {}
+      );
+
+
+    const q =
+      epreuveActuelle.questions[
+        ids[questionIndex]
+      ];
+
+
+    const selection =
+      document.querySelector(
+        'input[name="reponse"]:checked'
+      );
+
+
+    if(!selection) return;
+
+
+    const choisi =
+      parseInt(
+        selection.value,
+        10
+      );
+
+
+    const bonne =
+      Number(q.bonneReponse);
+
+
+    document
+      .querySelectorAll('.choix-option')
+      .forEach((label,i) => {
+
+        if(i === bonne){
+
+          label.classList.add(
+            'correct'
+          );
+
+        }
+
+        if(i === choisi && i !== bonne){
+
+          label.classList.add(
+            'incorrect'
+          );
+
+        }
+
+      });
+
+
+    const correct =
+      choisi === bonne;
+
+
+    if(correct){
+
+      bonnesReponses++;
+
+    }
+
+
+    historiqueReponses.push({
+
+      question:
+        q.texte || '',
+
+      choix:
+        choisi,
+
+      bonneReponse:
+        bonne,
+
+      correct:
+        correct
+
+    });
+
+
+    reponseValidee = true;
+
+
+    const dernier =
+      questionIndex === ids.length - 1;
+
+
+    $('validerBtn').textContent =
+      dernier
+        ? 'Voir mon résultat'
+        : 'Question suivante';
+
+  }
+
+
+  /* ============================================
+     TERMINER EPREUVE
+  ============================================ */
+
+  function terminerEpreuve(){
+
+    arreterChronometre();
+
+
+    const total =
+      Object.keys(
+        epreuveActuelle.questions || {}
+      ).length;
+
+
+    if(total <= 0){
+
+      retourListe();
+
+      return;
+    }
+
+
+    const points =
+      bonnesReponses * 5;
+
+
+    const note =
+      (bonnesReponses / total) * 20;
+
+
+    if(profilActif){
+
+      profilActif.points =
+        Number(
+          profilActif.points || 0
+        ) + points;
+
+
+      sauvegarderProfil(
+        profilActif
+      );
+
+
+      if(typeof db !== 'undefined'){
+
+        db.ref(
+          'resultats/' +
+          profilActif.id +
+          '/' +
+          epreuveActuelleId
+        )
+
+        .set({
+
+          titre:
+            epreuveActuelle.titre || '',
+
+          classe:
+            profilActif.classe || '',
+
+          score:
+            bonnesReponses,
+
+          total:
+            total,
+
+          note:
+            Number(note.toFixed(2)),
+
+          points:
+            points,
+
+          date:
+            new Date().toISOString(),
+
+          terminee:
+            true
+
+        })
+
+        .catch(e =>
+          console.error(e)
+        );
+
+      }
+
+    }
+
+
+    marquerEvaluationFaite(
+      epreuveActuelleId
+    );
+
+
+    $('quizSection').hidden =
+      true;
+
+    $('resultSection').hidden =
+      false;
+
+
+    $('resultScore').textContent =
+      `${bonnesReponses}/${total}`;
+
+
+    $('resultNote').textContent =
+      `Note : ${note.toFixed(2)}/20`;
+
+
+    $('resultPoints').textContent =
+      `+${points} points ajoutés à ton carnet`;
+
+
+    const pct =
+      bonnesReponses / total;
+
+
+    let msg;
+
+
+    if(pct === 1){
+
+      msg =
+        "Parfait, sans aucune faute ! 🎉";
+
+    }else if(pct >= .7){
+
+      msg =
+        "Très bon travail, continue comme ça !";
+
+    }else if(pct >= .4){
+
+      msg =
+        "Pas mal. Revois les points ratés et continue tes efforts.";
+
+    }else{
+
+      msg =
+        "Ne te décourage pas. Revois le cours et continue à t'entraîner.";
+
+    }
+
+
+    $('resultMsg').textContent =
+      msg;
+
+
+    afficherCorrection();
+
+    chargerClassement();
+
+  }
+
+
+  /* ============================================
+     CORRECTION
+  ============================================ */
+
+  function afficherCorrection(){
+
+    const container =
+      $('correctionContainer');
+
+
+    container.innerHTML =
+      '<h2>📋 Correction</h2>';
+
+
+    historiqueReponses.forEach(
+      (rep,index) => {
+
+        const div =
+          document.createElement('div');
+
+
+        div.className =
+          'correction-item ' +
+          (
+            rep.correct
+              ? 'good'
+              : 'bad'
+          );
+
+
+        div.innerHTML = `
+
+          <div class="correction-question">
+
+            ${index + 1}. ${rep.question}
+
+          </div>
+
+          <div class="correction-reponse">
+
+            ${
+              rep.correct
+                ? '✅ Bonne réponse'
+                : '❌ Réponse incorrecte'
+            }
+
+          </div>
+
+        `;
+
+
+        container.appendChild(div);
+
+      }
+    );
+
+  }
+
+
+  /* ============================================
+     CLASSEMENT
+  ============================================ */
+
+  function chargerClassement(){
+
+    const container =
+      $('classementContainer');
+
+
+    container.innerHTML =
+      '<h2>🏆 Classement</h2><div class="loading">Chargement...</div>';
+
+
+    if(typeof db === 'undefined'){
+
+      container.innerHTML +=
+        '<div class="message">Classement indisponible.</div>';
+
+      return;
+    }
+
+
+    db.ref('eleves')
+      .once('value')
+      .then(snap => {
+
+        const data =
+          snap.val() || {};
+
+
+        const eleves =
+          Object.values(data)
+          .filter(e => e && e.nom);
+
+
+        eleves.sort(
+          (a,b) =>
+            Number(b.points || 0) -
+            Number(a.points || 0)
+        );
+
+
+        const top =
+          eleves.slice(0,10);
+
+
+        container.innerHTML =
+          '<h2>🏆 Classement</h2>';
+
+
+        if(top.length === 0){
+
+          container.innerHTML +=
+            '<div class="message">Aucun élève classé pour le moment.</div>';
+
+          return;
+        }
+
+
+        top.forEach((eleve,index) => {
+
+          const row =
+            document.createElement('div');
+
+          row.className =
+            'classement-row';
+
+
+          const nom =
+            (
+              eleve.prenom
+                ? eleve.prenom + ' '
+                : ''
+            ) +
+            (
+              eleve.nom || ''
+            );
+
+
+          row.innerHTML = `
+
+            <span>
+              ${index + 1}. ${nom}
+            </span>
+
+            <strong>
+              ${Number(eleve.points || 0)} pts
+            </strong>
+
+          `;
+
+
+          container.appendChild(row);
+
+        });
+
+      })
+
+      .catch(e => {
+
+        console.error(e);
+
+        container.innerHTML =
+          '<h2>🏆 Classement</h2>' +
+          '<div class="message">Impossible de charger le classement.</div>';
+
+      });
+
+  }
+
+
+  /* ============================================
+     RETOUR
+  ============================================ */
+
+  function retourListe(){
+
+    arreterChronometre();
+
+
+    $('quizSection').hidden =
+      true;
+
+    $('resultSection').hidden =
+      true;
+
+    $('listeSection').hidden =
+      false;
+
+
+    chargerListeEpreuves();
+
+  }
+
+
+  $('validerBtn')
+    .addEventListener(
+      'click',
+      validerReponse
+    );
+
+
+  $('retourBtn')
+    .addEventListener(
+      'click',
+      retourListe
+    );
+
+
+  /* ============================================
+     INITIALISATION
+  ============================================ */
+
+  profilActif =
+    chargerProfilActif();
+
+
+  chargerListeEpreuves();
+
+})();
+
+</script>
+
+</body>
+</html>
