@@ -150,6 +150,10 @@
       $('listeLead').textContent = "Crée d'abord ton carnet dans Mon profil pour accéder aux évaluations.";
       return;
     }
+    if (typeof db === 'undefined'){
+      $('listeLead').textContent = "Erreur : connexion à la base de données impossible.";
+      return;
+    }
     db.ref('epreuves/' + profilActif.classe).once('value').then(snap => {
       const data = snap.val() || {};
       const ids = Object.keys(data);
@@ -169,6 +173,8 @@
         btn.addEventListener('click', () => demarrerEpreuve(id, ep));
         container.appendChild(btn);
       });
+    }).catch(e => {
+      $('listeLead').textContent = "Erreur : " + e.message;
     });
   }
 
@@ -208,7 +214,6 @@
 
   function validerReponse(){
     if (reponseValidee){
-      // passer à la question suivante ou finir
       questionIndex++;
       if (questionIndex < epreuveActuelle.questions.length){
         afficherQuestion();
@@ -236,4 +241,49 @@
   }
 
   function terminerEpreuve(){
-    cons
+    const total = epreuveActuelle.questions.length;
+    const points = bonnesReponses * 5;
+
+    if (profilActif){
+      profilActif.points = (profilActif.points || 0) + points;
+      sauvegarderProfil(profilActif);
+
+      if (typeof db !== 'undefined'){
+        db.ref('resultats/' + profilActif.id + '/' + epreuveActuelleId).set({
+          titre: epreuveActuelle.titre,
+          classe: epreuveActuelle.classe,
+          score: bonnesReponses,
+          total: total,
+          date: new Date().toISOString().slice(0,10)
+        }).catch(()=>{});
+      }
+    }
+
+    $('quizSection').hidden = true;
+    $('resultSection').hidden = false;
+    $('resultScore').textContent = `${bonnesReponses}/${total}`;
+    $('resultPoints').textContent = `+${points} points ajoutés à ton carnet`;
+
+    const pct = bonnesReponses / total;
+    let msg;
+    if (pct === 1) msg = "Parfait, sans aucune faute ! 🎉";
+    else if (pct >= 0.7) msg = "Très bon travail, continue comme ça !";
+    else if (pct >= 0.4) msg = "Pas mal, revois les points ratés et réessaie.";
+    else msg = "Ne te décourage pas, revois le cours et retente ta chance.";
+    $('resultMsg').textContent = msg;
+  }
+
+  $('validerBtn').addEventListener('click', validerReponse);
+  $('retourBtn').addEventListener('click', () => {
+    $('resultSection').hidden = true;
+    $('listeSection').hidden = false;
+    chargerListeEpreuves();
+  });
+
+  profilActif = chargerProfilActif();
+  chargerListeEpreuves();
+})();
+</script>
+
+</body>
+    </html>
