@@ -630,25 +630,16 @@
        FILTRAGE PAR CLASSE
   ========================================================== -->
 
-  <script>
+<script>
 
     (function () {
-
-      var STORAGE_ACTIVE = "cf_active";
 
       function afficherPage() {
         document.documentElement.style.visibility = "visible";
       }
 
 
-      function obtenirClasse() {
-
-        var id = localStorage.getItem(STORAGE_ACTIVE);
-
-        if (!id) {
-          window.location.replace("profil.html");
-          return;
-        }
+      function obtenirClasse(uid) {
 
         if (typeof db === "undefined" || !db) {
           console.error(
@@ -660,7 +651,7 @@
         }
 
 
-        db.ref("eleves/" + id + "/classe")
+        db.ref("eleves/" + uid + "/classe")
           .once("value")
 
           .then(function (snap) {
@@ -771,7 +762,7 @@
               return;
             }
 
-            obtenirClasse();
+            obtenirClasse(user.uid);
 
           });
 
@@ -789,7 +780,7 @@
 
     })();
 
-  </script>
+            </script>
 
 </body>
   </html>
