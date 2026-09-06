@@ -820,25 +820,83 @@
   }
 
   function syncProfileToServer(p){
-    const user = getCurrentUser();
-    if (!user) return;
-    if (!p || !p.uid || p.uid !== user.uid){
-      console.warn('Synchronisation refusée : UID incorrect.');
-      return;
-    }
-    if (typeof db === 'undefined' || !db){
-      console.warn('Firebase Database indisponible.');
-      return;
-    }
-    db.ref('eleves/' + p.id).set(p)
-      .then(function(){
-        console.log('Profil synchronisé avec Firebase.');
-      })
-      .catch(function(e){
-        console.warn('Sync serveur impossible (hors ligne ?)', e);
-      });
+
+  const user = getCurrentUser();
+
+  if (!user) return;
+
+  if (!p || !p.uid || p.uid !== user.uid){
+    console.warn('Synchronisation refusée : UID incorrect.');
+    return;
   }
 
+  if (typeof db === 'undefined' || !db){
+    console.warn('Firebase Database indisponible.');
+    return;
+  }
+
+
+  /* ============================================
+     PROFIL COMPLET
+     ============================================ */
+
+  const profilRef =
+    db.ref('eleves/' + p.id);
+
+
+  profilRef
+    .set(p)
+
+    .then(function(){
+
+      console.log(
+        'Profil synchronisé avec Firebase.'
+      );
+
+
+      /* ============================================
+         DONNÉES DU CLASSEMENT
+         ============================================ */
+
+      const classement = {
+
+        uid: user.uid,
+
+        nom: p.nom || '',
+
+        prenom: p.prenom || '',
+
+        classe: p.classe || '',
+
+        points: Number(p.points || 0)
+
+      };
+
+
+      return db
+        .ref('classement/' + user.uid)
+        .set(classement);
+
+    })
+
+    .then(function(){
+
+      console.log(
+        'Classement synchronisé avec Firebase.'
+      );
+
+    })
+
+    .catch(function(e){
+
+      console.warn(
+        'Synchronisation Firebase impossible :',
+        e
+      );
+
+    });
+
+}
   function showToast(msg){
     const t = $('toast');
     t.textContent = msg;
