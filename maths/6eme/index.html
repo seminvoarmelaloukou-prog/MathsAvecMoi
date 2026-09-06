@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>6ᵉ – Mathématiques | Campus Flex</title>
-  <meta name="description" content="Programme de mathématiques de 6ᵉ sur Campus Flex : configurations de l’espace et du plan, applications du plan, organisation des données.">
+  <meta name="description" content="Cours et vidéos de mathématiques pour la 6ᵉ sur Campus Flex.">
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -23,10 +23,6 @@
       background-color: #f5f7ff;
       color: #333;
     }
-
-    /* =========================
-       NAVIGATION
-       ========================= */
 
     nav {
       background-color: var(--indigo);
@@ -76,10 +72,6 @@
       border-color: var(--amber);
     }
 
-    /* =========================
-       MENU MOBILE
-       ========================= */
-
     @media (max-width: 640px) {
 
       .nav-toggle-label {
@@ -112,12 +104,7 @@
       .nav-toggle:checked ~ ul {
         max-height: 300px;
       }
-
     }
-
-    /* =========================
-       EN-TÊTE
-       ========================= */
 
     header {
       background-color: #2c3e8c;
@@ -130,16 +117,6 @@
       font-size: 26px;
     }
 
-    header p {
-      font-size: 13px;
-      margin-top: 8px;
-      opacity: 0.9;
-    }
-
-    /* =========================
-       CONTENU
-       ========================= */
-
     section {
       padding: 20px;
     }
@@ -151,12 +128,6 @@
       border-radius: 8px;
       margin: 30px 0 15px;
       font-size: 18px;
-    }
-
-    h3.sa-title .duree {
-      font-weight: normal;
-      font-size: 13px;
-      opacity: 0.85;
     }
 
     h4.seq-title {
@@ -177,7 +148,6 @@
     }
 
     .devoir a {
-      color: #f39c12;
       text-decoration: none;
       font-weight: bold;
       margin-right: 8px;
@@ -186,6 +156,35 @@
     .a-venir {
       color: #999;
       font-size: 13px;
+    }
+
+    .video-bloc {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .video-bloc h3 {
+      color: #2c3e8c;
+      margin-bottom: 15px;
+    }
+
+    .video-bloc iframe {
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      height: 200px;
+    }
+
+    .section-contenu {
+      display: none;
+    }
+
+    .section-contenu.active {
+      display: block;
     }
 
     .back {
@@ -209,10 +208,6 @@
       transform: translateY(-2px);
     }
 
-    /* =========================
-       PIED DE PAGE
-       ========================= */
-
     footer {
       background-color: #2c3e8c;
       color: white;
@@ -223,34 +218,25 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- NAVIGATION -->
   <nav>
     <h1>🎓 Campus Flex – 6ᵉ</h1>
 
-    <input
-      type="checkbox"
-      id="nav-toggle"
-      class="nav-toggle"
-    >
-
-    <label
-      for="nav-toggle"
-      class="nav-toggle-label"
-    >
-      ☰
-    </label>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <label for="nav-toggle" class="nav-toggle-label">☰</label>
 
     <ul>
       <li>
-        <a href="../index.html">
-          Mathématiques
+        <a href="#" class="onglet active" data-section="cours">
+          Cours
         </a>
       </li>
       <li>
-        <a href="../index.html" class="active">
-          6ᵉ
+        <a href="#" class="onglet" data-section="videos">
+          Vidéos
         </a>
       </li>
       <li>
@@ -258,20 +244,23 @@
           Accueil
         </a>
       </li>
+      <li>
+        <a href="#" onclick="deconnexion(); return false;">
+          Déconnexion
+        </a>
+      </li>
     </ul>
   </nav>
 
   <!-- EN-TÊTE -->
   <header>
-    <h2>📚 Programme de mathématiques – 6ᵉ</h2>
-    <p>
-      Classé dans l’ordre du programme officiel (SA1 → SA4)
-    </p>
+    <h2>📚 Mathématiques – 6ᵉ</h2>
   </header>
 
-  <!-- CONTENU DES SA ET SÉQUENCES -->
-  <section>
-    <!-- SA 1 : CONFIGURATIONS DE L'ESPACE -->
+  <!-- SECTION COURS -->
+  <section id="cours" class="section-contenu active">
+
+    <!-- SA 1 : Configurations de l'espace -->
     <h3 class="sa-title">
       SA 1 — Configurations de l’espace
     </h3>
@@ -279,31 +268,25 @@
     <h4 class="seq-title">
       Séquence 1 — Cube et pavé droit
     </h4>
-    <div class="devoir" data-seq="sa1-seq1">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 2 — Cône de révolution
     </h4>
-    <div class="devoir" data-seq="sa1-seq2">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 3 — Sphère
     </h4>
-    <div class="devoir" data-seq="sa1-seq3">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
-    <!-- SA 2 : CONFIGURATIONS DU PLAN -->
+    <!-- SA 2 : Configurations du plan -->
     <h3 class="sa-title">
       SA 2 — Configurations du plan
     </h3>
@@ -311,94 +294,74 @@
     <h4 class="seq-title">
       Séquence 1 — Droites du plan
     </h4>
-    <div class="devoir" data-seq="sa2-seq1">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 2 — Segment de droite
     </h4>
-    <div class="devoir" data-seq="sa2-seq2">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 3 — Cercle
     </h4>
-    <div class="devoir" data-seq="sa2-seq3">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 4 — Angles
     </h4>
-    <div class="devoir" data-seq="sa2-seq4">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 5 — Triangles
     </h4>
-    <div class="devoir" data-seq="sa2-seq5">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 6 — Parallélogramme
     </h4>
-    <div class="devoir" data-seq="sa2-seq6">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 7 — Entiers naturels (multiples, diviseurs, opérations)
     </h4>
-    <div class="devoir" data-seq="sa2-seq7">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 8 — Nombres décimaux
     </h4>
-    <div class="devoir" data-seq="sa2-seq8">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 9 — Fractions
     </h4>
-    <div class="devoir" data-seq="sa2-seq9">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 11 — Calcul littéral
     </h4>
-    <div class="devoir" data-seq="sa2-seq11">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
-    <!-- SA 3 : APPLICATIONS DU PLAN -->
+    <!-- SA 3 : Applications du plan -->
     <h3 class="sa-title">
       SA 3 — Applications du plan
     </h3>
@@ -406,31 +369,25 @@
     <h4 class="seq-title">
       Séquence 1 — Figures symétriques par rapport à une droite
     </h4>
-    <div class="devoir" data-seq="sa3-seq1">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 2 — Figures symétriques par rapport à un point
     </h4>
-    <div class="devoir" data-seq="sa3-seq2">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 3 — Glissement
     </h4>
-    <div class="devoir" data-seq="sa3-seq3">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
-    <!-- SA 4 : ORGANISATION DES DONNÉES -->
+    <!-- SA 4 : Organisation des données -->
     <h3 class="sa-title">
       SA 4 — Organisation des données
     </h3>
@@ -438,31 +395,79 @@
     <h4 class="seq-title">
       Séquence 1 — Proportionnalité
     </h4>
-    <div class="devoir" data-seq="sa4-seq1">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
     <h4 class="seq-title">
       Séquence 2 — Statistiques
     </h4>
-    <div class="devoir" data-seq="sa4-seq2">
-      <p class="a-venir">
-        Bientôt disponible
-      </p>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
     </div>
 
-    <!-- RETOUR -->
     <div class="back">
-      <a href="../index.html" class="btn">← Retour aux niveaux</a>
+      <a href="../../index.html" class="btn">← Retour à l’accueil</a>
     </div>
+
+  </section>
+
+  <!-- SECTION VIDÉOS -->
+  <section id="videos" class="section-contenu">
+
+    <h2 style="text-align:center; color:#2c3e8c; margin-bottom:20px;">
+      🎥 Vidéos de 6ᵉ
+    </h2>
+
+    <!-- Exemple de vidéo (tu peux la garder ou la retirer) -->
+    <div class="video-bloc">
+      <h3>Les fractions</h3>
+      <iframe
+        src="https://www.youtube.com/embed/n0-Jh1Vs-L0"
+        loading="lazy"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <div class="back">
+      <a href="../../index.html" class="btn">← Retour à l’accueil</a>
+    </div>
+
   </section>
 
   <!-- PIED DE PAGE -->
   <footer>
     <p>© 2026 Campus Flex — Mathématiques 6ᵉ — Tous droits réservés</p>
   </footer>
+
+  <!-- SCRIPT POUR CHANGER D'ONGLET -->
+  <script>
+    const onglets = document.querySelectorAll(".onglet");
+    const sections = document.querySelectorAll(".section-contenu");
+
+    onglets.forEach(function(onglet) {
+      onglet.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        onglets.forEach(o => o.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
+
+        onglet.classList.add("active");
+        const sectionId = onglet.getAttribute("data-section");
+        document.getElementById(sectionId).classList.add("active");
+      });
+    });
+
+    function deconnexion() {
+      if (typeof firebase !== "undefined" && firebase.auth) {
+        firebase.auth().signOut().then(function() {
+          window.location.href = "../../index.html";
+        });
+      } else {
+        window.location.href = "../../index.html";
+      }
+    }
+  </script>
 
 </body>
   </html>
