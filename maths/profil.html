@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon profil - Campus Flex</title>
 
-  <!-- Firebase : ordre important -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-  <!-- Ton fichier Firebase est à la racine du projet -->
+  <!-- Configuration Firebase à la racine du projet -->
   <script src="../firebase-config.js"></script>
 
   <style>
@@ -21,8 +21,7 @@
       --fond: #f5f7ff;
       --texte: #333333;
       --gris: #666666;
-      --erreur: #c0392b;
-      --succes: #1e8449;
+      --rouge: #c0392b;
     }
 
     * {
@@ -42,17 +41,17 @@
 
     nav {
       background: var(--bleu);
+      color: white;
       padding: 14px 20px;
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 15px;
       flex-wrap: wrap;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
     nav h1 {
-      color: white;
       font-size: 20px;
     }
 
@@ -63,13 +62,13 @@
       flex-wrap: wrap;
     }
 
-    nav a {
+    nav ul li a {
       color: white;
       text-decoration: none;
       font-size: 14px;
     }
 
-    nav a:hover {
+    nav ul li a:hover {
       text-decoration: underline;
     }
 
@@ -92,14 +91,14 @@
     .card h2 {
       color: var(--bleu);
       font-size: 22px;
-      margin-bottom: 13px;
+      margin-bottom: 14px;
     }
 
     .description {
       color: var(--gris);
       font-size: 14px;
       line-height: 1.5;
-      margin-bottom: 16px;
+      margin-bottom: 15px;
     }
 
     .info-grid {
@@ -110,7 +109,7 @@
 
     .info-item {
       background: #f7f8ff;
-      border: 1px solid #e7e9f5;
+      border: 1px solid #e6e9f7;
       border-radius: 10px;
       padding: 15px;
     }
@@ -124,31 +123,61 @@
 
     .info-value {
       display: block;
+      font-size: 16px;
       color: var(--texte);
       font-weight: bold;
-      font-size: 16px;
       overflow-wrap: anywhere;
     }
 
-    .chargement {
-      grid-column: 1 / -1;
-      color: var(--gris);
-      font-size: 14px;
-    }
-
+    .chargement,
     .erreur {
       grid-column: 1 / -1;
-      color: var(--erreur);
       font-size: 14px;
       line-height: 1.5;
     }
 
+    .chargement {
+      color: var(--gris);
+    }
+
+    .erreur {
+      color: var(--rouge);
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 12px 21px;
+      border: none;
+      border-radius: 24px;
+      background: var(--bleu);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--bleu-fonce);
+      transform: translateY(-1px);
+    }
+
+    .btn-orange {
+      background: var(--orange);
+    }
+
+    .btn-orange:hover {
+      background: #d68910;
+    }
+
     .encouragement {
       background: #fff8e1;
-      border-left: 4px solid var(--orange);
-      border-radius: 6px;
-      padding: 13px 15px;
       color: #5c5233;
+      border-left: 4px solid var(--orange);
+      border-radius: 7px;
+      padding: 13px 15px;
       font-size: 14px;
       line-height: 1.5;
     }
@@ -156,9 +185,9 @@
     .chat-container {
       height: 300px;
       overflow-y: auto;
+      background: #fafafa;
       border: 1px solid #e1e1e1;
       border-radius: 10px;
-      background: #fafafa;
       padding: 14px;
       margin-bottom: 14px;
     }
@@ -175,9 +204,9 @@
     }
 
     .chat-message.eleve {
+      margin-left: auto;
       background: var(--bleu);
       color: white;
-      margin-left: auto;
       border-bottom-right-radius: 3px;
     }
 
@@ -205,8 +234,8 @@
       border: 1px solid #cfd4e6;
       border-radius: 24px;
       padding: 12px 15px;
-      outline: none;
       font-size: 14px;
+      outline: none;
     }
 
     .chat-form input:focus {
@@ -217,9 +246,9 @@
     .chat-form button {
       border: none;
       border-radius: 24px;
+      padding: 12px 17px;
       background: var(--orange);
       color: white;
-      padding: 12px 18px;
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
@@ -230,12 +259,12 @@
     }
 
     footer {
+      margin-top: 20px;
+      padding: 14px;
+      text-align: center;
       background: var(--bleu);
       color: white;
-      text-align: center;
-      padding: 14px;
       font-size: 13px;
-      margin-top: 20px;
     }
 
     @media (max-width: 600px) {
@@ -288,34 +317,36 @@
       <div class="info-grid" id="infos-eleve">
         <p class="chargement">Chargement de tes informations...</p>
       </div>
+
+      <a href="index.html" class="btn">Commencer à étudier</a>
     </section>
 
     <section class="card">
       <h2>Continue comme ça</h2>
 
       <div class="encouragement">
-        Chaque effort compte. Avance à ton rythme, pose tes questions et continue à t’entraîner : tu peux progresser en mathématiques.
+        Chaque effort compte. Avance à ton rythme, entraîne-toi régulièrement et pose tes questions lorsque tu bloques.
       </div>
     </section>
 
-    <section class="card">
+    <section class="card" id="chat-nora">
       <h2>Nora - Tuteur IA</h2>
 
       <p class="description">
-        Tu peux poser une question sur un exercice, un cours ou une méthode. Nora t’aidera à avancer étape par étape.
+        Pose une question sur un exercice, un cours ou une méthode. Nora t’aidera à avancer étape par étape.
       </p>
 
-      <div class="chat-container" id="chat-nora">
+      <div class="chat-container" id="messages-nora">
         <div class="chat-message nora">
           <strong>Nora</strong>
           Bonjour. Quel exercice ou quel chapitre de mathématiques veux-tu travailler aujourd’hui ?
         </div>
       </div>
 
-      <form class="chat-form" id="chat-nora-form">
+      <form class="chat-form" id="form-nora">
         <input
-          id="question-nora"
           type="text"
+          id="question-nora"
           placeholder="Écris ta question..."
           autocomplete="off"
           required
@@ -332,8 +363,8 @@
 
   <script>
     const infosEleve = document.getElementById("infos-eleve");
-    const chatNora = document.getElementById("chat-nora");
-    const formNora = document.getElementById("chat-nora-form");
+    const messagesNora = document.getElementById("messages-nora");
+    const formNora = document.getElementById("form-nora");
     const inputNora = document.getElementById("question-nora");
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
@@ -343,10 +374,16 @@
       return element.innerHTML;
     }
 
-    function afficherProfil(data, user) {
-      const identifiant = data.identifiant || "Non renseigné";
-      const email = data.email || user.email || "Non renseigné";
-      const classe = data.classe || "À compléter";
+    function afficherErreurProfil(texte) {
+      infosEleve.innerHTML = `
+        <p class="erreur">${echapperHtml(texte)}</p>
+      `;
+    }
+
+    function afficherProfil(profil, user) {
+      const identifiant = profil.identifiant || "Non renseigné";
+      const email = profil.email || user.email || "Non renseigné";
+      const classe = profil.classe || "À compléter";
 
       infosEleve.innerHTML = `
         <div class="info-item">
@@ -366,18 +403,43 @@
       `;
     }
 
-    function afficherErreur(texte) {
-      infosEleve.innerHTML = `
-        <p class="erreur">${echapperHtml(texte)}</p>
-      `;
+    function creerProfilSiNecessaire(user) {
+      const profilRef = db.ref("eleves/" + user.uid);
+
+      return profilRef.once("value")
+        .then(function(snapshot) {
+          const profilExistant = snapshot.val();
+
+          if (profilExistant) {
+            return profilExistant;
+          }
+
+          const nouveauProfil = {
+            identifiant: localStorage.getItem("cf_identifiant") || "Élève",
+            email: user.email || "",
+            classe: "À compléter",
+            dateInscription: Date.now(),
+            devoirsFaits: 0,
+            chapitresVus: 0,
+            videosVues: 0,
+            joursConnexion: 1
+          };
+
+          return profilRef.set(nouveauProfil)
+            .then(function() {
+              return nouveauProfil;
+            });
+        });
     }
 
     if (typeof firebase === "undefined") {
-      afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase dans cette page.");
+      afficherErreurProfil("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
     } else if (typeof auth === "undefined") {
-      afficherErreur("Firebase Authentication n’est pas disponible.");
+      afficherErreurProfil("Firebase Authentication n’est pas disponible.");
     } else if (!db) {
-      afficherErreur("Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js.");
+      afficherErreurProfil(
+        "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
+      );
     } else {
       auth.onAuthStateChanged(function(user) {
         if (!user) {
@@ -385,48 +447,85 @@
           return;
         }
 
-        const uid = user.uid;
-        const profilRef = db.ref("eleves/" + uid);
-
-        profilRef.once("value")
-          .then(function(snapshot) {
-            const profil = snapshot.val();
-
-            if (profil) {
-              return profil;
-            }
-
-            const nouveauProfil = {
-              identifiant: localStorage.getItem("cf_identifiant") || "Élève",
-              email: user.email || "",
-              classe: "À compléter",
-              dateInscription: Date.now(),
-              devoirsFaits: 0,
-              chapitresVus: 0,
-              videosVues: 0,
-              joursConnexion: 1
-            };
-
-            return profilRef.set(nouveauProfil)
-              .then(function() {
-                return nouveauProfil;
-              });
-          })
+        creerProfilSiNecessaire(user)
           .then(function(profil) {
             afficherProfil(profil, user);
           })
           .catch(function(erreur) {
             console.error("Erreur Firebase :", erreur);
 
-            let texte = "Impossible de charger ou créer ton profil.";
-
             if (erreur.code === "PERMISSION_DENIED") {
-              texte = "Accès refusé par les règles Firebase. Vérifie les règles de Realtime Database.";
+              afficherErreurProfil(
+                "Accès refusé par les règles Firebase. Vérifie les règles de Realtime Database."
+              );
+            } else {
+              afficherErreurProfil(
+                "Impossible de charger ou créer ton profil. Vérifie ta connexion Internet."
+              );
             }
-
-            afficherErreur(texte);
           });
       });
+    }
+
+    function ajouterMessageEleve(question) {
+      const message = document.createElement("div");
+      message.className = "chat-message eleve";
+      message.textContent = question;
+      messagesNora.appendChild(message);
+      messagesNora.scrollTop = messagesNora.scrollHeight;
+    }
+
+    function ajouterMessageNora(reponse) {
+      const message = document.createElement("div");
+      message.className = "chat-message nora";
+
+      const nom = document.createElement("strong");
+      nom.textContent = "Nora";
+
+      message.appendChild(nom);
+      message.appendChild(document.createTextNode(reponse));
+
+      messagesNora.appendChild(message);
+      messagesNora.scrollTop = messagesNora.scrollHeight;
+    }
+
+    function reponseDeNora(question) {
+      const q = question.toLowerCase();
+
+      if (q.includes("bonjour") || q.includes("salut")) {
+        return "Bonjour. Dis-moi sur quel exercice ou quel chapitre tu veux travailler.";
+      }
+
+      if (q.includes("équation") || q.includes("equation")) {
+        return "Pour résoudre une équation, le but est d’isoler l’inconnue. Envoie-moi l’équation exacte et nous allons avancer étape par étape.";
+      }
+
+      if (q.includes("fraction") || q.includes("fractions")) {
+        return "Dis-moi le calcul avec les fractions. Nous allons d’abord identifier s’il faut additionner, soustraire, multiplier ou diviser.";
+      }
+
+      if (q.includes("exercice") || q.includes("devoir")) {
+        return "Envoie-moi l’énoncé complet et explique ce que tu as déjà essayé. Je t’aiderai à trouver la bonne méthode.";
+      }
+
+      if (
+        q.includes("cours") ||
+        q.includes("leçon") ||
+        q.includes("lecon") ||
+        q.includes("chapitre")
+      ) {
+        return "Dis-moi le nom du chapitre ou la notion que tu veux revoir. Je peux t’expliquer avec un exemple simple.";
+      }
+
+      if (q.includes("fonction") || q.includes("fonctions")) {
+        return "Pour une fonction, envoie-moi son expression, un tableau de valeurs ou une photo de l’énoncé. Nous verrons ensemble ce qui est demandé.";
+      }
+
+      if (q.includes("pythagore")) {
+        return "Le théorème de Pythagore s’utilise dans un triangle rectangle. Envoie-moi les longueurs connues et ce que tu dois calculer.";
+      }
+
+      return "Je peux t’aider. Envoie-moi l’énoncé complet, les données importantes et l’étape précise qui te bloque.";
     }
 
     formNora.addEventListener("submit", function(e) {
@@ -438,66 +537,12 @@
         return;
       }
 
-      const messageEleve = document.createElement("div");
-      messageEleve.className = "chat-message eleve";
-      messageEleve.textContent = question;
-      chatNora.appendChild(messageEleve);
-
+      ajouterMessageEleve(question);
       inputNora.value = "";
-      chatNora.scrollTop = chatNora.scrollHeight;
+      inputNora.focus();
 
       window.setTimeout(function() {
-        const questionMinuscule = question.toLowerCase();
-        let reponse;
-
-        if (
-          questionMinuscule.includes("bonjour") ||
-          questionMinuscule.includes("salut")
-        ) {
-          reponse = "Bonjour. Dis-moi le chapitre ou l’exercice sur lequel tu veux travailler.";
-        } else if (
-          questionMinuscule.includes("équation") ||
-          questionMinuscule.includes("equation")
-        ) {
-          reponse = "Pour résoudre une équation, l’objectif est d’isoler l’inconnue. Envoie-moi l’équation exacte et nous allons la résoudre ligne par ligne.";
-        } else if (
-          questionMinuscule.includes("exercice") ||
-          questionMinuscule.includes("devoir")
-        ) {
-          reponse = "Envoie l’énoncé complet de l’exercice et dis-moi ce que tu as déjà essayé. Nous chercherons la méthode ensemble.";
-        } else if (
-          questionMinuscule.includes("cours") ||
-          questionMinuscule.includes("leçon") ||
-          questionMinuscule.includes("lecon")
-        ) {
-          reponse = "Dis-moi le nom du chapitre ou de la notion. Je peux l’expliquer simplement avec un exemple.";
-        } else if (
-          questionMinuscule.includes("fraction") ||
-          questionMinuscule.includes("fractions")
-        ) {
-          reponse = "Pour les fractions, commence par identifier ce que tu dois faire : additionner, soustraire, multiplier ou diviser. Envoie-moi ton calcul.";
-        } else if (
-          questionMinuscule.includes("fonction") ||
-          questionMinuscule.includes("fonctions")
-        ) {
-          reponse = "Pour une fonction, indique-moi son expression ou le tableau de valeurs. Nous pourrons étudier l’image, l’antécédent ou la courbe.";
-        } else {
-          reponse = "Je peux t’aider. Envoie-moi l’énoncé complet, les données importantes et l’étape précise qui te bloque.";
-        }
-
-        const messageNora = document.createElement("div");
-        messageNora.className = "chat-message nora";
-
-        const nomNora = document.createElement("strong");
-        nomNora.textContent = "Nora";
-
-        const texteReponse = document.createTextNode(reponse);
-
-        messageNora.appendChild(nomNora);
-        messageNora.appendChild(texteReponse);
-
-        chatNora.appendChild(messageNora);
-        chatNora.scrollTop = chatNora.scrollHeight;
+        ajouterMessageNora(reponseDeNora(question));
       }, 500);
     });
 
@@ -514,7 +559,7 @@
           window.location.href = "../index.html";
         })
         .catch(function(erreur) {
-          console.error("Erreur lors de la déconnexion :", erreur);
+          console.error("Erreur de déconnexion :", erreur);
           window.location.href = "../index.html";
         });
     });
