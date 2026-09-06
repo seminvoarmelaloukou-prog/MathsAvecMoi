@@ -81,6 +81,7 @@
     }
 
     @media (max-width: 640px) {
+
       .nav-toggle-label {
         display: block;
       }
@@ -143,6 +144,7 @@
     }
 
     .carte {
+      display: block;
       background-color: #2c3e8c;
       color: white;
       padding: 20px 30px;
@@ -150,6 +152,13 @@
       font-size: 18px;
       font-weight: bold;
       cursor: pointer;
+      text-decoration: none;
+      transition: transform .2s, background-color .2s;
+    }
+
+    .carte:hover {
+      background-color: var(--indigo-dark);
+      transform: translateY(-3px);
     }
 
     footer {
@@ -166,76 +175,171 @@
 <body>
 
   <nav>
+
     <h1>📐 MathsAvecMoi</h1>
 
-    <input type="checkbox" id="nav-toggle" class="nav-toggle">
-    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+    <input
+      type="checkbox"
+      id="nav-toggle"
+      class="nav-toggle"
+    >
+
+    <label
+      for="nav-toggle"
+      class="nav-toggle-label"
+    >
+      ☰
+    </label>
 
     <ul>
-      <!-- Accueil protégé -->
+
+      <!-- Accueil -->
       <li>
-        <a href="accueil.html">Accueil</a>
+        <a href="accueil.html">
+          Accueil
+        </a>
       </li>
 
+      <!-- Épreuves -->
       <li>
-        <a href="epreuves.html" class="active">Épreuves</a>
+        <a href="epreuves.html" class="active">
+          Épreuves
+        </a>
       </li>
 
+      <!-- Vidéos -->
       <li>
-        <a href="videos.html">Vidéos</a>
+        <a href="videos.html">
+          Vidéos
+        </a>
       </li>
 
+      <!-- Profil -->
       <li>
-        <a href="profil.html">Mon profil</a>
+        <a href="profil.html">
+          Mon profil
+        </a>
       </li>
 
+      <!-- Contact -->
       <li>
-        <a href="contact.html">Contact</a>
+        <a href="contact.html">
+          Contact
+        </a>
       </li>
 
+      <!-- Déconnexion -->
       <li>
-        <a href="#" onclick="deconnexion(); return false;">
+        <a
+          href="#"
+          onclick="deconnexion(); return false;"
+        >
           Déconnexion
         </a>
       </li>
+
     </ul>
+
   </nav>
 
+
+  <!-- EN-TÊTE -->
+
   <header>
-    <h2>📄 Épreuves par niveau</h2>
+
+    <h2>
+      📄 Épreuves par niveau
+    </h2>
+
   </header>
 
+
+  <!-- NIVEAUX -->
+
   <section>
-    <h2>Choisis ton niveau</h2>
+
+    <h2>
+      Choisis ton niveau
+    </h2>
 
     <div class="niveaux">
 
-      <div class="carte"
-           onclick="window.location.href='6eme.html'">
+
+      <!-- =========================
+           6ème
+           ========================= -->
+
+      <a
+        href="6eme.html"
+        class="carte"
+      >
         6ème
-      </div>
+      </a>
 
-      <div class="carte"
-           onclick="window.location.href='5eme.html'">
+
+      <!-- =========================
+           5ème
+           ========================= -->
+
+      <a
+        href="5eme.html"
+        class="carte"
+      >
         5ème
-      </div>
+      </a>
 
-      <div class="carte"
-           onclick="window.location.href='4eme.html'">
+
+      <!-- =========================
+           4ème
+           ========================= -->
+
+      <a
+        href="4eme.html"
+        class="carte"
+      >
         4ème
-      </div>
+      </a>
 
-      <div class="carte"
-           onclick="window.location.href='3eme.html'">
+
+      <!-- =========================
+           3ème
+           ========================= -->
+
+      <a
+        href="3eme.html"
+        class="carte"
+      >
         3ème
-      </div>
+      </a>
+
+
+      <!-- =========================
+           2nde D
+           ========================= -->
+
+      <a
+        href="2ndeD.html"
+        class="carte"
+      >
+        2nde D
+      </a>
+
 
     </div>
+
   </section>
 
+
+  <!-- PIED DE PAGE -->
+
   <footer>
-    <p>© 2026 MathsAvecMoi.fr — Tous droits réservés</p>
+
+    <p>
+      © 2026 MathsAvecMoi.fr — Tous droits réservés
+    </p>
+
   </footer>
 
+
 </body>
-</html>
+        </html>
