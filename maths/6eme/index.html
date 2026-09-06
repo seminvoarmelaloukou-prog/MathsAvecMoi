@@ -3,13 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6ᵉ – Mathématiques | Campus Flex</title>
-  <meta name="description" content="Cours et vidéos de mathématiques pour la 6ᵉ sur Campus Flex.">
+  <title>6e - Mathématiques | Campus Flex</title>
+  <meta
+    name="description"
+    content="Cours et vidéos de mathématiques pour la 6e sur Campus Flex."
+  >
+
+  <!-- Firebase : remonte de deux dossiers vers la racine du projet -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../../firebase-config.js"></script>
+
   <style>
     :root {
       --indigo: #2c3e8c;
       --indigo-dark: #1e2c66;
       --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
     }
 
     * {
@@ -19,21 +32,25 @@
     }
 
     body {
+      min-height: 100vh;
       font-family: Arial, sans-serif;
-      background-color: #f5f7ff;
-      color: #333;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
     }
 
     nav {
-      background-color: var(--indigo);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--indigo);
       padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      gap: 15px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
     nav h1 {
@@ -47,15 +64,17 @@
 
     .nav-toggle-label {
       display: none;
-      color: #fff;
+      color: white;
       font-size: 26px;
       cursor: pointer;
+      user-select: none;
     }
 
     nav ul {
       list-style: none;
       display: flex;
       gap: 20px;
+      align-items: center;
     }
 
     nav ul li a {
@@ -64,7 +83,7 @@
       font-size: 14px;
       padding-bottom: 4px;
       border-bottom: 2px solid transparent;
-      transition: border-color .2s;
+      transition: border-color 0.2s ease;
     }
 
     nav ul li a:hover,
@@ -72,42 +91,8 @@
       border-color: var(--amber);
     }
 
-    @media (max-width: 640px) {
-
-      .nav-toggle-label {
-        display: block;
-      }
-
-      nav ul {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: var(--indigo-dark);
-        flex-direction: column;
-        gap: 0;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height .3s ease;
-      }
-
-      nav ul li {
-        border-top: 1px solid rgba(255,255,255,.1);
-      }
-
-      nav ul li a {
-        display: block;
-        padding: 14px 20px;
-        border-bottom: none;
-      }
-
-      .nav-toggle:checked ~ ul {
-        max-height: 300px;
-      }
-    }
-
     header {
-      background-color: #2c3e8c;
+      background: var(--indigo);
       color: white;
       text-align: center;
       padding: 30px 20px;
@@ -117,13 +102,27 @@
       font-size: 26px;
     }
 
+    header p {
+      margin-top: 8px;
+      font-size: 14px;
+      opacity: 0.92;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+
     section {
-      padding: 20px;
+      padding: 20px 0;
     }
 
     h3.sa-title {
       color: white;
-      background-color: #2c3e8c;
+      background: var(--indigo);
       padding: 10px 15px;
       border-radius: 8px;
       margin: 30px 0 15px;
@@ -131,11 +130,11 @@
     }
 
     h4.seq-title {
-      color: #2c3e8c;
+      color: var(--indigo);
       margin: 18px 0 8px;
       font-size: 15px;
       border-bottom: 2px solid #e0e4f7;
-      padding-bottom: 4px;
+      padding-bottom: 6px;
     }
 
     .devoir {
@@ -143,14 +142,8 @@
       border-radius: 10px;
       padding: 15px;
       margin-bottom: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      line-height: 2.2;
-    }
-
-    .devoir a {
-      text-decoration: none;
-      font-weight: bold;
-      margin-right: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      line-height: 1.6;
     }
 
     .a-venir {
@@ -163,20 +156,39 @@
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
     }
 
     .video-bloc h3 {
-      color: #2c3e8c;
+      color: var(--indigo);
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .video-bloc p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
       margin-bottom: 15px;
     }
 
-    .video-bloc iframe {
-      border: none;
-      border-radius: 8px;
+    .video-container {
+      position: relative;
       width: 100%;
-      height: 200px;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #000;
+    }
+
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     .section-contenu {
@@ -198,9 +210,11 @@
       border-radius: 25px;
       text-decoration: none;
       font-weight: bold;
+      border: none;
       background: var(--indigo);
       color: white;
-      transition: .2s;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .btn:hover {
@@ -209,34 +223,85 @@
     }
 
     footer {
-      background-color: #2c3e8c;
+      background: var(--indigo);
       color: white;
       text-align: center;
       padding: 15px;
       font-size: 13px;
       margin-top: 30px;
     }
+
+    @media (max-width: 640px) {
+      nav {
+        flex-wrap: wrap;
+      }
+
+      .nav-toggle-label {
+        display: block;
+      }
+
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: var(--indigo-dark);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      nav ul li {
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 340px;
+      }
+
+      header h2 {
+        font-size: 23px;
+      }
+
+      main {
+        padding: 0 14px;
+      }
+    }
   </style>
 </head>
 
 <body>
 
-  <!-- NAVIGATION -->
   <nav>
-    <h1>🎓 Campus Flex – 6ᵉ</h1>
+    <h1>Campus Flex - 6e</h1>
 
     <input type="checkbox" id="nav-toggle" class="nav-toggle">
-    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+    <label for="nav-toggle" class="nav-toggle-label" aria-label="Ouvrir le menu">☰</label>
 
     <ul>
       <li>
-        <a href="#" class="onglet active" data-section="cours">
+        <a href="#cours" class="onglet active" data-section="cours">
           Cours
         </a>
       </li>
       <li>
-        <a href="#" class="onglet" data-section="videos">
+        <a href="#videos" class="onglet" data-section="videos">
           Vidéos
+        </a>
+      </li>
+      <li>
+        <a href="../profil.html">
+          Mon profil
         </a>
       </li>
       <li>
@@ -245,229 +310,267 @@
         </a>
       </li>
       <li>
-        <a href="#" onclick="deconnexion(); return false;">
+        <a href="#" id="lien-deconnexion">
           Déconnexion
         </a>
       </li>
     </ul>
   </nav>
 
-  <!-- EN-TÊTE -->
   <header>
-    <h2>📚 Mathématiques – 6ᵉ</h2>
+    <h2>Mathématiques - 6e</h2>
+    <p>Choisis l’onglet Cours ou Vidéos pour apprendre à ton rythme.</p>
   </header>
 
-  <!-- SECTION COURS -->
-  <section id="cours" class="section-contenu active">
+  <main>
 
-    <!-- SA 1 : Configurations de l'espace -->
-    <h3 class="sa-title">
-      SA 1 — Configurations de l’espace
-    </h3>
+    <section id="cours" class="section-contenu active">
 
-    <h4 class="seq-title">
-      Séquence 1 — Cube et pavé droit
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h3 class="sa-title">
+        SA 1 - Configurations de l’espace
+      </h3>
 
-    <h4 class="seq-title">
-      Séquence 2 — Cône de révolution
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 1 - Cube et pavé droit
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 3 — Sphère
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 2 - Cône de révolution
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <!-- SA 2 : Configurations du plan -->
-    <h3 class="sa-title">
-      SA 2 — Configurations du plan
-    </h3>
+      <h4 class="seq-title">
+        Séquence 3 - Sphère
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 1 — Droites du plan
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h3 class="sa-title">
+        SA 2 - Configurations du plan
+      </h3>
 
-    <h4 class="seq-title">
-      Séquence 2 — Segment de droite
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 1 - Droites du plan
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 3 — Cercle
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 2 - Segment de droite
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 4 — Angles
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 3 - Cercle
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 5 — Triangles
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 4 - Angles
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 6 — Parallélogramme
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 5 - Triangles
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 7 — Entiers naturels (multiples, diviseurs, opérations)
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 6 - Parallélogramme
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 8 — Nombres décimaux
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 7 - Entiers naturels (multiples, diviseurs, opérations)
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 9 — Fractions
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 8 - Nombres décimaux
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 11 — Calcul littéral
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 9 - Fractions
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <!-- SA 3 : Applications du plan -->
-    <h3 class="sa-title">
-      SA 3 — Applications du plan
-    </h3>
+      <h4 class="seq-title">
+        Séquence 11 - Calcul littéral
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 1 — Figures symétriques par rapport à une droite
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h3 class="sa-title">
+        SA 3 - Applications du plan
+      </h3>
 
-    <h4 class="seq-title">
-      Séquence 2 — Figures symétriques par rapport à un point
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 1 - Figures symétriques par rapport à une droite
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 3 — Glissement
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 2 - Figures symétriques par rapport à un point
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <!-- SA 4 : Organisation des données -->
-    <h3 class="sa-title">
-      SA 4 — Organisation des données
-    </h3>
+      <h4 class="seq-title">
+        Séquence 3 - Glissement
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <h4 class="seq-title">
-      Séquence 1 — Proportionnalité
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h3 class="sa-title">
+        SA 4 - Organisation des données
+      </h3>
 
-    <h4 class="seq-title">
-      Séquence 2 — Statistiques
-    </h4>
-    <div class="devoir">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
+      <h4 class="seq-title">
+        Séquence 1 - Proportionnalité
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-    <div class="back">
-      <a href="../../index.html" class="btn">← Retour à l’accueil</a>
-    </div>
+      <h4 class="seq-title">
+        Séquence 2 - Statistiques
+      </h4>
+      <div class="devoir">
+        <p class="a-venir">Bientôt disponible</p>
+      </div>
 
-  </section>
+      <div class="back">
+        <a href="../profil.html" class="btn">Retour à mon profil</a>
+      </div>
 
-  <!-- SECTION VIDÉOS -->
-  <section id="videos" class="section-contenu">
+    </section>
 
-    <h2 style="text-align:center; color:#2c3e8c; margin-bottom:20px;">
-      🎥 Vidéos de 6ᵉ
-    </h2>
+    <section id="videos" class="section-contenu">
 
-    <!-- Exemple de vidéo (tu peux la garder ou la retirer) -->
-    <div class="video-bloc">
-      <h3>Les fractions</h3>
-      <iframe
-        src="https://www.youtube.com/embed/n0-Jh1Vs-L0"
-        loading="lazy"
-        allowfullscreen>
-      </iframe>
-    </div>
+      <h2 style="text-align:center; color:#2c3e8c; margin:10px 0 20px;">
+        Vidéos de 6e
+      </h2>
 
-    <div class="back">
-      <a href="../../index.html" class="btn">← Retour à l’accueil</a>
-    </div>
+      <div class="video-bloc">
+        <h3>Les fractions</h3>
+        <p>
+          Regarde la vidéo, puis retourne dans les cours pour réviser la séquence sur les fractions.
+        </p>
 
-  </section>
+        <div class="video-container">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/n0-Jh1Vs-L0"
+            title="Les fractions - Mathématiques 6e"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
 
-  <!-- PIED DE PAGE -->
+      <div class="back">
+        <a href="../profil.html" class="btn">Retour à mon profil</a>
+      </div>
+
+    </section>
+
+  </main>
+
   <footer>
-    <p>© 2026 Campus Flex — Mathématiques 6ᵉ — Tous droits réservés</p>
+    <p>© 2026 Campus Flex - Mathématiques 6e - Tous droits réservés</p>
   </footer>
 
-  <!-- SCRIPT POUR CHANGER D'ONGLET -->
   <script>
     const onglets = document.querySelectorAll(".onglet");
     const sections = document.querySelectorAll(".section-contenu");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+    const menuMobile = document.getElementById("nav-toggle");
 
     onglets.forEach(function(onglet) {
       onglet.addEventListener("click", function(e) {
         e.preventDefault();
 
-        onglets.forEach(o => o.classList.remove("active"));
-        sections.forEach(s => s.classList.remove("active"));
+        onglets.forEach(function(element) {
+          element.classList.remove("active");
+        });
+
+        sections.forEach(function(section) {
+          section.classList.remove("active");
+        });
 
         onglet.classList.add("active");
+
         const sectionId = onglet.getAttribute("data-section");
-        document.getElementById(sectionId).classList.add("active");
+        const sectionChoisie = document.getElementById(sectionId);
+
+        if (sectionChoisie) {
+          sectionChoisie.classList.add("active");
+        }
+
+        menuMobile.checked = false;
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
       });
     });
 
-    function deconnexion() {
-      if (typeof firebase !== "undefined" && firebase.auth) {
-        firebase.auth().signOut().then(function() {
-          window.location.href = "../../index.html";
-        });
-      } else {
-        window.location.href = "../../index.html";
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (typeof auth !== "undefined") {
+        auth.signOut()
+          .then(function() {
+            window.location.href = "../../index.html";
+          })
+          .catch(function(erreur) {
+            console.error("Erreur de déconnexion :", erreur);
+            window.location.href = "../../index.html";
+          });
+
+        return;
       }
+
+      window.location.href = "../../index.html";
+    });
+
+    if (typeof auth !== "undefined") {
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "../../connexion.html";
+        }
+      });
     }
   </script>
 
 </body>
-  </html>
+        </html>
