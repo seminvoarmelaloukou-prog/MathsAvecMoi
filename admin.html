@@ -23,6 +23,37 @@
   <div id="contenu">
     <p>Vérification des droits...</p>
   </div>
+<script>
+(function(){
+  const contenu = document.getElementById('contenu');
 
+  function afficherRefus(){
+    contenu.innerHTML = '<p class="msg">Accès réservé aux administrateurs.</p>';
+  }
+
+  firebase.auth().onAuthStateChanged(function(user){
+    if (!user) return; // auth-guard.js gère déjà la redirection si non connecté
+
+    if (typeof db === 'undefined' || !db){
+      afficherRefus();
+      return;
+    }
+
+    db.ref('admins/' + user.uid).once('value')
+      .then(function(snap){
+        if (snap.val() === true){
+          contenu.innerHTML = '<p>Bienvenue, tu es bien administrateur.</p>';
+          // La suite (liste des élèves, formulaire de modification) viendra ici.
+        } else {
+          afficherRefus();
+        }
+      })
+      .catch(function(erreur){
+        console.error('admin.html : erreur de vérification :', erreur);
+        afficherRefus();
+      });
+  });
+})();
+</script>
 </body>
 </html>
