@@ -3,18 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Épreuves 3ème - MathsAvecMoi</title>
-
-  <script>var CLASSE_PAGE = "3ème";</script>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" defer></script>
-  <script src="firebase-config.js" defer></script>
-  <script src="auth-guard.js" defer></script>
-  <script src="class-guard.js" defer></script>
-
+  <title>3ᵉ – Mathématiques | Campus Flex</title>
+  <meta name="description" content="Programme de mathématiques de 3ᵉ sur Campus Flex : triangles, configurations de l’espace, calcul littéral, organisation des données.">
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -33,6 +23,10 @@
       background-color: #f5f7ff;
       color: #333;
     }
+
+    /* =========================
+       NAVIGATION
+       ========================= */
 
     nav {
       background-color: var(--indigo);
@@ -82,7 +76,12 @@
       border-color: var(--amber);
     }
 
+    /* =========================
+       MENU MOBILE
+       ========================= */
+
     @media (max-width: 640px) {
+
       .nav-toggle-label {
         display: block;
       }
@@ -113,7 +112,12 @@
       .nav-toggle:checked ~ ul {
         max-height: 300px;
       }
+
     }
+
+    /* =========================
+       EN-TÊTE
+       ========================= */
 
     header {
       background-color: #2c3e8c;
@@ -125,6 +129,16 @@
     header h2 {
       font-size: 26px;
     }
+
+    header p {
+      font-size: 13px;
+      margin-top: 8px;
+      opacity: 0.9;
+    }
+
+    /* =========================
+       CONTENU
+       ========================= */
 
     section {
       padding: 20px;
@@ -173,6 +187,31 @@
       font-size: 13px;
     }
 
+    .back {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      background: var(--indigo);
+      color: white;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+      transform: translateY(-2px);
+    }
+
+    /* =========================
+       PIED DE PAGE
+       ========================= */
+
     footer {
       background-color: #2c3e8c;
       color: white;
@@ -186,51 +225,38 @@
 
 <body>
 
+<!-- NAVIGATION -->
 <nav>
-  <h1>📐 MathsAvecMoi</h1>
+  <h1>🎓 Campus Flex – 3ᵉ</h1>
 
   <input type="checkbox" id="nav-toggle" class="nav-toggle">
   <label for="nav-toggle" class="nav-toggle-label">☰</label>
 
   <ul>
-    <!-- CORRECTION : accueil.html -->
     <li>
-      <a href="accueil.html">Accueil</a>
+      <a href="../index.html">Mathématiques</a>
     </li>
-
     <li>
-      <a href="epreuves.html" class="active">Épreuves</a>
+      <a href="../index.html" class="active">3ᵉ</a>
     </li>
-
     <li>
-      <a href="videos.html">Vidéos</a>
-    </li>
-
-    <li>
-      <a href="profil.html">Mon profil</a>
-    </li>
-
-    <li>
-      <a href="contact.html">Contact</a>
-    </li>
-
-    <li>
-      <a href="#" onclick="deconnexion(); return false;">
-        Déconnexion
-      </a>
+      <a href="../../index.html">Accueil</a>
     </li>
   </ul>
 </nav>
 
+<!-- EN-TÊTE -->
 <header>
-  <h2>📚 Épreuves - 3ème</h2>
-  <p style="font-size:13px; margin-top:8px; opacity:0.9;">
-    Classées dans l'ordre du programme officiel (SA1 → SA4)
+  <h2>📚 Programme de mathématiques – 3ᵉ</h2>
+  <p>
+    Classé dans l’ordre du programme officiel (SA1 → SA4)
   </p>
 </header>
 
+<!-- CONTENU -->
 <section>
 
+  <!-- SA 1 — Triangles -->
   <h3 class="sa-title">SA 1 — Triangles</h3>
 
   <h4 class="seq-title">Séquence 1 — Nombres réels</h4>
@@ -245,7 +271,7 @@
 
   <h4 class="seq-title">Séquence 3 — Trigonométrie</h4>
   <div class="devoir">
-    📝 Devoir - La trigonométrie<br>
+    📝 Devoir – La trigonométrie<br>
 
     <a href="https://docs.google.com/document/d/1MZP-8OmBoO9wQDZf-No-YXNhjBfGj8Yk/view" target="_blank">
       📄 Voir
@@ -285,7 +311,8 @@
   </div>
 
 
-  <h3 class="sa-title">SA 2 — Configurations de l'espace</h3>
+  <!-- SA 2 — Configurations de l'espace -->
+  <h3 class="sa-title">SA 2 — Configurations de l’espace</h3>
 
   <h4 class="seq-title">Séquence 1 — Cône de révolution</h4>
   <div class="devoir">
@@ -298,90 +325,7 @@
   </div>
 
 
+  <!-- SA 3 — Calcul littéral -->
   <h3 class="sa-title">SA 3 — Calcul littéral</h3>
 
-  <h4 class="seq-title">Séquence 1 — Polynômes</h4>
-  <div class="devoir">
-    <p class="a-venir">Bientôt disponible</p>
-  </div>
-
-  <h4 class="seq-title">Séquence 2 — Équations de droite</h4>
-  <div class="devoir">
-    📝 Devoir - Les fonctions<br>
-
-    <a href="https://docs.google.com/document/d/1EU5tpFCvO1OPLOoupWM3c4Ajnb5eEy27/view" target="_blank">
-      📄 Voir
-    </a>
-
-    <a href="https://docs.google.com/document/d/1EU5tpFCvO1OPLOoupWM3c4Ajnb5eEy27/export?format=pdf" target="_blank" style="color:#f39c12;">
-      ⬇️ Télécharger
-    </a>
-
-    <a href="https://docs.google.com/document/d/12WrG9Luk0SQ0Qky98YWr54Y8djVAsgAb/view" target="_blank" style="color:green;">
-      ✅ Corrigé
-    </a>
-
-    <a href="https://docs.google.com/document/d/12WrG9Luk0SQ0Qky98YWr54Y8djVAsgAb/export?format=pdf" target="_blank" style="color:green;">
-      ⬇️ Télécharger corrigé
-    </a>
-  </div>
-
-  <h4 class="seq-title">Séquence 3 — Équations - Inéquations</h4>
-  <div class="devoir">
-    <p class="a-venir">Bientôt disponible</p>
-  </div>
-
-  <h4 class="seq-title">Séquence 4 — Somme de deux vecteurs - Produit d'un vecteur par un nombre réel</h4>
-  <div class="devoir">
-    <p class="a-venir">Bientôt disponible</p>
-  </div>
-
-  <h4 class="seq-title">Séquence 5 — Calcul sur les coordonnées de vecteurs</h4>
-  <div class="devoir">
-    📝 Devoir - Vecteurs et coordonnées<br>
-
-    <a href="https://docs.google.com/document/d/1zj-_IzPTkpuW1L2b6eBdkCx7kafN-R2J/view" target="_blank">
-      📄 Voir
-    </a>
-
-    <a href="https://docs.google.com/document/d/1zj-_IzPTkpuW1L2b6eBdkCx7kafN-R2J/export?format=pdf" target="_blank" style="color:#f39c12;">
-      ⬇️ Télécharger
-    </a>
-
-    <a href="https://docs.google.com/document/d/1VpK8RWTOiL-tqmKP5VWFO0VgFwVr8HxY/view" target="_blank" style="color:green;">
-      ✅ Corrigé
-    </a>
-
-    <a href="https://docs.google.com/document/d/1VpK8RWTOiL-tqmKP5VWFO0VgFwVr8HxY/export?format=pdf" target="_blank" style="color:green;">
-      ⬇️ Télécharger corrigé
-    </a>
-  </div>
-
-
-  <h3 class="sa-title">SA 4 — Organisation des données</h3>
-
-  <h4 class="seq-title">Séquence 1 — Application affine</h4>
-  <div class="devoir">
-    <p class="a-venir">Bientôt disponible</p>
-  </div>
-
-  <h4 class="seq-title">Séquence 2 — Application linéaire</h4>
-  <div class="devoir">
-    <p class="a-venir">Bientôt disponible</p>
-  </div>
-
-  <h4 class="seq-title">Séquence 3 — Statistique</h4>
-  <div class="devoir">
-    📝 Devoir - Les probabilités<br>
-    <p class="a-venir">Bientôt disponible</p>
-  </div>
-
-</section>
-
-<footer>
-  <p>© 2026 MathsAvecMoi.fr — Tous droits réservés</p>
-</footer>
-
-</body>
-      </html>
-      
+  <h4 class="seq-title">Séquen
