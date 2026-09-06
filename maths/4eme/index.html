@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>4ᵉ – Mathématiques | Campus Flex</title>
-  <meta name="description" content="Programme de mathématiques de 4ᵉ sur Campus Flex : configurations du plan et de l’espace, applications du plan, organisation des données.">
+  <meta name="description" content="Cours et vidéos de mathématiques pour la 4ᵉ sur Campus Flex.">
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -23,10 +23,6 @@
       background-color: #f5f7ff;
       color: #333;
     }
-
-    /* =========================
-       NAVIGATION
-       ========================= */
 
     nav {
       background-color: var(--indigo);
@@ -76,10 +72,6 @@
       border-color: var(--amber);
     }
 
-    /* =========================
-       MENU MOBILE
-       ========================= */
-
     @media (max-width: 640px) {
 
       .nav-toggle-label {
@@ -112,12 +104,7 @@
       .nav-toggle:checked ~ ul {
         max-height: 300px;
       }
-
     }
-
-    /* =========================
-       EN-TÊTE
-       ========================= */
 
     header {
       background-color: #2c3e8c;
@@ -129,16 +116,6 @@
     header h2 {
       font-size: 26px;
     }
-
-    header p {
-      font-size: 13px;
-      margin-top: 8px;
-      opacity: 0.9;
-    }
-
-    /* =========================
-       CONTENU
-       ========================= */
 
     section {
       padding: 20px;
@@ -167,8 +144,47 @@
       padding: 15px;
       margin-bottom: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      line-height: 2.2;
+    }
+
+    .devoir a {
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .a-venir {
       color: #999;
-      font-style: italic;
+      font-size: 13px;
+    }
+
+    .video-bloc {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .video-bloc h3 {
+      color: #2c3e8c;
+      margin-bottom: 15px;
+    }
+
+    .video-bloc iframe {
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      height: 200px;
+    }
+
+    .section-contenu {
+      display: none;
+    }
+
+    .section-contenu.active {
+      display: block;
     }
 
     .back {
@@ -192,10 +208,6 @@
       transform: translateY(-2px);
     }
 
-    /* =========================
-       PIED DE PAGE
-       ========================= */
-
     footer {
       background-color: #2c3e8c;
       color: white;
@@ -218,27 +230,35 @@
 
     <ul>
       <li>
-        <a href="../index.html">Mathématiques</a>
+        <a href="#" class="onglet active" data-section="cours">
+          Cours
+        </a>
       </li>
       <li>
-        <a href="../index.html" class="active">4ᵉ</a>
+        <a href="#" class="onglet" data-section="videos">
+          Vidéos
+        </a>
       </li>
       <li>
-        <a href="../../index.html">Accueil</a>
+        <a href="../../index.html">
+          Accueil
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="deconnexion(); return false;">
+          Déconnexion
+        </a>
       </li>
     </ul>
   </nav>
 
   <!-- EN-TÊTE -->
   <header>
-    <h2>📚 Programme de mathématiques – 4ᵉ</h2>
-    <p>
-      Classé dans l’ordre du programme officiel (SA1 → SA4)
-    </p>
+    <h2>📚 Mathématiques – 4ᵉ</h2>
   </header>
 
-  <!-- CONTENU -->
-  <section>
+  <!-- SECTION COURS -->
+  <section id="cours" class="section-contenu active">
 
     <!-- SA1 — Configurations du plan -->
     <h3 class="sa-title">SA1 — Configurations du plan</h3>
@@ -267,7 +287,6 @@
     <h4 class="seq-title">Séquence 8 : Calculs sur les expressions algébriques</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
-
     <!-- SA2 — Configurations de l'espace -->
     <h3 class="sa-title">SA2 — Configurations de l’espace</h3>
 
@@ -289,7 +308,6 @@
     <h4 class="seq-title">Séquence 6 : Arithmétique – PPCM et PGCD</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
-
     <!-- SA3 — Applications du plan -->
     <h3 class="sa-title">SA3 — Applications du plan</h3>
 
@@ -305,7 +323,6 @@
     <h4 class="seq-title">Séquence 4 : Projection</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
-
     <!-- SA4 — Organisation des données -->
     <h3 class="sa-title">SA4 — Organisation des données</h3>
 
@@ -318,9 +335,28 @@
     <h4 class="seq-title">Séquence 3 : Statistique</h4>
     <div class="devoir">⏳ Bientôt disponible</div>
 
-    <!-- RETOUR -->
     <div class="back">
-      <a href="../index.html" class="btn">← Retour aux niveaux</a>
+      <a href="../../index.html" class="btn">← Retour à l’accueil</a>
+    </div>
+
+  </section>
+
+  <!-- SECTION VIDÉOS -->
+  <section id="videos" class="section-contenu">
+
+    <h2 style="text-align:center; color:#2c3e8c; margin-bottom:20px;">
+      🎥 Vidéos de 4ᵉ
+    </h2>
+
+    <div class="video-bloc">
+      <h3>Vidéos de 4ᵉ</h3>
+      <p style="color:#666;">
+        🎥 Les vidéos de 4ᵉ seront bientôt disponibles.
+      </p>
+    </div>
+
+    <div class="back">
+      <a href="../../index.html" class="btn">← Retour à l’accueil</a>
     </div>
 
   </section>
@@ -330,5 +366,34 @@
     <p>© 2026 Campus Flex — Mathématiques 4ᵉ — Tous droits réservés</p>
   </footer>
 
+  <!-- SCRIPT POUR CHANGER D'ONGLET -->
+  <script>
+    const onglets = document.querySelectorAll(".onglet");
+    const sections = document.querySelectorAll(".section-contenu");
+
+    onglets.forEach(function(onglet) {
+      onglet.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        onglets.forEach(o => o.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
+
+        onglet.classList.add("active");
+        const sectionId = onglet.getAttribute("data-section");
+        document.getElementById(sectionId).classList.add("active");
+      });
+    });
+
+    function deconnexion() {
+      if (typeof firebase !== "undefined" && firebase.auth) {
+        firebase.auth().signOut().then(function() {
+          window.location.href = "../../index.html";
+        });
+      } else {
+        window.location.href = "../../index.html";
+      }
+    }
+  </script>
+
 </body>
-          </html>
+      </html>
