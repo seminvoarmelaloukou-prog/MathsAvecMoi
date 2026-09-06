@@ -1,32 +1,61 @@
-<script>
-(function(){
-  const contenu = document.getElementById('contenu');
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration — Campus Flex</title>
 
-  firebase.auth().onAuthStateChanged(function(user){
-    if (!user){
-      contenu.innerHTML = '<p>Aucun utilisateur connecté.</p>';
-      return;
-    }
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
 
-    contenu.innerHTML = '<p>Connecté avec uid : ' + user.uid + '</p><p>Vérification en cours...</p>';
+<style>
+  body{ font-family:sans-serif; background:#f5f7ff; margin:0; padding:20px; }
+  h1{ color:#2c3e8c; }
+  .msg{ color:#B3401F; }
+</style>
+</head>
+<body>
 
-    if (typeof db === 'undefined' || !db){
-      contenu.innerHTML += '<p class="msg">Firebase Database indisponible.</p>';
-      return;
-    }
+  <h1>Administration</h1>
+  <div id="contenu">
+    <p>Vérification des droits...</p>
+  </div>
 
-    db.ref('admins/' + user.uid).once('value')
-      .then(function(snap){
-        contenu.innerHTML += '<p>Valeur lue : ' + JSON.stringify(snap.val()) + '</p>';
-        if (snap.val() === true){
-          contenu.innerHTML += '<p>Bienvenue, tu es bien administrateur.</p>';
-        } else {
-          contenu.innerHTML += '<p class="msg">Accès réservé aux administrateurs.</p>';
-        }
-      })
-      .catch(function(erreur){
-        contenu.innerHTML += '<p class="msg">Erreur : ' + erreur.message + '</p>';
-      });
-  });
-})();
-</script>
+  <script>
+  (function(){
+    var contenu = document.getElementById('contenu');
+
+    firebase.auth().onAuthStateChanged(function(user){
+      if (!user){
+        contenu.innerHTML = '<p>Aucun utilisateur connecté.</p>';
+        return;
+      }
+
+      contenu.innerHTML = '<p>Connecté avec uid : ' + user.uid + '</p><p>Vérification en cours...</p>';
+
+      if (typeof db === 'undefined' || !db){
+        contenu.innerHTML += '<p class="msg">Firebase Database indisponible.</p>';
+        return;
+      }
+
+      db.ref('admins/' + user.uid).once('value')
+        .then(function(snap){
+          contenu.innerHTML += '<p>Valeur lue : ' + JSON.stringify(snap.val()) + '</p>';
+          if (snap.val() === true){
+            contenu.innerHTML += '<p>Bienvenue, tu es bien administrateur.</p>';
+          } else {
+            contenu.innerHTML += '<p class="msg">Accès réservé aux administrateurs.</p>';
+          }
+        })
+        .catch(function(erreur){
+          contenu.innerHTML += '<p class="msg">Erreur : ' + erreur.message + '</p>';
+        });
+    });
+  })();
+  </script>
+
+</body>
+</html>
