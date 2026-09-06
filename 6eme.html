@@ -1,18 +1,10 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MathsAvecMoi - 6ème</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>MathsAvecMoi - 6ème</title>  <script>
+    var CLASSE_PAGE = "6ème";
+  </script>  <!-- Firebase -->  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>  <script src="firebase-config.js"></script>  <script src="auth-guard.js"></script>  <script src="class-guard.js"></script>  <style>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth-guard.js"></script>
-
-  <style>
     :root {
       --indigo: #2c3e8c;
       --indigo-dark: #1e2c66;
@@ -30,6 +22,10 @@
       background-color: #f5f7ff;
       color: #333;
     }
+
+    /* =========================
+       NAVIGATION
+       ========================= */
 
     nav {
       background-color: var(--indigo);
@@ -79,6 +75,10 @@
       border-color: var(--amber);
     }
 
+    /* =========================
+       MENU MOBILE
+       ========================= */
+
     @media (max-width: 640px) {
 
       .nav-toggle-label {
@@ -111,7 +111,12 @@
       .nav-toggle:checked ~ ul {
         max-height: 300px;
       }
+
     }
+
+    /* =========================
+       EN-TÊTE
+       ========================= */
 
     header {
       background-color: #2c3e8c;
@@ -123,6 +128,10 @@
     header h2 {
       font-size: 26px;
     }
+
+    /* =========================
+       CONTENU
+       ========================= */
 
     section {
       padding: 20px;
@@ -172,6 +181,10 @@
       font-size: 13px;
     }
 
+    /* =========================
+       BOUTON QCM
+       ========================= */
+
     .qcm-link {
       display: inline-block;
       background: #2F6F4E;
@@ -188,6 +201,10 @@
       background: #1F4E36;
     }
 
+    /* =========================
+       PIED DE PAGE
+       ========================= */
+
     footer {
       background-color: #2c3e8c;
       color: white;
@@ -196,326 +213,542 @@
       font-size: 13px;
       margin-top: 30px;
     }
-  </style>
-</head>
 
-<body>
-
-  <nav>
-
-    <h1>📐 MathsAvecMoi</h1>
-
-    <input type="checkbox" id="nav-toggle" class="nav-toggle">
-
-    <label for="nav-toggle" class="nav-toggle-label">
-      ☰
-    </label>
-
-    <ul>
-
-      <!-- Accueil protégé -->
-      <li>
-        <a href="accueil.html">Accueil</a>
-      </li>
-
-      <li>
-        <a href="epreuves.html" class="active">Épreuves</a>
-      </li>
-
-      <li>
-        <a href="videos.html">Vidéos</a>
-      </li>
-
-      <li>
-        <a href="profil.html">Mon profil</a>
-      </li>
-
-      <li>
-        <a href="contact.html">Contact</a>
-      </li>
-
-      <li>
-        <a href="#" onclick="deconnexion(); return false;">
-          Déconnexion
-        </a>
-      </li>
-
-    </ul>
-  </nav>
-
-
-  <header>
-
-    <h2>📚 Épreuves - 6ème</h2>
-
-    <p style="font-size:13px; margin-top:8px; opacity:0.9;">
-      Classées dans l'ordre du programme officiel (SA1 → SA4)
-    </p>
-
-  </header>
-
-
-  <section>
-
-    <!-- ===== SA 1 : Configurations de l'espace ===== -->
-
-    <h3 class="sa-title">
-      SA 1 — Configurations de l'espace
-    </h3>
-
-    <h4 class="seq-title">
-      Séquence 1 — Cube et pavé droit
-    </h4>
-
-    <div class="devoir" data-seq="sa1-seq1">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 2 — Cône de révolution
-    </h4>
-
-    <div class="devoir" data-seq="sa1-seq2">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 3 — Sphère
-    </h4>
-
-    <div class="devoir" data-seq="sa1-seq3">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <!-- ===== SA 2 : Configurations du plan ===== -->
-
-    <h3 class="sa-title">
-      SA 2 — Configurations du plan
-    </h3>
-
-    <h4 class="seq-title">
-      Séquence 1 — Droites du plan
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq1">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 2 — Segment de droite
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq2">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 3 — Cercle
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq3">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 4 — Angles
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq4">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 5 — Triangles
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq5">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 6 — Parallélogramme
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq6">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 7 — Entiers naturels (multiples, diviseurs, opérations)
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq7">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 8 — Nombres décimaux
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq8">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 9 — Fractions
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq9">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 11 — Calcul littéral
-    </h4>
-
-    <div class="devoir" data-seq="sa2-seq11">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <!-- ===== SA 3 : Applications du plan ===== -->
-
-    <h3 class="sa-title">
-      SA 3 — Applications du plan
-    </h3>
-
-    <h4 class="seq-title">
-      Séquence 1 — Figures symétriques par rapport à une droite
-    </h4>
-
-    <div class="devoir" data-seq="sa3-seq1">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 2 — Figures symétriques par rapport à un point
-    </h4>
-
-    <div class="devoir" data-seq="sa3-seq2">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 3 — Glissement
-    </h4>
-
-    <div class="devoir" data-seq="sa3-seq3">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <!-- ===== SA 4 : Organisation des données ===== -->
-
-    <h3 class="sa-title">
-      SA 4 — Organisation des données
-    </h3>
-
-    <h4 class="seq-title">
-      Séquence 1 — Proportionnalité
-    </h4>
-
-    <div class="devoir" data-seq="sa4-seq1">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-
-    <h4 class="seq-title">
-      Séquence 2 — Statistiques
-    </h4>
-
-    <div class="devoir" data-seq="sa4-seq2">
-      <p class="a-venir">Bientôt disponible</p>
-    </div>
-
-  </section>
-
-
-  <footer>
-
-    <p>
-      © 2026 MathsAvecMoi.fr — Tous droits réservés
-    </p>
-
-  </footer>
-
-
-  <script>
-
-    // Va chercher, dans Firebase, les QCM créés pour la 6ème
-    // et ajoute un bouton "Faire le QCM" à côté du devoir
-    // correspondant.
-
-    (function(){
+  </style></head><body>  <!-- =========================
+       NAVIGATION
+       ========================= -->  <nav><h1>📐 MathsAvecMoi</h1>
+
+<input
+  type="checkbox"
+  id="nav-toggle"
+  class="nav-toggle"
+>
+
+<label
+  for="nav-toggle"
+  class="nav-toggle-label"
+>
+  ☰
+</label>
+
+<ul>
+
+  <li>
+    <a href="accueil.html">
+      Accueil
+    </a>
+  </li>
+
+  <li>
+    <a href="epreuves.html" class="active">
+      Épreuves
+    </a>
+  </li>
+
+  <li>
+    <a href="videos.html">
+      Vidéos
+    </a>
+  </li>
+
+  <li>
+    <a href="profil.html">
+      Mon profil
+    </a>
+  </li>
+
+  <li>
+    <a href="contact.html">
+      Contact
+    </a>
+  </li>
+
+  <li>
+    <a
+      href="#"
+      onclick="deconnexion(); return false;"
+    >
+      Déconnexion
+    </a>
+  </li>
+
+</ul>
+
+  </nav>  <!-- =========================
+       EN-TÊTE
+       ========================= -->  <header><h2>
+  📚 Épreuves - 6ème
+</h2>
+
+<p
+  style="
+    font-size:13px;
+    margin-top:8px;
+    opacity:0.9;
+  "
+>
+  Classées dans l'ordre du programme officiel
+  (SA1 → SA4)
+</p>
+
+  </header>  <!-- =========================
+       CONTENU DES ÉPREUVES
+       ========================= -->  <section><!-- =====================================
+     SA 1 : CONFIGURATIONS DE L'ESPACE
+     ===================================== -->
+
+<h3 class="sa-title">
+  SA 1 — Configurations de l'espace
+</h3>
+
+
+<h4 class="seq-title">
+  Séquence 1 — Cube et pavé droit
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa1-seq1"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 2 — Cône de révolution
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa1-seq2"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 3 — Sphère
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa1-seq3"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+
+<!-- =====================================
+     SA 2 : CONFIGURATIONS DU PLAN
+     ===================================== -->
+
+<h3 class="sa-title">
+  SA 2 — Configurations du plan
+</h3>
+
+
+<h4 class="seq-title">
+  Séquence 1 — Droites du plan
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq1"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 2 — Segment de droite
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq2"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 3 — Cercle
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq3"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 4 — Angles
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq4"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 5 — Triangles
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq5"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 6 — Parallélogramme
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq6"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 7 — Entiers naturels
+  (multiples, diviseurs, opérations)
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq7"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 8 — Nombres décimaux
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq8"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 9 — Fractions
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq9"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 11 — Calcul littéral
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa2-seq11"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+
+<!-- =====================================
+     SA 3 : APPLICATIONS DU PLAN
+     ===================================== -->
+
+<h3 class="sa-title">
+  SA 3 — Applications du plan
+</h3>
+
+
+<h4 class="seq-title">
+  Séquence 1 — Figures symétriques
+  par rapport à une droite
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa3-seq1"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 2 — Figures symétriques
+  par rapport à un point
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa3-seq2"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 3 — Glissement
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa3-seq3"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+
+<!-- =====================================
+     SA 4 : ORGANISATION DES DONNÉES
+     ===================================== -->
+
+<h3 class="sa-title">
+  SA 4 — Organisation des données
+</h3>
+
+
+<h4 class="seq-title">
+  Séquence 1 — Proportionnalité
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa4-seq1"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+
+<h4 class="seq-title">
+  Séquence 2 — Statistiques
+</h4>
+
+<div
+  class="devoir"
+  data-seq="sa4-seq2"
+>
+  <p class="a-venir">
+    Bientôt disponible
+  </p>
+</div>
+
+  </section>  <!-- =========================
+       PIED DE PAGE
+       ========================= -->  <footer><p>
+  © 2026 MathsAvecMoi.fr — Tous droits réservés
+</p>
+
+  </footer>  <!-- =========================
+       CHARGEMENT DES QCM FIREBASE
+       ========================= -->  <script>
+
+    /*
+     * ==================================================
+     * CHARGEMENT DES QCM DE LA 6ÈME
+     * ==================================================
+     *
+     * Firebase :
+     *
+     * epreuves/
+     *    6ème/
+     *       id_epreuve/
+     *          titre
+     *          sequenceId
+     *
+     * Lorsqu'une épreuve existe pour une séquence,
+     * "Bientôt disponible" est automatiquement supprimé
+     * et le bouton "Faire le QCM" est ajouté.
+     */
+
+    (function () {
 
       const CLASSE = "6ème";
 
+
+      /* Vérification Firebase */
+
       if (typeof db === "undefined") {
+
         console.error(
           "Firebase / db non disponible, impossible de charger les QCM."
         );
+
         return;
       }
 
+
+      /* Recherche des épreuves de la 6ème */
+
       db.ref("epreuves/" + CLASSE)
+
         .once("value")
-        .then(function(snap){
+
+        .then(function (snap) {
 
           const data = snap.val() || {};
 
-          Object.entries(data).forEach(function([id, epreuve]){
 
-            if (!epreuve.sequenceId) return;
+          /*
+           * Parcourt toutes les épreuves
+           */
 
-            const cible = document.querySelector(
-              '.devoir[data-seq="' +
-              epreuve.sequenceId +
-              '"]'
-            );
+          Object.entries(data).forEach(
+            function ([id, epreuve]) {
 
-            if (!cible) return;
 
-            // Retire "Bientôt disponible"
-            // lorsqu'un QCM existe.
-            const enAttente = cible.querySelector(".a-venir");
+              /*
+               * Une épreuve doit obligatoirement
+               * posséder un sequenceId.
+               */
 
-            if (enAttente) {
-              enAttente.remove();
+              if (!epreuve.sequenceId) {
+                return;
+              }
+
+
+              /*
+               * Recherche le bloc correspondant
+               * à la séquence.
+               */
+
+              const cible = document.querySelector(
+                '.devoir[data-seq="' +
+                epreuve.sequenceId +
+                '"]'
+              );
+
+
+              /*
+               * Si aucune séquence correspondante
+               * n'existe dans cette page,
+               * on ignore l'épreuve.
+               */
+
+              if (!cible) {
+                return;
+              }
+
+
+              /*
+               * Suppression de
+               * "Bientôt disponible".
+               */
+
+              const enAttente =
+                cible.querySelector(".a-venir");
+
+
+              if (enAttente) {
+                enAttente.remove();
+              }
+
+
+              /*
+               * Création du bouton QCM.
+               */
+
+              const lien =
+                document.createElement("a");
+
+
+              lien.className =
+                "qcm-link";
+
+
+              /*
+               * Lien vers la page
+               * passer-epreuve.html
+               */
+
+              lien.href =
+                "passer-epreuve.html" +
+                "?classe=" +
+                encodeURIComponent(CLASSE) +
+                "&id=" +
+                encodeURIComponent(id);
+
+
+              /*
+               * Texte du bouton.
+               */
+
+              lien.textContent =
+                "📝 Faire le QCM — " +
+                (epreuve.titre || "Épreuve");
+
+
+              /*
+               * Ajout du bouton dans
+               * le bloc de la séquence.
+               */
+
+              cible.appendChild(lien);
+
             }
-
-            const lien = document.createElement("a");
-
-            lien.className = "qcm-link";
-
-            lien.href =
-              "passer-epreuve.html?classe=" +
-              encodeURIComponent(CLASSE) +
-              "&id=" +
-              encodeURIComponent(id);
-
-            lien.textContent =
-              "📝 Faire le QCM — " + epreuve.titre;
-
-            cible.appendChild(lien);
-
-          });
+          );
 
         })
-        .catch(function(e){
+
+
+        /*
+         * Gestion des erreurs Firebase
+         */
+
+        .catch(function (e) {
 
           console.error(
             "Erreur de chargement des QCM :",
@@ -526,7 +759,5 @@
 
     })();
 
-  </script>
-
-</body>
-</html>
+  </script></body>
+  </html>
