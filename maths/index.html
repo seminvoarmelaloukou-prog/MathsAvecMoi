@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mathématiques - Campus Flex</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -13,33 +12,32 @@
 
   <style>
     :root {
-      --bleu: #2c3e8c;
-      --bleu-fonce: #1e2c66;
-      --orange: #f39c12;
-      --fond: #f5f7ff;
-      --texte: #333333;
-      --gris: #666666;
-      --rouge: #c0392b;
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
     }
 
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: var(--fond);
-      color: var(--texte);
+      background: var(--background);
+      color: var(--text);
       display: flex;
       flex-direction: column;
     }
 
     nav {
-      background: var(--bleu);
-      color: white;
+      background: var(--indigo);
       padding: 14px 20px;
       display: flex;
       justify-content: space-between;
@@ -50,151 +48,98 @@
     }
 
     nav h1 {
+      color: white;
       font-size: 20px;
     }
 
     nav ul {
-      display: flex;
-      gap: 16px;
       list-style: none;
+      display: flex;
+      gap: 18px;
       flex-wrap: wrap;
     }
 
-    nav ul li a {
+    nav a {
       color: white;
       text-decoration: none;
       font-size: 14px;
     }
 
-    nav ul li a:hover {
+    nav a:hover {
       text-decoration: underline;
     }
 
     main {
-      width: 100%;
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 0 20px;
       flex: 1;
+      width: 100%;
+      max-width: 760px;
+      margin: 45px auto;
+      padding: 0 20px;
     }
 
-    .hero {
-      color: white;
-      background: linear-gradient(135deg, var(--bleu), #566dc6);
-      border-radius: 14px;
+    .card {
+      background: white;
       padding: 28px 22px;
-      margin-bottom: 25px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-    }
-
-    .hero h2 {
-      font-size: 27px;
-      margin-bottom: 10px;
-    }
-
-    .hero p {
-      max-width: 750px;
-      font-size: 15px;
-      line-height: 1.55;
-    }
-
-    .titre-section {
-      color: var(--bleu);
-      font-size: 22px;
-      margin: 22px 0 15px;
-    }
-
-    .message {
-      color: var(--gris);
-      font-size: 14px;
-      line-height: 1.5;
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .message-erreur {
-      color: var(--rouge);
-    }
-
-    .chapitres {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 18px;
-    }
-
-    .chapitre {
-      background: white;
       border-radius: 14px;
-      padding: 20px;
-      min-height: 215px;
-      display: flex;
-      flex-direction: column;
+      text-align: center;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
     }
 
-    .chapitre h3 {
-      color: var(--bleu);
-      font-size: 18px;
-      line-height: 1.35;
-      margin-bottom: 10px;
+    .card h2 {
+      color: var(--indigo);
+      font-size: 24px;
+      margin-bottom: 12px;
     }
 
-    .chapitre p {
-      color: var(--gris);
-      font-size: 14px;
-      line-height: 1.5;
-      flex: 1;
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .loader {
+      width: 36px;
+      height: 36px;
+      border: 4px solid #e4e7f5;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      margin: 22px auto 15px;
+      animation: rotation 0.8s linear infinite;
+    }
+
+    .error {
+      color: var(--error) !important;
+      margin-top: 15px;
     }
 
     .btn {
       display: inline-block;
-      margin-top: 18px;
-      padding: 11px 16px;
-      border: none;
+      margin-top: 20px;
+      padding: 11px 22px;
       border-radius: 24px;
-      background: var(--bleu);
+      background: var(--indigo);
       color: white;
       text-decoration: none;
       font-size: 14px;
       font-weight: bold;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .btn:hover {
-      background: var(--bleu-fonce);
-      transform: translateY(-1px);
-    }
-
-    .btn-orange {
-      background: var(--orange);
-    }
-
-    .btn-orange:hover {
-      background: #d68910;
-    }
-
-    .conseil {
-      margin-top: 26px;
-      background: #fff8e1;
-      border-left: 4px solid var(--orange);
-      border-radius: 7px;
-      padding: 15px;
-      color: #5c5233;
-      font-size: 14px;
-      line-height: 1.5;
+      background: var(--indigo-dark);
     }
 
     footer {
-      background: var(--bleu);
+      background: var(--indigo);
       color: white;
       text-align: center;
       padding: 14px;
-      margin-top: 25px;
       font-size: 13px;
+    }
+
+    @keyframes rotation {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     @media (max-width: 600px) {
@@ -208,16 +153,8 @@
       }
 
       main {
-        margin: 20px auto;
-        padding: 0 13px;
-      }
-
-      .hero {
-        padding: 22px 17px;
-      }
-
-      .hero h2 {
-        font-size: 23px;
+        margin: 25px auto;
+        padding: 0 14px;
       }
     }
   </style>
@@ -229,7 +166,6 @@
     <h1>Campus Flex - Mathématiques</h1>
 
     <ul>
-      <li><a href="index.html">Mathématiques</a></li>
       <li><a href="profil.html">Mon profil</a></li>
       <li><a href="../index.html">Accueil</a></li>
       <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
@@ -237,27 +173,19 @@
   </nav>
 
   <main>
+    <section class="card">
+      <h2 id="titre">Chargement de tes cours</h2>
 
-    <section class="hero">
-      <h2 id="titre-classe">Mathématiques</h2>
+      <div class="loader" id="loader"></div>
 
-      <p id="texte-classe">
-        Chargement de tes cours...
+      <p id="message">
+        Nous préparons les cours adaptés à ta classe...
       </p>
+
+      <a href="profil.html" class="btn" id="bouton-profil" style="display:none;">
+        Ouvrir mon profil
+      </a>
     </section>
-
-    <h2 class="titre-section" id="titre-chapitres">
-      Mes chapitres
-    </h2>
-
-    <section class="chapitres" id="liste-chapitres">
-      <p class="message">Chargement des chapitres...</p>
-    </section>
-
-    <div class="conseil">
-      Conseil : lis le cours, observe les exemples, puis essaie les exercices. Si une étape te bloque, explique ce que tu as essayé à Nora.
-    </div>
-
   </main>
 
   <footer>
@@ -265,330 +193,34 @@
   </footer>
 
   <script>
-    const titreClasse = document.getElementById("titre-classe");
-    const texteClasse = document.getElementById("texte-classe");
-    const titreChapitres = document.getElementById("titre-chapitres");
-    const listeChapitres = document.getElementById("liste-chapitres");
+    const titre = document.getElementById("titre");
+    const message = document.getElementById("message");
+    const loader = document.getElementById("loader");
+    const boutonProfil = document.getElementById("bouton-profil");
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    const coursParClasse = {
-      "6e": [
-        {
-          titre: "Chapitre 1 : Nombres entiers",
-          description: "Lire, écrire, comparer, ranger et décomposer les nombres entiers.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Les fractions",
-          description: "Comprendre les fractions, les représenter et les placer sur une droite graduée.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Nombres décimaux",
-          description: "Lire, écrire, comparer et ranger les nombres décimaux.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Addition et soustraction",
-          description: "Poser des additions et soustractions avec des nombres entiers et décimaux.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Multiplication",
-          description: "Effectuer des multiplications et résoudre des problèmes simples.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Géométrie",
-          description: "Reconnaître les figures et utiliser les instruments de géométrie.",
-          lien: "chapitre6.html"
-        }
-      ],
-
-      "5e": [
-        {
-          titre: "Chapitre 1 : Nombres relatifs",
-          description: "Lire, comparer et placer les nombres positifs et négatifs.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Fractions",
-          description: "Additionner, soustraire et simplifier des fractions.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Priorités de calcul",
-          description: "Respecter les parenthèses et l’ordre des opérations.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Proportionnalité",
-          description: "Résoudre des problèmes avec tableaux, coefficients et pourcentages.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Triangles",
-          description: "Construire et reconnaître les propriétés des triangles.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Aires et volumes",
-          description: "Calculer des aires et comprendre les volumes des solides simples.",
-          lien: "chapitre6.html"
-        }
-      ],
-
-      "4e": [
-        {
-          titre: "Chapitre 1 : Calcul littéral",
-          description: "Utiliser des lettres, développer et réduire des expressions.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Équations",
-          description: "Résoudre des équations simples du premier degré.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Théorème de Pythagore",
-          description: "Utiliser le théorème de Pythagore dans un triangle rectangle.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Proportionnalité",
-          description: "Utiliser la proportionnalité, les pourcentages et les vitesses.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Puissances",
-          description: "Calculer avec des puissances de 10 et écrire en notation scientifique.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Statistiques",
-          description: "Lire des tableaux, calculer une moyenne et interpréter des données.",
-          lien: "chapitre6.html"
-        }
-      ],
-
-      "3e": [
-        {
-          titre: "Chapitre 1 : Équations et inéquations",
-          description: "Résoudre des équations et des inéquations du premier degré.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Fonctions",
-          description: "Lire et utiliser une fonction à partir d’une expression, d’un tableau ou d’un graphique.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Théorème de Thalès",
-          description: "Utiliser le théorème de Thalès et sa réciproque.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Trigonométrie",
-          description: "Calculer une longueur ou un angle dans un triangle rectangle.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Calcul littéral",
-          description: "Développer, factoriser et utiliser les identités remarquables.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Probabilités",
-          description: "Calculer des probabilités dans des situations simples.",
-          lien: "chapitre6.html"
-        }
-      ],
-
-      "Seconde": [
-        {
-          titre: "Chapitre 1 : Ensembles de nombres",
-          description: "Utiliser les ensembles numériques, les intervalles et les inégalités.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Fonctions",
-          description: "Étudier les images, antécédents, variations et représentations graphiques.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Calcul littéral",
-          description: "Développer, factoriser et résoudre des équations ou inéquations.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Vecteurs",
-          description: "Utiliser les vecteurs dans le plan et leurs coordonnées.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Géométrie repérée",
-          description: "Calculer des distances, milieux et coordonnées dans un repère.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Statistiques et probabilités",
-          description: "Interpréter des données et travailler sur les probabilités.",
-          lien: "chapitre6.html"
-        }
-      ],
-
-      "Première": [
-        {
-          titre: "Chapitre 1 : Dérivation",
-          description: "Calculer des dérivées et étudier les variations d’une fonction.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Suites numériques",
-          description: "Étudier les suites arithmétiques, géométriques et leurs variations.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Second degré",
-          description: "Résoudre des équations et étudier les fonctions du second degré.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Probabilités conditionnelles",
-          description: "Utiliser les arbres pondérés, les probabilités conditionnelles et l’indépendance.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Trigonométrie",
-          description: "Manipuler les angles, le cercle trigonométrique et les formules.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Fonctions",
-          description: "Étudier les fonctions et interpréter leurs représentations.",
-          lien: "chapitre6.html"
-        }
-      ],
-
-      "Terminale": [
-        {
-          titre: "Chapitre 1 : Limites",
-          description: "Étudier les limites de fonctions et de suites.",
-          lien: "chapitre1.html"
-        },
-        {
-          titre: "Chapitre 2 : Dérivation",
-          description: "Étudier les dérivées, les variations et les extremums.",
-          lien: "chapitre2.html"
-        },
-        {
-          titre: "Chapitre 3 : Primitives et intégrales",
-          description: "Déterminer des primitives et calculer des intégrales simples.",
-          lien: "chapitre3.html"
-        },
-        {
-          titre: "Chapitre 4 : Suites numériques",
-          description: "Étudier la convergence et les limites des suites.",
-          lien: "chapitre4.html"
-        },
-        {
-          titre: "Chapitre 5 : Probabilités",
-          description: "Travailler sur les lois de probabilité, l’espérance et les variables aléatoires.",
-          lien: "chapitre5.html"
-        },
-        {
-          titre: "Chapitre 6 : Exponentielle et logarithme",
-          description: "Étudier les fonctions exponentielle et logarithme népérien.",
-          lien: "chapitre6.html"
-        }
-      ]
+    const pagesParClasse = {
+      "6e": "6e/index.html",
+      "5e": "5e/index.html",
+      "4e": "4e/index.html",
+      "3e": "3e/index.html",
+      "Seconde": "seconde/index.html",
+      "Première": "premiere/index.html",
+      "Terminale": "terminale/index.html"
     };
 
-    function echapperHtml(texte) {
-      const element = document.createElement("div");
-      element.textContent = texte || "";
-      return element.innerHTML;
-    }
-
     function afficherErreur(texte) {
-      titreClasse.textContent = "Erreur";
-      texteClasse.textContent = texte;
-      listeChapitres.innerHTML = `
-        <p class="message message-erreur">${echapperHtml(texte)}</p>
-      `;
+      titre.textContent = "Impossible d’ouvrir les cours";
+      message.textContent = texte;
+      message.classList.add("error");
+      loader.style.display = "none";
+      boutonProfil.style.display = "inline-block";
     }
 
-    function afficherCours(classe) {
-      const cours = coursParClasse[classe];
-
-      if (!cours) {
-        titreClasse.textContent = "Classe à compléter";
-        texteClasse.textContent =
-          "Ta classe n’est pas encore renseignée ou n’est pas reconnue. Va dans ton profil pour vérifier ta classe.";
-
-        listeChapitres.innerHTML = `
-          <article class="chapitre">
-            <h3>Choisis ta classe</h3>
-            <p>
-              Ta classe est nécessaire pour afficher les cours adaptés à ton niveau.
-            </p>
-            <a class="btn" href="profil.html">Ouvrir mon profil</a>
-          </article>
-
-          <article class="chapitre">
-            <h3>Besoin d’aide ?</h3>
-            <p>
-              Tu peux poser une question à Nora sur une leçon ou un exercice.
-            </p>
-            <a class="btn btn-orange" href="profil.html#chat-nora">Discuter avec Nora</a>
-          </article>
-        `;
-
-        return;
-      }
-
-      titreClasse.textContent = "Mathématiques - " + classe;
-
-      texteClasse.textContent =
-        "Voici les chapitres adaptés à ta classe. Choisis un chapitre pour commencer à étudier.";
-
-      titreChapitres.textContent = "Mes chapitres de " + classe;
-
-      let html = "";
-
-      cours.forEach(function(chapitre) {
-        html += `
-          <article class="chapitre">
-            <h3>${echapperHtml(chapitre.titre)}</h3>
-            <p>${echapperHtml(chapitre.description)}</p>
-            <a class="btn" href="${echapperHtml(chapitre.lien)}">
-              Ouvrir le cours
-            </a>
-          </article>
-        `;
-      });
-
-      html += `
-        <article class="chapitre">
-          <h3>Besoin d’aide ?</h3>
-          <p>
-            Pose une question à Nora si tu bloques sur un cours, un calcul ou un exercice.
-          </p>
-          <a class="btn btn-orange" href="profil.html#chat-nora">
-            Discuter avec Nora
-          </a>
-        </article>
-      `;
-
-      listeChapitres.innerHTML = html;
-    }
-
-    if (typeof firebase === "undefined") {
-      afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
-    } else if (typeof auth === "undefined") {
-      afficherErreur("Firebase Authentication n’est pas disponible.");
-    } else if (!db) {
-      afficherErreur("Realtime Database n’est pas disponible.");
+    if (typeof auth === "undefined" || !db) {
+      afficherErreur(
+        "Firebase n’est pas disponible. Vérifie firebase-config.js et les scripts Firebase."
+      );
     } else {
       auth.onAuthStateChanged(function(user) {
         if (!user) {
@@ -596,21 +228,33 @@
           return;
         }
 
-        db.ref("eleves/" + user.uid).once("value")
+        db.ref("eleves/" + user.uid + "/classe").once("value")
           .then(function(snapshot) {
-            const profil = snapshot.val() || {};
-            afficherCours(profil.classe || "");
+            const classe = snapshot.val();
+            const pageCours = pagesParClasse[classe];
+
+            if (!pageCours) {
+              afficherErreur(
+                "Ta classe n’est pas renseignée ou n’est pas reconnue. Ouvre ton profil pour vérifier ta classe."
+              );
+              return;
+            }
+
+            titre.textContent = "Ouverture des cours de " + classe;
+            message.textContent = "Redirection vers ton espace de mathématiques...";
+
+            window.location.href = pageCours;
           })
           .catch(function(erreur) {
             console.error("Erreur de lecture de classe :", erreur);
 
             if (erreur.code === "PERMISSION_DENIED") {
               afficherErreur(
-                "Accès refusé par Firebase. Vérifie les règles de Realtime Database."
+                "Firebase refuse l’accès à ton profil. Vérifie les règles de Realtime Database."
               );
             } else {
               afficherErreur(
-                "Impossible de charger tes cours. Vérifie ta connexion Internet puis réessaie."
+                "Impossible de charger ta classe. Vérifie ta connexion Internet puis réessaie."
               );
             }
           });
