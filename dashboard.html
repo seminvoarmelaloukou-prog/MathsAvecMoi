@@ -46,7 +46,7 @@
     font-weight:700;
     font-size:1.05rem;
   }
-  .wrap{ max-width:900px; margin:0 auto; padding:0 18px; }
+  .wrap{ max-width:1000px; margin:0 auto; padding:0 18px; }
 
   .card{
     background:var(--card);
@@ -199,6 +199,41 @@
     background:#C9C4B4;
     cursor:not-allowed;
   }
+
+  .classe-cell{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    flex-wrap:nowrap;
+  }
+  select.select-classe{
+    padding:5px 7px;
+    border:1.5px solid var(--line);
+    border-radius:6px;
+    font-size:.78rem;
+    background:#FCFAF4;
+    color:var(--ink);
+  }
+  .btn-classe{
+    background:var(--forest);
+    color:#fff;
+    border:none;
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+    font-size:.78rem;
+    white-space:nowrap;
+  }
+  .btn-classe:hover{ background:var(--forest-dark); }
+  .btn-classe:disabled{
+    background:#C9C4B4;
+    cursor:not-allowed;
+  }
+  .classe-ok{
+    color:var(--forest-dark);
+    font-size:.72rem;
+    font-weight:600;
+  }
 </style>
 </head>
 <body>
@@ -233,7 +268,8 @@
           <th>Points</th>
           <th>Série</th>
           <th>Dernier passage</th>
-          <th>Action</th>
+          <th>Changer classe</th>
+          <th>Contacter</th>
         </tr>
       </thead>
       <tbody id="tbody"></tbody>
@@ -261,6 +297,11 @@
 <script>
 (function(){
   const MOT_DE_PASSE = "campusflex2026"; // <-- change-le ici si tu veux
+
+  // Liste des classes gérées par le site, dans l'ordre de progression.
+  // Sert à la fois pour le sélecteur "Changer classe" et pour compléter
+  // les filtres si une classe n'a pas encore d'élève inscrit.
+  const CLASSES = ['6ème','5ème','4ème','3ème','2ndeD','1ère','Tle'];
 
   const $ = id => document.getElementById(id);
   let tousLesEleves = [];
@@ -292,6 +333,45 @@
   }
   // Rendue accessible depuis les attributs onclick générés dynamiquement
   window.contacterWhatsApp = contacterWhatsApp;
+
+  // Change la classe d'un élève dans Firebase. Seul l'enseignant a accès à
+  // cette page (protégée par mot de passe), donc c'est la seule voie possible
+  // pour faire passer un élève en classe supérieure.
+  function changerClasse(telephone, boutonEl){
+    const select = document.querySelector(`select.select-classe[data-tel="${telephone}"]`);
+    if (!select) return;
+    const nouvelleClasse = select.value;
+
+    boutonEl.disabled = true;
+    boutonEl.textContent = '...';
+
+    db.ref('eleves/' + telephone + '/classe').set(nouvelleClasse)
+      .then(() => {
+        // Met aussi à jour la copie locale pour rafraîchir l'affichage sans recharger
+        const eleve = tousLesEleves.find(e => e.telephone === telephone);
+        if (eleve) eleve.classe = nouvelleClasse;
+
+        boutonEl.textContent = '✔ Fait';
+        setTimeout(() => {
+          construireFiltres();
+          afficherTableau();
+          afficherResultats();
+        }, 600);
+      })
+      .catch(e => {
+        console.error("Erreur changement de classe", e);
+        alert("Erreur lors du changement de classe. Réessaie.");
+        boutonEl.disabled = false;
+        boutonEl.textContent = 'Valider';
+      });
+  }
+  window.changerClasse = changerClasse;
+
+  function optionsClasses(classeActuelle){
+    return CLASSES.map(c =>
+      `<option value="${c}" ${c === classeActuelle ? 'selected' : ''}>${c}</option>`
+    ).join('');
+  }
 
   function chargerDonnees(){
     const chargerEleves = db.ref('eleves').once('value').then(snap => {
@@ -396,6 +476,7 @@
 
       const numero = formaterNumeroWhatsApp(e.telephone);
       const prenomEch = (e.prenom || '').replace(/'/g, "\\'");
+      const telephoneAttr = e.telephone || '';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -404,6 +485,14 @@
         <td>${e.points || 0}</td>
         <td>${e.streak || 0} (max ${e.bestStreak || 0})</td>
         <td class="${staleClass}">${dernierTexte}</td>
+        <td>
+          <div class="classe-cell">
+            <select class="select-classe" data-tel="${telephoneAttr}">
+              ${optionsClasses(e.classe || '')}
+            </select>
+            <button class="btn-classe" onclick="changerClasse('${telephoneAttr}', this)">Valider</button>
+          </div>
+        </td>
         <td>
           <button class="btn-whatsapp" ${numero ? '' : 'disabled'}
             onclick="contacterWhatsApp('${e.telephone || ''}', '${prenomEch}')">
@@ -484,4 +573,5 @@
 </script>
 
 </body>
-</html>
+  </html>
+  
