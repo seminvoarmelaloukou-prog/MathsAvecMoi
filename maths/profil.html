@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon profil - Campus Flex</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+  <script src="../auth-guard.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7ff;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 25px 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.1);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .info-item {
+      background: #f9f9ff;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .info-label {
+      display: block;
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      display: block;
+      font-weight: bold;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .progress-section {
+      margin-top: 15px;
+    }
+
+    .progress-item {
+      margin-bottom: 15px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .progress-bar {
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--amber);
+      width: 0%;
+      transition: width .4s ease;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat-box {
+      background: #f9f9ff;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--indigo);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .historique-list {
+      list-style: none;
+      margin-top: 10px;
+    }
+
+    .historique-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .historique-item:last-child {
+      border-bottom: none;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      background: var(--indigo);
+      color: white;
+      transition: .2s;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-ia {
+      background: var(--amber);
+    }
+
+    .btn-ia:hover {
+      background: #d68910;
+    }
+
+    .empty {
+      color: #999;
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    footer {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        justify-content: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      .info-grid,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>🎓 Campus Flex – Mon profil</h1>
+    <ul>
+      <li><a href="index.html">Mathématiques</a></li>
+      <li><a href="tuteur-ia.html">Tuteur IA</a></li>
+      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- Infos élève -->
+    <div class="card">
+      <h2>👤 Mes informations</h2>
+      <div id="infos-eleve" class="info-grid">
+        <p style="color:#666; grid-column: 1 / -1;">Chargement de tes informations…</p>
+      </div>
+    </div>
+
+    <!-- Progression globale -->
+    <div class="card">
+      <h2>📈 Ma progression</h2>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span class="stat-value" id="stat-devoirs">0</span>
+          <span class="stat-label">Devoirs faits</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="stat-chapitres">0</span>
+          <span class="stat-label">Chapitres vus</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="stat-videos">0</span>
+          <span class="stat-label">Vidéos vues</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-value" id="stat-connexion">0</span>
+          <span class="stat-label">Jours de connexion</span>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-item">
+          <div class="progress-label">
+            <span>Progression dans ta classe</span>
+            <span id="progression-classe-text">0%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progression-classe-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historique récent -->
+    <div class="card">
+      <h2>🕒 Activité récente</h2>
+      <div id="historique">
+        <p class="empty">Aucune activité récente pour le moment.</p>
+      </div>
+    </div>
+
+    <!-- Tuteur IA -->
+    <div class="card">
+      <h2>🤖 Tuteur IA</h2>
+      <p style="color:#666; margin-bottom:15px;">
+        Tu as une question sur un exercice, un cours ou une méthode ? Discute avec ton tuteur IA.
+      </p>
+      <a href="tuteur-ia.html" class="btn btn-ia">💬 Discuter avec le tuteur IA</a>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2026 Campus Flex — Tous droits réservés</p>
+  </footer>
+
+  <script>
+    // Affichage des infos élève et progression
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = "../connexion.html";
+        return;
+      }
+
+      const uid = user.uid;
+
+      // Infos élève
+      db.ref("eleves/" + uid).once("value").then(function(snap) {
+        const data = snap.val() || {};
+
+        const container = document.getElementById("infos-eleve");
+
+        if (!data || Object.keys(data).length === 0) {
+          container.innerHTML = `
+            <p style="color:#666; grid-column: 1 / -1;">
+              Aucune information enregistrée pour ton compte.
+            </p>
+          `;
+          return;
+        }
+
+        let html = "";
+
+        if (data.identifiant) {
+          html += `
+            <div class="info-item">
+              <span class="info-label">Identifiant</span>
+              <span class="info-value">${data.identifiant}</span>
+            </div>
+          `;
+        }
+
+        if (data.classe) {
+          html += `
+            <div class="info-item">
+              <span class="info-label">Classe</span>
+              <span class="info-value">${data.classe}</span>
+            </div>
+          `;
+        }
+
+        if (data.email) {
+          html += `
+            <div class="info-item">
+              <span class="info-label">E-mail</span>
+              <span class="info-value">${data.email}</span>
+            </div>
+          `;
+        }
+
+        if (data.dateInscription) {
+          html += `
+            <div class="info-item">
+              <span class="info-label">Inscrit depuis</span>
+              <span class="info-value">${new Date(data.dateInscription).toLocaleDateString('fr-FR')}</span>
+            </div>
+          `;
+        }
+
+        container.innerHTML = html;
+
+        // Progression et statistiques
+        const devoirsFaits = data.devoirsFaits || 0;
+        const chapitresVus = data.chapitresVus || 0;
+        const videosVues = data.videosVues || 0;
+        const joursConnexion = data.joursConnexion || 0;
+
+        document.getElementById("stat-devoirs").textContent = devoirsFaits;
+        document.getElementById("stat-chapitres").textContent = chapitresVus;
+        document.getElementById("stat-videos").textContent = videosVues;
+        document.getElementById("stat-connexion").textContent = joursConnexion;
+
+        // Progression dans la classe (exemple : basé sur les chapitres vus)
+        const totalChapitresClasse = 20; // à adapter selon la classe
+        const progressionPourcent = Math.min(100, Math.round((chapitresVus / totalChapitresClasse) * 100));
+
+        document.getElementById("progression-classe-text").textContent = progressionPourcent + "%";
+        document.getElementById("progression-classe-bar").style.width = progressionPourcent + "%";
+
+        // Historique récent
+        const historiqueContainer = document.getElementById("historique");
+
+        if (data.historique && Array.isArray(data.historique) && data.historique.length > 0) {
+          const recent = data.historique.slice(-5).reverse(); // 5 dernières actions
+
+          let htmlHistorique = '<ul class="historique-list">';
+
+          recent.forEach(function(action) {
+            const date = action.date ? new Date(action.date).toLocaleString('fr-FR') : "";
+            htmlHistorique += `
+              <li class="historique-item">
+                <strong>${action.type}</strong> – ${action.details || ""} 
+                <span style="color:#999; font-size:12px;">(${date})</span>
+              </li>
+            `;
+          });
+
+          htmlHistorique += '</ul>';
+          historiqueContainer.innerHTML = htmlHistorique;
+        } else {
+          historiqueContainer.innerHTML = '<p class="empty">Aucune activité récente pour le moment.</p>';
+        }
+
+      }).catch(function(err) {
+        console.error("Erreur lecture profil :", err);
+        document.getElementById("infos-eleve").innerHTML =
+          "<p style='color:#c0392b; grid-column: 1 / -1;'>Erreur de chargement des informations.</p>";
+      });
+    });
+
+    function deconnexion() {
+      if (typeof firebase !== "undefined" && firebase.auth) {
+        firebase.auth().signOut().then(function() {
+          window.location.href = "../index.html";
+        });
+      } else {
+        window.location.href = "../index.html";
+      }
+    }
+  </script>
+
+</body>
+</html>
