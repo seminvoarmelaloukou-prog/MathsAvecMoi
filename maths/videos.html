@@ -4,16 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Vidéos de maths - MathsAvecMoi</title>
+  <title>Vidéos de maths - Campus Flex</title>
 
   <meta
     name="description"
-    content="Vidéos pédagogiques de mathématiques classées par niveau sur MathsAvecMoi."
-  >
-
-  <link
-    rel="canonical"
-    href="https://seminvoarmelaloukou-prog.github.io/MathsAvecMoi/videos.html"
+    content="Vidéos pédagogiques de mathématiques classées par niveau sur Campus Flex."
   >
 
   <!-- =========================================================
@@ -32,18 +27,14 @@
   ========================================================== -->
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-  <script src="firebase-config.js"></script>
-
-  <script src="auth-guard.js"></script>
-
+  <!-- Attention : chemin vers firebase-config.js à la racine -->
+  <script src="../firebase-config.js"></script>
+  <script src="../auth-guard.js"></script>
 
   <style>
-
     :root {
       --indigo: #2c3e8c;
       --indigo-dark: #1e2c66;
@@ -206,17 +197,15 @@
       font-size: 13px;
       margin-top: 30px;
     }
-
   </style>
 
 </head>
-
 
 <body>
 
   <nav>
 
-    <h1>📐 MathsAvecMoi</h1>
+    <h1>🎓 Campus Flex – Vidéos</h1>
 
     <input
       type="checkbox"
@@ -234,32 +223,20 @@
     <ul>
 
       <li>
-        <a href="accueil.html">
-          Accueil
+        <a href="index.html">
+          Mathématiques
         </a>
       </li>
 
       <li>
-        <a href="epreuves.html">
-          Épreuves
-        </a>
-      </li>
-
-      <li>
-        <a href="videos.html" class="active">
+        <a href="index.html" class="active">
           Vidéos
         </a>
       </li>
 
       <li>
-        <a href="profil.html">
-          Mon profil
-        </a>
-      </li>
-
-      <li>
-        <a href="contact.html">
-          Contact
+        <a href="../index.html">
+          Accueil
         </a>
       </li>
 
@@ -276,7 +253,6 @@
 
   </nav>
 
-
   <header>
 
     <h2>
@@ -284,7 +260,6 @@
     </h2>
 
   </header>
-
 
   <!-- =========================================================
        CONTENU DES VIDÉOS
@@ -295,7 +270,6 @@
   ========================================================== -->
 
   <main id="contenu-videos">
-
 
     <!-- =========================
          6ème
@@ -329,7 +303,6 @@
 
     </section>
 
-
     <!-- =========================
          5ème
     ========================== -->
@@ -349,7 +322,6 @@
       </div>
 
     </section>
-
 
     <!-- =========================
          4ème
@@ -371,7 +343,6 @@
 
     </section>
 
-
     <!-- =========================
          3ème
     ========================== -->
@@ -392,7 +363,6 @@
 
     </section>
 
-
     <!-- =========================
          2nde D
     ========================== -->
@@ -408,33 +378,10 @@
       </h2>
 
       <div class="message-vide">
-
         🎥 Aucune vidéo de 2nde D n'est encore disponible.
-
       </div>
-
-      <!--
-      Exemple pour ajouter une vidéo plus tard :
-
-      <div class="video-bloc">
-
-        <h3>
-          Titre de la vidéo
-        </h3>
-
-        <iframe
-          width="100%"
-          height="200"
-          src="https://www.youtube.com/embed/ID_DE_LA_VIDEO"
-          loading="lazy"
-          allowfullscreen>
-        </iframe>
-
-      </div>
-      -->
 
     </section>
-
 
     <!-- =========================
          2nde A-B
@@ -456,7 +403,6 @@
 
     </section>
 
-
     <!-- =========================
          2nde C
     ========================== -->
@@ -476,7 +422,6 @@
       </div>
 
     </section>
-
 
     <!-- =========================
          1ère A-B
@@ -498,7 +443,6 @@
 
     </section>
 
-
     <!-- =========================
          1ère C
     ========================== -->
@@ -518,7 +462,6 @@
       </div>
 
     </section>
-
 
     <!-- =========================
          1ère D
@@ -540,7 +483,6 @@
 
     </section>
 
-
     <!-- =========================
          Tle A-B
     ========================== -->
@@ -560,7 +502,6 @@
       </div>
 
     </section>
-
 
     <!-- =========================
          Tle C
@@ -582,7 +523,6 @@
 
     </section>
 
-
     <!-- =========================
          Tle D
     ========================== -->
@@ -603,7 +543,6 @@
 
     </section>
 
-
     <!-- Message général -->
     <div
       id="message-general"
@@ -613,31 +552,26 @@
       🎥 Aucune vidéo n'est encore disponible pour votre classe.
     </div>
 
-
   </main>
-
 
   <footer>
 
     <p>
-      © 2026 MathsAvecMoi.fr — Tous droits réservés
+      © 2026 Campus Flex — Tous droits réservés
     </p>
 
   </footer>
-
 
   <!-- =========================================================
        FILTRAGE PAR CLASSE
   ========================================================== -->
 
-<script>
-
+  <script>
     (function () {
 
       function afficherPage() {
         document.documentElement.style.visibility = "visible";
       }
-
 
       function obtenirClasse(uid) {
 
@@ -646,14 +580,12 @@
             "videos.html : Firebase Database indisponible."
           );
 
-          window.location.replace("profil.html");
+          window.location.replace("../index.html");
           return;
         }
 
-
         db.ref("eleves/" + uid + "/classe")
           .once("value")
-
           .then(function (snap) {
 
             var classeEleve = snap.val();
@@ -664,29 +596,23 @@
                 "videos.html : aucune classe trouvée."
               );
 
-              window.location.replace("profil.html");
+              window.location.replace("../index.html");
               return;
             }
 
-
-            classeEleve =
-              String(classeEleve).trim();
-
+            classeEleve = String(classeEleve).trim();
 
             console.log(
               "Classe de l'élève :",
               classeEleve
             );
 
-
             var sections =
               document.querySelectorAll(
                 ".classe-video"
               );
 
-
             var trouve = false;
-
 
             sections.forEach(function (section) {
 
@@ -697,25 +623,18 @@
                   )
                 ).trim();
 
+              if (classeSection === classeEleve) {
 
-              if (
-                classeSection === classeEleve
-              ) {
-
-                section.style.display =
-                  "block";
-
+                section.style.display = "block";
                 trouve = true;
 
               } else {
 
-                section.style.display =
-                  "none";
+                section.style.display = "none";
 
               }
 
             });
-
 
             if (!trouve) {
 
@@ -725,11 +644,9 @@
 
             }
 
-
             afficherPage();
 
           })
-
           .catch(function (erreur) {
 
             console.error(
@@ -737,19 +654,12 @@
               erreur
             );
 
-            window.location.replace(
-              "profil.html"
-            );
+            window.location.replace("../index.html");
 
           });
 
       }
 
-
-      /*
-       * On attend que Firebase Authentication
-       * ait identifié l'utilisateur.
-       */
       if (
         typeof firebase !== "undefined" &&
         firebase.auth
@@ -772,15 +682,12 @@
           "videos.html : Firebase Authentication indisponible."
         );
 
-        window.location.replace(
-          "profil.html"
-        );
+        window.location.replace("../index.html");
 
       }
 
     })();
-
-            </script>
+  </script>
 
 </body>
-  </html>
+</html>
