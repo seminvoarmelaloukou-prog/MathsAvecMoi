@@ -741,4 +741,176 @@
     d = d || new Date();
     return d.toISOString().slice(0,10);
   }
-  f
+  function daysBetween(a, b){
+    return Math.round((new Date(b) - new Date(a)) / 86400000);
+  }
+
+  function loadAllProfiles(){
+    try{
+      const raw = localStorage.getItem(STORAGE_PROFILES);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveAllProfiles(all){
+    localStorage.setItem(STORAGE_PROFILES, JSON.stringify(all));
+  }
+  function getActiveId(){
+    return localStorage.getItem(STORAGE_ACTIVE);
+  }
+  function setActiveId(id){
+    localStorage.setItem(STORAGE_ACTIVE, id);
+  }
+
+  // Migration ponctuelle depuis l'ancien format à un seul profil
+  function migrerAncienFormatSiBesoin(){
+    const ancien = localStorage.getItem(OLD_STORAGE_KEY);
+    if (!ancien) return;
+    try{
+      const p = JSON.parse(ancien);
+      if (p && p.telephone){
+        const id = p.telephone.replace(/\s+/g, '');
+        const all = loadAllProfiles();
+        if (!all[id]){
+          p.id = id;
+          all[id] = p;
+          saveAllProfiles(all);
+        }
+        setActiveId(id);
+      }
+    }catch(e){}
+    localStorage.removeItem(OLD_STORAGE_KEY);
+  }
+
+  function loadProfile(){
+    const user = getCurrentUser();
+    if (!user) return null;
+
+    const id = getActiveId();
+    if (!id) return null;
+
+    const all = loadAllProfiles();
+    const p = all[id];
+    if (!p) return null;
+
+    // Un carnet appartenant à un autre compte ne doit jamais être chargé.
+    if (p.uid && p.uid !== user.uid) return null;
+
+    return p;
+  }
+
+  function saveProfile(p){
+    const user = getCurrentUser();
+    if (!user){
+      console.warn('Aucun compte connecté.');
+      return false;
+    }
+    if (p.uid && p.uid !== user.uid){
+      console.warn('Tentative de modification d’un carnet appartenant à un autre compte.');
+      showToast('Ce carnet appartient à un autre compte.');
+      return false;
+    }
+
+    p.uid = user.uid;
+
+    const all = loadAllProfiles();
+    all[p.id] = p;
+    saveAllProfiles(all);
+    syncProfileToServer(p);
+    return true;
+  }
+
+  function syncProfileToServer(p){
+    const user = getCurrentUser();
+    if (!user) return;
+    if (!p || !p.uid || p.uid !== user.uid){
+      console.warn('Synchronisation refusée : UID incorrect.');
+      return;
+    }
+    if (typeof db === 'undefined' || !db){
+      console.warn('Firebase Database indisponible.');
+      return;
+    }
+    db.ref('eleves/' + p.id).set(p)
+      .then(function(){
+        console.log('Profil synchronisé avec Firebase.');
+      })
+      .catch(function(e){
+        console.warn('Sync serveur impossible (hors ligne ?)', e);
+      });
+  }
+
+  function showToast(msg){
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+
+  function renderBadges(p){
+    const grid = $('badgesGrid');
+    grid.innerHTML = '';
+    BADGES.forEach(b => {
+      const unlocked = b.test(p);
+      const el = document.createElement('div');
+      el.className = 'badge' + (unlocked ? ' unlocked' : '');
+      el.innerHTML = `<div class="icon">${b.icon}</div><div class="name">${b.name}</div>`;
+      grid.appendChild(el);
+    });
+  }
+
+  function updatePhonePrefix(){
+    const sel = $('pays');
+    const opt = sel.options[sel.selectedIndex];
+    $('phonePrefix').textContent = (opt && opt.value && opt.value !== 'autre') ? opt.value : '+___';
+  }
+
+  function renderDashboard(p){
+    $('onboarding').hidden = true;
+    $('dashboard').hidden = false;
+
+    $('greetName').textContent = `Bonjour, ${p.prenom} 👋`;
+    $('greetClasse').textContent = p.classe;
+    $('streakNum').textContent = p.streak;
+    $('pointsNum').textContent = p.points;
+    $('bestStreakNum').textContent = p.bestStreak;
+
+    const doneToday = p.lastCheckin === todayStr();
+    $('checkinBtn').disabled = doneToday;
+    $('checkinBtn').textContent = doneToday ? "C'est fait pour aujourd'hui ✓" : "Je révise aujourd'hui";
+    $('streakSub').textContent = doneToday
+      ? "Bien joué, reviens demain pour continuer ta série."
+      : "Reviens chaque jour pour faire grandir ta série.";
+
+    renderBadges(p);
+  }
+
+  function checkin(){
+    const p = loadProfile();
+    if (!p) return;
+    const today = todayStr();
+    if (p.lastCheckin === today) return;
+
+    const gap = p.lastCheckin ? daysBetween(p.lastCheckin, today) : null;
+    if (gap === 1){
+      p.streak += 1;
+    } else {
+      p.streak = 1;
+    }
+    p.bestStreak = Math.max(p.bestStreak || 0, p.streak);
+    p.points += 10;
+    p.lastCheckin = today;
+
+    const before = BADGES.filter(b => b.test({...p, streak:p.streak-1})).map(b=>b.id);
+    saveProfile(p);
+    renderDashboard(p);
+    $('noraGreeting').innerHTML = `<strong>Nora</strong><br>${noraGreetingText(p)}`;
+
+    const newlyUnlocked = BADGES.filter(b => b.test(p) && !before.includes(b.id));
+    if (newlyUnlocked.length){
+      showToast(`Nouveau badge débloqué : ${newlyUnlocked[0].name} !`);
+    } else {
+      showToast('+10 points — série continuée !');
+    }
+  }
+
+  function
