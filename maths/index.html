@@ -3,238 +3,200 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon profil - Campus Flex</title>
+  <title>Cours de 6e - Campus Flex</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="../firebase-config.js"></script>
 
   <style>
     :root {
-      --indigo: #2c3e8c;
-      --indigo-dark: #1e2c66;
-      --amber: #f39c12;
+      --bleu: #2c3e8c;
+      --bleu-fonce: #1e2c66;
+      --orange: #f39c12;
+      --vert: #1e8449;
+      --fond: #f5f7ff;
+      --texte: #333333;
+      --gris: #666666;
     }
 
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f7ff;
-      color: #333;
       min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+      display: flex;
+      flex-direction: column;
     }
 
     nav {
-      background: var(--indigo);
+      background: var(--bleu);
+      color: white;
       padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      gap: 15px;
       flex-wrap: wrap;
-      gap: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
     nav h1 {
-      color: white;
       font-size: 20px;
     }
 
     nav ul {
-      list-style: none;
       display: flex;
-      gap: 20px;
       flex-wrap: wrap;
+      gap: 16px;
+      list-style: none;
     }
 
-    nav ul li a {
+    nav a {
       color: white;
       text-decoration: none;
       font-size: 14px;
     }
 
+    nav a:hover {
+      text-decoration: underline;
+    }
+
     main {
-      max-width: 900px;
+      width: 100%;
+      max-width: 1000px;
       margin: 30px auto;
       padding: 0 20px;
+      flex: 1;
     }
 
-    .card {
+    .hero {
+      background: linear-gradient(135deg, var(--bleu), #5065bd);
+      color: white;
+      padding: 28px 22px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      margin-bottom: 24px;
+    }
+
+    .hero h2 {
+      font-size: 27px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      font-size: 15px;
+      line-height: 1.55;
+      max-width: 700px;
+    }
+
+    .section-title {
+      color: var(--bleu);
+      font-size: 22px;
+      margin: 24px 0 14px;
+    }
+
+    .chapitres {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+      gap: 18px;
+    }
+
+    .chapitre {
       background: white;
       border-radius: 14px;
-      padding: 25px 20px;
-      box-shadow: 0 4px 14px rgba(0,0,0,.1);
-      margin-bottom: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      display: flex;
+      flex-direction: column;
+      min-height: 210px;
     }
 
-    .card h2 {
-      color: var(--indigo);
-      margin-bottom: 15px;
-      font-size: 22px;
+    .chapitre h3 {
+      color: var(--bleu);
+      font-size: 18px;
+      margin-bottom: 10px;
     }
 
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-    }
-
-    .info-item {
-      background: #f9f9ff;
-      border-radius: 10px;
-      padding: 15px;
-    }
-
-    .info-label {
-      display: block;
-      color: #666;
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    .info-value {
-      display: block;
-      font-weight: bold;
-      color: #333;
-      font-size: 16px;
+    .chapitre p {
+      color: var(--gris);
+      font-size: 14px;
+      line-height: 1.5;
+      flex: 1;
     }
 
     .btn {
       display: inline-block;
-      padding: 11px 24px;
-      border-radius: 25px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 24px;
+      padding: 11px 17px;
+      text-align: center;
       text-decoration: none;
-      font-weight: bold;
-      background: var(--indigo);
       color: white;
-      transition: .2s;
-      margin-top: 10px;
+      background: var(--bleu);
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .btn:hover {
-      background: var(--indigo-dark);
-      transform: translateY(-2px);
+      background: var(--bleu-fonce);
+      transform: translateY(-1px);
     }
 
-    .btn-ia {
-      background: var(--amber);
+    .btn-orange {
+      background: var(--orange);
     }
 
-    .btn-ia:hover {
+    .btn-orange:hover {
       background: #d68910;
     }
 
-    .empty {
-      color: #999;
-      font-style: italic;
+    .conseil {
+      background: #fff8e1;
+      border-left: 4px solid var(--orange);
+      border-radius: 7px;
+      margin-top: 26px;
+      padding: 15px;
+      color: #5c5233;
       font-size: 14px;
+      line-height: 1.5;
     }
 
     footer {
-      background: var(--indigo);
+      background: var(--bleu);
       color: white;
+      padding: 14px;
+      margin-top: 25px;
       text-align: center;
-      padding: 15px;
       font-size: 13px;
-      margin-top: 30px;
-    }
-
-    /* Chat Nora */
-    .chat-container {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 15px;
-      background: #fafafa;
-      max-height: 350px;
-      overflow-y: auto;
-      margin-bottom: 15px;
-    }
-
-    .chat-message {
-      margin-bottom: 12px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      max-width: 80%;
-      word-wrap: break-word;
-    }
-
-    .chat-message.eleve {
-      background: var(--indigo);
-      color: white;
-      margin-left: auto;
-    }
-
-    .chat-message.nora {
-      background: #e0e0e0;
-      color: #333;
-    }
-
-    .chat-message.nora strong {
-      color: var(--indigo);
-      display: block;
-      margin-bottom: 4px;
-      font-size: 13px;
-    }
-
-    .chat-form {
-      display: flex;
-      gap: 10px;
-    }
-
-    .chat-form input[type="text"] {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 25px;
-      outline: none;
-    }
-
-    .chat-form input[type="text"]:focus {
-      border-color: var(--indigo);
-    }
-
-    .chat-form button {
-      padding: 12px 20px;
-      background: var(--amber);
-      color: white;
-      border: none;
-      border-radius: 25px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .chat-form button:hover {
-      opacity: 0.9;
-    }
-
-    .encouragement {
-      background: #fff8e1;
-      border-left: 4px solid var(--amber);
-      padding: 12px 15px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      color: #555;
-      font-size: 14px;
     }
 
     @media (max-width: 600px) {
       nav {
         justify-content: center;
+        text-align: center;
       }
 
       nav ul {
         justify-content: center;
       }
 
-      .info-grid {
-        grid-template-columns: 1fr;
+      main {
+        margin: 20px auto;
+        padding: 0 13px;
+      }
+
+      .hero h2 {
+        font-size: 23px;
       }
     }
   </style>
@@ -243,185 +205,125 @@
 <body>
 
   <nav>
-    <h1>🎓 Campus Flex – Mon profil</h1>
+    <h1>Campus Flex - Mathématiques</h1>
+
     <ul>
-      <li><a href="index.html">Mathématiques</a></li>
+      <li><a href="index.html">Cours de 6e</a></li>
+      <li><a href="profil.html">Mon profil</a></li>
       <li><a href="../index.html">Accueil</a></li>
-      <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
   <main>
 
-    <!-- Infos élève -->
-    <div class="card">
-      <h2>Mes informations</h2>
-      <div id="infos-eleve" class="info-grid">
-        <p style="color:#666; grid-column: 1 / -1;">Chargement de tes informations…</p>
-      </div>
-    </div>
-
-    <!-- Encouragement -->
-    <div class="card">
-      <h2>Continue comme ça !</h2>
-      <div class="encouragement">
-        Chaque effort que tu fais aujourd’hui te rapproche de tes objectifs. Tu es sur la bonne voie, continue d’avancer !
-      </div>
-    </div>
-
-    <!-- Nora – Tuteur IA -->
-    <div class="card">
-      <h2>Nora – Tuteur IA</h2>
-      <p style="color:#666; margin-bottom:15px;">
-        Tu as une question sur un exercice, un cours ou une méthode ? Discute avec Nora, ton tuteur IA en mathématiques.
+    <section class="hero">
+      <h2>Mathématiques - 6e</h2>
+      <p>
+        Bienvenue dans tes cours de mathématiques. Choisis un chapitre, lis le cours, puis entraîne-toi avec les exercices.
       </p>
+    </section>
 
-      <div class="chat-container" id="chat-nora">
-        <div class="chat-message nora">
-          <strong>Nora</strong>
-          Bonjour ! Je suis Nora. En quoi puis-je t’aider aujourd’hui ?
-        </div>
-      </div>
+    <h2 class="section-title">Choisis un chapitre</h2>
 
-      <form class="chat-form" id="chat-nora-form">
-        <input
-          type="text"
-          id="question-nora"
-          placeholder="Écris ta question ici…"
-          required
-        >
-        <button type="submit">Envoyer</button>
-      </form>
+    <section class="chapitres">
+
+      <article class="chapitre">
+        <h3>Chapitre 1 : Nombres entiers</h3>
+        <p>
+          Lire, écrire, comparer, ranger et décomposer les grands nombres entiers.
+        </p>
+        <a class="btn" href="chapitre1.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Chapitre 2 : Les fractions</h3>
+        <p>
+          Comprendre les fractions, les placer sur une droite graduée et comparer des fractions simples.
+        </p>
+        <a class="btn" href="chapitre2.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Chapitre 3 : Les décimaux</h3>
+        <p>
+          Lire, écrire, comparer et ranger les nombres décimaux.
+        </p>
+        <a class="btn" href="chapitre3.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Chapitre 4 : Addition et soustraction</h3>
+        <p>
+          Poser et calculer des additions et des soustractions avec des nombres entiers et décimaux.
+        </p>
+        <a class="btn" href="chapitre4.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Chapitre 5 : Multiplication</h3>
+        <p>
+          Apprendre les techniques de multiplication et résoudre des problèmes simples.
+        </p>
+        <a class="btn" href="chapitre5.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Chapitre 6 : Géométrie</h3>
+        <p>
+          Identifier les figures, utiliser la règle, l’équerre et le compas.
+        </p>
+        <a class="btn" href="chapitre6.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Chapitre 7 : Périmètres</h3>
+        <p>
+          Calculer le périmètre d’un carré, d’un rectangle et d’autres figures simples.
+        </p>
+        <a class="btn" href="chapitre7.html">Ouvrir le cours</a>
+      </article>
+
+      <article class="chapitre">
+        <h3>Besoin d’aide ?</h3>
+        <p>
+          Pose une question à Nora si une leçon, un calcul ou un exercice te semble difficile.
+        </p>
+        <a class="btn btn-orange" href="profil.html#chat-nora">Discuter avec Nora</a>
+      </article>
+
+    </section>
+
+    <div class="conseil">
+      Conseil : commence par lire le cours, recopie les exemples importants, puis fais les exercices sans regarder immédiatement la correction.
     </div>
 
   </main>
 
   <footer>
-    <p>© 2026 Campus Flex — Tous droits réservés</p>
+    © 2026 Campus Flex - Tous droits réservés
   </footer>
 
   <script>
-    const containerInfos = document.getElementById("infos-eleve");
-    const chatNora = document.getElementById("chat-nora");
-    const formNora = document.getElementById("chat-nora-form");
-    const inputNora = document.getElementById("question-nora");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    // Affichage des infos élève
-    firebase.auth().onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.href = "../connexion.html";
-        return;
-      }
-
-      const uid = user.uid;
-
-      if (typeof db === "undefined") {
-        containerInfos.innerHTML = "<p style='color:#c0392b; grid-column: 1 / -1;'>Problème de configuration Firebase.</p>";
-        return;
-      }
-
-      db.ref("eleves/" + uid).once("value")
-        .then(function(snap) {
-          const data = snap.val() || {};
-
-          if (!data || Object.keys(data).length === 0) {
-            containerInfos.innerHTML = `
-              <p style="color:#666; grid-column: 1 / -1;">
-                Aucune information enregistrée pour ton compte.
-              </p>
-            `;
-            return;
-          }
-
-          let html = "";
-
-          if (data.identifiant) {
-            html += `
-              <div class="info-item">
-                <span class="info-label">Identifiant</span>
-                <span class="info-value">${data.identifiant}</span>
-              </div>
-            `;
-          }
-
-          if (data.classe) {
-            html += `
-              <div class="info-item">
-                <span class="info-label">Classe</span>
-                <span class="info-value">${data.classe}</span>
-              </div>
-            `;
-          }
-
-          if (data.email) {
-            html += `
-              <div class="info-item">
-                <span class="info-label">E-mail</span>
-                <span class="info-value">${data.email}</span>
-              </div>
-            `;
-          }
-
-          containerInfos.innerHTML = html;
-
-        })
-        .catch(function(err) {
-          console.error("Erreur lecture profil :", err);
-          containerInfos.innerHTML = "<p style='color:#c0392b; grid-column: 1 / -1;'>Erreur de chargement des informations.</p>";
-        });
-    });
-
-    // Chat avec Nora
-    formNora.addEventListener("submit", function(e) {
+    lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
 
-      const question = inputNora.value.trim();
-      if (!question) return;
+      if (typeof auth === "undefined") {
+        window.location.href = "../index.html";
+        return;
+      }
 
-      // Message élève
-      const msgEleve = document.createElement("div");
-      msgEleve.className = "chat-message eleve";
-      msgEleve.textContent = question;
-      chatNora.appendChild(msgEleve);
-
-      inputNora.value = "";
-      chatNora.scrollTop = chatNora.scrollHeight;
-
-      // Réponse Nora (simulée)
-      setTimeout(function() {
-        const msgNora = document.createElement("div");
-        msgNora.className = "chat-message nora";
-
-        const q = question.toLowerCase();
-        let reponse = "";
-
-        if (q.includes("bonjour") || q.includes("salut")) {
-          reponse = "Bonjour ! Prêt(e) à réviser les maths ? Dis-moi sur quel chapitre ou exercice tu veux qu’on travaille.";
-        } else if (q.includes("devoir") || q.includes("exercice")) {
-          reponse = "Ok, on peut regarder ton exercice ensemble. Tu peux me donner l’énoncé ou me dire sur quel chapitre il porte ?";
-        } else if (q.includes("cours") || q.includes("leçon")) {
-          reponse = "Pas de souci ! Dis-moi quel cours tu veux revoir (chapitre, notion) et je t’explique avec des exemples.";
-        } else if (q.includes("méthode") || q.includes("comment faire")) {
-          reponse = "Je peux t’aider sur la méthode. Dis-moi quel type d’exercice c’est (équation, fonction, géométrie, etc.).";
-        } else {
-          reponse = "Merci pour ta question ! Voici une piste : relis bien l’énoncé, identifie les données et cherche quelle formule ou méthode utiliser. Si tu veux, tu peux me montrer l’exercice et on le regarde ensemble.";
-        }
-
-        msgNora.innerHTML = `<strong>Nora</strong>${reponse}`;
-        chatNora.appendChild(msgNora);
-        chatNora.scrollTop = chatNora.scrollHeight;
-      }, 600);
-    });
-
-    function deconnexion() {
-      if (typeof firebase !== "undefined" && firebase.auth) {
-        firebase.auth().signOut().then(function() {
+      auth.signOut()
+        .then(function() {
+          window.location.href = "../index.html";
+        })
+        .catch(function(erreur) {
+          console.error("Erreur de déconnexion :", erreur);
           window.location.href = "../index.html";
         });
-      } else {
-        window.location.href = "../index.html";
-      }
-    }
+    });
   </script>
 
 </body>
