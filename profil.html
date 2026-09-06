@@ -1003,3 +1003,104 @@
       </div>
 
     </div>
+    function renderBadges(p){
+  const grid = $('badgesGrid');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  BADGES.forEach(b => {
+    const unlocked = b.test(p);
+
+    const el = document.createElement('div');
+    el.className = 'badge' + (unlocked ? ' unlocked' : '');
+
+    el.innerHTML =
+      `<div class="icon">${b.icon}</div>
+       <div class="name">${b.name}</div>`;
+
+    grid.appendChild(el);
+  });
+}
+
+function updatePhonePrefix(){
+  const sel = $('pays');
+  if (!sel) return;
+
+  const opt = sel.options[sel.selectedIndex];
+
+  $('phonePrefix').textContent =
+    (opt && opt.value && opt.value !== 'autre')
+      ? opt.value
+      : '+___';
+}
+
+function renderDashboard(p){
+  $('onboarding').hidden = true;
+  $('dashboard').hidden = false;
+
+  $('greetName').textContent =
+    `Bonjour, ${p.prenom} 👋`;
+
+  $('greetClasse').textContent =
+    p.classe || '—';
+
+  $('streakNum').textContent =
+    p.streak || 0;
+
+  $('pointsNum').textContent =
+    p.points || 0;
+
+  $('bestStreakNum').textContent =
+    p.bestStreak || 0;
+
+  const doneToday =
+    p.lastCheckin === todayStr();
+
+  $('checkinBtn').disabled = doneToday;
+
+  $('checkinBtn').textContent =
+    doneToday
+      ? "C'est fait pour aujourd'hui ✓"
+      : "Je révise aujourd'hui";
+
+  $('streakSub').textContent =
+    doneToday
+      ? "Bien joué, reviens demain pour continuer ta série."
+      : "Reviens chaque jour pour faire grandir ta série.";
+
+  renderBadges(p);
+}
+
+function checkin(){
+  const p = loadProfile();
+  if (!p) return;
+
+  const today = todayStr();
+
+  if (p.lastCheckin === today) return;
+
+  const gap = p.lastCheckin
+    ? daysBetween(p.lastCheckin, today)
+    : null;
+
+  if (gap === 1){
+    p.streak += 1;
+  } else {
+    p.streak = 1;
+  }
+
+  p.bestStreak =
+    Math.max(p.bestStreak || 0, p.streak);
+
+  p.points += 10;
+  p.lastCheckin = today;
+
+  saveProfile(p);
+  renderDashboard(p);
+
+  $('noraGreeting').innerHTML =
+    `<strong>Nora</strong><br>${noraGreetingText(p)}`;
+
+  showToast('+10 points — série continuée !');
+}
