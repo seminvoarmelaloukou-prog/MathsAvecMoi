@@ -998,6 +998,9 @@
       $('prenom').value = p.prenom || '';
       $('classe').value = p.classe;
       $('classe').disabled = true;
+      $('classe').value = p.classe;
+      $('classe').disabled = true;
+      $('classeNote').hidden = false;
       if (p.telephone){
         const parts = p.telephone.split(' ');
         const code = parts[0];
