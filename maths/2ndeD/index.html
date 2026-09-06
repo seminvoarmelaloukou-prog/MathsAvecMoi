@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2ᵉ D – Mathématiques | Campus Flex</title>
+  <meta name="description" content="Programme de mathématiques de 2ᵉ D sur Campus Flex : configurations de l’espace, organisation des données, lieux géométriques.">
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7ff;
+      color: #333;
+    }
+
+    /* =========================
+       NAVIGATION
+       ========================= */
+
+    nav {
+      background-color: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-label {
+      display: none;
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+      transition: border-color .2s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      border-color: var(--amber);
+    }
+
+    /* =========================
+       MENU MOBILE
+       ========================= */
+
+    @media (max-width: 640px) {
+
+      .nav-toggle-label {
+        display: block;
+      }
+
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .3s ease;
+      }
+
+      nav ul li {
+        border-top: 1px solid rgba(255,255,255,.1);
+      }
+
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 300px;
+      }
+
+    }
+
+    /* =========================
+       EN-TÊTE
+       ========================= */
+
+    header {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    header h2 {
+      font-size: 26px;
+    }
+
+    header p {
+      font-size: 13px;
+      margin-top: 8px;
+      opacity: 0.9;
+    }
+
+    /* =========================
+       CONTENU
+       ========================= */
+
+    section {
+      padding: 20px;
+    }
+
+    h3.sa-title {
+      color: white;
+      background-color: #2c3e8c;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 30px 0 15px;
+      font-size: 18px;
+    }
+
+    h3.sa-title .duree {
+      font-weight: normal;
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    h4.seq-title {
+      color: #2c3e8c;
+      margin: 18px 0 8px;
+      font-size: 15px;
+      border-bottom: 2px solid #e0e4f7;
+      padding-bottom: 4px;
+    }
+
+    .devoir {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      line-height: 2.2;
+    }
+
+    .devoir a {
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .a-venir {
+      color: #999;
+      font-size: 13px;
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      background: var(--indigo);
+      color: white;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+      transform: translateY(-2px);
+    }
+
+    /* =========================
+       PIED DE PAGE
+       ========================= */
+
+    footer {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <h1>🎓 Campus Flex – 2ᵉ D</h1>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+
+    <ul>
+      <li>
+        <a href="../index.html">Mathématiques</a>
+      </li>
+      <li>
+        <a href="../index.html" class="active">2ᵉ D</a>
+      </li>
+      <li>
+        <a href="../../index.html">Accueil</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <header>
+    <h2>📚 Programme de mathématiques – 2ᵉ D</h2>
+    <p>
+      Classé dans l’ordre du programme officiel (SA1 → SA3)
+    </p>
+  </header>
+
+  <!-- CONTENU -->
+  <section>
+
+    <!-- SA 1 — Configurations de l'espace -->
+    <h3 class="sa-title">SA 1 — Configurations de l’espace</h3>
+
+    <h4 class="seq-title">Séquence 1 — Représentation dans le plan d’objets de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 2 — Positions relatives d’une droite et d’un plan de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 3 — Positions relatives de deux plans de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 4 — Positions relatives de deux droites de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 5 — Étude du parallélisme de droites et plans de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <!-- SA 2 — Organisation des données -->
+    <h3 class="sa-title">SA 2 — Organisation des données</h3>
+
+    <h4 class="seq-title">Séquence 1 — Calcul dans ℝ</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 2 — Généralités sur les fonctions</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 3 — Applications</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 4 — Étude de quelques fonctions</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 5 — Équations et inéquations dans ℝ</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 6 — Statistique</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 7 — Polynômes et fractions rationnelles</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+
+    <!-- SA 3 — Lieux géométriques -->
+    <h3 class="sa-title">SA 3 — Lieux géométriques</h3>
+
+    <h4 class="seq-title">Séquence 1 — Vecteurs du plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 2 — Droites dans le plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 3 — Homothétie</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 4 — Symétrie orthogonale – symétrie centrale – translation</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 5 — Angles inscrits ; relations métriques dans un triangle</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 6 — Angles orientés – Trigonométrie</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 7 — Produit scalaire dans le plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 8 — Rotation</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 9 — Cercles dans le plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 10 — Équations et inéquations dans ℝ×ℝ</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <!-- RETOUR -->
+    <div class="back">
+      <a href="../index.html" class="btn">← Retour aux classes</a>
+    </div>
+
+  </section>
+
+  <!-- PIED DE PAGE -->
+  <footer>
+    <p>© 2026 Campus Flex — Mathématiques 2ᵉ D — Tous droits réservés</p>
+  </footer>
+
+</body>
+        </html>
