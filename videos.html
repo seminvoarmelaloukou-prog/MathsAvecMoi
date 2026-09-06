@@ -4,20 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Vidéos de maths 6ème à 3ème - MathsAvecMoi</title>
+  <title>Vidéos de maths - MathsAvecMoi</title>
 
-  <meta name="description" content="Vidéos pédagogiques de maths pour les collégiens, classées par niveau de la 6ème à la 3ème, sur MathsAvecMoi.">
+  <meta
+    name="description"
+    content="Vidéos pédagogiques de mathématiques classées par niveau sur MathsAvecMoi."
+  >
 
-  <!-- URL correcte du site -->
-  <link rel="canonical" href="https://seminvoarmelaloukou-prog.github.io/MathsAvecMoi/videos.html">
+  <link
+    rel="canonical"
+    href="https://seminvoarmelaloukou-prog.github.io/MathsAvecMoi/videos.html"
+  >
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
-  <script src="firebase-config.js" defer></script>
-  <script src="auth-guard.js" defer></script>
+  <!-- =========================================================
+       PROTECTION IMMÉDIATE
+       Empêche d'afficher une mauvaise classe pendant
+       la vérification Firebase.
+  ========================================================== -->
+  <style>
+    html {
+      visibility: hidden;
+    }
+  </style>
+
+  <!-- =========================================================
+       FIREBASE
+  ========================================================== -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+  <script src="firebase-config.js"></script>
+
+  <script src="auth-guard.js"></script>
+
 
   <style>
+
     :root {
       --indigo: #2c3e8c;
       --indigo-dark: #1e2c66;
@@ -153,6 +179,25 @@
       margin-bottom: 15px;
     }
 
+    .video-bloc iframe {
+      border: none;
+      border-radius: 8px;
+    }
+
+    .message-vide {
+      background: white;
+      border-radius: 10px;
+      padding: 25px 20px;
+      margin: 20px auto;
+      max-width: 600px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      color: #555;
+    }
+
+    .classe-titre {
+      display: none;
+    }
+
     footer {
       background-color: #2c3e8c;
       color: white;
@@ -161,8 +206,11 @@
       font-size: 13px;
       margin-top: 30px;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
@@ -170,70 +218,403 @@
 
     <h1>📐 MathsAvecMoi</h1>
 
-    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <input
+      type="checkbox"
+      id="nav-toggle"
+      class="nav-toggle"
+    >
 
-    <label for="nav-toggle" class="nav-toggle-label">
+    <label
+      for="nav-toggle"
+      class="nav-toggle-label"
+    >
       ☰
     </label>
 
     <ul>
 
       <li>
-        <a href="accueil.html">Accueil</a>
+        <a href="accueil.html">
+          Accueil
+        </a>
       </li>
 
       <li>
-        <a href="epreuves.html">Épreuves</a>
+        <a href="epreuves.html">
+          Épreuves
+        </a>
       </li>
 
       <li>
-        <a href="videos.html" class="active">Vidéos</a>
+        <a href="videos.html" class="active">
+          Vidéos
+        </a>
       </li>
 
       <li>
-        <a href="profil.html">Mon profil</a>
+        <a href="profil.html">
+          Mon profil
+        </a>
       </li>
 
       <li>
-        <a href="contact.html">Contact</a>
+        <a href="contact.html">
+          Contact
+        </a>
       </li>
 
       <li>
-        <a href="#" onclick="deconnexion(); return false;">
+        <a
+          href="#"
+          onclick="deconnexion(); return false;"
+        >
           Déconnexion
         </a>
       </li>
 
     </ul>
+
   </nav>
 
 
   <header>
 
-    <h2>🎥 Vidéos d'exercices</h2>
+    <h2>
+      🎥 Vidéos d'exercices
+    </h2>
 
   </header>
 
 
-  <section>
+  <!-- =========================================================
+       CONTENU DES VIDÉOS
+       IMPORTANT :
+       Toutes les vidéos sont cachées au départ.
+       Le JavaScript n'affichera que celles de la classe
+       de l'élève.
+  ========================================================== -->
 
-    <h2>6ème</h2>
+  <main id="contenu-videos">
 
-    <div class="video-bloc">
 
-      <h3>Les fractions</h3>
+    <!-- =========================
+         6ème
+    ========================== -->
 
-      <iframe
-        width="100%"
-        height="200"
-        src="https://www.youtube.com/embed/n0-Jh1Vs-L0"
-        loading="lazy"
-        allowfullscreen>
-      </iframe>
+    <section
+      class="classe-video"
+      data-classe="6ème"
+      style="display:none;"
+    >
 
+      <h2>
+        🎓 Vidéos de 6ème
+      </h2>
+
+      <div class="video-bloc">
+
+        <h3>
+          Les fractions
+        </h3>
+
+        <iframe
+          width="100%"
+          height="200"
+          src="https://www.youtube.com/embed/n0-Jh1Vs-L0"
+          loading="lazy"
+          allowfullscreen>
+        </iframe>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         5ème
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="5ème"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 5ème
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 5ème seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         4ème
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="4ème"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 4ème
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 4ème seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         3ème
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="3ème"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 3ème
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 3ème seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         2nde D
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="2nde D"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 2nde D
+      </h2>
+
+      <div class="message-vide">
+
+        🎥 Aucune vidéo de 2nde D n'est encore disponible.
+
+      </div>
+
+      <!--
+      Exemple pour ajouter une vidéo plus tard :
+
+      <div class="video-bloc">
+
+        <h3>
+          Titre de la vidéo
+        </h3>
+
+        <iframe
+          width="100%"
+          height="200"
+          src="https://www.youtube.com/embed/ID_DE_LA_VIDEO"
+          loading="lazy"
+          allowfullscreen>
+        </iframe>
+
+      </div>
+      -->
+
+    </section>
+
+
+    <!-- =========================
+         2nde A-B
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="2nde A-B"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 2nde A-B
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 2nde A-B seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         2nde C
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="2nde C"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 2nde C
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 2nde C seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         1ère A-B
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="1ère A-B"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 1ère A-B
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 1ère A-B seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         1ère C
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="1ère C"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 1ère C
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 1ère C seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         1ère D
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="1ère D"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de 1ère D
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de 1ère D seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         Tle A-B
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="Tle A-B"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de Tle A-B
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de Tle A-B seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         Tle C
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="Tle C"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de Tle C
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de Tle C seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         Tle D
+    ========================== -->
+
+    <section
+      class="classe-video"
+      data-classe="Tle D"
+      style="display:none;"
+    >
+
+      <h2>
+        🎓 Vidéos de Tle D
+      </h2>
+
+      <div class="message-vide">
+        🎥 Les vidéos de Tle D seront bientôt disponibles.
+      </div>
+
+    </section>
+
+
+    <!-- Message général -->
+    <div
+      id="message-general"
+      class="message-vide"
+      style="display:none;"
+    >
+      🎥 Aucune vidéo n'est encore disponible pour votre classe.
     </div>
 
-  </section>
+
+  </main>
 
 
   <footer>
@@ -244,5 +625,171 @@
 
   </footer>
 
+
+  <!-- =========================================================
+       FILTRAGE PAR CLASSE
+  ========================================================== -->
+
+  <script>
+
+    (function () {
+
+      var STORAGE_ACTIVE = "cf_active";
+
+      function afficherPage() {
+        document.documentElement.style.visibility = "visible";
+      }
+
+
+      function obtenirClasse() {
+
+        var id = localStorage.getItem(STORAGE_ACTIVE);
+
+        if (!id) {
+          window.location.replace("profil.html");
+          return;
+        }
+
+        if (typeof db === "undefined" || !db) {
+          console.error(
+            "videos.html : Firebase Database indisponible."
+          );
+
+          window.location.replace("profil.html");
+          return;
+        }
+
+
+        db.ref("eleves/" + id + "/classe")
+          .once("value")
+
+          .then(function (snap) {
+
+            var classeEleve = snap.val();
+
+            if (!classeEleve) {
+
+              console.warn(
+                "videos.html : aucune classe trouvée."
+              );
+
+              window.location.replace("profil.html");
+              return;
+            }
+
+
+            classeEleve =
+              String(classeEleve).trim();
+
+
+            console.log(
+              "Classe de l'élève :",
+              classeEleve
+            );
+
+
+            var sections =
+              document.querySelectorAll(
+                ".classe-video"
+              );
+
+
+            var trouve = false;
+
+
+            sections.forEach(function (section) {
+
+              var classeSection =
+                String(
+                  section.getAttribute(
+                    "data-classe"
+                  )
+                ).trim();
+
+
+              if (
+                classeSection === classeEleve
+              ) {
+
+                section.style.display =
+                  "block";
+
+                trouve = true;
+
+              } else {
+
+                section.style.display =
+                  "none";
+
+              }
+
+            });
+
+
+            if (!trouve) {
+
+              document.getElementById(
+                "message-general"
+              ).style.display = "block";
+
+            }
+
+
+            afficherPage();
+
+          })
+
+          .catch(function (erreur) {
+
+            console.error(
+              "videos.html : erreur Firebase :",
+              erreur
+            );
+
+            window.location.replace(
+              "profil.html"
+            );
+
+          });
+
+      }
+
+
+      /*
+       * On attend que Firebase Authentication
+       * ait identifié l'utilisateur.
+       */
+      if (
+        typeof firebase !== "undefined" &&
+        firebase.auth
+      ) {
+
+        firebase.auth()
+          .onAuthStateChanged(function (user) {
+
+            if (!user) {
+              return;
+            }
+
+            obtenirClasse();
+
+          });
+
+      } else {
+
+        console.error(
+          "videos.html : Firebase Authentication indisponible."
+        );
+
+        window.location.replace(
+          "profil.html"
+        );
+
+      }
+
+    })();
+
+  </script>
+
 </body>
-</html>
+  </html>
