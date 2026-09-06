@@ -443,6 +443,47 @@
       }
     }
   </script>
+  <script>
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) {
+      return;
+    }
+
+    if (!db) {
+      console.error("Realtime Database n'est pas disponible.");
+      return;
+    }
+
+    const uid = user.uid;
+
+    db.ref("eleves/" + uid).once("value")
+      .then(function(snapshot) {
+
+        if (snapshot.exists()) {
+          console.log("Le profil existe déjà.");
+          return;
+        }
+
+        return db.ref("eleves/" + uid).set({
+          identifiant: localStorage.getItem("cf_identifiant") || "Élève",
+          email: user.email || "",
+          classe: "À compléter",
+          dateInscription: Date.now(),
+          devoirsFaits: 0,
+          chapitresVus: 0,
+          videosVues: 0,
+          joursConnexion: 0
+        });
+      })
+      .then(function() {
+        console.log("Profil Firebase créé ou déjà existant.");
+        window.location.reload();
+      })
+      .catch(function(erreur) {
+        console.error("Erreur Firebase :", erreur);
+      });
+  });
+  </script>
 
 </body>
 </html>
