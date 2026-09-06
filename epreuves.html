@@ -1,24 +1,44 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>MathsAvecMoi - Épreuves</title>
 
-  <!-- Firebase -->
+
+  <!-- =====================================================
+       FIREBASE
+       ===================================================== -->
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
   <script src="firebase-config.js"></script>
 
-  <!-- Protection des pages -->
+
+  <!-- Protection connexion -->
+
   <script src="auth-guard.js"></script>
 
+
   <style>
+
     :root {
       --indigo: #2c3e8c;
       --indigo-dark: #1e2c66;
       --amber: #f39c12;
     }
+
 
     * {
       margin: 0;
@@ -26,163 +46,306 @@
       box-sizing: border-box;
     }
 
+
     body {
+
       font-family: Arial, sans-serif;
+
       background-color: #f5f7ff;
+
       color: #333;
+
     }
+
 
     nav {
+
       background-color: var(--indigo);
+
       padding: 14px 20px;
+
       display: flex;
+
       justify-content: space-between;
+
       align-items: center;
+
       position: sticky;
+
       top: 0;
+
       z-index: 100;
+
       box-shadow: 0 2px 10px rgba(0,0,0,.15);
+
     }
+
 
     nav h1 {
+
       color: white;
+
       font-size: 20px;
+
     }
+
 
     .nav-toggle {
+
       display: none;
+
     }
+
 
     .nav-toggle-label {
+
       display: none;
+
       color: #fff;
+
       font-size: 26px;
+
       cursor: pointer;
+
     }
+
 
     nav ul {
+
       list-style: none;
+
       display: flex;
+
       gap: 20px;
+
     }
 
+
     nav ul li a {
+
       color: white;
+
       text-decoration: none;
+
       font-size: 14px;
+
       padding-bottom: 4px;
+
       border-bottom: 2px solid transparent;
+
       transition: border-color .2s;
+
     }
+
 
     nav ul li a:hover,
     nav ul li a.active {
+
       border-color: var(--amber);
+
     }
+
 
     @media (max-width: 640px) {
 
       .nav-toggle-label {
+
         display: block;
+
       }
+
 
       nav ul {
+
         position: absolute;
+
         top: 100%;
+
         left: 0;
+
         right: 0;
+
         background: var(--indigo-dark);
+
         flex-direction: column;
+
         gap: 0;
+
         max-height: 0;
+
         overflow: hidden;
+
         transition: max-height .3s ease;
+
       }
+
 
       nav ul li {
+
         border-top: 1px solid rgba(255,255,255,.1);
+
       }
+
 
       nav ul li a {
+
         display: block;
+
         padding: 14px 20px;
+
         border-bottom: none;
+
       }
+
 
       .nav-toggle:checked ~ ul {
+
         max-height: 300px;
+
       }
+
     }
+
 
     header {
+
       background-color: #2c3e8c;
+
       color: white;
+
       text-align: center;
+
       padding: 30px 20px;
+
     }
+
 
     header h2 {
+
       font-size: 26px;
+
     }
+
 
     section {
+
       padding: 30px 20px;
+
       text-align: center;
+
     }
+
 
     section h2 {
+
       font-size: 22px;
+
       color: #2c3e8c;
+
       margin-bottom: 20px;
+
     }
+
 
     .niveaux {
+
       display: flex;
+
       justify-content: center;
+
       gap: 15px;
+
       flex-wrap: wrap;
+
     }
+
 
     .carte {
-      display: block;
+
+      display: none;
+
       background-color: #2c3e8c;
+
       color: white;
+
       padding: 20px 30px;
+
       border-radius: 10px;
+
       font-size: 18px;
+
       font-weight: bold;
+
       cursor: pointer;
+
       text-decoration: none;
+
       transition: transform .2s, background-color .2s;
+
+      min-width: 120px;
+
     }
+
 
     .carte:hover {
+
       background-color: var(--indigo-dark);
+
       transform: translateY(-3px);
+
     }
+
+
+    .message {
+
+      margin-top: 20px;
+
+      color: #777;
+
+      font-size: 14px;
+
+    }
+
 
     footer {
+
       background-color: #2c3e8c;
+
       color: white;
+
       text-align: center;
+
       padding: 15px;
+
       font-size: 13px;
+
       margin-top: 30px;
+
     }
+
   </style>
+
 </head>
 
+
 <body>
+
+
+  <!-- =====================================================
+       NAVIGATION
+       ===================================================== -->
 
   <nav>
 
     <h1>📐 MathsAvecMoi</h1>
+
 
     <input
       type="checkbox"
       id="nav-toggle"
       class="nav-toggle"
     >
+
 
     <label
       for="nav-toggle"
@@ -191,44 +354,47 @@
       ☰
     </label>
 
+
     <ul>
 
-      <!-- Accueil -->
       <li>
         <a href="accueil.html">
           Accueil
         </a>
       </li>
 
-      <!-- Épreuves -->
+
       <li>
-        <a href="epreuves.html" class="active">
+        <a
+          href="epreuves.html"
+          class="active"
+        >
           Épreuves
         </a>
       </li>
 
-      <!-- Vidéos -->
+
       <li>
         <a href="videos.html">
           Vidéos
         </a>
       </li>
 
-      <!-- Profil -->
+
       <li>
         <a href="profil.html">
           Mon profil
         </a>
       </li>
 
-      <!-- Contact -->
+
       <li>
         <a href="contact.html">
           Contact
         </a>
       </li>
 
-      <!-- Déconnexion -->
+
       <li>
         <a
           href="#"
@@ -243,33 +409,50 @@
   </nav>
 
 
-  <!-- EN-TÊTE -->
+  <!-- =====================================================
+       EN-TÊTE
+       ===================================================== -->
 
   <header>
 
     <h2>
-      📄 Épreuves par niveau
+      📄 Mes épreuves
     </h2>
+
+    <p
+      style="
+        font-size:13px;
+        margin-top:8px;
+        opacity:0.9;
+      "
+    >
+      Accès réservé aux épreuves de ta classe
+    </p>
 
   </header>
 
 
-  <!-- NIVEAUX -->
+  <!-- =====================================================
+       CONTENU
+       ===================================================== -->
 
   <section>
 
     <h2>
-      Choisis ton niveau
+      Ma classe
     </h2>
 
-    <div class="niveaux">
+
+    <div
+      id="niveaux"
+      class="niveaux"
+    >
 
 
-      <!-- =========================
-           6ème
-           ========================= -->
+      <!-- 6ème -->
 
       <a
+        id="classe-6eme"
         href="6eme.html"
         class="carte"
       >
@@ -277,11 +460,10 @@
       </a>
 
 
-      <!-- =========================
-           5ème
-           ========================= -->
+      <!-- 5ème -->
 
       <a
+        id="classe-5eme"
         href="5eme.html"
         class="carte"
       >
@@ -289,11 +471,10 @@
       </a>
 
 
-      <!-- =========================
-           4ème
-           ========================= -->
+      <!-- 4ème -->
 
       <a
+        id="classe-4eme"
         href="4eme.html"
         class="carte"
       >
@@ -301,11 +482,10 @@
       </a>
 
 
-      <!-- =========================
-           3ème
-           ========================= -->
+      <!-- 3ème -->
 
       <a
+        id="classe-3eme"
         href="3eme.html"
         class="carte"
       >
@@ -313,11 +493,10 @@
       </a>
 
 
-      <!-- =========================
-           2nde D
-           ========================= -->
+      <!-- 2nde D -->
 
       <a
+        id="classe-2ndeD"
         href="2ndeD.html"
         class="carte"
       >
@@ -327,10 +506,20 @@
 
     </div>
 
+
+    <p
+      id="message"
+      class="message"
+    >
+      Vérification de ta classe...
+    </p>
+
   </section>
 
 
-  <!-- PIED DE PAGE -->
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
 
   <footer>
 
@@ -341,5 +530,340 @@
   </footer>
 
 
+  <!-- =====================================================
+       GESTION DE LA CLASSE
+       ===================================================== -->
+
+  <script>
+
+    (function () {
+
+      var STORAGE_ACTIVE = "cf_active";
+
+
+      // ---------------------------------------------------
+      // Récupérer le carnet actif
+      // ---------------------------------------------------
+
+      function getActiveId() {
+
+        return localStorage.getItem(STORAGE_ACTIVE);
+
+      }
+
+
+      // ---------------------------------------------------
+      // Afficher uniquement la classe autorisée
+      // ---------------------------------------------------
+
+      function afficherClasse(classe) {
+
+        var cartes = document.querySelectorAll(".carte");
+
+
+        // Cacher toutes les cartes
+
+        cartes.forEach(function (carte) {
+
+          carte.style.display = "none";
+
+        });
+
+
+        var carte = null;
+
+
+        // -------------------------------------------------
+        // 6ème
+        // -------------------------------------------------
+
+        if (classe === "6ème") {
+
+          carte =
+            document.getElementById("classe-6eme");
+
+        }
+
+
+        // -------------------------------------------------
+        // 5ème
+        // -------------------------------------------------
+
+        else if (classe === "5ème") {
+
+          carte =
+            document.getElementById("classe-5eme");
+
+        }
+
+
+        // -------------------------------------------------
+        // 4ème
+        // -------------------------------------------------
+
+        else if (classe === "4ème") {
+
+          carte =
+            document.getElementById("classe-4eme");
+
+        }
+
+
+        // -------------------------------------------------
+        // 3ème
+        // -------------------------------------------------
+
+        else if (classe === "3ème") {
+
+          carte =
+            document.getElementById("classe-3eme");
+
+        }
+
+
+        // -------------------------------------------------
+        // 2nde D
+        // -------------------------------------------------
+
+        else if (classe === "2nde D") {
+
+          carte =
+            document.getElementById("classe-2ndeD");
+
+        }
+
+
+        // -------------------------------------------------
+        // Afficher la bonne carte
+        // -------------------------------------------------
+
+        if (carte) {
+
+          carte.style.display = "block";
+
+          document.getElementById("message").textContent =
+            "Tu peux accéder uniquement aux épreuves de ta classe : " +
+            classe;
+
+        }
+
+        else {
+
+          document.getElementById("message").textContent =
+            "Aucune page d'épreuves n'est encore configurée pour la classe : " +
+            classe;
+
+        }
+
+      }
+
+
+      // ---------------------------------------------------
+      // Vérification Firebase
+      // ---------------------------------------------------
+
+      function verifierClasse() {
+
+        if (
+          typeof firebase === "undefined" ||
+          !firebase.auth
+        ) {
+
+          console.error(
+            "Firebase Authentication indisponible."
+          );
+
+          return;
+
+        }
+
+
+        firebase.auth().onAuthStateChanged(function (user) {
+
+          if (!user) {
+
+            return;
+
+          }
+
+
+          var id = getActiveId();
+
+
+          if (!id) {
+
+            document.getElementById("message").textContent =
+              "Aucun profil actif.";
+
+            return;
+
+          }
+
+
+          if (
+            typeof db === "undefined" ||
+            !db
+          ) {
+
+            document.getElementById("message").textContent =
+              "Impossible de vérifier la classe.";
+
+            return;
+
+          }
+
+
+          db.ref("eleves/" + id + "/classe")
+            .once("value")
+
+            .then(function (snap) {
+
+              var classe = snap.val();
+
+
+              if (!classe) {
+
+                document.getElementById("message").textContent =
+                  "Ta classe n'est pas encore enregistrée.";
+
+                return;
+
+              }
+
+
+              classe =
+                String(classe).trim();
+
+
+              console.log(
+                "Classe de l'élève :",
+                classe
+              );
+
+
+              afficherClasse(classe);
+
+            })
+
+            .catch(function (erreur) {
+
+              console.error(
+                "Erreur lors de la récupération de la classe :",
+                erreur
+              );
+
+
+              document.getElementById("message").textContent =
+                "Impossible de vérifier ta classe.";
+
+            });
+
+        });
+
+      }
+
+
+      // Lancer la vérification
+
+      verifierClasse();
+
+
+    })();
+
+  </script>
+
+
 </body>
-        </html>
+</html>
+
+3. Il faut aussi vérifier les pages de classe
+
+Dans chaque page, tu dois avoir la classe correcte avant "class-guard.js".
+
+Pour "6eme.html" :
+
+<script>
+  var CLASSE_PAGE = "6ème";
+</script>
+
+<script src="class-guard.js" defer></script>
+
+Pour "5eme.html" :
+
+<script>
+  var CLASSE_PAGE = "5ème";
+</script>
+
+<script src="class-guard.js" defer></script>
+
+Pour "4eme.html" :
+
+<script>
+  var CLASSE_PAGE = "4ème";
+</script>
+
+<script src="class-guard.js" defer></script>
+
+Pour "3eme.html" :
+
+<script>
+  var CLASSE_PAGE = "3ème";
+</script>
+
+<script src="class-guard.js" defer></script>
+
+Et pour ta page :
+
+<script>
+  var CLASSE_PAGE = "2nde D";
+</script>
+
+<script src="class-guard.js" defer></script>
+
+⚠️ Un point très important
+
+Dans ton "2ndeD.html", tu as bien :
+
+<script>var CLASSE_PAGE = "2nde D";</script>
+
+C'est correct.
+
+Mais il faut également charger :
+
+<script src="firebase-database-compat.js" defer></script>
+<script src="firebase-config.js" defer></script>
+<script src="auth-guard.js" defer></script>
+<script src="class-guard.js" defer></script>
+
+dans cet ordre.
+
+---
+
+Résultat attendu
+
+Si Firebase indique :
+
+classe = 6ème
+
+alors "epreuves.html" affichera :
+
+«6ème»
+
+et pas :
+
+«5ème
+4ème
+3ème
+2nde D»
+
+Et si l'élève essaie malgré tout d'ouvrir directement :
+
+5eme.html
+
+"class-guard.js" vérifie Firebase avant de rendre la page visible. Comme la classe est "6ème" et que la page demande "5ème", il revient à :
+
+epreuves.html
+
+sans déconnexion et sans afficher les cours de 5ème.
+
+⚠️ Cette protection est une protection d'interface/navigation côté client. Si les contenus des épreuves sont eux-mêmes récupérés depuis Firebase, il faudra aussi sécuriser les données Firebase avec les Firebase Security Rules pour empêcher un utilisateur techniquement déterminé de lire les données d'une autre classe.
