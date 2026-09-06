@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mathématiques – Campus Flex</title>
-  <meta name="description" content="Cours, vidéos, exercices et devoirs de mathématiques de la 6ᵉ à la Terminale (toutes séries) sur Campus Flex.">
+  <title>Mon profil - Campus Flex</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -23,97 +29,81 @@
       background: #f5f7ff;
       color: #333;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
     }
 
     nav {
       background: var(--indigo);
-      padding: 16px 20px;
-      text-align: center;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     nav h1 {
       color: white;
-      font-size: 22px;
+      font-size: 20px;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
     }
 
     main {
-      flex: 1;
-      padding: 30px 20px;
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
     }
 
-    .container {
+    .card {
       background: white;
-      width: 100%;
-      max-width: 950px;
-      margin: 0 auto;
-      padding: 35px 25px;
-      border-radius: 20px;
-      box-shadow: 0 4px 18px rgba(0,0,0,.12);
-    }
-
-    h2 {
-      color: var(--indigo);
-      font-size: 28px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-
-    .intro {
-      color: #666;
-      line-height: 1.6;
-      margin-bottom: 25px;
-      text-align: center;
-    }
-
-    .cycle-title {
-      color: var(--indigo);
-      font-size: 22px;
-      margin: 25px 0 15px;
-      text-align: center;
-    }
-
-    .levels {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 15px;
-      margin-top: 10px;
-    }
-
-    .level-card {
-      background: #f5f7ff;
       border-radius: 14px;
-      padding: 18px 12px;
-      text-align: center;
-      text-decoration: none;
-      color: #333;
-      transition: .2s;
-      border: 2px solid transparent;
-      display: block;
-    }
-
-    .level-card:hover {
-      border-color: var(--indigo);
-      transform: translateY(-3px);
+      padding: 25px 20px;
       box-shadow: 0 4px 14px rgba(0,0,0,.1);
+      margin-bottom: 20px;
     }
 
-    .level-card strong {
-      display: block;
+    .card h2 {
       color: var(--indigo);
-      font-size: 17px;
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .info-item {
+      background: #f9f9ff;
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .info-label {
+      display: block;
+      color: #666;
+      font-size: 13px;
       margin-bottom: 6px;
     }
 
-    .level-card span {
-      font-size: 13px;
-      color: #666;
-    }
-
-    .back {
-      text-align: center;
-      margin-top: 30px;
+    .info-value {
+      display: block;
+      font-weight: bold;
+      color: #333;
+      font-size: 16px;
     }
 
     .btn {
@@ -125,11 +115,26 @@
       background: var(--indigo);
       color: white;
       transition: .2s;
+      margin-top: 10px;
     }
 
     .btn:hover {
       background: var(--indigo-dark);
       transform: translateY(-2px);
+    }
+
+    .btn-ia {
+      background: var(--amber);
+    }
+
+    .btn-ia:hover {
+      background: #d68910;
+    }
+
+    .empty {
+      color: #999;
+      font-style: italic;
+      font-size: 14px;
     }
 
     footer {
@@ -138,142 +143,286 @@
       text-align: center;
       padding: 15px;
       font-size: 13px;
+      margin-top: 30px;
+    }
+
+    /* Chat Nora */
+    .chat-container {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      background: #fafafa;
+      max-height: 350px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    }
+
+    .chat-message {
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .chat-message.eleve {
+      background: var(--indigo);
+      color: white;
+      margin-left: auto;
+    }
+
+    .chat-message.nora {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .chat-message.nora strong {
+      color: var(--indigo);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-form input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      outline: none;
+    }
+
+    .chat-form input[type="text"]:focus {
+      border-color: var(--indigo);
+    }
+
+    .chat-form button {
+      padding: 12px 20px;
+      background: var(--amber);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .chat-form button:hover {
+      opacity: 0.9;
+    }
+
+    .encouragement {
+      background: #fff8e1;
+      border-left: 4px solid var(--amber);
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      color: #555;
+      font-size: 14px;
     }
 
     @media (max-width: 600px) {
-      .container {
-        padding: 25px 18px;
+      nav {
+        justify-content: center;
       }
 
-      h2 {
-        font-size: 24px;
+      nav ul {
+        justify-content: center;
       }
 
-      .levels {
+      .info-grid {
         grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
+
 <body>
 
   <nav>
-    <h1>🎓 Campus Flex – Mathématiques</h1>
+    <h1>🎓 Campus Flex – Mon profil</h1>
+    <ul>
+      <li><a href="index.html">Mathématiques</a></li>
+      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
+    </ul>
   </nav>
 
   <main>
-    <div class="container">
-      <h2>Mathématiques</h2>
 
-      <p class="intro">
-        Choisis ta classe pour accéder aux cours, vidéos, exercices, devoirs et fiches de révision en mathématiques.
-      </p>
-      
-      <!-- 6ᵉ – 3ᵉ -->
-      <h3 class="cycle-title">6ᵉ – 3ᵉ</h3>
-      <div class="levels">
-        <a href="6eme/index.html" class="level-card">
-          <strong>6ᵉ</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="5eme/index.html" class="level-card">
-          <strong>5ᵉ</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="4eme/index.html" class="level-card">
-          <strong>4ᵉ</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="3eme/index.html" class="level-card">
-          <strong>3ᵉ</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-      </div>
-
-      <!-- 2ᵉ -->
-      <h3 class="cycle-title">2<sup>e</sup></h3>
-      <div class="levels">
-        <a href="2ndeAB/index.html" class="level-card">
-          <strong>2<sup>e</sup> A‑B</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="2ndeC/index.html" class="level-card">
-          <strong>2<sup>e</sup> C</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="2ndeD/index.html" class="level-card">
-          <strong>2<sup>e</sup> D</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="2ndeE/index.html" class="level-card">
-          <strong>2<sup>e</sup> E</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-      </div>
-
-      <!-- 1ʳᵉ -->
-      <h3 class="cycle-title">1<sup>re</sup></h3>
-      <div class="levels">
-        <a href="1ereAB/index.html" class="level-card">
-          <strong>1<sup>re</sup> A‑B</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="1ereC/index.html" class="level-card">
-          <strong>1<sup>re</sup> C</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="1ereD/index.html" class="level-card">
-          <strong>1<sup>re</sup> D</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="1ereE/index.html" class="level-card">
-          <strong>1<sup>re</sup> E</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-      </div>
-
-      <!-- Terminale -->
-      <h3 class="cycle-title">Terminale</h3>
-      <div class="levels">
-        <a href="TleAB/index.html" class="level-card">
-          <strong>T<sup>le</sup> A‑B</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="TleC/index.html" class="level-card">
-          <strong>T<sup>le</sup> C</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="TleD/index.html" class="level-card">
-          <strong>T<sup>le</sup> D</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-
-        <a href="TleE/index.html" class="level-card">
-          <strong>T<sup>le</sup> E</strong>
-          <span>Cours, exercices et devoirs</span>
-        </a>
-      </div>
-
-      <div class="back">
-        <a href="../index.html" class="btn">← Retour à l’accueil</a>
+    <!-- Infos élève -->
+    <div class="card">
+      <h2>Mes informations</h2>
+      <div id="infos-eleve" class="info-grid">
+        <p style="color:#666; grid-column: 1 / -1;">Chargement de tes informations…</p>
       </div>
     </div>
+
+    <!-- Encouragement -->
+    <div class="card">
+      <h2>Continue comme ça !</h2>
+      <div class="encouragement">
+        Chaque effort que tu fais aujourd’hui te rapproche de tes objectifs. Tu es sur la bonne voie, continue d’avancer !
+      </div>
+    </div>
+
+    <!-- Nora – Tuteur IA -->
+    <div class="card">
+      <h2>Nora – Tuteur IA</h2>
+      <p style="color:#666; margin-bottom:15px;">
+        Tu as une question sur un exercice, un cours ou une méthode ? Discute avec Nora, ton tuteur IA en mathématiques.
+      </p>
+
+      <div class="chat-container" id="chat-nora">
+        <div class="chat-message nora">
+          <strong>Nora</strong>
+          Bonjour ! Je suis Nora. En quoi puis-je t’aider aujourd’hui ?
+        </div>
+      </div>
+
+      <form class="chat-form" id="chat-nora-form">
+        <input
+          type="text"
+          id="question-nora"
+          placeholder="Écris ta question ici…"
+          required
+        >
+        <button type="submit">Envoyer</button>
+      </form>
+    </div>
+
   </main>
 
   <footer>
-    <p>© 2026 Campus Flex — Mathématiques — Tous droits réservés</p>
+    <p>© 2026 Campus Flex — Tous droits réservés</p>
   </footer>
 
+  <script>
+    const containerInfos = document.getElementById("infos-eleve");
+    const chatNora = document.getElementById("chat-nora");
+    const formNora = document.getElementById("chat-nora-form");
+    const inputNora = document.getElementById("question-nora");
+
+    // Affichage des infos élève
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = "../connexion.html";
+        return;
+      }
+
+      const uid = user.uid;
+
+      if (typeof db === "undefined") {
+        containerInfos.innerHTML = "<p style='color:#c0392b; grid-column: 1 / -1;'>Problème de configuration Firebase.</p>";
+        return;
+      }
+
+      db.ref("eleves/" + uid).once("value")
+        .then(function(snap) {
+          const data = snap.val() || {};
+
+          if (!data || Object.keys(data).length === 0) {
+            containerInfos.innerHTML = `
+              <p style="color:#666; grid-column: 1 / -1;">
+                Aucune information enregistrée pour ton compte.
+              </p>
+            `;
+            return;
+          }
+
+          let html = "";
+
+          if (data.identifiant) {
+            html += `
+              <div class="info-item">
+                <span class="info-label">Identifiant</span>
+                <span class="info-value">${data.identifiant}</span>
+              </div>
+            `;
+          }
+
+          if (data.classe) {
+            html += `
+              <div class="info-item">
+                <span class="info-label">Classe</span>
+                <span class="info-value">${data.classe}</span>
+              </div>
+            `;
+          }
+
+          if (data.email) {
+            html += `
+              <div class="info-item">
+                <span class="info-label">E-mail</span>
+                <span class="info-value">${data.email}</span>
+              </div>
+            `;
+          }
+
+          containerInfos.innerHTML = html;
+
+        })
+        .catch(function(err) {
+          console.error("Erreur lecture profil :", err);
+          containerInfos.innerHTML = "<p style='color:#c0392b; grid-column: 1 / -1;'>Erreur de chargement des informations.</p>";
+        });
+    });
+
+    // Chat avec Nora
+    formNora.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const question = inputNora.value.trim();
+      if (!question) return;
+
+      // Message élève
+      const msgEleve = document.createElement("div");
+      msgEleve.className = "chat-message eleve";
+      msgEleve.textContent = question;
+      chatNora.appendChild(msgEleve);
+
+      inputNora.value = "";
+      chatNora.scrollTop = chatNora.scrollHeight;
+
+      // Réponse Nora (simulée)
+      setTimeout(function() {
+        const msgNora = document.createElement("div");
+        msgNora.className = "chat-message nora";
+
+        const q = question.toLowerCase();
+        let reponse = "";
+
+        if (q.includes("bonjour") || q.includes("salut")) {
+          reponse = "Bonjour ! Prêt(e) à réviser les maths ? Dis-moi sur quel chapitre ou exercice tu veux qu’on travaille.";
+        } else if (q.includes("devoir") || q.includes("exercice")) {
+          reponse = "Ok, on peut regarder ton exercice ensemble. Tu peux me donner l’énoncé ou me dire sur quel chapitre il porte ?";
+        } else if (q.includes("cours") || q.includes("leçon")) {
+          reponse = "Pas de souci ! Dis-moi quel cours tu veux revoir (chapitre, notion) et je t’explique avec des exemples.";
+        } else if (q.includes("méthode") || q.includes("comment faire")) {
+          reponse = "Je peux t’aider sur la méthode. Dis-moi quel type d’exercice c’est (équation, fonction, géométrie, etc.).";
+        } else {
+          reponse = "Merci pour ta question ! Voici une piste : relis bien l’énoncé, identifie les données et cherche quelle formule ou méthode utiliser. Si tu veux, tu peux me montrer l’exercice et on le regarde ensemble.";
+        }
+
+        msgNora.innerHTML = `<strong>Nora</strong>${reponse}`;
+        chatNora.appendChild(msgNora);
+        chatNora.scrollTop = chatNora.scrollHeight;
+      }, 600);
+    });
+
+    function deconnexion() {
+      if (typeof firebase !== "undefined" && firebase.auth) {
+        firebase.auth().signOut().then(function() {
+          window.location.href = "../index.html";
+        });
+      } else {
+        window.location.href = "../index.html";
+      }
+    }
+  </script>
+
 </body>
-            </html>
+</html>
