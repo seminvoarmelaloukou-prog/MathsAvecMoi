@@ -203,7 +203,7 @@
 </head>
 <body>
 
-<nav><h1>📐 MathsAvecMoi — Suivi enseignant</h1></nav>
+<nav><h1>📐 Campus Flex — Suivi enseignant</h1></nav>
 
 <div class="wrap">
 
@@ -302,6 +302,9 @@
         ...e,
         telephone: e.telephone || tel
       }));
+    }).catch(e => {
+      console.error("Erreur de chargement des élèves", e);
+      tousLesEleves = [];
     });
 
     const chargerResultats = db.ref('resultats').once('value').then(snap => {
@@ -327,6 +330,9 @@
         });
       });
       tousLesResultats = liste;
+    }).catch(e => {
+      console.error("Erreur de chargement des résultats", e);
+      tousLesResultats = [];
     });
 
     Promise.all([chargerEleves, chargerResultats]).then(() => {
@@ -334,8 +340,6 @@
       afficherTableau();
       afficherResultats();
       afficherStats();
-    }).catch(e => {
-      console.error("Erreur de chargement", e);
     });
   }
 
@@ -481,4 +485,3 @@
 
 </body>
 </html>
-                     
