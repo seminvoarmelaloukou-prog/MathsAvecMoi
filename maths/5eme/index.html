@@ -3,18 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MathsAvecMoi - 5ème</title>
-
-  <script>var CLASSE_PAGE = "5ème";</script>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth-guard.js"></script>
-  <script src="class-guard.js"></script>
-
+  <title>5ᵉ – Mathématiques | Campus Flex</title>
+  <meta name="description" content="Programme de mathématiques de 5ᵉ sur Campus Flex : configurations de l’espace et du plan, applications du plan, organisation des données.">
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -33,6 +23,10 @@
       background-color: #f5f7ff;
       color: #333;
     }
+
+    /* =========================
+       NAVIGATION
+       ========================= */
 
     nav {
       background-color: var(--indigo);
@@ -82,6 +76,10 @@
       border-color: var(--amber);
     }
 
+    /* =========================
+       MENU MOBILE
+       ========================= */
+
     @media (max-width: 640px) {
 
       .nav-toggle-label {
@@ -114,7 +112,12 @@
       .nav-toggle:checked ~ ul {
         max-height: 300px;
       }
+
     }
+
+    /* =========================
+       EN-TÊTE
+       ========================= */
 
     header {
       background-color: #2c3e8c;
@@ -126,6 +129,16 @@
     header h2 {
       font-size: 26px;
     }
+
+    header p {
+      font-size: 13px;
+      margin-top: 8px;
+      opacity: 0.9;
+    }
+
+    /* =========================
+       CONTENU
+       ========================= */
 
     section {
       padding: 20px;
@@ -175,6 +188,31 @@
       font-size: 13px;
     }
 
+    .back {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      background: var(--indigo);
+      color: white;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+      transform: translateY(-2px);
+    }
+
+    /* =========================
+       PIED DE PAGE
+       ========================= */
+
     footer {
       background-color: #2c3e8c;
       color: white;
@@ -188,9 +226,9 @@
 
 <body>
 
+  <!-- NAVIGATION -->
   <nav>
-
-    <h1>📐 MathsAvecMoi</h1>
+    <h1>🎓 Campus Flex – 5ᵉ</h1>
 
     <input type="checkbox" id="nav-toggle" class="nav-toggle">
 
@@ -199,55 +237,33 @@
     </label>
 
     <ul>
-
-      <!-- Accueil protégé -->
       <li>
-        <a href="accueil.html">Accueil</a>
+        <a href="../index.html">Mathématiques</a>
       </li>
-
       <li>
-        <a href="epreuves.html" class="active">Épreuves</a>
+        <a href="../index.html" class="active">5ᵉ</a>
       </li>
-
       <li>
-        <a href="videos.html">Vidéos</a>
+        <a href="../../index.html">Accueil</a>
       </li>
-
-      <li>
-        <a href="profil.html">Mon profil</a>
-      </li>
-
-      <li>
-        <a href="contact.html">Contact</a>
-      </li>
-
-      <li>
-        <a href="#" onclick="deconnexion(); return false;">
-          Déconnexion
-        </a>
-      </li>
-
     </ul>
   </nav>
 
-
+  <!-- EN-TÊTE -->
   <header>
-
-    <h2>📚 Épreuves - 5ème</h2>
+    <h2>📚 Programme de mathématiques – 5ᵉ</h2>
 
     <p style="font-size:13px; margin-top:8px; opacity:0.9;">
-      Classées dans l'ordre du programme officiel (SA1 → SA4)
+      Classé dans l’ordre du programme officiel (SA1 → SA4)
     </p>
-
   </header>
 
-
+  <!-- CONTENU -->
   <section>
 
     <!-- ===== SA 1 : Configurations de l'espace ===== -->
-
     <h3 class="sa-title">
-      SA 1 — Configurations de l'espace
+      SA 1 — Configurations de l’espace
     </h3>
 
     <h4 class="seq-title">
@@ -258,18 +274,15 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
-      Séquence 2 — Division dans ℕ - Nombres premiers
+      Séquence 2 — Division dans ℕ – Nombres premiers
     </h4>
 
     <div class="devoir">
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <!-- ===== SA 2 : Configurations du plan ===== -->
-
     <h3 class="sa-title">
       SA 2 — Configurations du plan
     </h3>
@@ -282,7 +295,6 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
       Séquence 2 — Angles
     </h4>
@@ -290,7 +302,6 @@
     <div class="devoir">
       <p class="a-venir">Bientôt disponible</p>
     </div>
-
 
     <h4 class="seq-title">
       Séquence 3 — Triangles
@@ -300,7 +311,6 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
       Séquence 4 — Cercle
     </h4>
@@ -308,7 +318,6 @@
     <div class="devoir">
       <p class="a-venir">Bientôt disponible</p>
     </div>
-
 
     <h4 class="seq-title">
       Séquence 5 — Parallélogrammes
@@ -318,7 +327,6 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
       Séquence 6 — Polygones particuliers (trapèze, hexagone)
     </h4>
@@ -326,7 +334,6 @@
     <div class="devoir">
       <p class="a-venir">Bientôt disponible</p>
     </div>
-
 
     <h4 class="seq-title">
       Séquence 7 — Nombres décimaux relatifs
@@ -336,7 +343,6 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
       Séquence 8 — Fractions
     </h4>
@@ -344,7 +350,6 @@
     <div class="devoir">
       <p class="a-venir">Bientôt disponible</p>
     </div>
-
 
     <h4 class="seq-title">
       Séquence 9 — Puissance
@@ -354,9 +359,7 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <!-- ===== SA 3 : Applications du plan ===== -->
-
     <h3 class="sa-title">
       SA 3 — Applications du plan
     </h3>
@@ -369,7 +372,6 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
       Séquence 2 — Figures symétriques par rapport à un point
     </h4>
@@ -377,7 +379,6 @@
     <div class="devoir">
       <p class="a-venir">Bientôt disponible</p>
     </div>
-
 
     <h4 class="seq-title">
       Séquence 3 — Glissement
@@ -387,9 +388,7 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <!-- ===== SA 4 : Organisation des données ===== -->
-
     <h3 class="sa-title">
       SA 4 — Organisation des données
     </h3>
@@ -402,7 +401,6 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
-
     <h4 class="seq-title">
       Séquence 2 — Proportionnalité
     </h4>
@@ -411,15 +409,16 @@
       <p class="a-venir">Bientôt disponible</p>
     </div>
 
+    <!-- RETOUR -->
+    <div class="back">
+      <a href="../index.html" class="btn">← Retour aux niveaux</a>
+    </div>
+
   </section>
 
-
+  <!-- PIED DE PAGE -->
   <footer>
-
-    <p>
-      © 2026 MathsAvecMoi.fr — Tous droits réservés
-    </p>
-
+    <p>© 2026 Campus Flex — Mathématiques 5ᵉ — Tous droits réservés</p>
   </footer>
 
 </body>
