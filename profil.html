@@ -1104,3 +1104,174 @@ function checkin(){
 
   showToast('+10 points — série continuée !');
 }
+function createProfile(){
+  const nom = $('nom').value.trim();
+  const prenom = $('prenom').value.trim();
+
+  const paysSel = $('pays');
+  const paysOpt =
+    paysSel.options[paysSel.selectedIndex];
+
+  const paysCode = paysSel.value;
+  const paysNom =
+    paysOpt ? paysOpt.dataset.nom : '';
+
+  const telLocal =
+    $('telephone').value
+      .trim()
+      .replace(/[\s.-]/g, '');
+
+  const classe = $('classe').value;
+
+  if (
+    !nom ||
+    !prenom ||
+    !paysCode ||
+    !/^[0-9]{6,10}$/.test(telLocal) ||
+    !classe
+  ){
+    $('formError').style.display = 'block';
+    return;
+  }
+
+  $('formError').style.display = 'none';
+
+  const indicatif =
+    paysCode === 'autre' ? '' : paysCode;
+
+  const id =
+    (indicatif + telLocal).replace(/\s+/g, '');
+
+  const telephoneAffiche =
+    indicatif
+      ? `${indicatif} ${telLocal}`
+      : telLocal;
+
+  const user = getCurrentUser();
+
+  if (!user){
+    showToast(
+      'Tu dois être connecté pour créer un carnet.'
+    );
+    return;
+  }
+
+  const all = loadAllProfiles();
+  const existant = all[id];
+
+  if (
+    existant &&
+    existant.uid &&
+    existant.uid !== user.uid
+  ){
+    $('formError').textContent =
+      'Ce numéro est déjà associé à un autre compte.';
+
+    $('formError').style.display = 'block';
+    return;
+  }
+
+  const p = existant || {
+    id: id,
+    points: 0,
+    streak: 0,
+    bestStreak: 0,
+    lastCheckin: null
+  };
+
+  p.nom = nom;
+  p.prenom = prenom;
+  p.classe = classe;
+  p.pays = paysNom;
+  p.telephone = telephoneAffiche;
+  p.uid = user.uid;
+
+  setActiveId(id);
+
+  if (!saveProfile(p)) return;
+
+  renderDashboard(p);
+  initNora(p);
+}
+
+function editProfile(){
+  const p = loadProfile();
+
+  $('dashboard').hidden = true;
+  $('onboarding').hidden = false;
+
+  if (!p) return;
+
+  $('nom').value = p.nom || '';
+  $('prenom').value = p.prenom || '';
+  $('classe').value = p.classe || '';
+
+  updatePhonePrefix();
+}
+
+function noraGreetingText(p){
+  const h = new Date().getHours();
+
+  const moment =
+    h < 12
+      ? 'Bonjour'
+      : h < 18
+        ? 'Bon après-midi'
+        : 'Bonsoir';
+
+  return `${moment}, ${p.prenom} ! Contente de te retrouver 🌸`;
+}
+
+function initNora(p){
+  if ($('noraGreeting')){
+    $('noraGreeting').innerHTML =
+      `<strong>Nora</strong><br>${noraGreetingText(p)}`;
+  }
+}
+
+$('createBtn').addEventListener(
+  'click',
+  createProfile
+);
+
+$('checkinBtn').addEventListener(
+  'click',
+  checkin
+);
+
+$('editBtn').addEventListener(
+  'click',
+  editProfile
+);
+
+$('pays').addEventListener(
+  'change',
+  updatePhonePrefix
+);
+
+updatePhonePrefix();
+
+migrerAncienFormatSiBesoin();
+
+firebase.auth().onAuthStateChanged(function(user){
+  if (!user) return;
+
+  const existing = loadProfile();
+
+  if (
+    existing &&
+    existing.prenom &&
+    existing.classe
+  ){
+    renderDashboard(existing);
+    initNora(existing);
+    syncProfileToServer(existing);
+  } else {
+    renderSavedProfilesList();
+  }
+});
+
+})();
+</script>
+</body>
+</html>
