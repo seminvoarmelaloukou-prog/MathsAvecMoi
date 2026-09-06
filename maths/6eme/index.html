@@ -9,7 +9,6 @@
     content="Cours et vidéos de mathématiques pour la 6e sur Campus Flex."
   >
 
-  <!-- Firebase : remonte de deux dossiers vers la racine du projet -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -41,15 +40,16 @@
     }
 
     nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
       background: var(--indigo);
       padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 15px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
@@ -67,14 +67,12 @@
       color: white;
       font-size: 26px;
       cursor: pointer;
-      user-select: none;
     }
 
     nav ul {
       list-style: none;
       display: flex;
       gap: 20px;
-      align-items: center;
     }
 
     nav ul li a {
@@ -83,7 +81,6 @@
       font-size: 14px;
       padding-bottom: 4px;
       border-bottom: 2px solid transparent;
-      transition: border-color 0.2s ease;
     }
 
     nav ul li a:hover,
@@ -100,12 +97,6 @@
 
     header h2 {
       font-size: 26px;
-    }
-
-    header p {
-      margin-top: 8px;
-      font-size: 14px;
-      opacity: 0.92;
     }
 
     main {
@@ -134,7 +125,7 @@
       margin: 18px 0 8px;
       font-size: 15px;
       border-bottom: 2px solid #e0e4f7;
-      padding-bottom: 6px;
+      padding-bottom: 4px;
     }
 
     .devoir {
@@ -162,14 +153,6 @@
 
     .video-bloc h3 {
       color: var(--indigo);
-      margin-bottom: 10px;
-      font-size: 18px;
-    }
-
-    .video-bloc p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
       margin-bottom: 15px;
     }
 
@@ -184,8 +167,7 @@
 
     .video-container iframe {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
       border: none;
@@ -210,11 +192,9 @@
       border-radius: 25px;
       text-decoration: none;
       font-weight: bold;
-      border: none;
       background: var(--indigo);
       color: white;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
+      transition: 0.2s;
     }
 
     .btn:hover {
@@ -232,10 +212,6 @@
     }
 
     @media (max-width: 640px) {
-      nav {
-        flex-wrap: wrap;
-      }
-
       .nav-toggle-label {
         display: block;
       }
@@ -245,18 +221,16 @@
         top: 100%;
         left: 0;
         right: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0;
         background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
       }
 
       nav ul li {
-        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
       }
 
       nav ul li a {
@@ -266,11 +240,7 @@
       }
 
       .nav-toggle:checked ~ ul {
-        max-height: 340px;
-      }
-
-      header h2 {
-        font-size: 23px;
+        max-height: 360px;
       }
 
       main {
@@ -286,205 +256,105 @@
     <h1>Campus Flex - 6e</h1>
 
     <input type="checkbox" id="nav-toggle" class="nav-toggle">
-    <label for="nav-toggle" class="nav-toggle-label" aria-label="Ouvrir le menu">☰</label>
+    <label for="nav-toggle" class="nav-toggle-label">☰</label>
 
     <ul>
-      <li>
-        <a href="#cours" class="onglet active" data-section="cours">
-          Cours
-        </a>
-      </li>
-      <li>
-        <a href="#videos" class="onglet" data-section="videos">
-          Vidéos
-        </a>
-      </li>
-      <li>
-        <a href="../profil.html">
-          Mon profil
-        </a>
-      </li>
-      <li>
-        <a href="../../index.html">
-          Accueil
-        </a>
-      </li>
-      <li>
-        <a href="#" id="lien-deconnexion">
-          Déconnexion
-        </a>
-      </li>
+      <li><a href="#cours" class="onglet active" data-section="cours">Cours</a></li>
+      <li><a href="#videos" class="onglet" data-section="videos">Vidéos</a></li>
+      <li><a href="../profil.html">Mon profil</a></li>
+      <li><a href="../../index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
   <header>
     <h2>Mathématiques - 6e</h2>
-    <p>Choisis l’onglet Cours ou Vidéos pour apprendre à ton rythme.</p>
   </header>
 
   <main>
 
     <section id="cours" class="section-contenu active">
 
-      <h3 class="sa-title">
-        SA 1 - Configurations de l’espace
-      </h3>
+      <h3 class="sa-title">SA 1 - Configurations de l’espace</h3>
 
-      <h4 class="seq-title">
-        Séquence 1 - Cube et pavé droit
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 1 - Cube et pavé droit</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 2 - Cône de révolution
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 2 - Cône de révolution</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 3 - Sphère
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 3 - Sphère</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h3 class="sa-title">
-        SA 2 - Configurations du plan
-      </h3>
+      <h3 class="sa-title">SA 2 - Configurations du plan</h3>
 
-      <h4 class="seq-title">
-        Séquence 1 - Droites du plan
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 1 - Droites du plan</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 2 - Segment de droite
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 2 - Segment de droite</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 3 - Cercle
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 3 - Cercle</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 4 - Angles
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 4 - Angles</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 5 - Triangles
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 5 - Triangles</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 6 - Parallélogramme
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 6 - Parallélogramme</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
       <h4 class="seq-title">
         Séquence 7 - Entiers naturels (multiples, diviseurs, opérations)
       </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 8 - Nombres décimaux
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 8 - Nombres décimaux</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 9 - Fractions
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 9 - Fractions</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 11 - Calcul littéral
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 11 - Calcul littéral</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h3 class="sa-title">
-        SA 3 - Applications du plan
-      </h3>
+      <h3 class="sa-title">SA 3 - Applications du plan</h3>
 
       <h4 class="seq-title">
         Séquence 1 - Figures symétriques par rapport à une droite
       </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
       <h4 class="seq-title">
         Séquence 2 - Figures symétriques par rapport à un point
       </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 3 - Glissement
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 3 - Glissement</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h3 class="sa-title">
-        SA 4 - Organisation des données
-      </h3>
+      <h3 class="sa-title">SA 4 - Organisation des données</h3>
 
-      <h4 class="seq-title">
-        Séquence 1 - Proportionnalité
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 1 - Proportionnalité</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
-      <h4 class="seq-title">
-        Séquence 2 - Statistiques
-      </h4>
-      <div class="devoir">
-        <p class="a-venir">Bientôt disponible</p>
-      </div>
+      <h4 class="seq-title">Séquence 2 - Statistiques</h4>
+      <div class="devoir"><p class="a-venir">Bientôt disponible</p></div>
 
       <div class="back">
         <a href="../profil.html" class="btn">Retour à mon profil</a>
       </div>
-
     </section>
 
     <section id="videos" class="section-contenu">
-
       <h2 style="text-align:center; color:#2c3e8c; margin:10px 0 20px;">
         Vidéos de 6e
       </h2>
 
       <div class="video-bloc">
         <h3>Les fractions</h3>
-        <p>
-          Regarde la vidéo, puis retourne dans les cours pour réviser la séquence sur les fractions.
-        </p>
 
         <div class="video-container">
           <iframe
@@ -500,13 +370,12 @@
       <div class="back">
         <a href="../profil.html" class="btn">Retour à mon profil</a>
       </div>
-
     </section>
 
   </main>
 
   <footer>
-    <p>© 2026 Campus Flex - Mathématiques 6e - Tous droits réservés</p>
+    © 2026 Campus Flex - Mathématiques 6e - Tous droits réservés
   </footer>
 
   <script>
@@ -529,18 +398,16 @@
 
         onglet.classList.add("active");
 
-        const sectionId = onglet.getAttribute("data-section");
-        const sectionChoisie = document.getElementById(sectionId);
+        const section = document.getElementById(
+          onglet.getAttribute("data-section")
+        );
 
-        if (sectionChoisie) {
-          sectionChoisie.classList.add("active");
+        if (section) {
+          section.classList.add("active");
         }
 
         menuMobile.checked = false;
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth"
-        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       });
     });
 
@@ -552,8 +419,7 @@
           .then(function() {
             window.location.href = "../../index.html";
           })
-          .catch(function(erreur) {
-            console.error("Erreur de déconnexion :", erreur);
+          .catch(function() {
             window.location.href = "../../index.html";
           });
 
@@ -573,4 +439,4 @@
   </script>
 
 </body>
-        </html>
+  </html>
