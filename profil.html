@@ -1034,38 +1034,57 @@
     return true;
   }
 
+/* =========================
+   SYNCHRONISATION FIREBASE
+   ========================= */
 
-  /* =========================
-     SYNCHRONISATION FIREBASE
-     ========================= */
+function syncProfileToServer(p){
 
-  function syncProfileToServer(p){
+  const user = getCurrentUser();
 
-    const user =
-      getCurrentUser();
+  if (!user) return;
 
-    if (!user) return;
+  if (
+    !p ||
+    !p.uid ||
+    p.uid !== user.uid
+  ){
 
-    if (
-      !p ||
-      !p.uid ||
-      p.uid !== user.uid
-    ){
+    console.warn(
+      'Synchronisation refusée : UID incorrect.'
+    );
 
-      console.warn(
-        'Synchronisation refusée : UID incorrect.'
+    return;
+  }
+
+  if (
+    typeof db === 'undefined' ||
+    !db
+  ){
+
+    console.warn(
+      'Firebase Database indisponible.'
+    );
+
+    return;
+  }
+
+  db.ref('eleves/' + p.id)
+    .set(p)
+    .then(function(){
+
+      console.log(
+        'Profil synchronisé avec Firebase.'
       );
 
-      return;
-    }
-
-    if (
-      typeof db === 'undefined' ||
-      !db
-    ){
+    })
+    .catch(function(erreur){
 
       console.warn(
-        'Firebase Database indisponible.'
+        'Synchronisation Firebase impossible :',
+        erreur
       );
 
-  
+    });
+
+  }
