@@ -1147,12 +1147,14 @@
   }
 
   $('createBtn').addEventListener('click', createProfile);
-  $('checkinBtn').addEventListener('click', checkin);
-  $('editBtn').addEventListener('click', editProfile);
-  $('pays').addEventListener('change', updatePhonePrefix);
-  updatePhonePrefix();
+$('checkinBtn').addEventListener('click', checkin);
+$('editBtn').addEventListener('click', editProfile);
+$('pays').addEventListener('change', updatePhonePrefix);
+updatePhonePrefix();
+$('classe').disabled = false;
+$('classeNote').hidden = true;
 
-  migrerAncienFormatSiBesoin();
+migrerAncienFormatSiBesoin();
 
   // auth-guard.js redirige déjà vers index.html si personne n'est
   // connecté. On attend ici la confirmation du compte avant de
