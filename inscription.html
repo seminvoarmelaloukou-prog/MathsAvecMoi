@@ -3,15 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Inscription - Campus Flex</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
 
   <style>
+    :root {
+      --bleu: #2c3e8c;
+      --bleu-fonce: #1e2c66;
+      --orange: #f39c12;
+      --fond: #f5f7ff;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -19,315 +26,341 @@
     }
 
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f7ff;
       min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--fond);
+      color: #333;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      flex-direction: column;
     }
 
-    .container {
-      width: 100%;
-      max-width: 430px;
-      background: white;
-      padding: 35px 25px;
-      border-radius: 18px;
-      box-shadow: 0 4px 18px rgba(0,0,0,.12);
-    }
-
-    h1 {
+    nav {
+      background: var(--bleu);
+      color: white;
+      padding: 15px 20px;
       text-align: center;
-      color: #2c3e8c;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    main {
+      width: 100%;
+      max-width: 460px;
+      margin: 35px auto;
+      padding: 0 18px;
+      flex: 1;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 28px 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    }
+
+    .card h2 {
+      text-align: center;
+      color: var(--bleu);
+      font-size: 23px;
       margin-bottom: 10px;
     }
 
     .intro {
-      text-align: center;
       color: #666;
-      margin-bottom: 25px;
+      text-align: center;
+      font-size: 14px;
       line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .champ {
+      margin-bottom: 17px;
     }
 
     label {
       display: block;
-      margin-bottom: 7px;
+      color: #444;
+      font-size: 14px;
       font-weight: bold;
-      color: #333;
+      margin-bottom: 7px;
     }
 
-    input {
+    input,
+    select {
       width: 100%;
-      padding: 13px;
-      margin-bottom: 17px;
-      border: 1px solid #ccc;
-      border-radius: 9px;
+      padding: 12px 13px;
+      border: 1px solid #cfd4e6;
+      border-radius: 8px;
       font-size: 15px;
       outline: none;
+      background: white;
     }
 
-    input:focus {
-      border-color: #2c3e8c;
+    input:focus,
+    select:focus {
+      border-color: var(--bleu);
+      box-shadow: 0 0 0 3px rgba(44, 62, 140, 0.12);
+    }
+
+    .aide {
+      display: block;
+      color: #777;
+      font-size: 12px;
+      margin-top: 5px;
+      line-height: 1.35;
     }
 
     button {
       width: 100%;
-      padding: 13px;
-      background: #f39c12;
-      color: white;
       border: none;
       border-radius: 25px;
+      padding: 13px 18px;
+      margin-top: 5px;
+      background: var(--orange);
+      color: white;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     button:hover {
-      opacity: .9;
+      background: #d68910;
+      transform: translateY(-1px);
     }
 
     button:disabled {
-      opacity: .6;
+      background: #b8b8b8;
       cursor: not-allowed;
+      transform: none;
     }
 
     #message {
-      margin-top: 15px;
+      min-height: 20px;
       text-align: center;
+      margin-top: 16px;
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.4;
     }
 
     .connexion {
       text-align: center;
-      margin-top: 20px;
+      color: #666;
       font-size: 14px;
+      margin-top: 20px;
     }
 
     .connexion a {
-      color: #2c3e8c;
+      color: var(--bleu);
       font-weight: bold;
       text-decoration: none;
     }
 
-    .retour {
-      display: block;
+    footer {
+      background: var(--bleu);
+      color: white;
+      font-size: 13px;
       text-align: center;
-      margin-top: 20px;
-      color: #666;
-      text-decoration: none;
-      font-size: 14px;
+      padding: 14px;
+      margin-top: 25px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
+  <nav>
+    <h1>Campus Flex</h1>
+  </nav>
 
-    <h1>🎓 Campus Flex</h1>
+  <main>
+    <section class="card">
+      <h2>Créer un compte</h2>
 
-    <p class="intro">
-      Crée ton compte pour accéder à la plateforme.
-    </p>
+      <p class="intro">
+        Crée ton espace élève pour suivre tes cours de mathématiques et utiliser Nora, ton tuteur IA.
+      </p>
 
-    <form id="inscriptionForm">
+      <form id="form-inscription">
 
-      <label for="identifiant">Identifiant</label>
+        <div class="champ">
+          <label for="identifiant">Identifiant</label>
+          <input
+            type="text"
+            id="identifiant"
+            placeholder="Exemple : armel2026"
+            minlength="3"
+            required
+          >
+          <span class="aide">Choisis un identifiant d’au moins 3 caractères.</span>
+        </div>
 
-      <input
-        type="text"
-        id="identifiant"
-        placeholder="Exemple : armel123"
-        required
-        minlength="3"
-        maxlength="30"
-      >
+        <div class="champ">
+          <label for="email">Adresse e-mail</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="exemple@email.com"
+            required
+          >
+        </div>
 
-      <label for="email">Adresse e-mail</label>
+        <div class="champ">
+          <label for="classe">Classe</label>
+          <select id="classe" required>
+            <option value="">Choisis ta classe</option>
+            <option value="6e">6e</option>
+            <option value="5e">5e</option>
+            <option value="4e">4e</option>
+            <option value="3e">3e</option>
+            <option value="Seconde">Seconde</option>
+            <option value="Première">Première</option>
+            <option value="Terminale">Terminale</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
 
-      <input
-        type="email"
-        id="email"
-        placeholder="Exemple : vous@email.com"
-        required
-      >
+        <div class="champ">
+          <label for="mot-de-passe">Mot de passe</label>
+          <input
+            type="password"
+            id="mot-de-passe"
+            placeholder="Au moins 6 caractères"
+            minlength="6"
+            required
+          >
+        </div>
 
-      <label for="motDePasse">Mot de passe</label>
+        <div class="champ">
+          <label for="confirmation-mot-de-passe">Confirmer le mot de passe</label>
+          <input
+            type="password"
+            id="confirmation-mot-de-passe"
+            placeholder="Réécris ton mot de passe"
+            minlength="6"
+            required
+          >
+        </div>
 
-      <input
-        type="password"
-        id="motDePasse"
-        placeholder="Au moins 6 caractères"
-        required
-        minlength="6"
-      >
+        <button id="btn-inscription" type="submit">Créer mon compte</button>
 
-      <label for="confirmation">Confirmer le mot de passe</label>
+        <p id="message"></p>
+      </form>
 
-      <input
-        type="password"
-        id="confirmation"
-        placeholder="Retape ton mot de passe"
-        required
-        minlength="6"
-      >
+      <p class="connexion">
+        Tu as déjà un compte ?
+        <a href="connexion.html">Se connecter</a>
+      </p>
+    </section>
+  </main>
 
-      <button type="submit" id="btnInscription">
-        Créer mon compte
-      </button>
-
-    </form>
-
-    <div id="message"></div>
-
-    <p class="connexion">
-      Tu as déjà un compte ?
-      <a href="connexion.html">Se connecter</a>
-    </p>
-
-    <a href="index.html" class="retour">
-      ← Retour à l'accueil
-    </a>
-
-  </div>
+  <footer>
+    © 2026 Campus Flex — Tous droits réservés
+  </footer>
 
   <script>
-    const formulaire = document.getElementById("inscriptionForm");
+    const form = document.getElementById("form-inscription");
     const message = document.getElementById("message");
-    const bouton = document.getElementById("btnInscription");
+    const bouton = document.getElementById("btn-inscription");
 
-    formulaire.addEventListener("submit", function(e) {
+    function afficherMessage(texte, couleur) {
+      message.textContent = texte;
+      message.style.color = couleur;
+    }
 
+    form.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const identifiant = document
-        .getElementById("identifiant")
-        .value
-        .trim();
+      const identifiant = document.getElementById("identifiant").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const classe = document.getElementById("classe").value;
+      const motDePasse = document.getElementById("mot-de-passe").value;
+      const confirmation = document.getElementById("confirmation-mot-de-passe").value;
 
-      const email = document
-        .getElementById("email")
-        .value
-        .trim();
-
-      const motDePasse = document
-        .getElementById("motDePasse")
-        .value;
-
-      const confirmation = document
-        .getElementById("confirmation")
-        .value;
-
-      /*
-       * Vérification des mots de passe
-       */
-      if (motDePasse !== confirmation) {
-
-        message.textContent =
-          "❌ Les mots de passe ne correspondent pas.";
-
-        message.style.color = "#c0392b";
-
+      if (identifiant.length < 3) {
+        afficherMessage("L’identifiant doit contenir au moins 3 caractères.", "#c0392b");
         return;
       }
 
-      /*
-       * Désactiver le bouton pendant la création
-       */
-      bouton.disabled = true;
-      bouton.textContent = "Création du compte...";
+      if (!classe) {
+        afficherMessage("Choisis ta classe.", "#c0392b");
+        return;
+      }
 
-      /*
-       * Création du compte Firebase
-       */
+      if (motDePasse.length < 6) {
+        afficherMessage("Le mot de passe doit contenir au moins 6 caractères.", "#c0392b");
+        return;
+      }
+
+      if (motDePasse !== confirmation) {
+        afficherMessage("Les deux mots de passe ne sont pas identiques.", "#c0392b");
+        return;
+      }
+
+      if (typeof firebase === "undefined" || typeof db === "undefined") {
+        afficherMessage(
+          "Firebase n’est pas correctement configuré. Vérifie firebase-config.js.",
+          "#c0392b"
+        );
+        return;
+      }
+
+      bouton.disabled = true;
+      bouton.textContent = "Création en cours...";
+      afficherMessage("", "");
+
       firebase.auth()
         .createUserWithEmailAndPassword(email, motDePasse)
-
         .then(function(resultat) {
+          const uid = resultat.user.uid;
 
-          /*
-           * Identifiant choisi par l'utilisateur
-           */
-          localStorage.setItem(
-            "cf_identifiant",
-            identifiant
-          );
+          localStorage.setItem("cf_identifiant", identifiant);
+          localStorage.setItem("cf_uid", uid);
 
-          /*
-           * UID unique du compte Firebase
-           *
-           * Cet UID servira ensuite à sécuriser
-           * le carnet et les résultats.
-           */
-          localStorage.setItem(
-            "cf_uid",
-            resultat.user.uid
-          );
-
-          message.textContent =
-            "✅ Compte créé avec succès ! Redirection...";
-
-          message.style.color = "#27ae60";
-
-          /*
-           * Redirection vers l'accueil
-           */
-          setTimeout(function() {
-
-            window.location.href = "index.html";
-
-          }, 1200);
-
+          return db.ref("eleves/" + uid).set({
+            identifiant: identifiant,
+            email: email,
+            classe: classe,
+            dateInscription: Date.now(),
+            devoirsFaits: 0,
+            chapitresVus: 0,
+            videosVues: 0,
+            joursConnexion: 0
+          });
         })
+        .then(function() {
+          afficherMessage(
+            "Compte créé avec succès. Redirection vers les mathématiques...",
+            "#27ae60"
+          );
 
+          setTimeout(function() {
+            window.location.href = "maths/index.html";
+          }, 1200);
+        })
         .catch(function(erreur) {
+          console.error(erreur);
 
-          let texte =
-            "❌ Une erreur est survenue.";
+          let texteErreur = "Une erreur est survenue. Réessaie.";
 
-          if (
-            erreur.code ===
-            "auth/email-already-in-use"
-          ) {
-
-            texte =
-              "❌ Cette adresse e-mail est déjà utilisée.";
-
+          if (erreur.code === "auth/email-already-in-use") {
+            texteErreur = "Cette adresse e-mail possède déjà un compte.";
+          } else if (erreur.code === "auth/invalid-email") {
+            texteErreur = "L’adresse e-mail n’est pas valide.";
+          } else if (erreur.code === "auth/weak-password") {
+            texteErreur = "Le mot de passe doit contenir au moins 6 caractères.";
+          } else if (erreur.code === "PERMISSION_DENIED") {
+            texteErreur = "Firebase refuse l’enregistrement des données. Vérifie les règles de Realtime Database.";
           }
 
-          if (
-            erreur.code ===
-            "auth/invalid-email"
-          ) {
-
-            texte =
-              "❌ L'adresse e-mail n'est pas valide.";
-
-          }
-
-          if (
-            erreur.code ===
-            "auth/weak-password"
-          ) {
-
-            texte =
-              "❌ Le mot de passe doit contenir au moins 6 caractères.";
-
-          }
-
-          message.textContent = texte;
-
-          message.style.color = "#c0392b";
-
+          afficherMessage(texteErreur, "#c0392b");
           bouton.disabled = false;
-
-          bouton.textContent =
-            "Créer mon compte";
-
+          bouton.textContent = "Créer mon compte";
         });
-
     });
   </script>
 
