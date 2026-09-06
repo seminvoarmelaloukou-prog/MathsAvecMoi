@@ -919,7 +919,8 @@
   function updatePhonePrefix(){
     const sel = $('pays');
     const opt = sel.options[sel.selectedIndex];
-    $('phonePrefix').textContent = (opt && opt.value && opt.value !== 'autre') ? opt.value : '+___';
+    $('phonePrefix').textContent =
+      (opt && opt.value && opt.value !== 'autre') ? opt.value : '+___';
   }
 
   function renderDashboard(p){
@@ -933,8 +934,11 @@
     $('bestStreakNum').textContent = p.bestStreak;
 
     const doneToday = p.lastCheckin === todayStr();
+
     $('checkinBtn').disabled = doneToday;
-    $('checkinBtn').textContent = doneToday ? "C'est fait pour aujourd'hui ✓" : "Je révise aujourd'hui";
+    $('checkinBtn').textContent =
+      doneToday ? "C'est fait pour aujourd'hui ✓" : "Je révise aujourd'hui";
+
     $('streakSub').textContent = doneToday
       ? "Bien joué, reviens demain pour continuer ta série."
       : "Reviens chaque jour pour faire grandir ta série.";
@@ -945,27 +949,43 @@
   function checkin(){
     const p = loadProfile();
     if (!p) return;
+
     const today = todayStr();
+
     if (p.lastCheckin === today) return;
 
-    const gap = p.lastCheckin ? daysBetween(p.lastCheckin, today) : null;
+    const gap = p.lastCheckin
+      ? daysBetween(p.lastCheckin, today)
+      : null;
+
     if (gap === 1){
       p.streak += 1;
     } else {
       p.streak = 1;
     }
+
     p.bestStreak = Math.max(p.bestStreak || 0, p.streak);
     p.points += 10;
     p.lastCheckin = today;
 
-    const before = BADGES.filter(b => b.test({...p, streak:p.streak-1})).map(b=>b.id);
+    const before =
+      BADGES
+        .filter(b => b.test({...p, streak:p.streak-1}))
+        .map(b => b.id);
+
     saveProfile(p);
     renderDashboard(p);
-    $('noraGreeting').innerHTML = `<strong>Nora</strong><br>${noraGreetingText(p)}`;
 
-    const newlyUnlocked = BADGES.filter(b => b.test(p) && !before.includes(b.id));
+    $('noraGreeting').innerHTML =
+      `<strong>Nora</strong><br>${noraGreetingText(p)}`;
+
+    const newlyUnlocked =
+      BADGES.filter(b => b.test(p) && !before.includes(b.id));
+
     if (newlyUnlocked.length){
-      showToast(`Nouveau badge débloqué : ${newlyUnlocked[0].name} !`);
+      showToast(
+        `Nouveau badge débloqué : ${newlyUnlocked[0].name} !`
+      );
     } else {
       showToast('+10 points — série continuée !');
     }
@@ -974,11 +994,16 @@
   function createProfile(){
     const nom = $('nom').value.trim();
     const prenom = $('prenom').value.trim();
+
     const paysSel = $('pays');
     const paysOpt = paysSel.options[paysSel.selectedIndex];
+
     const paysCode = paysSel.value;
     const paysNom = paysOpt ? paysOpt.dataset.nom : '';
-    const telLocal = $('telephone').value.trim().replace(/[\s.-]/g, '');
+
+    const telLocal =
+      $('telephone').value.trim().replace(/[\s.-]/g, '');
+
     const classe = $('classe').value;
 
     const telValide = /^[0-9]{6,10}$/.test(telLocal);
@@ -987,42 +1012,55 @@
       $('formError').style.display = 'block';
       return;
     }
+
     $('formError').style.display = 'none';
 
     const indicatif = paysCode === 'autre' ? '' : paysCode;
+
     const id = (indicatif + telLocal).replace(/\s+/g, '');
-    const telephoneAffiche = indicatif ? `${indicatif} ${telLocal}` : telLocal;
+
+    const telephoneAffiche =
+      indicatif ? `${indicatif} ${telLocal}` : telLocal;
 
     const user = getCurrentUser();
+
     if (!user){
-      showToast('Tu dois être connecté pour créer un carnet.');
+      showToast(
+        'Tu dois être connecté pour créer un carnet.'
+      );
       return;
     }
 
     const all = loadAllProfiles();
     const existant = all[id];
+
     let p;
 
     if (existant){
-      // Un carnet existe déjà pour ce numéro : il ne peut être repris
-      // que par le compte qui l'a créé.
+
       if (existant.uid && existant.uid !== user.uid){
         $('formError').textContent =
           'Ce numéro est déjà associé à un autre compte. Utilise ton propre numéro.';
+
         $('formError').style.display = 'block';
         return;
       }
 
-      // Carnet déjà existant pour ce numéro : on retrouve l'historique
       p = existant;
+
       p.nom = nom;
       p.prenom = prenom;
       p.classe = classe;
       p.pays = paysNom;
       p.telephone = telephoneAffiche;
+
     } else {
+
       p = {
-        id, nom, prenom, classe,
+        id,
+        nom,
+        prenom,
+        classe,
         pays: paysNom,
         telephone: telephoneAffiche,
         points: 0,
@@ -1030,35 +1068,48 @@
         bestStreak: 0,
         lastCheckin: null
       };
+
     }
 
     p.uid = user.uid;
 
     const ok = saveProfile(p);
+
     if (!ok) return;
 
     setActiveId(id);
+
     renderDashboard(p);
     initNora(p);
 
     if (existant){
-      showToast(`Bon retour, ${prenom} ! Ton historique a été retrouvé.`);
+      showToast(
+        `Bon retour, ${prenom} ! Ton historique a été retrouvé.`
+      );
     }
   }
 
   function editProfile(){
     $('dashboard').hidden = true;
     $('onboarding').hidden = false;
+
     const p = loadProfile();
+
     if (p){
       $('nom').value = p.nom || '';
       $('prenom').value = p.prenom || '';
       $('classe').value = p.classe;
+
       if (p.telephone){
+
         const parts = p.telephone.split(' ');
         const code = parts[0];
         const rest = parts.slice(1).join(' ');
-        const match = [...$('pays').options].find(o => o.value === code);
+
+        const match =
+          [...$('pays').options]
+            .find(o => o.value === code);
+
         if (match){
           $('pays').value = code;
           $('telephone').value = rest;
@@ -1066,102 +1117,171 @@
           $('pays').value = 'autre';
           $('telephone').value = p.telephone;
         }
+
         updatePhonePrefix();
       }
     }
   }
 
   // ---- Nora, la coach ----
+
   const MOOD_REPLIES = {
-    top:      "Trop bien, garde cette énergie ! C'est le moment parfait pour avancer sur une notion un peu plus difficile. 🌟",
-    bien:     "Content de l'entendre ! Une petite session de révision te fera du bien aujourd'hui. 💪",
-    neutre:   "Pas de souci, tout le monde a des jours neutres. Commence petit : 10 minutes suffisent pour se relancer. 🙂",
-    fatigue:  "Repose-toi un peu si tu peux. Même 15 minutes de révision légère valent mieux que rien. 🌙",
-    stresse:  "Respire un grand coup. Un examen ne définit pas ta valeur — avance étape par étape, je suis avec toi. 🌸"
+    top:
+      "Trop bien, garde cette énergie ! C'est le moment parfait pour avancer sur une notion un peu plus difficile. 🌟",
+
+    bien:
+      "Content de l'entendre ! Une petite session de révision te fera du bien aujourd'hui. 💪",
+
+    neutre:
+      "Pas de souci, tout le monde a des jours neutres. Commence petit : 10 minutes suffisent pour se relancer. 🙂",
+
+    fatigue:
+      "Repose-toi un peu si tu peux. Même 15 minutes de révision légère valent mieux que rien. 🌙",
+
+    stresse:
+      "Respire un grand coup. Un examen ne définit pas ta valeur — avance étape par étape, je suis avec toi. 🌸"
   };
 
   function noraGreetingText(p){
     const h = new Date().getHours();
-    const moment = h < 12 ? "Bonjour" : (h < 18 ? "Bon après-midi" : "Bonsoir");
+
+    const moment =
+      h < 12
+        ? "Bonjour"
+        : (h < 18 ? "Bon après-midi" : "Bonsoir");
+
     if (p.streak >= 3){
       return `${moment}, ${p.prenom} ! ${p.streak} jours de suite, bravo pour ta régularité 🌸`;
     }
+
     return `${moment}, ${p.prenom} ! Contente de te retrouver 🌸`;
   }
 
-  function goalKey(id){ return 'cf_goal_' + id; }
+  function goalKey(id){
+    return 'cf_goal_' + id;
+  }
 
   function renderGoal(id){
     const raw = localStorage.getItem(goalKey(id));
+
     const goalForm = $('goalForm');
     const goalCurrent = $('goalCurrent');
+
     if (!raw){
       goalForm.hidden = false;
       goalCurrent.hidden = true;
       return;
     }
+
     let g;
-    try{ g = JSON.parse(raw); }catch(e){ g = null; }
+
+    try{
+      g = JSON.parse(raw);
+    }catch(e){
+      g = null;
+    }
+
     if (!g || g.date !== todayStr()){
       localStorage.removeItem(goalKey(id));
+
       goalForm.hidden = false;
       goalCurrent.hidden = true;
+
       return;
     }
+
     goalForm.hidden = true;
     goalCurrent.hidden = false;
+
     $('goalCheck').checked = !!g.done;
     $('goalText').textContent = g.text;
     $('goalText').classList.toggle('done', !!g.done);
   }
 
   function initNora(p){
-    $('noraGreeting').innerHTML = `<strong>Nora</strong><br>${noraGreetingText(p)}`;
+
+    $('noraGreeting').innerHTML =
+      `<strong>Nora</strong><br>${noraGreetingText(p)}`;
 
     document.querySelectorAll('.mood-btn').forEach(btn => {
+
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+
+        document
+          .querySelectorAll('.mood-btn')
+          .forEach(b => b.classList.remove('selected'));
+
         btn.classList.add('selected');
+
         const reply = $('moodReply');
-        reply.textContent = MOOD_REPLIES[btn.dataset.mood];
+
+        reply.textContent =
+          MOOD_REPLIES[btn.dataset.mood];
+
         reply.classList.add('show');
       });
+
     });
 
     renderGoal(p.id);
 
     $('goalSaveBtn').addEventListener('click', () => {
-      const text = $('goalInput').value.trim();
+
+      const text =
+        $('goalInput').value.trim();
+
       if (!text) return;
-      localStorage.setItem(goalKey(p.id), JSON.stringify({ text, done:false, date: todayStr() }));
+
+      localStorage.setItem(
+        goalKey(p.id),
+        JSON.stringify({
+          text,
+          done:false,
+          date:todayStr()
+        })
+      );
+
       $('goalInput').value = '';
+
       renderGoal(p.id);
     });
 
     $('goalCheck').addEventListener('change', () => {
-      const raw = localStorage.getItem(goalKey(p.id));
+
+      const raw =
+        localStorage.getItem(goalKey(p.id));
+
       if (!raw) return;
+
       const g = JSON.parse(raw);
-      g.done = $('goalCheck').checked;
-      localStorage.setItem(goalKey(p.id), JSON.stringify(g));
+
+      g.done =
+        $('goalCheck').checked;
+
+      localStorage.setItem(
+        goalKey(p.id),
+        JSON.stringify(g)
+      );
+
       renderGoal(p.id);
     });
   }
 
   function renderSavedProfilesList(){
+
     const user = getCurrentUser();
+
     if (!user) return;
 
     const all = loadAllProfiles();
 
-    // Un carnet ancien (créé avant l'ajout de la sécurité par compte)
-    // n'a pas encore d'UID : on ne peut pas savoir à qui il appartient,
-    // donc il n'apparaît dans la liste que s'il n'a jamais été
-    // rattaché à un autre compte.
-    const ids = Object.keys(all).filter(id => {
-      const p = all[id];
-      return !p.uid || p.uid === user.uid;
-    });
+    const ids =
+      Object.keys(all).filter(id => {
+
+        const p = all[id];
+
+        return !p.uid || p.uid === user.uid;
+      });
 
     const box = $('savedProfiles');
     const divider = $('savedDivider');
@@ -1174,61 +1294,89 @@
 
     box.hidden = false;
     divider.hidden = false;
-    box.innerHTML = '<p class="saved-title">Reprendre un carnet</p>';
+
+    box.innerHTML =
+      '<p class="saved-title">Reprendre un carnet</p>';
 
     ids.forEach(id => {
+
       const p = all[id];
-      const btn = document.createElement('button');
+
+      const btn =
+        document.createElement('button');
+
       btn.type = 'button';
-      btn.className = 'saved-profile-btn';
-      btn.innerHTML = `<span class="saved-name">${p.prenom} ${p.nom || ''}</span><span class="saved-classe">${p.classe}</span>`;
+
+      btn.className =
+        'saved-profile-btn';
+
+      btn.innerHTML =
+        `<span class="saved-name">${p.prenom} ${p.nom || ''}</span><span class="saved-classe">${p.classe}</span>`;
+
       btn.addEventListener('click', () => {
-        // Un carnet hérité sans UID est définitivement rattaché
-        // au compte qui le sélectionne en premier.
+
         if (!p.uid){
           p.uid = user.uid;
           all[id] = p;
           saveAllProfiles(all);
         }
+
         setActiveId(id);
+
         renderDashboard(p);
         initNora(p);
+
         syncProfileToServer(p);
       });
+
       box.appendChild(btn);
     });
   }
 
-  $('createBtn').addEventListener('click', createProfile);
-  $('checkinBtn').addEventListener('click', checkin);
-  $('editBtn').addEventListener('click', editProfile);
-  $('pays').addEventListener('change', updatePhonePrefix);
+  $('createBtn')
+    .addEventListener('click', createProfile);
+
+  $('checkinBtn')
+    .addEventListener('click', checkin);
+
+  $('editBtn')
+    .addEventListener('click', editProfile);
+
+  $('pays')
+    .addEventListener('change', updatePhonePrefix);
+
   updatePhonePrefix();
 
   migrerAncienFormatSiBesoin();
 
-  // auth-guard.js redirige déjà vers index.html si personne n'est
-  // connecté. On attend ici la confirmation du compte avant de
-  // charger le moindre carnet, pour ne jamais afficher les données
-  // d'un autre compte le temps que Firebase réponde.
   let pageDejaInitialisee = false;
 
   firebase.auth().onAuthStateChanged(function(user){
 
-    if (!user) return; // auth-guard.js s'occupe de la redirection
+    if (!user) return;
 
     if (pageDejaInitialisee) return;
+
     pageDejaInitialisee = true;
 
     const existing = loadProfile();
-    if (existing && existing.prenom && existing.classe){
+
+    if (existing &&
+        existing.prenom &&
+        existing.classe){
+
       renderDashboard(existing);
       initNora(existing);
       syncProfileToServer(existing);
+
     } else {
+
       renderSavedProfilesList();
+
     }
+
   });
+
 })();
 </script>
 
