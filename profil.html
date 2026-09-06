@@ -1,21 +1,16 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Campus Flex - Mon profil</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth-guard.js"></script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon carnet — Campus Flex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
 <style>
   :root{
     --ink:#1B2B22;
@@ -28,9 +23,7 @@
     --line:#DCD5C1;
     --muted:#6B7568;
   }
-
   *{box-sizing:border-box;}
-
   body{
     margin:0;
     background:var(--paper);
@@ -39,22 +32,19 @@
     min-height:100vh;
     padding-bottom:40px;
   }
-
   .topbar{
     display:flex;
     align-items:center;
     gap:10px;
     padding:18px 20px 14px;
   }
-
   .topbar .mark{
     font-family:'Fraunces', serif;
     font-weight:700;
     font-size:1.15rem;
     letter-spacing:.2px;
   }
-
-  .topbar .mark span{color:var(--forest);}
+  .topbar .mark span{ color:var(--forest); }
 
   nav{
     background-color:#2c3e8c;
@@ -67,29 +57,15 @@
     z-index:100;
     box-shadow:0 2px 10px rgba(0,0,0,.15);
   }
-
   nav h1{
     color:#fff;
     font-family:'Fraunces', serif;
     font-weight:700;
     font-size:1.05rem;
   }
-
-  .nav-toggle{display:none;}
-
-  .nav-toggle-label{
-    display:none;
-    color:#fff;
-    font-size:26px;
-    cursor:pointer;
-  }
-
-  nav ul{
-    list-style:none;
-    display:flex;
-    gap:18px;
-  }
-
+  .nav-toggle{ display:none; }
+  .nav-toggle-label{ display:none; color:#fff; font-size:26px; cursor:pointer; }
+  nav ul{ list-style:none; display:flex; gap:18px; }
   nav ul li a{
     color:#fff;
     text-decoration:none;
@@ -98,50 +74,22 @@
     border-bottom:2px solid transparent;
     transition:border-color .2s;
   }
-
-  nav ul li a:hover,
-  nav ul li a.active{
-    border-color:#f39c12;
-  }
-
-  @media (max-width:640px){
-    .nav-toggle-label{
-      display:block;
-    }
-
+  nav ul li a:hover, nav ul li a.active{ border-color:#f39c12; }
+  @media (max-width: 640px){
+    .nav-toggle-label{ display:block; }
     nav ul{
-      position:absolute;
-      top:100%;
-      left:0;
-      right:0;
+      position:absolute; top:100%; left:0; right:0;
       background:#1e2c66;
-      flex-direction:column;
-      gap:0;
-      max-height:0;
-      overflow:hidden;
+      flex-direction:column; gap:0;
+      max-height:0; overflow:hidden;
       transition:max-height .3s ease;
     }
-
-    nav ul li{
-      border-top:1px solid rgba(255,255,255,.1);
-    }
-
-    nav ul li a{
-      display:block;
-      padding:14px 20px;
-      border-bottom:none;
-    }
-
-    .nav-toggle:checked ~ ul{
-      max-height:300px;
-    }
+    nav ul li{ border-top:1px solid rgba(255,255,255,.1); }
+    nav ul li a{ display:block; padding:14px 20px; border-bottom:none; }
+    .nav-toggle:checked ~ ul{ max-height:300px; }
   }
 
-  .wrap{
-    max-width:480px;
-    margin:0 auto;
-    padding:0 18px;
-  }
+  .wrap{ max-width:480px; margin:0 auto; padding:0 18px; }
 
   .card{
     background:var(--card);
@@ -150,7 +98,6 @@
     padding:26px 22px;
     margin-top:10px;
   }
-
   .card h1{
     font-family:'Fraunces', serif;
     font-weight:700;
@@ -158,13 +105,11 @@
     margin:0 0 6px;
     line-height:1.2;
   }
-
   .card p.lead{
     color:var(--muted);
     margin:0 0 22px;
     font-size:.95rem;
   }
-
   label{
     display:block;
     font-size:.8rem;
@@ -174,9 +119,7 @@
     color:var(--forest-dark);
     margin:16px 0 6px;
   }
-
-  input[type=text],
-  select{
+  input[type=text], select{
     width:100%;
     padding:12px 13px;
     border:1.5px solid var(--line);
@@ -186,23 +129,16 @@
     background:#FCFAF4;
     color:var(--ink);
   }
-
-  input[type=text]:focus,
-  select:focus{
+  input[type=text]:focus, select:focus{
     outline:2px solid var(--forest);
     outline-offset:1px;
     border-color:var(--forest);
   }
-
-  optgroup{
-    font-weight:600;
-  }
-
+  optgroup{ font-weight:600; }
   .phone-row{
     display:flex;
     gap:8px;
   }
-
   .phone-prefix{
     display:flex;
     align-items:center;
@@ -217,11 +153,7 @@
     font-size:.95rem;
     white-space:nowrap;
   }
-
-  .phone-row input{
-    flex:1;
-  }
-
+  .phone-row input{ flex:1; }
   button.primary{
     width:100%;
     margin-top:24px;
@@ -235,11 +167,7 @@
     font-size:1rem;
     cursor:pointer;
   }
-
-  button.primary:active{
-    background:var(--forest-dark);
-  }
-
+  button.primary:active{ background:var(--forest-dark); }
   .error{
     color:#B3401F;
     font-size:.85rem;
@@ -247,10 +175,7 @@
     display:none;
   }
 
-  .saved-profiles{
-    margin-bottom:22px;
-  }
-
+  .saved-profiles{ margin-bottom:22px; }
   .saved-title{
     font-size:.8rem;
     font-weight:600;
@@ -259,7 +184,6 @@
     color:var(--forest-dark);
     margin-bottom:10px;
   }
-
   .saved-profile-btn{
     width:100%;
     display:flex;
@@ -273,17 +197,8 @@
     cursor:pointer;
     font-family:'Work Sans', sans-serif;
   }
-
-  .saved-profile-btn:active{
-    background:#EFEAD8;
-  }
-
-  .saved-name{
-    font-weight:600;
-    color:var(--ink);
-    font-size:.95rem;
-  }
-
+  .saved-profile-btn:active{ background:#EFEAD8; }
+  .saved-name{ font-weight:600; color:var(--ink); font-size:.95rem; }
   .saved-classe{
     font-size:.75rem;
     color:var(--forest-dark);
@@ -291,7 +206,6 @@
     padding:3px 10px;
     border-radius:20px;
   }
-
   .saved-divider{
     display:flex;
     align-items:center;
@@ -300,9 +214,7 @@
     color:var(--muted);
     font-size:.78rem;
   }
-
-  .saved-divider::before,
-  .saved-divider::after{
+  .saved-divider::before, .saved-divider::after{
     content:"";
     flex:1;
     height:1px;
@@ -315,14 +227,12 @@
     align-items:flex-end;
     margin-top:6px;
   }
-
   .greet h1{
     font-family:'Fraunces', serif;
     font-weight:700;
     font-size:1.5rem;
     margin:0;
   }
-
   .classe-pill{
     display:inline-block;
     margin-top:6px;
@@ -333,7 +243,6 @@
     font-size:.78rem;
     font-weight:600;
   }
-
   .edit-link{
     background:none;
     border:none;
@@ -353,42 +262,34 @@
     position:relative;
     overflow:hidden;
   }
-
   .streak-card::after{
     content:"";
     position:absolute;
-    right:-30px;
-    top:-30px;
-    width:120px;
-    height:120px;
+    right:-30px; top:-30px;
+    width:120px; height:120px;
     border-radius:50%;
     background:rgba(255,255,255,.06);
   }
-
   .streak-top{
     display:flex;
     align-items:baseline;
     gap:8px;
   }
-
   .streak-num{
     font-family:'IBM Plex Mono', monospace;
     font-weight:600;
     font-size:2.6rem;
     line-height:1;
   }
-
   .streak-label{
     font-size:.85rem;
     opacity:.85;
   }
-
   .streak-sub{
     margin-top:4px;
     font-size:.85rem;
     opacity:.85;
   }
-
   .checkin-btn{
     margin-top:18px;
     width:100%;
@@ -401,7 +302,6 @@
     font-size:.95rem;
     cursor:pointer;
   }
-
   .checkin-btn[disabled]{
     background:rgba(255,255,255,.18);
     color:rgba(255,255,255,.75);
@@ -412,7 +312,6 @@
     gap:12px;
     margin-top:14px;
   }
-
   .stat{
     flex:1;
     background:var(--card);
@@ -421,14 +320,12 @@
     padding:14px 12px;
     text-align:center;
   }
-
   .stat .num{
     font-family:'IBM Plex Mono', monospace;
     font-weight:600;
     font-size:1.4rem;
     color:var(--forest-dark);
   }
-
   .stat .lbl{
     font-size:.72rem;
     color:var(--muted);
@@ -442,6 +339,7 @@
     margin:26px 0 12px;
   }
 
+  /* ---- Nora, la coach ---- */
   :root{
     --nora-bg:#FBF6FF;
     --nora-lav:#C9AEE0;
@@ -450,7 +348,6 @@
     --nora-ink:#3A2E4D;
     --nora-muted:#8A7A9B;
   }
-
   .nora-card{
     margin-top:22px;
     background:var(--nora-bg);
@@ -458,13 +355,11 @@
     border-radius:16px;
     padding:20px;
   }
-
   .nora-head{
     display:flex;
     align-items:flex-start;
     gap:14px;
   }
-
   .nora-avatar{
     flex-shrink:0;
     width:56px;
@@ -477,7 +372,6 @@
     justify-content:center;
     padding:6px;
   }
-
   .nora-bubble{
     background:#fff;
     border:1px solid #EADFF5;
@@ -487,7 +381,6 @@
     color:var(--nora-ink);
     line-height:1.45;
   }
-
   .nora-bubble strong{
     font-family:'Fraunces', serif;
     font-weight:600;
@@ -506,7 +399,6 @@
     gap:8px;
     justify-content:space-between;
   }
-
   .mood-btn{
     flex:1;
     background:#fff;
@@ -516,12 +408,10 @@
     font-size:1.3rem;
     cursor:pointer;
   }
-
   .mood-btn.selected{
     border-color:var(--nora-lav);
     background:#F3E9FA;
   }
-
   .mood-reply{
     margin-top:10px;
     background:#fff;
@@ -532,22 +422,17 @@
     color:var(--nora-ink);
     display:none;
   }
-
-  .mood-reply.show{
-    display:block;
-  }
+  .mood-reply.show{ display:block; }
 
   .goal-row{
     display:flex;
     gap:8px;
     margin-top:4px;
   }
-
   .goal-row input[type=text]{
     flex:1;
     background:#fff;
   }
-
   .goal-save{
     padding:0 16px;
     border:none;
@@ -558,7 +443,6 @@
     font-size:.85rem;
     cursor:pointer;
   }
-
   .goal-current{
     margin-top:10px;
     display:flex;
@@ -569,23 +453,17 @@
     border-radius:10px;
     padding:10px 12px;
   }
-
-  .goal-current[hidden]{
-    display:none;
-  }
-
+  .goal-current[hidden]{ display:none; }
   .goal-current input[type=checkbox]{
     width:18px;
     height:18px;
     accent-color:var(--nora-lav-dark);
     flex-shrink:0;
   }
-
   .goal-current span{
     font-size:.88rem;
     color:var(--nora-ink);
   }
-
   .goal-current span.done{
     text-decoration:line-through;
     color:var(--nora-muted);
@@ -596,13 +474,11 @@
     gap:8px;
     margin-top:4px;
   }
-
   .nora-chat-row input[type=text]{
     flex:1;
     background:#F3EEF7;
     color:var(--nora-muted);
   }
-
   .nora-chat-row button{
     padding:0 16px;
     border:none;
@@ -612,7 +488,6 @@
     font-weight:600;
     font-size:.85rem;
   }
-
   .nora-soon{
     margin-top:6px;
     font-size:.76rem;
@@ -621,10 +496,9 @@
 
   .badges{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(3, 1fr);
     gap:10px;
   }
-
   .badge{
     background:var(--card);
     border:1.5px dashed var(--line);
@@ -637,22 +511,13 @@
     text-align:center;
     padding:8px;
   }
-
   .badge.unlocked{
     border-style:solid;
     border-color:var(--amber);
     background:#FFF7E9;
   }
-
-  .badge .icon{
-    font-size:1.5rem;
-    opacity:.35;
-  }
-
-  .badge.unlocked .icon{
-    opacity:1;
-  }
-
+  .badge .icon{ font-size:1.5rem; opacity:.35; }
+  .badge.unlocked .icon{ opacity:1; }
   .badge .name{
     font-size:.62rem;
     font-weight:600;
@@ -660,15 +525,11 @@
     color:var(--muted);
     line-height:1.15;
   }
-
-  .badge.unlocked .name{
-    color:var(--forest-dark);
-  }
+  .badge.unlocked .name{ color:var(--forest-dark); }
 
   .toast{
     position:fixed;
-    left:50%;
-    bottom:24px;
+    left:50%; bottom:24px;
     transform:translateX(-50%) translateY(20px);
     background:var(--ink);
     color:#fff;
@@ -676,32 +537,25 @@
     border-radius:10px;
     font-size:.88rem;
     opacity:0;
-    transition:opacity .25s,transform .25s;
+    transition:opacity .25s, transform .25s;
     pointer-events:none;
     max-width:88%;
     text-align:center;
   }
-
   .toast.show{
     opacity:1;
     transform:translateX(-50%) translateY(0);
   }
 
-  [hidden]{
-    display:none !important;
-  }
+  [hidden]{ display:none !important; }
 </style>
 </head>
-
 <body>
 
 <nav>
   <h1>📐 Campus Flex</h1>
-
   <input type="checkbox" id="nav-toggle" class="nav-toggle">
-
   <label for="nav-toggle" class="nav-toggle-label">☰</label>
-
   <ul>
     <li><a href="accueil.html">Accueil</a></li>
     <li><a href="epreuves.html">Épreuves</a></li>
@@ -715,44 +569,22 @@
 <div class="wrap">
 
   <section id="onboarding" class="card">
-
     <div id="savedProfiles" class="saved-profiles" hidden></div>
-
-    <div id="savedDivider" class="saved-divider" hidden>
-      <span>ou crée un nouveau carnet</span>
-    </div>
+    <div id="savedDivider" class="saved-divider" hidden><span>ou crée un nouveau carnet</span></div>
 
     <h1>Ton carnet de bord</h1>
-
-    <p class="lead">
-      Indique ton prénom et ta classe pour commencer à suivre ta progression.
-    </p>
+    <p class="lead">Indique ton prénom et ta classe pour commencer à suivre ta progression.</p>
 
     <label for="nom">Nom</label>
-    <input
-      type="text"
-      id="nom"
-      placeholder="Ex : SAVI"
-      autocomplete="family-name"
-    >
+    <input type="text" id="nom" placeholder="Ex : SAVI" autocomplete="family-name">
 
     <label for="prenom">Prénom</label>
-    <input
-      type="text"
-      id="prenom"
-      placeholder="Ex : Armelle"
-      autocomplete="given-name"
-    >
+    <input type="text" id="prenom" placeholder="Ex : Armelle" autocomplete="given-name">
 
     <label for="pays">Pays</label>
-
     <select id="pays">
       <option value="">Choisis ton pays</option>
-
-      <option value="+229" data-nom="Bénin" selected>
-        🇧🇯 Bénin (+229)
-      </option>
-
+      <option value="+229" data-nom="Bénin" selected>🇧🇯 Bénin (+229)</option>
       <option value="+228" data-nom="Togo">🇹🇬 Togo (+228)</option>
       <option value="+225" data-nom="Côte d'Ivoire">🇨🇮 Côte d'Ivoire (+225)</option>
       <option value="+221" data-nom="Sénégal">🇸🇳 Sénégal (+221)</option>
@@ -772,506 +604,141 @@
     </select>
 
     <label for="telephone">Numéro de téléphone</label>
-
     <div class="phone-row">
       <span class="phone-prefix" id="phonePrefix">+229</span>
-
-      <input
-        type="text"
-        id="telephone"
-        placeholder="Ex : 97 00 00 00"
-        inputmode="numeric"
-        autocomplete="tel-national"
-      >
+      <input type="text" id="telephone" placeholder="Ex : 97 00 00 00" inputmode="numeric" autocomplete="tel-national">
     </div>
 
     <label for="classe">Classe</label>
-
     <select id="classe">
       <option value="">Choisis ta classe</option>
-
       <optgroup label="Collège">
         <option value="6ème">6ème</option>
         <option value="5ème">5ème</option>
         <option value="4ème">4ème</option>
         <option value="3ème">3ème</option>
       </optgroup>
-
       <optgroup label="Seconde">
         <option value="2nde A-B">2nde A-B</option>
         <option value="2nde C">2nde C</option>
         <option value="2nde D">2nde D</option>
       </optgroup>
-
       <optgroup label="Première">
         <option value="1ère A-B">1ère A-B</option>
         <option value="1ère C">1ère C</option>
         <option value="1ère D">1ère D</option>
       </optgroup>
-
       <optgroup label="Terminale">
         <option value="Tle A-B">Tle A-B</option>
         <option value="Tle C">Tle C</option>
         <option value="Tle D">Tle D</option>
       </optgroup>
     </select>
+    <p class="error" id="formError">Merci de remplir ton prénom et ta classe.</p>
 
-    <p class="error" id="formError">
-      Merci de remplir ton prénom et ta classe.
-    </p>
-
-    <button class="primary" id="createBtn">
-      Créer mon carnet →
-    </button>
-
+    <button class="primary" id="createBtn">Créer mon carnet →</button>
   </section>
 
   <section id="dashboard" hidden>
-
     <div class="greet">
-
       <div>
-
         <h1 id="greetName">Bonjour 👋</h1>
-
         <span class="classe-pill" id="greetClasse">—</span>
-
       </div>
-
-      <button class="edit-link" id="editBtn">
-        Modifier
-      </button>
-
+      <button class="edit-link" id="editBtn">Modifier</button>
     </div>
 
     <div class="streak-card">
-
       <div class="streak-top">
-
-        <span class="streak-num" id="streakNum">
-          0
-        </span>
-
-        <span class="streak-label">
-          jour(s) consécutif(s)
-        </span>
-
+        <span class="streak-num" id="streakNum">0</span>
+        <span class="streak-label">jour(s) consécutif(s)</span>
       </div>
-
-      <div class="streak-sub" id="streakSub">
-        Reviens chaque jour pour faire grandir ta série.
-      </div>
-
-      <button class="checkin-btn" id="checkinBtn">
-        Je révise aujourd'hui
-      </button>
-
+      <div class="streak-sub" id="streakSub">Reviens chaque jour pour faire grandir ta série.</div>
+      <button class="checkin-btn" id="checkinBtn">Je révise aujourd'hui</button>
     </div>
 
     <div class="stats-row">
-
-      <div class="stat">
-        <div class="num" id="pointsNum">0</div>
-        <div class="lbl">Points</div>
-      </div>
-
-      <div class="stat">
-        <div class="num" id="bestStreakNum">0</div>
-        <div class="lbl">Meilleure série</div>
-      </div>
-
+      <div class="stat"><div class="num" id="pointsNum">0</div><div class="lbl">Points</div></div>
+      <div class="stat"><div class="num" id="bestStreakNum">0</div><div class="lbl">Meilleure série</div></div>
     </div>
 
     <div class="nora-card">
-
       <div class="nora-head">
-
         <div class="nora-avatar">
-
           <svg viewBox="0 0 64 64" width="40" height="40">
-
-            <circle
-              cx="32"
-              cy="32"
-              r="30"
-              fill="#F3E9FA"
-            />
-
-            <circle
-              cx="32"
-              cy="26"
-              r="11"
-              fill="#F6C9CE"
-            />
-
-            <path
-              d="M14 54c1-11 8-17 18-17s17 6 18 17"
-              fill="#C9AEE0"
-            />
-
-            <path
-              d="M22 46c3 4 17 4 20 0"
-              stroke="#8C6BAE"
-              stroke-width="2"
-              fill="none"
-              stroke-linecap="round"
-            />
-
-            <circle
-              cx="27"
-              cy="25"
-              r="1.6"
-              fill="#3A2E4D"
-            />
-
-            <circle
-              cx="37"
-              cy="25"
-              r="1.6"
-              fill="#3A2E4D"
-            />
-
+            <circle cx="32" cy="32" r="30" fill="#F3E9FA"/>
+            <circle cx="32" cy="26" r="11" fill="#F6C9CE"/>
+            <path d="M14 54c1-11 8-17 18-17s17 6 18 17" fill="#C9AEE0"/>
+            <path d="M22 46c3 4 17 4 20 0" stroke="#8C6BAE" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="27" cy="25" r="1.6" fill="#3A2E4D"/>
+            <circle cx="37" cy="25" r="1.6" fill="#3A2E4D"/>
           </svg>
-
         </div>
-
         <div class="nora-bubble" id="noraGreeting">
-          <strong>Nora</strong><br>
-          Salut ! Contente de te retrouver 🌸
+          <strong>Nora</strong><br>Salut ! Contente de te retrouver 🌸
         </div>
-
       </div>
 
-      <div class="nora-block-title">
-        Comment tu te sens aujourd'hui ?
-      </div>
-
+      <div class="nora-block-title">Comment tu te sens aujourd'hui ?</div>
       <div class="mood-row" id="moodRow">
-
         <button class="mood-btn" data-mood="top">😄</button>
         <button class="mood-btn" data-mood="bien">🙂</button>
         <button class="mood-btn" data-mood="neutre">😐</button>
         <button class="mood-btn" data-mood="fatigue">😴</button>
         <button class="mood-btn" data-mood="stresse">😟</button>
-
       </div>
-
       <div class="mood-reply" id="moodReply"></div>
 
-      <div class="nora-block-title">
-        Ton objectif du jour
-      </div>
-
+      <div class="nora-block-title">Ton objectif du jour</div>
       <div class="goal-row" id="goalForm">
-
-        <input
-          type="text"
-          id="goalInput"
-          placeholder="Ex : Faire 10 exercices sur les fractions"
-        >
-
-        <button class="goal-save" id="goalSaveBtn">
-          OK
-        </button>
-
+        <input type="text" id="goalInput" placeholder="Ex : Faire 10 exercices sur les fractions">
+        <button class="goal-save" id="goalSaveBtn">OK</button>
       </div>
-
       <div class="goal-current" id="goalCurrent" hidden>
-
         <input type="checkbox" id="goalCheck">
-
         <span id="goalText"></span>
-
       </div>
 
-      <div class="nora-block-title">
-        Discuter avec Nora
-      </div>
-
+      <div class="nora-block-title">Discuter avec Nora</div>
       <div class="nora-chat-row">
-
-        <input
-          type="text"
-          placeholder="Écris à Nora..."
-          disabled
-        >
-
-        <button disabled>
-  Envoyer
-</button>
-
+        <input type="text" placeholder="Écris à Nora..." disabled>
+        <button disabled>Envoyer</button>
       </div>
-
+      <p class="nora-soon">💬 Le dialogue avec Nora arrive très bientôt.</p>
     </div>
-    function renderBadges(p){
-  const grid = $('badgesGrid');
-  if (!grid) return;
 
-  grid.innerHTML = '';
+    <div class="section-title">Mes badges</div>
+    <div class="badges" id="badgesGrid"></div>
+  </section>
 
-  BADGES.forEach(b => {
-    const unlocked = b.test(p);
+</div>
 
-    const el = document.createElement('div');
-    el.className = 'badge' + (unlocked ? ' unlocked' : '');
+<div class="toast" id="toast"></div>
 
-    el.innerHTML =
-      `<div class="icon">${b.icon}</div>
-       <div class="name">${b.name}</div>`;
+<script>
+(function(){
+  const STORAGE_PROFILES = 'cf_profiles'; // { [id]: profil }
+  const STORAGE_ACTIVE = 'cf_active';     // id du profil connecté
+  const OLD_STORAGE_KEY = 'cf_profile';   // ancien format (un seul profil)
 
-    grid.appendChild(el);
-  });
-}
+  const BADGES = [
+    { id:'streak3',  icon:'🔥', name:'3 jours',  test:p => p.bestStreak >= 3 },
+    { id:'streak7',  icon:'🌿', name:'7 jours',  test:p => p.bestStreak >= 7 },
+    { id:'streak30', icon:'🏆', name:'30 jours', test:p => p.bestStreak >= 30 },
+    { id:'pts50',    icon:'⭐', name:'50 pts',   test:p => p.points >= 50 },
+    { id:'pts200',   icon:'💫', name:'200 pts',  test:p => p.points >= 200 },
+    { id:'pts500',   icon:'👑', name:'500 pts',  test:p => p.points >= 500 },
+  ];
 
-function updatePhonePrefix(){
-  const sel = $('pays');
-  if (!sel) return;
+  const $ = id => document.getElementById(id);
 
-  const opt = sel.options[sel.selectedIndex];
-
-  $('phonePrefix').textContent =
-    (opt && opt.value && opt.value !== 'autre')
-      ? opt.value
-      : '+___';
-}
-
-function renderDashboard(p){
-  $('onboarding').hidden = true;
-  $('dashboard').hidden = false;
-
-  $('greetName').textContent =
-    `Bonjour, ${p.prenom} 👋`;
-
-  $('greetClasse').textContent =
-    p.classe || '—';
-
-  $('streakNum').textContent =
-    p.streak || 0;
-
-  $('pointsNum').textContent =
-    p.points || 0;
-
-  $('bestStreakNum').textContent =
-    p.bestStreak || 0;
-
-  const doneToday =
-    p.lastCheckin === todayStr();
-
-  $('checkinBtn').disabled = doneToday;
-
-  $('checkinBtn').textContent =
-    doneToday
-      ? "C'est fait pour aujourd'hui ✓"
-      : "Je révise aujourd'hui";
-
-  $('streakSub').textContent =
-    doneToday
-      ? "Bien joué, reviens demain pour continuer ta série."
-      : "Reviens chaque jour pour faire grandir ta série.";
-
-  renderBadges(p);
-}
-
-function checkin(){
-  const p = loadProfile();
-  if (!p) return;
-
-  const today = todayStr();
-
-  if (p.lastCheckin === today) return;
-
-  const gap = p.lastCheckin
-    ? daysBetween(p.lastCheckin, today)
-    : null;
-
-  if (gap === 1){
-    p.streak += 1;
-  } else {
-    p.streak = 1;
+  function getCurrentUser(){
+    if (typeof firebase === 'undefined' || !firebase.auth) return null;
+    return firebase.auth().currentUser;
   }
 
-  p.bestStreak =
-    Math.max(p.bestStreak || 0, p.streak);
-
-  p.points += 10;
-  p.lastCheckin = today;
-
-  saveProfile(p);
-  renderDashboard(p);
-
-  $('noraGreeting').innerHTML =
-    `<strong>Nora</strong><br>${noraGreetingText(p)}`;
-
-  showToast('+10 points — série continuée !');
-}
-function createProfile(){
-  const nom = $('nom').value.trim();
-  const prenom = $('prenom').value.trim();
-
-  const paysSel = $('pays');
-  const paysOpt =
-    paysSel.options[paysSel.selectedIndex];
-
-  const paysCode = paysSel.value;
-  const paysNom =
-    paysOpt ? paysOpt.dataset.nom : '';
-
-  const telLocal =
-    $('telephone').value
-      .trim()
-      .replace(/[\s.-]/g, '');
-
-  const classe = $('classe').value;
-
-  if (
-    !nom ||
-    !prenom ||
-    !paysCode ||
-    !/^[0-9]{6,10}$/.test(telLocal) ||
-    !classe
-  ){
-    $('formError').style.display = 'block';
-    return;
+  function todayStr(d){
+    d = d || new Date();
+    return d.toISOString().slice(0,10);
   }
-
-  $('formError').style.display = 'none';
-
-  const indicatif =
-    paysCode === 'autre' ? '' : paysCode;
-
-  const id =
-    (indicatif + telLocal).replace(/\s+/g, '');
-
-  const telephoneAffiche =
-    indicatif
-      ? `${indicatif} ${telLocal}`
-      : telLocal;
-
-  const user = getCurrentUser();
-
-  if (!user){
-    showToast(
-      'Tu dois être connecté pour créer un carnet.'
-    );
-    return;
-  }
-
-  const all = loadAllProfiles();
-  const existant = all[id];
-
-  if (
-    existant &&
-    existant.uid &&
-    existant.uid !== user.uid
-  ){
-    $('formError').textContent =
-      'Ce numéro est déjà associé à un autre compte.';
-
-    $('formError').style.display = 'block';
-    return;
-  }
-
-  const p = existant || {
-    id: id,
-    points: 0,
-    streak: 0,
-    bestStreak: 0,
-    lastCheckin: null
-  };
-
-  p.nom = nom;
-  p.prenom = prenom;
-  p.classe = classe;
-  p.pays = paysNom;
-  p.telephone = telephoneAffiche;
-  p.uid = user.uid;
-
-  setActiveId(id);
-
-  if (!saveProfile(p)) return;
-
-  renderDashboard(p);
-  initNora(p);
-}
-
-function editProfile(){
-  const p = loadProfile();
-
-  $('dashboard').hidden = true;
-  $('onboarding').hidden = false;
-
-  if (!p) return;
-
-  $('nom').value = p.nom || '';
-  $('prenom').value = p.prenom || '';
-  $('classe').value = p.classe || '';
-
-  updatePhonePrefix();
-}
-
-function noraGreetingText(p){
-  const h = new Date().getHours();
-
-  const moment =
-    h < 12
-      ? 'Bonjour'
-      : h < 18
-        ? 'Bon après-midi'
-        : 'Bonsoir';
-
-  return `${moment}, ${p.prenom} ! Contente de te retrouver 🌸`;
-}
-
-function initNora(p){
-  if ($('noraGreeting')){
-    $('noraGreeting').innerHTML =
-      `<strong>Nora</strong><br>${noraGreetingText(p)}`;
-  }
-}
-
-$('createBtn').addEventListener(
-  'click',
-  createProfile
-);
-
-$('checkinBtn').addEventListener(
-  'click',
-  checkin
-);
-
-$('editBtn').addEventListener(
-  'click',
-  editProfile
-);
-
-$('pays').addEventListener(
-  'change',
-  updatePhonePrefix
-);
-
-updatePhonePrefix();
-
-migrerAncienFormatSiBesoin();
-
-firebase.auth().onAuthStateChanged(function(user){
-  if (!user) return;
-
-  const existing = loadProfile();
-
-  if (
-    existing &&
-    existing.prenom &&
-    existing.classe
-  ){
-    renderDashboard(existing);
-    initNora(existing);
-    syncProfileToServer(existing);
-  } else {
-    renderSavedProfilesList();
-  }
-});
-
-})();
-</script>
-</body>
-</html>
+  f
