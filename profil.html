@@ -996,6 +996,7 @@
       $('nom').value = p.nom || '';
       $('prenom').value = p.prenom || '';
       $('classe').value = p.classe;
+      $('classe').disabled = true;
       if (p.telephone){
         const parts = p.telephone.split(' ');
         const code = parts[0];
@@ -1007,7 +1008,7 @@
         } else {
           $('pays').value = 'autre';
           $('telephone').value = p.telephone;
-        }
+  }
         updatePhonePrefix();
       }
     }
