@@ -1,7 +1,17 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>Connexion - MathsAvecMoi</title>  <!-- Firebase -->  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>  <script src="firebase-config.js"></script>  <style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Connexion - Campus Flex</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
     * {
       box-sizing: border-box;
       margin: 0;
@@ -109,50 +119,59 @@
       text-decoration: none;
       font-size: 14px;
     }
-  </style></head><body>  <div class="container"><h1>📐 MathsAvecMoi</h1>
+  </style>
+</head>
 
-<p class="intro">
-  Connecte-toi pour accéder à ta plateforme.
-</p>
+<body>
 
-<form id="connexionForm">
+  <div class="container">
 
-  <label for="email">Adresse e-mail</label>
+    <h1>🎓 Campus Flex</h1>
 
-  <input
-    type="email"
-    id="email"
-    placeholder="Exemple : vous@email.com"
-    required
-  >
+    <p class="intro">
+      Connecte-toi pour accéder à la plateforme.
+    </p>
 
-  <label for="motDePasse">Mot de passe</label>
+    <form id="connexionForm">
 
-  <input
-    type="password"
-    id="motDePasse"
-    placeholder="Ton mot de passe"
-    required
-  >
+      <label for="email">Adresse e-mail</label>
 
-  <button type="submit" id="btnConnexion">
-    Se connecter
-  </button>
+      <input
+        type="email"
+        id="email"
+        placeholder="Exemple : vous@email.com"
+        required
+      >
 
-</form>
+      <label for="motDePasse">Mot de passe</label>
 
-<div id="message"></div>
+      <input
+        type="password"
+        id="motDePasse"
+        placeholder="Ton mot de passe"
+        required
+      >
 
-<p class="inscription">
-  Tu n'as pas encore de compte ?
-  <a href="inscription.html">Créer un compte</a>
-</p>
+      <button type="submit" id="btnConnexion">
+        Se connecter
+      </button>
 
-<a href="index.html" class="retour">
-  ← Retour à l'accueil
-</a>
+    </form>
 
-  </div>  <script>
+    <div id="message"></div>
+
+    <p class="inscription">
+      Tu n'as pas encore de compte ?
+      <a href="inscription.html">Créer un compte</a>
+    </p>
+
+    <a href="index.html" class="retour">
+      ← Retour à l'accueil
+    </a>
+
+  </div>
+
+  <script>
     const formulaire = document.getElementById("connexionForm");
     const message = document.getElementById("message");
     const bouton = document.getElementById("btnConnexion");
@@ -182,7 +201,8 @@
           message.style.color = "#27ae60";
 
           setTimeout(function() {
-            window.location.href = "accueil.html";
+            // Redirection vers la page des maths
+            window.location.href = "maths/index.html";
           }, 800);
 
         })
@@ -209,5 +229,7 @@
           bouton.textContent = "Se connecter";
         });
     });
-  </script></body>
+  </script>
+
+</body>
 </html>
