@@ -301,7 +301,12 @@
   // Liste des classes gérées par le site, dans l'ordre de progression.
   // Sert à la fois pour le sélecteur "Changer classe" et pour compléter
   // les filtres si une classe n'a pas encore d'élève inscrit.
-  const CLASSES = ['6ème','5ème','4ème','3ème','2ndeD','1ère','Tle'];
+  const CLASSES = [
+    '6ème','5ème','4ème','3ème',
+    '2nde A-B','2nde C','2nde D',
+    '1ère A-B','1ère C','1ère D',
+    'Tle A-B','Tle C','Tle D'
+  ];
 
   const $ = id => document.getElementById(id);
   let tousLesEleves = [];
@@ -573,5 +578,5 @@
 </script>
 
 </body>
-  </html>
+</html>
   
