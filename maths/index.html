@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mathématiques – Campus Flex</title>
-  <meta name="description" content="Cours, vidéos, exercices et devoirs de mathématiques du collège (6ᵉ–3ᵉ) jusqu’aux classes de 2ᵉ, 1ʳᵉ et Terminale (séries A‑B, C, D, E) sur Campus Flex.">
+  <meta name="description" content="Cours, vidéos, exercices et devoirs de mathématiques de la 6ᵉ à la Terminale (toutes séries) sur Campus Flex.">
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -76,7 +76,7 @@
 
     .levels {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 15px;
       margin-top: 10px;
     }
@@ -84,12 +84,13 @@
     .level-card {
       background: #f5f7ff;
       border-radius: 14px;
-      padding: 18px 14px;
+      padding: 18px 12px;
       text-align: center;
       text-decoration: none;
       color: #333;
       transition: .2s;
       border: 2px solid transparent;
+      display: block;
     }
 
     .level-card:hover {
@@ -101,19 +102,13 @@
     .level-card strong {
       display: block;
       color: var(--indigo);
-      font-size: 18px;
+      font-size: 17px;
       margin-bottom: 6px;
     }
 
     .level-card span {
       font-size: 13px;
       color: #666;
-    }
-
-    .level-card.disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      pointer-events: none;
     }
 
     .back {
@@ -174,8 +169,8 @@
         Choisis ta classe pour accéder aux cours, vidéos, exercices, devoirs et fiches de révision en mathématiques.
       </p>
 
-      <!-- COLLÈGE -->
-      <h3 class="cycle-title">Collège</h3>
+      <!-- 6ᵉ – 3ᵉ -->
+      <h3 class="cycle-title">6ᵉ – 3ᵉ</h3>
       <div class="levels">
         <a href="6eme/index.html" class="level-card">
           <strong>6ᵉ</strong>
@@ -201,73 +196,73 @@
       <!-- 2ᵉ -->
       <h3 class="cycle-title">2<sup>e</sup></h3>
       <div class="levels">
-        <div class="level-card disabled">
+        <a href="2ndeAB/index.html" class="level-card">
           <strong>2<sup>e</sup> A‑B</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="2ndeC/index.html" class="level-card">
           <strong>2<sup>e</sup> C</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="2ndeD/index.html" class="level-card">
           <strong>2<sup>e</sup> D</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="2ndeE/index.html" class="level-card">
           <strong>2<sup>e</sup> E</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
       </div>
 
       <!-- 1ʳᵉ -->
       <h3 class="cycle-title">1<sup>re</sup></h3>
       <div class="levels">
-        <div class="level-card disabled">
+        <a href="1ereAB/index.html" class="level-card">
           <strong>1<sup>re</sup> A‑B</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="1ereC/index.html" class="level-card">
           <strong>1<sup>re</sup> C</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="1ereD/index.html" class="level-card">
           <strong>1<sup>re</sup> D</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="1ereE/index.html" class="level-card">
           <strong>1<sup>re</sup> E</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
       </div>
 
       <!-- Terminale -->
       <h3 class="cycle-title">Terminale</h3>
       <div class="levels">
-        <div class="level-card disabled">
+        <a href="TleAB/index.html" class="level-card">
           <strong>T<sup>le</sup> A‑B</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="TleC/index.html" class="level-card">
           <strong>T<sup>le</sup> C</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="TleD/index.html" class="level-card">
           <strong>T<sup>le</sup> D</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
 
-        <div class="level-card disabled">
+        <a href="TleE/index.html" class="level-card">
           <strong>T<sup>le</sup> E</strong>
-          <span>Bientôt disponible</span>
-        </div>
+          <span>Cours, exercices et devoirs</span>
+        </a>
       </div>
 
       <div class="back">
@@ -281,4 +276,4 @@
   </footer>
 
 </body>
-                                             </html>
+            </html>
