@@ -1,1090 +1,744 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Mon carnet — Campus Flex</title>
-  <meta name="description" content="Mon carnet personnel - Campus Flex">
-
-  <link rel="canonical"
-        href="https://seminvoarmelaloukou-prog.github.io/MathsAvecMoi/profil.html">
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f4f7fb;
-      color: #1f2937;
-    }
-
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    nav {
-      max-width: 1100px;
-      margin: auto;
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-    }
-
-    .brand {
-      font-size: 20px;
-      font-weight: bold;
-      color: #2563eb;
-      white-space: nowrap;
-    }
-
-    .menu {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: flex-end;
-    }
-
-    .menu a,
-    .menu button {
-      border: none;
-      background: transparent;
-      text-decoration: none;
-      color: #374151;
-      padding: 8px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .menu a:hover,
-    .menu button:hover {
-      background: #eff6ff;
-      color: #2563eb;
-    }
-
-    main {
-      max-width: 1050px;
-      margin: 30px auto;
-      padding: 0 16px 40px;
-    }
-
-    .hero {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .hero h1 {
-      margin-bottom: 8px;
-      color: #111827;
-    }
-
-    .hero p {
-      color: #6b7280;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 18px;
-      padding: 24px;
-      box-shadow: 0 8px 25px rgba(0,0,0,.06);
-      margin-bottom: 20px;
-    }
-
-    .card h2 {
-      margin-top: 0;
-      color: #111827;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
-
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
-
-    label {
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 15px;
-      background: #fff;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #2563eb;
-    }
-
-    .phone-row {
-      display: flex;
-      gap: 8px;
-    }
-
-    .phone-prefix {
-      min-width: 75px;
-      padding: 12px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      background: #f9fafb;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 18px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 15px;
-    }
-
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #1d4ed8;
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #374151;
-    }
-
-    .form-actions {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .error {
-      display: none;
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 12px;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
-
-    .saved-title {
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-
-    .saved-profile-btn {
-      width: 100%;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      padding: 13px;
-      border-radius: 10px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      text-align: left;
-    }
-
-    .saved-profile-btn:hover {
-      background: #eff6ff;
-      border-color: #93c5fd;
-    }
-
-    .saved-name {
-      font-weight: bold;
-    }
-
-    .saved-classe {
-      color: #6b7280;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat {
-      background: #fff;
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 5px 20px rgba(0,0,0,.05);
-    }
-
-    .stat-number {
-      display: block;
-      font-size: 30px;
-      font-weight: bold;
-      color: #2563eb;
-      margin-bottom: 5px;
-    }
-
-    .stat-label {
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    .greeting {
-      background: linear-gradient(135deg, #2563eb, #4f46e5);
-      color: white;
-      border-radius: 18px;
-      padding: 25px;
-      margin-bottom: 20px;
-    }
-
-    .greeting h2 {
-      margin: 0 0 8px;
-    }
-
-    .greeting p {
-      margin: 5px 0;
-      opacity: .95;
-    }
-
-    .checkin {
-      margin-top: 18px;
-    }
-
-    .checkin button:disabled {
-      opacity: .7;
-      cursor: not-allowed;
-    }
-
-    .badges-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    .badge {
-      text-align: center;
-      padding: 15px 8px;
-      border-radius: 12px;
-      background: #f3f4f6;
-      opacity: .45;
-    }
-
-    .badge.unlocked {
-      opacity: 1;
-      background: #eff6ff;
-    }
-
-    .badge .icon {
-      font-size: 28px;
-    }
-
-    .badge .name {
-      margin-top: 5px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .nora {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-    }
-
-    .nora-title {
-      font-size: 20px;
-      font-weight: bold;
-      color: #c2410c;
-    }
-
-    .moods {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 15px 0;
-    }
-
-    .mood-btn {
-      border: 1px solid #fed7aa;
-      background: white;
-      padding: 9px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-
-    .mood-btn.selected {
-      background: #ffedd5;
-      border-color: #fb923c;
-    }
-
-    .mood-reply {
-      display: none;
-      background: white;
-      padding: 12px;
-      border-radius: 10px;
-      color: #7c2d12;
-    }
-
-    .mood-reply.show {
-      display: block;
-    }
-
-    .goal-box {
-      background: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      padding: 18px;
-      border-radius: 14px;
-    }
-
-    .goal-current {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .goal-current input {
-      width: auto;
-    }
-
-    #goalText.done {
-      text-decoration: line-through;
-      color: #6b7280;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: #111827;
-      color: white;
-      padding: 13px 18px;
-      border-radius: 10px;
-      opacity: 0;
-      pointer-events: none;
-      transition: .25s;
-      z-index: 100;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    footer {
-      text-align: center;
-      padding: 25px;
-      color: #6b7280;
-      font-size: 13px;
-    }
-
-    @media (max-width: 700px) {
-      nav {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .menu {
-        justify-content: center;
-      }
-
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .field.full {
-        grid-column: auto;
-      }
-
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .badges-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <nav>
-    <div class="brand">📐 Campus Flex</div>
-
-    <div class="menu">
-      <a href="accueil.html">Accueil</a>
-      <a href="epreuves.html">Épreuves</a>
-      <a href="videos.html">Vidéos</a>
-      <a href="profil.html">Mon profil</a>
-      <a href="contact.html">Contact</a>
-      <button type="button" onclick="deconnexion()">Déconnexion</button>
-    </div>
-  </nav>
-</header>
-
-<main>
-
-  <section class="hero">
-    <h1>Mon carnet</h1>
-    <p>Ton espace personnel pour suivre tes progrès sur Campus Flex.</p>
-  </section>
-
-  <!-- =========================
-       ONBOARDING
-       ========================= -->
-  <section id="onboarding" class="card">
-
-    <h2>👋 Créer ou retrouver mon carnet</h2>
-
-    <p>
-      Renseigne tes informations pour accéder à ton carnet personnel.
-    </p>
-
-    <div class="form-grid">
-
-      <div class="field">
-        <label for="nom">Nom</label>
-        <input id="nom" type="text" autocomplete="family-name">
-      </div>
-
-      <div class="field">
-        <label for="prenom">Prénom</label>
-        <input id="prenom" type="text" autocomplete="given-name">
-      </div>
-
-      <div class="field">
-        <label for="pays">Pays</label>
-
-        <select id="pays">
-          <option value="">-- Choisir --</option>
-          <option value="+229" data-nom="Bénin">🇧🇯 Bénin (+229)</option>
-          <option value="+228" data-nom="Togo">🇹🇬 Togo (+228)</option>
-          <option value="+225" data-nom="Côte d'Ivoire">🇨🇮 Côte d'Ivoire (+225)</option>
-          <option value="+226" data-nom="Burkina Faso">🇧🇫 Burkina Faso (+226)</option>
-          <option value="+227" data-nom="Niger">🇳🇪 Niger (+227)</option>
-          <option value="+221" data-nom="Sénégal">🇸🇳 Sénégal (+221)</option>
-          <option value="+223" data-nom="Mali">🇲🇱 Mali (+223)</option>
-          <option value="+224" data-nom="Guinée">🇬🇳 Guinée (+224)</option>
-          <option value="+237" data-nom="Cameroun">🇨🇲 Cameroun (+237)</option>
-          <option value="autre" data-nom="Autre">🌍 Autre</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="telephone">Téléphone</label>
-
-        <div class="phone-row">
-          <span id="phonePrefix" class="phone-prefix">+___</span>
-          <input
-            id="telephone"
-            type="tel"
-            inputmode="numeric"
-            autocomplete="tel"
-            placeholder="Numéro"
-          >
-        </div>
-      </div>
-
-      <div class="field full">
-        <label for="classe">Classe</label>
-
-        <select id="classe">
-          <option value="">-- Choisir ta classe --</option>
-          <option value="6ème">6ème</option>
-          <option value="5ème">5ème</option>
-          <option value="4ème">4ème</option>
-          <option value="3ème">3ème</option>
-          <option value="2nde A">2nde A</option>
-          <option value="2nde D">2nde D</option>
-          <option value="1ère A">1ère A</option>
-          <option value="1ère D">1ère D</option>
-          <option value="Terminale A">Terminale A</option>
-          <option value="Terminale D">Terminale D</option>
-        </select>
-      </div>
-
-    </div>
-
-    <div id="formError" class="error">
-      Vérifie les informations saisies avant de continuer.
-    </div>
-
-    <div class="form-actions">
-      <button id="createBtn" class="btn btn-primary" type="button">
-        Continuer
-      </button>
-    </div>
-
-    <hr id="savedDivider" hidden>
-
-    <div id="savedProfiles" hidden></div>
-
-  </section>
-
-
-  <!-- =========================
-       DASHBOARD
-       ========================= -->
-  <section id="dashboard" hidden>
-
-    <div class="greeting">
-      <h2 id="greetName">Bonjour 👋</h2>
-      <p id="greetClasse"></p>
-
-      <div class="checkin">
-        <button id="checkinBtn" class="btn btn-primary" type="button">
-          Je révise aujourd'hui
-        </button>
-      </div>
-
-      <p id="streakSub"></p>
-    </div>
-
-
-    <div class="dashboard-grid">
-
-      <div class="stat">
-        <span id="streakNum" class="stat-number">0</span>
-        <span class="stat-label">🔥 Série actuelle</span>
-      </div>
-
-      <div class="stat">
-        <span id="pointsNum" class="stat-number">0</span>
-        <span class="stat-label">⭐ Points</span>
-      </div>
-
-      <div class="stat">
-        <span id="bestStreakNum" class="stat-number">0</span>
-        <span class="stat-label">🏆 Meilleure série</span>
-      </div>
-
-    </div>
-
-
-    <!-- BADGES -->
-    <section class="card">
-
-      <h2>🏅 Mes badges</h2>
-
-      <div id="badgesGrid" class="badges-grid"></div>
-
-    </section>
-
-
-    <!-- NORA -->
-    <section class="card nora">
-
-      <div class="nora-title">🌸 Nora — ta coach</div>
-
-      <p id="noraGreeting"></p>
-
-      <p><strong>Comment te sens-tu aujourd'hui ?</strong></p>
-
-      <div class="moods">
-
-        <button class="mood-btn" type="button" data-mood="top">
-          😄 Très bien
-        </button>
-
-        <button class="mood-btn" type="button" data-mood="bien">
-          🙂 Bien
-        </button>
-
-        <button class="mood-btn" type="button" data-mood="neutre">
-          😐 Neutre
-        </button>
-
-        <button class="mood-btn" type="button" data-mood="fatigue">
-          😴 Fatigué(e)
-        </button>
-
-        <button class="mood-btn" type="button" data-mood="stresse">
-          😟 Stressé(e)
-        </button>
-
-      </div>
-
-      <div id="moodReply" class="mood-reply"></div>
-
-    </section>
-
-
-    <!-- OBJECTIF -->
-    <section class="card">
-
-      <h2>🎯 Mon objectif du jour</h2>
-
-      <div id="goalForm" class="goal-box">
-
-        <p>
-          Définis une petite chose que tu veux accomplir aujourd'hui.
-        </p>
-
-        <div class="phone-row">
-          <input
-            id="goalInput"
-            type="text"
-            placeholder="Ex. Réviser les fonctions..."
-          >
-
-          <button
-            id="goalSaveBtn"
-            class="btn btn-primary"
-            type="button"
-          >
-            Enregistrer
-          </button>
-        </div>
-
-      </div>
-
-      <div id="goalCurrent" class="goal-box" hidden>
-
-        <label class="goal-current">
-          <input id="goalCheck" type="checkbox">
-          <span id="goalText"></span>
-        </label>
-
-      </div>
-
-    </section>
-
-
-    <!-- ACTIONS -->
-    <section class="card">
-
-      <h2>⚙️ Mon profil</h2>
-
-      <p>
-        Tu peux modifier les informations de ton carnet sans perdre
-        ton historique de progression.
-      </p>
-
-      <button id="editBtn" class="btn btn-secondary" type="button">
-        Modifier mon profil
-      </button>
-
-    </section>
-
-  </section>
-
-</main>
-
-<footer>
-  © 2026 Campus Flex — Apprendre, progresser, réussir.
-</footer>
-
-<div id="toast" class="toast"></div>
-
-
-<!-- =========================
-     FIREBASE
-     ========================= -->
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon carnet — Campus Flex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
 <script src="firebase-config.js"></script>
 <script src="auth-guard.js"></script>
+<style>
+  :root{
+    --ink:#1B2B22;
+    --paper:#F5F1E4;
+    --card:#FFFFFF;
+    --forest:#2F6F4E;
+    --forest-dark:#1F4E36;
+    --amber:#E8A33D;
+    --amber-dark:#C77F1F;
+    --line:#DCD5C1;
+    --muted:#6B7568;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    padding-bottom:40px;
+  }
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:18px 20px 14px;
+  }
+  .topbar .mark{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.15rem;
+    letter-spacing:.2px;
+  }
+  .topbar .mark span{ color:var(--forest); }
 
+  nav{
+    background-color:#2c3e8c;
+    padding:14px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:100;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  nav h1{
+    color:#fff;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.05rem;
+  }
+  .nav-toggle{ display:none; }
+  .nav-toggle-label{ display:none; color:#fff; font-size:26px; cursor:pointer; }
+  nav ul{ list-style:none; display:flex; gap:18px; }
+  nav ul li a{
+    color:#fff;
+    text-decoration:none;
+    font-size:.85rem;
+    padding-bottom:4px;
+    border-bottom:2px solid transparent;
+    transition:border-color .2s;
+  }
+  nav ul li a:hover, nav ul li a.active{ border-color:#f39c12; }
+  @media (max-width: 640px){
+    .nav-toggle-label{ display:block; }
+    nav ul{
+      position:absolute; top:100%; left:0; right:0;
+      background:#1e2c66;
+      flex-direction:column; gap:0;
+      max-height:0; overflow:hidden;
+      transition:max-height .3s ease;
+    }
+    nav ul li{ border-top:1px solid rgba(255,255,255,.1); }
+    nav ul li a{ display:block; padding:14px 20px; border-bottom:none; }
+    .nav-toggle:checked ~ ul{ max-height:300px; }
+  }
+
+  .wrap{ max-width:480px; margin:0 auto; padding:0 18px; }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px 22px;
+    margin-top:10px;
+  }
+  .card h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.6rem;
+    margin:0 0 6px;
+    line-height:1.2;
+  }
+  .card p.lead{
+    color:var(--muted);
+    margin:0 0 22px;
+    font-size:.95rem;
+  }
+  label{
+    display:block;
+    font-size:.8rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--forest-dark);
+    margin:16px 0 6px;
+  }
+  input[type=text], select{
+    width:100%;
+    padding:12px 13px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-family:'Work Sans', sans-serif;
+    font-size:1rem;
+    background:#FCFAF4;
+    color:var(--ink);
+  }
+  input[type=text]:focus, select:focus{
+    outline:2px solid var(--forest);
+    outline-offset:1px;
+    border-color:var(--forest);
+  }
+  optgroup{ font-weight:600; }
+  .phone-row{
+    display:flex;
+    gap:8px;
+  }
+  .phone-prefix{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 12px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    background:#EFEAD8;
+    color:var(--forest-dark);
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:.95rem;
+    white-space:nowrap;
+  }
+  .phone-row input{ flex:1; }
+  button.primary{
+    width:100%;
+    margin-top:24px;
+    padding:14px;
+    border:none;
+    border-radius:9px;
+    background:var(--forest);
+    color:#fff;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    cursor:pointer;
+  }
+  button.primary:active{ background:var(--forest-dark); }
+  .error{
+    color:#B3401F;
+    font-size:.85rem;
+    margin-top:8px;
+    display:none;
+  }
+
+  .saved-profiles{ margin-bottom:22px; }
+  .saved-title{
+    font-size:.8rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--forest-dark);
+    margin-bottom:10px;
+  }
+  .saved-profile-btn{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#FCFAF4;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    cursor:pointer;
+    font-family:'Work Sans', sans-serif;
+  }
+  .saved-profile-btn:active{ background:#EFEAD8; }
+  .saved-name{ font-weight:600; color:var(--ink); font-size:.95rem; }
+  .saved-classe{
+    font-size:.75rem;
+    color:var(--forest-dark);
+    background:#EAF2ED;
+    padding:3px 10px;
+    border-radius:20px;
+  }
+  .saved-divider{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:4px 0 18px;
+    color:var(--muted);
+    font-size:.78rem;
+  }
+  .saved-divider::before, .saved-divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .greet{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-top:6px;
+  }
+  .greet h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.5rem;
+    margin:0;
+  }
+  .classe-pill{
+    display:inline-block;
+    margin-top:6px;
+    padding:4px 11px;
+    background:#EAF2ED;
+    color:var(--forest-dark);
+    border-radius:20px;
+    font-size:.78rem;
+    font-weight:600;
+  }
+  .edit-link{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:.78rem;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+
+  .streak-card{
+    margin-top:20px;
+    background:var(--forest);
+    border-radius:16px;
+    padding:22px;
+    color:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  .streak-card::after{
+    content:"";
+    position:absolute;
+    right:-30px; top:-30px;
+    width:120px; height:120px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+  }
+  .streak-top{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .streak-num{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:2.6rem;
+    line-height:1;
+  }
+  .streak-label{
+    font-size:.85rem;
+    opacity:.85;
+  }
+  .streak-sub{
+    margin-top:4px;
+    font-size:.85rem;
+    opacity:.85;
+  }
+  .checkin-btn{
+    margin-top:18px;
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:9px;
+    background:var(--amber);
+    color:#2A1D06;
+    font-weight:600;
+    font-size:.95rem;
+    cursor:pointer;
+  }
+  .checkin-btn[disabled]{
+    background:rgba(255,255,255,.18);
+    color:rgba(255,255,255,.75);
+  }
+
+  .stats-row{
+    display:flex;
+    gap:12px;
+    margin-top:14px;
+  }
+  .stat{
+    flex:1;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px 12px;
+    text-align:center;
+  }
+  .stat .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:1.4rem;
+    color:var(--forest-dark);
+  }
+  .stat .lbl{
+    font-size:.72rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .section-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.05rem;
+    margin:26px 0 12px;
+  }
+
+  /* ---- Nora, la coach ---- */
+  :root{
+    --nora-bg:#FBF6FF;
+    --nora-lav:#C9AEE0;
+    --nora-lav-dark:#8C6BAE;
+    --nora-blush:#F6C9CE;
+    --nora-ink:#3A2E4D;
+    --nora-muted:#8A7A9B;
+  }
+  .nora-card{
+    margin-top:22px;
+    background:var(--nora-bg);
+    border:1px solid #EADFF5;
+    border-radius:16px;
+    padding:20px;
+  }
+  .nora-head{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+  }
+  .nora-avatar{
+    flex-shrink:0;
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:#fff;
+    border:1.5px solid #EADFF5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px;
+  }
+  .nora-bubble{
+    background:#fff;
+    border:1px solid #EADFF5;
+    border-radius:14px 14px 14px 4px;
+    padding:12px 14px;
+    font-size:.92rem;
+    color:var(--nora-ink);
+    line-height:1.45;
+  }
+  .nora-bubble strong{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    color:var(--nora-lav-dark);
+  }
+
+  .nora-block-title{
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--nora-lav-dark);
+    margin:20px 0 8px;
+  }
+
+  .mood-row{
+    display:flex;
+    gap:8px;
+    justify-content:space-between;
+  }
+  .mood-btn{
+    flex:1;
+    background:#fff;
+    border:1.5px solid #EADFF5;
+    border-radius:10px;
+    padding:10px 4px;
+    font-size:1.3rem;
+    cursor:pointer;
+  }
+  .mood-btn.selected{
+    border-color:var(--nora-lav);
+    background:#F3E9FA;
+  }
+  .mood-reply{
+    margin-top:10px;
+    background:#fff;
+    border:1px solid #EADFF5;
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:.87rem;
+    color:var(--nora-ink);
+    display:none;
+  }
+  .mood-reply.show{ display:block; }
+
+  .goal-row{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+  }
+  .goal-row input[type=text]{
+    flex:1;
+    background:#fff;
+  }
+  .goal-save{
+    padding:0 16px;
+    border:none;
+    border-radius:9px;
+    background:var(--nora-lav-dark);
+    color:#fff;
+    font-weight:600;
+    font-size:.85rem;
+    cursor:pointer;
+  }
+  .goal-current{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#fff;
+    border:1px solid #EADFF5;
+    border-radius:10px;
+    padding:10px 12px;
+  }
+  .goal-current[hidden]{ display:none; }
+  .goal-current input[type=checkbox]{
+    width:18px;
+    height:18px;
+    accent-color:var(--nora-lav-dark);
+    flex-shrink:0;
+  }
+  .goal-current span{
+    font-size:.88rem;
+    color:var(--nora-ink);
+  }
+  .goal-current span.done{
+    text-decoration:line-through;
+    color:var(--nora-muted);
+  }
+
+  .nora-chat-row{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+  }
+  .nora-chat-row input[type=text]{
+    flex:1;
+    background:#F3EEF7;
+    color:var(--nora-muted);
+  }
+  .nora-chat-row button{
+    padding:0 16px;
+    border:none;
+    border-radius:9px;
+    background:#E4D8EF;
+    color:var(--nora-lav-dark);
+    font-weight:600;
+    font-size:.85rem;
+  }
+  .nora-soon{
+    margin-top:6px;
+    font-size:.76rem;
+    color:var(--nora-muted);
+  }
+
+  .badges{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:10px;
+  }
+  .badge{
+    background:var(--card);
+    border:1.5px dashed var(--line);
+    border-radius:50%;
+    aspect-ratio:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:8px;
+  }
+  .badge.unlocked{
+    border-style:solid;
+    border-color:var(--amber);
+    background:#FFF7E9;
+  }
+  .badge .icon{ font-size:1.5rem; opacity:.35; }
+  .badge.unlocked .icon{ opacity:1; }
+  .badge .name{
+    font-size:.62rem;
+    font-weight:600;
+    margin-top:4px;
+    color:var(--muted);
+    line-height:1.15;
+  }
+  .badge.unlocked .name{ color:var(--forest-dark); }
+
+  .toast{
+    position:fixed;
+    left:50%; bottom:24px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:#fff;
+    padding:12px 18px;
+    border-radius:10px;
+    font-size:.88rem;
+    opacity:0;
+    transition:opacity .25s, transform .25s;
+    pointer-events:none;
+    max-width:88%;
+    text-align:center;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h1>📐 Campus Flex</h1>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle">
+  <label for="nav-toggle" class="nav-toggle-label">☰</label>
+  <ul>
+    <li><a href="accueil.html">Accueil</a></li>
+    <li><a href="epreuves.html">Épreuves</a></li>
+    <li><a href="videos.html">Vidéos</a></li>
+    <li><a href="profil.html" class="active">Mon profil</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="#" onclick="deconnexion(); return false;">Déconnexion</a></li>
+  </ul>
+</nav>
+
+<div class="wrap">
+
+  <section id="onboarding" class="card">
+    <div id="savedProfiles" class="saved-profiles" hidden></div>
+    <div id="savedDivider" class="saved-divider" hidden><span>ou crée un nouveau carnet</span></div>
+
+    <h1>Ton carnet de bord</h1>
+    <p class="lead">Indique ton prénom et ta classe pour commencer à suivre ta progression.</p>
+
+    <label for="nom">Nom</label>
+    <input type="text" id="nom" placeholder="Ex : SAVI" autocomplete="family-name">
+
+    <label for="prenom">Prénom</label>
+    <input type="text" id="prenom" placeholder="Ex : Armelle" autocomplete="given-name">
+
+    <label for="pays">Pays</label>
+    <select id="pays">
+      <option value="">Choisis ton pays</option>
+      <option value="+229" data-nom="Bénin" selected>🇧🇯 Bénin (+229)</option>
+      <option value="+228" data-nom="Togo">🇹🇬 Togo (+228)</option>
+      <option value="+225" data-nom="Côte d'Ivoire">🇨🇮 Côte d'Ivoire (+225)</option>
+      <option value="+221" data-nom="Sénégal">🇸🇳 Sénégal (+221)</option>
+      <option value="+223" data-nom="Mali">🇲🇱 Mali (+223)</option>
+      <option value="+226" data-nom="Burkina Faso">🇧🇫 Burkina Faso (+226)</option>
+      <option value="+227" data-nom="Niger">🇳🇪 Niger (+227)</option>
+      <option value="+224" data-nom="Guinée">🇬🇳 Guinée (+224)</option>
+      <option value="+233" data-nom="Ghana">🇬🇭 Ghana (+233)</option>
+      <option value="+234" data-nom="Nigeria">🇳🇬 Nigeria (+234)</option>
+      <option value="+245" data-nom="Guinée-Bissau">🇬🇼 Guinée-Bissau (+245)</option>
+      <option value="+238" data-nom="Cap-Vert">🇨🇻 Cap-Vert (+238)</option>
+      <option value="+220" data-nom="Gambie">🇬🇲 Gambie (+220)</option>
+      <option value="+232" data-nom="Sierra Leone">🇸🇱 Sierra Leone (+232)</option>
+      <option value="+231" data-nom="Liberia">🇱🇷 Liberia (+231)</option>
+      <option value="+222" data-nom="Mauritanie">🇲🇷 Mauritanie (+222)</option>
+      <option value="autre" data-nom="Autre pays">🌍 Autre pays</option>
+    </select>
+
+    <label for="telephone">Numéro de téléphone</label>
+    <div class="phone-row">
+      <span class="phone-prefix" id="phonePrefix">+229</span>
+      <input type="text" id="telephone" placeholder="Ex : 97 00 00 00" inputmode="numeric" autocomplete="tel-national">
+    </div>
+
+    <label for="classe">Classe</label>
+    <select id="classe">
+      <option value="">Choisis ta classe</option>
+      <optgroup label="Collège">
+        <option value="6ème">6ème</option>
+        <option value="5ème">5ème</option>
+        <option value="4ème">4ème</option>
+        <option value="3ème">3ème</option>
+      </optgroup>
+      <optgroup label="Seconde">
+        <option value="2nde A-B">2nde A-B</option>
+        <option value="2nde C">2nde C</option>
+        <option value="2nde D">2nde D</option>
+      </optgroup>
+      <optgroup label="Première">
+        <option value="1ère A-B">1ère A-B</option>
+        <option value="1ère C">1ère C</option>
+        <option value="1ère D">1ère D</option>
+      </optgroup>
+      <optgroup label="Terminale">
+        <option value="Tle A-B">Tle A-B</option>
+        <option value="Tle C">Tle C</option>
+        <option value="Tle D">Tle D</option>
+      </optgroup>
+    </select>
+    <p class="error" id="formError">Merci de remplir ton prénom et ta classe.</p>
+
+    <button class="primary" id="createBtn">Créer mon carnet →</button>
+  </section>
+
+  <section id="dashboard" hidden>
+    <div class="greet">
+      <div>
+        <h1 id="greetName">Bonjour 👋</h1>
+        <span class="classe-pill" id="greetClasse">—</span>
+      </div>
+      <button class="edit-link" id="editBtn">Modifier</button>
+    </div>
+
+    <div class="streak-card">
+      <div class="streak-top">
+        <span class="streak-num" id="streakNum">0</span>
+        <span class="streak-label">jour(s) consécutif(s)</span>
+      </div>
+      <div class="streak-sub" id="streakSub">Reviens chaque jour pour faire grandir ta série.</div>
+      <button class="checkin-btn" id="checkinBtn">Je révise aujourd'hui</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="num" id="pointsNum">0</div><div class="lbl">Points</div></div>
+      <div class="stat"><div class="num" id="bestStreakNum">0</div><div class="lbl">Meilleure série</div></div>
+    </div>
+
+    <div class="nora-card">
+      <div class="nora-head">
+        <div class="nora-avatar">
+          <svg viewBox="0 0 64 64" width="40" height="40">
+            <circle cx="32" cy="32" r="30" fill="#F3E9FA"/>
+            <circle cx="32" cy="26" r="11" fill="#F6C9CE"/>
+            <path d="M14 54c1-11 8-17 18-17s17 6 18 17" fill="#C9AEE0"/>
+            <path d="M22 46c3 4 17 4 20 0" stroke="#8C6BAE" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="27" cy="25" r="1.6" fill="#3A2E4D"/>
+            <circle cx="37" cy="25" r="1.6" fill="#3A2E4D"/>
+          </svg>
+        </div>
+        <div class="nora-bubble" id="noraGreeting">
+          <strong>Nora</strong><br>Salut ! Contente de te retrouver 🌸
+        </div>
+      </div>
+
+      <div class="nora-block-title">Comment tu te sens aujourd'hui ?</div>
+      <div class="mood-row" id="moodRow">
+        <button class="mood-btn" data-mood="top">😄</button>
+        <button class="mood-btn" data-mood="bien">🙂</button>
+        <button class="mood-btn" data-mood="neutre">😐</button>
+        <button class="mood-btn" data-mood="fatigue">😴</button>
+        <button class="mood-btn" data-mood="stresse">😟</button>
+      </div>
+      <div class="mood-reply" id="moodReply"></div>
+
+      <div class="nora-block-title">Ton objectif du jour</div>
+      <div class="goal-row" id="goalForm">
+        <input type="text" id="goalInput" placeholder="Ex : Faire 10 exercices sur les fractions">
+        <button class="goal-save" id="goalSaveBtn">OK</button>
+      </div>
+      <div class="goal-current" id="goalCurrent" hidden>
+        <input type="checkbox" id="goalCheck">
+        <span id="goalText"></span>
+      </div>
+
+      <div class="nora-block-title">Discuter avec Nora</div>
+      <div class="nora-chat-row">
+        <input type="text" placeholder="Écris à Nora..." disabled>
+        <button disabled>Envoyer</button>
+      </div>
+      <p class="nora-soon">💬 Le dialogue avec Nora arrive très bientôt.</p>
+    </div>
+
+    <div class="section-title">Mes badges</div>
+    <div class="badges" id="badgesGrid"></div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 (function(){
-
-  const STORAGE_PROFILES = 'cf_profiles';
-  const STORAGE_ACTIVE = 'cf_active';
-  const OLD_STORAGE_KEY = 'cf_profile';
-
-  let utilisateurCourant = null;
-  let pageInitialisee = false;
-
-
-  /* =========================
-     BADGES
-     ========================= */
+  const STORAGE_PROFILES = 'cf_profiles'; // { [id]: profil }
+  const STORAGE_ACTIVE = 'cf_active';     // id du profil connecté
+  const OLD_STORAGE_KEY = 'cf_profile';   // ancien format (un seul profil)
 
   const BADGES = [
-    {
-      id: 'streak3',
-      icon: '🔥',
-      name: '3 jours',
-      test: p => p.bestStreak >= 3
-    },
-    {
-      id: 'streak7',
-      icon: '🌿',
-      name: '7 jours',
-      test: p => p.bestStreak >= 7
-    },
-    {
-      id: 'streak30',
-      icon: '🏆',
-      name: '30 jours',
-      test: p => p.bestStreak >= 30
-    },
-    {
-      id: 'pts50',
-      icon: '⭐',
-      name: '50 pts',
-      test: p => p.points >= 50
-    },
-    {
-      id: 'pts200',
-      icon: '💫',
-      name: '200 pts',
-      test: p => p.points >= 200
-    },
-    {
-      id: 'pts500',
-      icon: '👑',
-      name: '500 pts',
-      test: p => p.points >= 500
-    }
+    { id:'streak3',  icon:'🔥', name:'3 jours',  test:p => p.bestStreak >= 3 },
+    { id:'streak7',  icon:'🌿', name:'7 jours',  test:p => p.bestStreak >= 7 },
+    { id:'streak30', icon:'🏆', name:'30 jours', test:p => p.bestStreak >= 30 },
+    { id:'pts50',    icon:'⭐', name:'50 pts',   test:p => p.points >= 50 },
+    { id:'pts200',   icon:'💫', name:'200 pts',  test:p => p.points >= 200 },
+    { id:'pts500',   icon:'👑', name:'500 pts',  test:p => p.points >= 500 },
   ];
-
 
   const $ = id => document.getElementById(id);
 
-
-  /* =========================
-     UTILITAIRES
-     ========================= */
-
   function getCurrentUser(){
-
-    if (
-      typeof firebase === 'undefined' ||
-      !firebase.auth
-    ){
-      return null;
-    }
-
+    if (typeof firebase === 'undefined' || !firebase.auth) return null;
     return firebase.auth().currentUser;
   }
 
-
   function todayStr(d){
-
     d = d || new Date();
-
     return d.toISOString().slice(0,10);
   }
-
-
-  function daysBetween(a, b){
-
-    return Math.round(
-      (new Date(b) - new Date(a)) / 86400000
-    );
-  }
-
-
-  /* =========================
-     LOCAL STORAGE
-     ========================= */
-
-  function loadAllProfiles(){
-
-    try{
-
-      const raw =
-        localStorage.getItem(STORAGE_PROFILES);
-
-      return raw ? JSON.parse(raw) : {};
-
-    }catch(e){
-
-      return {};
-    }
-  }
-
-
-  function saveAllProfiles(all){
-
-    localStorage.setItem(
-      STORAGE_PROFILES,
-      JSON.stringify(all)
-    );
-  }
-
-
-  function getActiveId(){
-
-    return localStorage.getItem(STORAGE_ACTIVE);
-  }
-
-
-  function setActiveId(id){
-
-    localStorage.setItem(
-      STORAGE_ACTIVE,
-      id
-    );
-  }
-
-
-  /* =========================
-     MIGRATION ANCIEN FORMAT
-     ========================= */
-
-  function migrerAncienFormatSiBesoin(user){
-
-    if (!user) return;
-
-    const ancien =
-      localStorage.getItem(OLD_STORAGE_KEY);
-
-    if (!ancien) return;
-
-    try{
-
-      const p = JSON.parse(ancien);
-
-      if (p && p.telephone){
-
-        const id =
-          p.telephone
-            .replace(/\s+/g, '');
-
-        const all =
-          loadAllProfiles();
-
-        if (!all[id]){
-
-          p.id = id;
-          p.uid = user.uid;
-
-          all[id] = p;
-
-          saveAllProfiles(all);
-
-          setActiveId(id);
-
-        }
-
-      }
-
-    }catch(e){
-
-      console.warn(
-        'Migration de l’ancien carnet impossible.',
-        e
-      );
-
-    }
-
-    localStorage.removeItem(
-      OLD_STORAGE_KEY
-    );
-  }
-
-
-  /*
-   * Les anciens carnets présents dans
-   * cf_profiles mais sans UID sont traités
-   * comme des carnets hérités.
-   *
-   * Seul le carnet actuellement actif
-   * peut être associé au compte Firebase.
-   */
-
-  function migrerCarnetActifSansUid(user){
-
-    if (!user) return;
-
-    const activeId =
-      getActiveId();
-
-    if (!activeId) return;
-
-    const all =
-      loadAllProfiles();
-
-    const p =
-      all[activeId];
-
-    if (!p) return;
-
-    if (!p.uid){
-
-      p.uid = user.uid;
-
-      all[activeId] = p;
-
-      saveAllProfiles(all);
-
-      syncProfileToServer(p);
-    }
-  }
-
-
-  /* =========================
-     CHARGER LE PROFIL
-     ========================= */
-
-  function loadProfile(){
-
-    const user =
-      getCurrentUser();
-
-    if (!user) return null;
-
-    const id =
-      getActiveId();
-
-    if (!id) return null;
-
-    const all =
-      loadAllProfiles();
-
-    const p =
-      all[id];
-
-    if (!p) return null;
-
-    /*
-     * Sécurité locale :
-     * le profil doit appartenir
-     * au compte Firebase courant.
-     */
-
-    if (p.uid !== user.uid){
-
-      return null;
-    }
-
-    return p;
-  }
-
-
-  /* =========================
-     SAUVEGARDE PROFIL
-     ========================= */
-
-  function saveProfile(p){
-
-    const user =
-      getCurrentUser();
-
-    if (!user){
-
-      console.warn(
-        'Aucun utilisateur Firebase connecté.'
-      );
-
-      return false;
-    }
-
-    /*
-     * Empêche l'enregistrement d'un profil
-     * appartenant à un autre compte.
-     */
-
-    if (p.uid !== user.uid){
-
-      console.warn(
-        'Tentative de sauvegarde d’un profil appartenant à un autre compte.'
-      );
-
-      showToast(
-        'Ce carnet appartient à un autre compte.'
-      );
-
-      return false;
-    }
-
-    const all =
-      loadAllProfiles();
-
-    all[p.id] = p;
-
-    saveAllProfiles(all);
-
-    syncProfileToServer(p);
-
-    return true;
-  }
-
-/* =========================
-   SYNCHRONISATION FIREBASE
-   ========================= */
-
-function syncProfileToServer(p){
-
-  const user = getCurrentUser();
-
-  if (!user) return;
-
-  if (
-    !p ||
-    !p.uid ||
-    p.uid !== user.uid
-  ){
-
-    console.warn(
-      'Synchronisation refusée : UID incorrect.'
-    );
-
-    return;
-  }
-
-  if (
-    typeof db === 'undefined' ||
-    !db
-  ){
-
-    console.warn(
-      'Firebase Database indisponible.'
-    );
-
-    return;
-  }
-
-  db.ref('eleves/' + p.id)
-    .set(p)
-    .then(function(){
-
-      console.log(
-        'Profil synchronisé avec Firebase.'
-      );
-
-    })
-    .catch(function(erreur){
-
-      console.warn(
-        'Synchronisation Firebase impossible :',
-        erreur
-      );
-
-    });
-
-  }
+  f
