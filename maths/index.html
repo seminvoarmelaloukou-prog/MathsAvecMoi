@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mathématiques - Campus Flex</title>
+  <title>Ouverture des cours - Campus Flex</title>
 
+  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -53,10 +54,10 @@
     }
 
     nav ul {
-      list-style: none;
       display: flex;
-      gap: 18px;
       flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
     }
 
     nav a {
@@ -98,13 +99,13 @@
     }
 
     .loader {
-      width: 36px;
-      height: 36px;
-      border: 4px solid #e4e7f5;
+      width: 38px;
+      height: 38px;
+      margin: 22px auto 15px;
+      border: 4px solid #e3e7f6;
       border-top-color: var(--amber);
       border-radius: 50%;
-      margin: 22px auto 15px;
-      animation: rotation 0.8s linear infinite;
+      animation: tourner 0.8s linear infinite;
     }
 
     .error {
@@ -136,7 +137,7 @@
       font-size: 13px;
     }
 
-    @keyframes rotation {
+    @keyframes tourner {
       to {
         transform: rotate(360deg);
       }
@@ -176,13 +177,18 @@
     <section class="card">
       <h2 id="titre">Chargement de tes cours</h2>
 
-      <div class="loader" id="loader"></div>
+      <div id="loader" class="loader"></div>
 
       <p id="message">
-        Nous préparons les cours adaptés à ta classe...
+        Recherche de ta classe et ouverture de tes cours...
       </p>
 
-      <a href="profil.html" class="btn" id="bouton-profil" style="display:none;">
+      <a
+        href="profil.html"
+        class="btn"
+        id="bouton-profil"
+        style="display:none;"
+      >
         Ouvrir mon profil
       </a>
     </section>
@@ -191,75 +197,117 @@
   <footer>
     © 2026 Campus Flex - Tous droits réservés
   </footer>
-<script>
-  const titre = document.getElementById("titre");
-  const message = document.getElementById("message");
-  const loader = document.getElementById("loader");
-  const boutonProfil = document.getElementById("bouton-profil");
-  const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-  const pagesParClasse = {
-    "6e": "6e/index.html",
-    "6eme": "6e/index.html",
-    "6ème": "6e/index.html",
-    "5e": "5e/index.html",
-    "5eme": "5e/index.html",
-    "5ème": "5e/index.html",
-    "4e": "4e/index.html",
-    "4eme": "4e/index.html",
-    "4ème": "4e/index.html",
-    "3e": "3e/index.html",
-    "3eme": "3e/index.html",
-    "3ème": "3e/index.html",
-    "Seconde": "seconde/index.html",
-    "seconde": "seconde/index.html",
-    "Première": "premiere/index.html",
-    "Premiere": "premiere/index.html",
-    "premiere": "premiere/index.html",
-    "Terminale": "terminale/index.html",
-    "terminale": "terminale/index.html"
-  };
+  <script>
+    const titre = document.getElementById("titre");
+    const message = document.getElementById("message");
+    const loader = document.getElementById("loader");
+    const boutonProfil = document.getElementById("bouton-profil");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-  function afficherErreur(texte) {
-    titre.textContent = "Impossible d’ouvrir le cours";
-    message.textContent = texte;
-    message.classList.add("error");
-    loader.style.display = "none";
-    boutonProfil.style.display = "inline-block";
-  }
+    const pagesParClasse = {
+      "6e": "6e/index.html",
+      "6eme": "6e/index.html",
+      "6ème": "6e/index.html",
 
-  function normaliserClasse(classe) {
-    return String(classe || "")
-      .trim()
-      .replace(/s+/g, " ");
-  }
+      "5e": "5e/index.html",
+      "5eme": "5e/index.html",
+      "5ème": "5e/index.html",
 
-  if (typeof firebase === "undefined") {
-    afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
-  } else if (typeof auth === "undefined") {
-    afficherErreur("Firebase Authentication n’est pas disponible.");
-  } else if (!db) {
-    afficherErreur("Realtime Database n’est pas disponible.");
-  } else {
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.href = "../connexion.html";
+      "4e": "4e/index.html",
+      "4eme": "4e/index.html",
+      "4ème": "4e/index.html",
+
+      "3e": "3e/index.html",
+      "3eme": "3e/index.html",
+      "3ème": "3e/index.html",
+
+      "Seconde": "seconde/index.html",
+      "seconde": "seconde/index.html",
+
+      "Première": "premiere/index.html",
+      "Premiere": "premiere/index.html",
+      "premiere": "premiere/index.html",
+
+      "Terminale": "terminale/index.html",
+      "terminale": "terminale/index.html"
+    };
+
+    function afficherErreur(texte) {
+      titre.textContent = "Impossible d’ouvrir le cours";
+      message.textContent = texte;
+      message.classList.add("error");
+      loader.style.display = "none";
+      boutonProfil.style.display = "inline-block";
+    }
+
+    function normaliserClasse(valeur) {
+      return String(valeur || "")
+        .trim()
+        .replace(/s+/g, " ");
+    }
+
+    function obtenirUtilisateur() {
+      return new Promise(function(resolve) {
+        const utilisateurActuel = auth.currentUser;
+
+        if (utilisateurActuel) {
+          resolve(utilisateurActuel);
+          return;
+        }
+
+        const desinscrire = auth.onAuthStateChanged(function(user) {
+          desinscrire();
+          resolve(user);
+        });
+
+        window.setTimeout(function() {
+          desinscrire();
+          resolve(auth.currentUser);
+        }, 7000);
+      });
+    }
+
+    function ouvrirCours() {
+      if (typeof firebase === "undefined") {
+        afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
         return;
       }
 
-      db.ref("eleves/" + user.uid).once("value")
-        .then(function(snapshot) {
-          const profil = snapshot.val() || {};
-          const classe = normaliserClasse(profil.classe);
-          const pageCours = pagesParClasse[classe];
+      if (typeof auth === "undefined") {
+        afficherErreur("Firebase Authentication n’est pas disponible.");
+        return;
+      }
 
-          console.log("Profil lu :", profil);
-          console.log("Classe trouvée :", classe);
+      if (!db) {
+        afficherErreur(
+          "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
+        );
+        return;
+      }
+
+      obtenirUtilisateur()
+        .then(function(user) {
+          if (!user) {
+            window.location.href = "../connexion.html";
+            return null;
+          }
+
+          return db.ref("eleves/" + user.uid + "/classe").once("value");
+        })
+        .then(function(snapshot) {
+          if (!snapshot) {
+            return;
+          }
+
+          const classe = normaliserClasse(snapshot.val());
+          const pageCours = pagesParClasse[classe];
 
           if (!pageCours) {
             afficherErreur(
-              "Ta classe actuelle est : "" + (classe || "non renseignée") +
-              "". Ouvre ton profil et vérifie la valeur de ta classe."
+              "Ta classe actuelle est : " +
+              (classe ? """ + classe + """ : "non renseignée") +
+              ". Ouvre ton profil pour vérifier ta classe."
             );
             return;
           }
@@ -267,42 +315,45 @@
           titre.textContent = "Ouverture des cours de " + classe;
           message.textContent = "Redirection en cours...";
 
-          window.location.href = pageCours;
+          window.setTimeout(function() {
+            window.location.href = pageCours;
+          }, 300);
         })
         .catch(function(erreur) {
           console.error("Erreur Firebase :", erreur);
 
-          if (erreur.code === "PERMISSION_DENIED") {
+          if (erreur && erreur.code === "PERMISSION_DENIED") {
             afficherErreur(
-              "Accès refusé par Firebase. Vérifie les règles de Realtime Database."
+              "Firebase refuse l’accès à ta classe. Vérifie les règles de Realtime Database."
             );
           } else {
             afficherErreur(
-              "Erreur de connexion à Firebase : " + erreur.message
+              "Impossible de charger ta classe : " +
+              (erreur && erreur.message ? erreur.message : "erreur inconnue")
             );
           }
         });
-    });
-  }
-
-  lienDeconnexion.addEventListener("click", function(e) {
-    e.preventDefault();
-
-    if (typeof auth === "undefined") {
-      window.location.href = "../index.html";
-      return;
     }
 
-    auth.signOut()
-      .then(function() {
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (typeof auth === "undefined") {
         window.location.href = "../index.html";
-      })
-      .catch(function(erreur) {
-        console.error("Erreur de déconnexion :", erreur);
-        window.location.href = "../index.html";
-      });
-  });
-</script>
+        return;
+      }
+
+      auth.signOut()
+        .then(function() {
+          window.location.href = "../index.html";
+        })
+        .catch(function() {
+          window.location.href = "../index.html";
+        });
+    });
+
+    ouvrirCours();
+  </script>
 
 </body>
 </html>
