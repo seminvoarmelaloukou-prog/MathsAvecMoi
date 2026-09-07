@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des élèves - Admin - Campus Flex</title>
+
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * {
+      flex: 0 0 auto;
+    }
+
+    label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    input[type="text"],
+    select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    input[type="text"] {
+      min-width: 220px;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--indigo-dark);
+    }
+
+    button.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    button.secondaire:hover {
+      background: #cdd5f6;
+    }
+
+    button.danger {
+      background: var(--error);
+    }
+
+    button.danger:hover {
+      background: #a93226;
+    }
+
+    .message {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .message.success {
+      color: var(--success);
+    }
+
+    .message.error {
+      color: var(--error);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    thead {
+      background: #f2f5ff;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e3e7f6;
+      text-align: left;
+    }
+
+    th {
+      color: var(--indigo);
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: #fafbff;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .actions-cell button {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Modale de modification */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 22px 20px;
+      max-width: 520px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal h3 {
+      color: var(--indigo);
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+
+    .modal .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal .form-row label {
+      display: block;
+      width: 100%;
+      margin-bottom: 4px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .modal .form-row input,
+    .modal .form-row select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+    }
+
+    .modal .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 900px) {
+      table {
+        font-size: 13px;
+      }
+
+      th, td {
+        padding: 8px 5px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      nav {
+        justify-content: center;
+        text-align: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      main {
+        margin: 20px auto;
+        padding: 0 14px;
+      }
+
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      input[type="text"] {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Gestion des élèves</h1>
+
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- SECTION : VÉRIFICATION ADMIN -->
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">
+          Vérification de tes droits administrateur...
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION : LISTE DES ÉLÈVES -->
+    <section class="card" id="card-eleves" style="display: none;">
+      <h2>Liste des élèves</h2>
+
+      <p>
+        Recherche, filtre, modifie ou supprime des élèves.
+      </p>
+
+      <div class="row">
+        <label for="input-recherche">Recherche :</label>
+        <input
+          type="text"
+          id="input-recherche"
+          placeholder="Nom, prénom, email ou identifiant"
+        />
+
+        <label for="select-filtre-classe">Filtre par classe :</label>
+        <select id="select-filtre-classe">
+          <option value="">Toutes les classes</option>
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="Seconde">Seconde</option>
+          <option value="Première">Première</option>
+          <option value="Terminale">Terminale</option>
+        </select>
+
+        <button id="btn-appliquer-filtres" class="secondaire">
+          Appliquer
+        </button>
+      </div>
+
+      <div id="loader-table" class="loader" style="display: none; margin: 12px 0;"></div>
+
+      <table id="table-eleves">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Classe</th>
+            <th>Points</th>
+            <th>Série</th>
+            <th>Inscription</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="corps-table-eleves">
+          <!-- Rempli dynamiquement -->
+        </tbody>
+      </table>
+
+      <p id="message-aucun-eleve" class="message" style="display: none;">
+        Aucun élève trouvé.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- MODALE DE MODIFICATION -->
+  <div class="modal-overlay" id="modal-modif">
+    <div class="modal">
+      <h3>Modifier l’élève</h3>
+
+      <input type="hidden" id="modif-uid">
+
+      <div class="form-row">
+        <label for="modif-nom">Nom</label>
+        <input type="text" id="modif-nom" disabled>
+      </div>
+
+      <div class="form-row">
+        <label for="modif-prenom">Prénom</label>
+        <input type="text" id="modif-prenom" disabled>
+      </div>
+
+      <div class="form-row">
+        <label for="modif-email">Email</label>
+        <input type="text" id="modif-email" disabled>
+      </div>
+
+      <div class="form-row">
+        <label for="modif-classe">Classe</label>
+        <select id="modif-classe">
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="Seconde">Seconde</option>
+          <option value="Première">Première</option>
+          <option value="Terminale">Terminale</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="modif-points">Points</label>
+        <input type="number" id="modif-points" min="0" value="0">
+      </div>
+
+      <div class="form-row">
+        <label for="modif-streak">Série (jours)</label>
+        <input type="number" id="modif-streak" min="0" value="0">
+      </div>
+
+      <div class="actions">
+        <button type="button" class="secondaire" id="btn-annuler-modif">
+          Annuler
+        </button>
+        <button type="button" id="btn-sauver-modif">
+          Sauvegarder
+        </button>
+      </div>
+
+      <p id="message-modif" class="message"></p>
+    </div>
+  </div>
+
+  <script>
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardEleves = document.getElementById("card-eleves");
+
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
+
+    const inputRecherche = document.getElementById("input-recherche");
+    const selectFiltreClasse = document.getElementById("select-filtre-classe");
+    const btnAppliquerFiltres = document.getElementById("btn-appliquer-filtres");
+
+    const loaderTable = document.getElementById("loader-table");
+    const corpsTable = document.getElementById("corps-table-eleves");
+    const messageAucunEleve = document.getElementById("message-aucun-eleve");
+
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    const modalModif = document.getElementById("modal-modif");
+    const modifUid = document.getElementById("modif-uid");
+    const modifNom = document.getElementById("modif-nom");
+    const modifPrenom = document.getElementById("modif-prenom");
+    const modifEmail = document.getElementById("modif-email");
+    const modifClasse = document.getElementById("modif-classe");
+    const modifPoints = document.getElementById("modif-points");
+    const modifStreak = document.getElementById("modif-streak");
+    const btnAnnulerModif = document.getElementById("btn-annuler-modif");
+    const btnSauverModif = document.getElementById("btn-sauver-modif");
+    const messageModif = document.getElementById("message-modif");
+
+    let tousLesEleves = [];
+    let adminUid = null;
+
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function verifierAdmin() {
+      console.log("[admin-eleves.html] verifierAdmin()");
+
+      if (!db || !auth) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
+      }
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
+        return Promise.reject(new Error("Pas connecté"));
+      }
+
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
+          }
+
+          const adminData = snap.val();
+          console.log("[admin-eleves.html] Admin :", adminData);
+
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+          cardEleves.style.display = "block";
+          chargerEleves();
+        });
+    }
+
+    function chargerEleves() {
+      console.log("[admin-eleves.html] chargerEleves()");
+
+      loaderTable.style.display = "block";
+      corpsTable.innerHTML = "";
+      messageAucunEleve.style.display = "none";
+
+      db.ref("eleves").once("value")
+        .then(function(snap) {
+          loaderTable.style.display = "none";
+
+          if (!snap || !snap.exists()) {
+            messageAucunEleve.textContent = "Aucun élève inscrit.";
+            messageAucunEleve.style.display = "block";
+            tousLesEleves = [];
+            return;
+          }
+
+          const data = [];
+          snap.forEach(function(childSnap) {
+            const uid = childSnap.key;
+            const eleve = childSnap.val();
+            data.push({
+              uid: uid,
+              ...eleve
+            });
+          });
+
+          tousLesEleves = data;
+          afficherTableau(tousLesEleves);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement élèves :", erreur);
+          loaderTable.style.display = "none";
+          messageAucunEleve.textContent = "Impossible de charger les élèves.";
+          messageAucunEleve.classList.add("error");
+          messageAucunEleve.style.display = "block";
+        });
+    }
+
+    function afficherTableau(eleves) {
+      corpsTable.innerHTML = "";
+
+      if (eleves.length === 0) {
+        messageAucunEleve.textContent = "Aucun élève trouvé avec ces critères.";
+        messageAucunEleve.classList.remove("error");
+        messageAucunEleve.style.display = "block";
+        return;
+      }
+
+      messageAucunEleve.style.display = "none";
+
+      eleves.forEach(function(eleve) {
+        const tr = document.createElement("tr");
+
+        const tdNom = document.createElement("td");
+        tdNom.textContent = eleve.nom || "–";
+        tr.appendChild(tdNom);
+
+        const tdPrenom = document.createElement("td");
+        tdPrenom.textContent = eleve.prenom || "–";
+        tr.appendChild(tdPrenom);
+
+        const tdEmail = document.createElement("td");
+        tdEmail.textContent = eleve.email || "–";
+        tr.appendChild(tdEmail);
+
+        const tdClasse = document.createElement("td");
+        tdClasse.textContent = eleve.classe || "–";
+        tr.appendChild(tdClasse);
+
+        const tdPoints = document.createElement("td");
+        tdPoints.textContent = String(eleve.points ?? 0);
+        tr.appendChild(tdPoints);
+
+        const tdStreak = document.createElement("td");
+        tdStreak.textContent = String(eleve.streak ?? 0) + " j";
+        tr.appendChild(tdStreak);
+
+        const tdInscription = document.createElement("td");
+        if (eleve.dateInscription) {
+          const d = new Date(eleve.dateInscription);
+          tdInscription.textContent = d.toLocaleDateString();
+        } else {
+          tdInscription.textContent = "–";
+        }
+        tr.appendChild(tdInscription);
+
+        const tdActions = document.createElement("td");
+        tdActions.className = "actions-cell";
+
+        const btnModifier = document.createElement("button");
+        btnModifier.className = "secondaire";
+        btnModifier.textContent = "Modifier";
+        btnModifier.addEventListener("click", function() {
+          ouvrirModifEleve(eleve);
+        });
+
+        const btnSupprimer = document.createElement("button");
+        btnSupprimer.className = "danger";
+        btnSupprimer.textContent = "Supprimer";
+        btnSupprimer.addEventListener("click", function() {
+          if (confirm("Supprimer l'élève " + (eleve.prenom || "") + " " + (eleve.nom || "") + " ?")) {
+            supprimerEleve(eleve.uid);
+          }
+        });
+
+        tdActions.appendChild(btnModifier);
+        tdActions.appendChild(btnSupprimer);
+        tr.appendChild(tdActions);
+
+        corpsTable.appendChild(tr);
+      });
+    }
+
+    function filtrerEleves() {
+      const texte = inputRecherche.value.trim().toLowerCase();
+      const classe = selectFiltreClasse.value;
+
+      let resultat = tousLesEleves;
+
+      if (texte) {
+        resultat = resultat.filter(function(e) {
+          return (
+            (e.nom || "").toLowerCase().includes(texte) ||
+            (e.prenom || "").toLowerCase().includes(texte) ||
+            (e.email || "").toLowerCase().includes(texte) ||
+            (e.identifiant || "").toLowerCase().includes(texte)
+          );
+        });
+      }
+
+      if (classe) {
+        resultat = resultat.filter(function(e) {
+          return (e.classe || "") === classe;
+        });
+      }
+
+      afficherTableau(resultat);
+    }
+
+    function supprimerEleve(uid) {
+      console.log("[admin-eleves.html] supprimerEleve", uid);
+
+      db.ref("eleves/" + uid).remove()
+        .then(function() {
+          // Recharger la liste
+          chargerEleves();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur suppression élève :", erreur);
+          alert("Erreur lors de la suppression de l'élève.");
+        });
+    }
+
+    function ouvrirModifEleve(eleve) {
+      modifUid.value = eleve.uid;
+      modifNom.value = eleve.nom || "";
+      modifPrenom.value = eleve.prenom || "";
+      modifEmail.value = eleve.email || "";
+      modifClasse.value = eleve.classe || "6e";
+      modifPoints.value = String(eleve.points ?? 0);
+      modifStreak.value = String(eleve.streak ?? 0);
+
+      messageModif.textContent = "";
+      messageModif.classList.remove("success", "error");
+
+      modalModif.style.display = "flex";
+    }
+
+    function fermerModif() {
+      modalModif.style.display = "none";
+    }
+
+    function sauverModif() {
+      const uid = modifUid.value;
+      const nouvelleClasse = modifClasse.value;
+      const nouveauxPoints = parseInt(modifPoints.value, 10);
+      const nouveauStreak = parseInt(modifStreak.value, 10);
+
+      if (isNaN(nouveauxPoints) || nouveauxPoints < 0) {
+        messageModif.textContent = "Points invalides.";
+        messageModif.classList.add("error");
+        return;
+      }
+
+      if (isNaN(nouveauStreak) || nouveauStreak < 0) {
+        messageModif.textContent = "Série invalide.";
+        messageModif.classList.add("error");
+        return;
+      }
+
+      messageModif.textContent = "Sauvegarde en cours...";
+      messageModif.classList.remove("success", "error");
+
+      const maj = {
+        classe: nouvelleClasse,
+        points: nouveauxPoints,
+        streak: nouveauStreak
+      };
+
+      db.ref("eleves/" + uid).update(maj)
+        .then(function() {
+          messageModif.textContent = "Modifications enregistrées.";
+          messageModif.classList.add("success");
+
+          setTimeout(function() {
+            fermerModif();
+            chargerEleves();
+          }, 900);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur modification élève :", erreur);
+          messageModif.textContent = "Erreur lors de la sauvegarde.";
+          messageModif.classList.add("error");
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+
