@@ -1,1 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription - Campus Flex</title>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --bleu: #2c3e8c;
+      --bleu-fonce: #1e2c66;
+      --orange: #f39c12;
+      --fond: #f5f7ff;
+      --texte: #333333;
+      --gris: #666666;
+      --rouge: #c0392b;
+      --vert: #1e8449;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+    }
+
+    nav {
+      background: var(--bleu);
+      color: white;
+      padding: 15px 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      font-size: 22px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+      flex: 1;
+      margin: 35px auto;
+      padding: 0 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 28px 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    }
+
+    .card h2 {
+      color: var(--bleu);
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      color: var(--gris);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .champ {
+      margin-bottom: 17px;
+    }
+
+    label {
+      display: block;
+      color: #444;
+      font-weight: bold;
+      font-size: 14px;
+      margin-bottom: 7px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid #cfd4e6;
+      border-radius: 8px;
+      background: white;
+      color: var(--texte);
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--bleu);
+      box-shadow: 0 0 0 3px rgba(44, 62, 140, 0.12);
+    }
+
+    input:disabled,
+    select:disabled {
+      background: #f1f1f1;
+      cursor: not-allowed;
+    }
+
+    .aide {
+      display: block;
+      color: #777;
+      font-size: 12px;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .verification-card {
+      display: none;
+      margin: 18px 0;
+      padding: 15px;
+      background: #fff8e1;
+      border-left: 4px solid var(--orange);
+      border-radius: 8px;
+    }
+
+    .verification-card.visible {
+      display: block;
+    }
+
+    .verification-card h3 {
+      color: var(--bleu);
+      font-size: 16px;
+      margin-bottom: 7px;
+    }
+
+    .verification-card p {
+      color: #5c5233;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 5px;
+      padding: 13px 18px;
+      border: none;
+      border-radius: 25px;
+      background: var(--orange);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #d68910;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondaire {
+      background: var(--bleu);
+    }
+
+    .btn-secondaire:hover {
+      background: var(--bleu-fonce);
+    }
+
+    .btn:disabled {
+      background: #b8b8b8;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #recaptcha-container {
+      display: flex;
+      justify-content: center;
+      margin: 12px 0;
+      min-height: 78px;
+    }
+
+    #message {
+      min-height: 21px;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .connexion {
+      margin-top: 20px;
+      color: var(--gris);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .connexion a {
+      color: var(--bleu);
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .connexion a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 25px;
+      padding: 14px;
+      background: var(--bleu);
+      color: white;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 520px) {
+      main {
+        margin: 22px auto;
+        padding: 0 14px;
+      }
+
+      .card {
+        padding: 23px 17px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Campus Flex</h1>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Créer un compte</h2>
+
+      <p class="intro">
+        Crée ton espace apprenant. Ton numéro WhatsApp doit être vérifié par SMS.
+      </p>
+
+      <form id="form-inscription">
+
+        <div class="champ">
+          <label for="prenom">Prénom</label>
+          <input
+            type="text"
+            id="prenom"
+            placeholder="Exemple : Armel"
+            autocomplete="given-name"
+            required
+          >
+        </div>
+
+        <div class="champ">
+          <label for="nom">Nom</label>
+          <input
+            type="text"
+            id="nom"
+            placeholder="Exemple : Aloukou"
+            autocomplete="family-name"
+            required
+          >
+        </div>
+
+        <div class="champ">
+          <label for="identifiant">Identifiant</label>
+          <input
+            type="text"
+            id="identifiant"
+            placeholder="Exemple : armel2026"
+            minlength="3"
+            autocomplete="username"
+            required
+          >
+          <span class="aide">
+            Choisis un identifiant d’au moins 3 caractères.
+          </span>
+        </div>
+
+        <div class="champ">
+          <label for="email">Adresse e-mail</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="exemple@email.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="champ">
+          <label for="pays">Pays</label>
+          <select id="pays" required>
+            <option value="">Choisis ton pays</option>
+
+            <option value="213" data-pays="Algérie">Algérie (+213)</option>
+            <option value="229" data-pays="Bénin">Bénin (+229)</option>
+            <option value="237" data-pays="Cameroun">Cameroun (+237)</option>
+            <option value="236" data-pays="Centrafrique">Centrafrique (+236)</option>
+            <option value="235" data-pays="Tchad">Tchad (+235)</option>
+            <option value="269" data-pays="Comores">Comores (+269)</option>
+            <option value="242" data-pays="Congo-Brazzaville">Congo-Brazzaville (+242)</option>
+            <option value="243" data-pays="RDC - Congo-Kinshasa">RDC - Congo-Kinshasa (+243)</option>
+            <option value="225" data-pays="Côte d’Ivoire">Côte d’Ivoire (+225)</option>
+            <option value="253" data-pays="Djibouti">Djibouti (+253)</option>
+            <option value="241" data-pays="Gabon">Gabon (+241)</option>
+            <option value="224" data-pays="Guinée">Guinée (+224)</option>
+            <option value="226" data-pays="Burkina Faso">Burkina Faso (+226)</option>
+            <option value="231" data-pays="Liberia">Liberia (+231)</option>
+            <option value="261" data-pays="Madagascar">Madagascar (+261)</option>
+            <option value="223" data-pays="Mali">Mali (+223)</option>
+            <option value="212" data-pays="Maroc">Maroc (+212)</option>
+            <option value="222" data-pays="Mauritanie">Mauritanie (+222)</option>
+            <option value="230" data-pays="Maurice">Maurice (+230)</option>
+            <option value="227" data-pays="Niger">Niger (+227)</option>
+            <option value="250" data-pays="Rwanda">Rwanda (+250)</option>
+            <option value="221" data-pays="Sénégal">Sénégal (+221)</option>
+            <option value="248" data-pays="Seychelles">Seychelles (+248)</option>
+            <option value="228" data-pays="Togo">Togo (+228)</option>
+            <option value="216" data-pays="Tunisie">Tunisie (+216)</option>
+
+            <option value="32" data-pays="Belgique">Belgique (+32)</option>
+            <option value="33" data-pays="France">France (+33)</option>
+            <option value="352" data-pays="Luxembourg">Luxembourg (+352)</option>
+            <option value="377" data-pays="Monaco">Monaco (+377)</option>
+            <option value="41" data-pays="Suisse">Suisse (+41)</option>
+            <option value="1" data-pays="Canada">Canada (+1)</option>
+            <option value="509" data-pays="Haïti">Haïti (+509)</option>
+          </select>
+        </div>
+
+        <div class="champ">
+          <label for="telephone">Numéro WhatsApp</label>
+          <input
+            type="tel"
+            id="telephone"
+            placeholder="Exemple : 0700000000"
+            inputmode="numeric"
+            autocomplete="tel"
+            required
+          >
+          <span class="aide">
+            Écris ton numéro local complet, avec ou sans le premier zéro.
+            Exemple : 0700000000 pour la Côte d’Ivoire.
+          </span>
+        </div>
+
+        <div class="champ">
+          <label for="classe">Classe</label>
+          <select id="classe" required>
+            <option value="">Choisis ta classe</option>
+            <option value="6e">6e</option>
+            <option value="5e">5e</option>
+            <option value="4e">4e</option>
+            <option value="3e">3e</option>
+            <option value="Seconde">Seconde</option>
+            <option value="Première">Première</option>
+            <option value="Terminale">Terminale</option>
+          </select>
+        </div>
+
+        <div class="champ">
+          <label for="mot-de-passe">Mot de passe</label>
+          <input
+            type="password"
+            id="mot-de-passe"
+            placeholder="Au moins 6 caractères"
+            minlength="6"
+            autocomplete="new-password"
+            required
+          >
+        </div>
+
+        <div class="champ">
+          <label for="confirmation-mot-de-passe">Confirmer le mot de passe</label>
+          <input
+            type="password"
+            id="confirmation-mot-de-passe"
+            placeholder="Réécris ton mot de passe"
+            minlength="6"
+            autocomplete="new-password"
+            required
+          >
+        </div>
+
+        <!-- reCAPTCHA Firebase : obligatoire pour envoyer le SMS -->
+        <div id="recaptcha-container"></div>
+
+        <button
+          id="btn-envoyer-code"
+          class="btn btn-secondaire"
+          type="button"
+        >
+          Envoyer le code SMS
+        </button>
+
+        <div id="verification-sms" class="verification-card">
+          <h3>Vérification du numéro</h3>
+
+          <p id="texte-verification">
+            Un code a été envoyé par SMS.
+          </p>
+
+          <label for="code-sms">Code reçu par SMS</label>
+          <input
+            type="text"
+            id="code-sms"
+            placeholder="Exemple : 123456"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+          >
+
+          <button
+            id="btn-verifier-code"
+            class="btn"
+            type="button"
+          >
+            Vérifier le code et créer mon compte
+          </button>
+        </div>
+
+        <p id="message"></p>
+      </form>
+
+      <p class="connexion">
+        Tu as déjà un compte ?
+        <a href="connexion.html">Se connecter</a>
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Campus Flex - Tous droits réservés
+  </footer>
+
+  <script>
+    const form = document.getElementById("form-inscription");
+    const message = document.getElementById("message");
+    const boutonEnvoyerCode = document.getElementById("btn-envoyer-code");
+    const boutonVerifierCode = document.getElementById("btn-verifier-code");
+    const blocVerification = document.getElementById("verification-sms");
+    const texteVerification = document.getElementById("texte-verification");
+    const inputCodeSms = document.getElementById("code-sms");
+
+    let recaptchaVerifier = null;
+    let confirmationResult = null;
+    let donneesInscription = null;
+
+    function afficherMessage(texte, couleur) {
+      message.textContent = texte;
+      message.style.color = couleur;
+    }
+
+    function nettoyerTexte(texte) {
+      return String(texte || "").trim().replace(/s+/g, " ");
+    }
+
+    function nettoyerTelephone(telephone) {
+      return String(telephone || "").replace(/[^0-9]/g, "");
+    }
+
+    function traduireErreur(erreur) {
+      console.error("Erreur Firebase :", erreur);
+
+      const code = erreur && erreur.code ? erreur.code : "";
+
+      const erreurs = {
+        "auth/invalid-phone-number":
+          "Le numéro de téléphone n’est pas valide. Vérifie le pays et le numéro saisi.",
+        "auth/unauthorized-domain":
+          "Ce domaine n’est pas autorisé dans Firebase Authentication.",
+        "auth/captcha-check-failed":
+          "La vérification reCAPTCHA a échoué. Recharge la page puis réessaie.",
+        "auth/too-many-requests":
+          "Trop de demandes SMS. Attends quelques minutes puis réessaie.",
+        "auth/quota-exceeded":
+          "Le quota d’envoi SMS Firebase est dépassé. Réessaie plus tard.",
+        "auth/network-request-failed":
+          "Problème de connexion Internet. Vérifie le réseau puis réessaie.",
+        "auth/invalid-verification-code":
+          "Le code SMS est incorrect.",
+        "auth/code-expired":
+          "Le code SMS a expiré. Demande un nouveau code.",
+        "auth/email-already-in-use":
+          "Cette adresse e-mail est déjà utilisée.",
+        "auth/credential-already-in-use":
+          "Ce numéro est déjà associé à un autre compte."
+      };
+
+      return erreurs[code] || (
+        "Erreur : " +
+        (erreur && erreur.message ? erreur.message : "inconnue")
+      );
+    }
+
+    function lireFormulaire() {
+      const prenom = nettoyerTexte(document.getElementById("prenom").value);
+      const nom = nettoyerTexte(document.getElementById("nom").value);
+      const identifiant = nettoyerTexte(
+        document.getElementById("identifiant").value
+      );
+      const email = nettoyerTexte(document.getElementById("email").value);
+
+      const selectPays = document.getElementById("pays");
+      const indicatifPays = selectPays.value;
+      const pays =
+        selectPays.options[selectPays.selectedIndex].dataset.pays || "";
+
+      /*
+        On garde le numéro local exactement comme l’apprenant le saisit.
+        Exemple Côte d’Ivoire :
+        Pays : Côte d’Ivoire (+225)
+        Numéro local : 0700000000
+        Numéro envoyé à Firebase : +2250700000000
+      */
+      const telephoneLocal = nettoyerTelephone(
+        document.getElementById("telephone").value
+      );
+
+      const telephone = indicatifPays + telephoneLocal;
+      const telephoneInternational = "+" + telephone;
+
+      const classe = document.getElementById("classe").value;
+      const motDePasse = document.getElementById("mot-de-passe").value;
+      const confirmation = document.getElementById(
+        "confirmation-mot-de-passe"
+      ).value;
+
+      if (prenom.length < 2) {
+        throw new Error("Indique un prénom valide.");
+      }
+
+      if (nom.length < 2) {
+        throw new Error("Indique un nom valide.");
+      }
+
+      if (identifiant.length < 3) {
+        throw new Error("L’identifiant doit contenir au moins 3 caractères.");
+      }
+
+      if (!email) {
+        throw new Error("Indique une adresse e-mail.");
+      }
+
+      if (!indicatifPays || !pays) {
+        throw new Error("Choisis ton pays.");
+      }
+
+      if (!telephoneLocal) {
+        throw new Error("Indique ton numéro WhatsApp.");
+      }
+
+      if (
+        telephone.length < 8 ||
+        telephone.length > 15 ||
+        !/^[1-9][0-9]+$/.test(telephone)
+      ) {
+        throw new Error(
+          "Le numéro est invalide. Vérifie le pays et le numéro local."
+        );
+      }
+
+      if (!classe) {
+        throw new Error("Choisis ta classe.");
+      }
+
+      if (motDePasse.length < 6) {
+        throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
+      }
+
+      if (motDePasse !== confirmation) {
+        throw new Error("Les deux mots de passe ne sont pas identiques.");
+      }
+
+      return {
+        prenom: prenom,
+        nom: nom,
+        identifiant: identifiant,
+        email: email,
+        pays: pays,
+        indicatifPays: indicatifPays,
+        telephoneLocal: telephoneLocal,
+        telephone: telephone,
+        telephoneInternational: telephoneInternational,
+        classe: classe,
+        motDePasse: motDePasse
+      };
+    }
+
+    function creerRecaptcha() {
+      if (recaptchaVerifier) {
+        return Promise.resolve();
+      }
+
+      recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "normal",
+          callback: function() {
+            afficherMessage(
+              "Vérification de sécurité validée. Envoi du SMS...",
+              "var(--vert)"
+            );
+          },
+          "expired-callback": function() {
+            afficherMessage(
+              "Le reCAPTCHA a expiré. Clique à nouveau sur « Envoyer le code SMS ».",
+              "var(--rouge)"
+            );
+          }
+        }
+      );
+
+      return recaptchaVerifier.render();
+    }
+
+    function reinitialiserRecaptcha() {
+      if (recaptchaVerifier) {
+        recaptchaVerifier.clear();
+        recaptchaVerifier = null;
+      }
+
+      document.getElementById("recaptcha-container").innerHTML = "";
+    }
+
+    boutonEnvoyerCode.addEventListener("click", function() {
+      if (
+        typeof firebase === "undefined" ||
+        typeof auth === "undefined" ||
+        !db
+      ) {
+        afficherMessage(
+          "Firebase n’est pas correctement configuré. Vérifie firebase-config.js.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      try {
+        donneesInscription = lireFormulaire();
+      } catch (erreur) {
+        afficherMessage(erreur.message, "var(--rouge)");
+        return;
+      }
+
+      boutonEnvoyerCode.disabled = true;
+      boutonEnvoyerCode.textContent = "Préparation du SMS...";
+      afficherMessage(
+        "Préparation de la vérification SMS...",
+        "var(--gris)"
+      );
+
+      creerRecaptcha()
+        .then(function() {
+          boutonEnvoyerCode.textContent = "Envoi du code SMS...";
+
+          const fournisseurTelephone = new firebase.auth.PhoneAuthProvider();
+
+          return fournisseurTelephone.verifyPhoneNumber(
+            donneesInscription.telephoneInternational,
+            recaptchaVerifier
+          );
+        })
+        .then(function(idVerification) {
+          confirmationResult = idVerification;
+
+          texteVerification.textContent =
+            "Un code SMS a été envoyé au " +
+            donneesInscription.telephoneInternational +
+            ". Saisis les 6 chiffres pour confirmer ton numéro.";
+
+          blocVerification.classList.add("visible");
+          inputCodeSms.focus();
+
+          boutonEnvoyerCode.textContent = "Code SMS envoyé";
+
+          afficherMessage(
+            "Code envoyé. Vérifie tes SMS.",
+            "var(--vert)"
+          );
+        })
+        .catch(function(erreur) {
+          afficherMessage(
+            traduireErreur(erreur),
+            "var(--rouge)"
+          );
+
+          boutonEnvoyerCode.disabled = false;
+          boutonEnvoyerCode.textContent = "Envoyer le code SMS";
+
+          reinitialiserRecaptcha();
+        });
+    });
+
+    boutonVerifierCode.addEventListener("click", function() {
+      const code = nettoyerTelephone(inputCodeSms.value);
+
+      if (!confirmationResult || !donneesInscription) {
+        afficherMessage(
+          "Demande d’abord un code SMS.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      if
