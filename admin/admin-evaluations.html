@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des évaluations - Admin - Campus Flex</title>
+
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * {
+      flex: 0 0 auto;
+    }
+
+    label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    select,
+    input[type="text"],
+    input[type="number"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--indigo-dark);
+    }
+
+    button.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    button.secondaire:hover {
+      background: #cdd5f6;
+    }
+
+    button.danger {
+      background: var(--error);
+    }
+
+    button.danger:hover {
+      background: #a93226;
+    }
+
+    .message {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .message.success {
+      color: var(--success);
+    }
+
+    .message.error {
+      color: var(--error);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--indigo);
+      margin: 18px 0 10px;
+    }
+
+    .questions-list {
+      margin-top: 12px;
+    }
+
+    .question-item {
+      border: 1px solid #e3e7f6;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fafbff;
+    }
+
+    .question-item h4 {
+      font-size: 15px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .question-item p {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .question-item .meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .question-item .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 700px) {
+      nav {
+        justify-content: center;
+        text-align: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      main {
+        margin: 20px auto;
+        padding: 0 14px;
+      }
+
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Gestion des évaluations</h1>
+
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- SECTION : VÉRIFICATION ADMIN -->
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">
+          Vérification de tes droits administrateur...
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION : CONFIGURATION GLOBALE -->
+    <section class="card" id="card-config" style="display: none;">
+      <h2>Configuration des évaluations officielles</h2>
+
+      <p>
+        Active ou désactive l’évaluation officielle pour tous les élèves.
+      </p>
+
+      <div class="row">
+        <label for="select-eval-active">
+          Évaluation officielle :
+        </label>
+
+        <select id="select-eval-active">
+          <option value="false">Désactivée</option>
+          <option value="true">Activée</option>
+        </select>
+
+        <button id="btn-sauver-config">
+          Sauvegarder
+        </button>
+      </div>
+
+      <p id="message-config" class="message"></p>
+    </section>
+
+    <!-- SECTION : GESTION DES QUESTIONS -->
+    <section class="card" id="card-questions" style="display: none;">
+      <h2>Gestion des questions (évaluation officielle)</h2>
+
+      <p>
+        Ajoute, modifie ou supprime des questions pour chaque classe.
+      </p>
+
+      <div class="row">
+        <label for="select-classe">Classe :</label>
+
+        <select id="select-classe">
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="Seconde">Seconde</option>
+          <option value="Première">Première</option>
+          <option value="Terminale">Terminale</option>
+        </select>
+
+        <button id="btn-charger-questions">
+          Charger les questions
+        </button>
+      </div>
+
+      <div class="section-title">Ajouter une question</div>
+
+      <div class="row">
+        <input
+          type="text"
+          id="input-question"
+          placeholder="Texte de la question"
+          style="flex: 1 1 300px;"
+        />
+
+        <input
+          type="text"
+          id="input-image"
+          placeholder="URL de l'image (optionnel)"
+          style="flex: 1 1 250px;"
+        />
+      </div>
+
+      <div class="row">
+        <input
+          type="text"
+          id="input-choix-0"
+          placeholder="Choix 1"
+          style="flex: 1 1 150px;"
+        />
+        <input
+          type="text"
+          id="input-choix-1"
+          placeholder="Choix 2"
+          style="flex: 1 1 150px;"
+        />
+        <input
+          type="text"
+          id="input-choix-2"
+          placeholder="Choix 3"
+          style="flex: 1 1 150px;"
+        />
+        <input
+          type="text"
+          id="input-choix-3"
+          placeholder="Choix 4"
+          style="flex: 1 1 150px;"
+        />
+      </div>
+
+      <div class="row">
+        <label for="input-bonne-reponse">Bonne réponse (0–3) :</label>
+        <input
+          type="number"
+          id="input-bonne-reponse"
+          min="0"
+          max="3"
+          value="0"
+          style="width: 70px;"
+        />
+
+        <label for="input-points">Points :</label>
+        <input
+          type="number"
+          id="input-points"
+          min="1"
+          value="1"
+          style="width: 70px;"
+        />
+
+        <button id="btn-ajouter-question">
+          Ajouter la question
+        </button>
+      </div>
+
+      <p id="message-ajout-question" class="message"></p>
+
+      <div class="section-title">Questions existantes</div>
+
+      <div id="loader-questions" class="loader" style="display: none; margin: 12px 0;"></div>
+      <div id="liste-questions" class="questions-list"></div>
+    </section>
+
+  </main>
+
+  <script>
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardConfig = document.getElementById("card-config");
+    const cardQuestions = document.getElementById("card-questions");
+
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
+
+    const selectEvalActive = document.getElementById("select-eval-active");
+    const btnSauverConfig = document.getElementById("btn-sauver-config");
+    const messageConfig = document.getElementById("message-config");
+
+    const selectClasse = document.getElementById("select-classe");
+    const btnChargerQuestions = document.getElementById("btn-charger-questions");
+
+    const inputQuestion = document.getElementById("input-question");
+    const inputImage = document.getElementById("input-image");
+    const inputChoix0 = document.getElementById("input-choix-0");
+    const inputChoix1 = document.getElementById("input-choix-1");
+    const inputChoix2 = document.getElementById("input-choix-2");
+    const inputChoix3 = document.getElementById("input-choix-3");
+    const inputBonneReponse = document.getElementById("input-bonne-reponse");
+    const inputPoints = document.getElementById("input-points");
+    const btnAjouterQuestion = document.getElementById("btn-ajouter-question");
+    const messageAjoutQuestion = document.getElementById("message-ajout-question");
+
+    const loaderQuestions = document.getElementById("loader-questions");
+    const listeQuestions = document.getElementById("liste-questions");
+
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    let adminUid = null;
+    let questionsParClasse = {};
+
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function verifierAdmin() {
+      console.log("[admin-evaluations.html] verifierAdmin()");
+
+      if (!db || !auth) {
+        afficherErreurAdmin("Firebase n’est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
+      }
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        afficherErreurAdmin("Tu dois être connecté en tant qu’administrateur.");
+        window.location.href = "../connexion.html";
+        return Promise.reject(new Error("Pas connecté"));
+      }
+
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurAdmin("Ce compte n’est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
+          }
+
+          const adminData = snap.val();
+          console.log("[admin-evaluations.html] Admin :", adminData);
+
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+          cardConfig.style.display = "block";
+          cardQuestions.style.display = "block";
+
+          chargerConfig();
+        });
+    }
+
+    function chargerConfig() {
+      console.log("[admin-evaluations.html] chargerConfig()");
+
+      db.ref("evaluations/config/evaluation_officielle_active").once("value")
+        .then(function(snap) {
+          const active = snap && snap.val() === true;
+          selectEvalActive.value = active ? "true" : "false";
+        })
+        .catch(function(erreur) {
+          console.error("Erreur lecture config évaluation :", erreur);
+          messageConfig.textContent = "Impossible de lire la configuration.";
+          messageConfig.classList.add("error");
+        });
+    }
+
+    function sauverConfig() {
+      console.log("[admin-evaluations.html] sauverConfig()");
+
+      const active = selectEvalActive.value === "true";
+
+      messageConfig.textContent = "Sauvegarde en cours...";
+      messageConfig.classList.remove("success", "error");
+
+      db.ref("evaluations/config/evaluation_officielle_active").set(active)
+        .then(function() {
+          console.log("[admin-evaluations.html] Config sauvegardée :", active);
+          messageConfig.textContent = "Configuration sauvegardée avec succès.";
+          messageConfig.classList.add("success");
+        })
+        .catch(function(erreur) {
+          console.error("Erreur sauvegarde config :", erreur);
+          messageConfig.textContent = "Erreur lors de la sauvegarde.";
+          messageConfig.classList.add("error");
+        });
+    }
+
+    function chargerQuestionsPourClasse(classe) {
+      console.log("[admin-evaluations.html] chargerQuestionsPourClasse(", classe, ")");
+
+      loaderQuestions.style.display = "block";
+      listeQuestions.innerHTML = "";
+      messageAjoutQuestion.textContent = "";
+
+      db.ref("evaluations/questions/" + classe).once("value")
+        .then(function(snap) {
+          loaderQuestions.style.display = "none";
+
+          if (!snap || !snap.exists()) {
+            listeQuestions.innerHTML = "<p>Aucune question pour cette classe.</p>";
+            questionsParClasse[classe] = {};
+            return;
+          }
+
+          const data = snap.val() || {};
+          questionsParClasse[classe] = data;
+
+          afficherListeQuestions(data, classe);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement questions :", erreur);
+          loaderQuestions.style.display = "none";
+          listeQuestions.innerHTML =
+            "<p class='message error'>Impossible de charger les questions.</p>";
+        });
+    }
+
+    function afficherListeQuestions(data, classe) {
+      listeQuestions.innerHTML = "";
+
+      const cles = Object.keys(data);
+
+      if (cles.length === 0) {
+        listeQuestions.innerHTML = "<p>Aucune question pour cette classe.</p>";
+        return;
+      }
+
+      cles.forEach(function(key) {
+        const q = data[key];
+
+        const div = document.createElement("div");
+        div.className = "question-item";
+
+        const h4 = document.createElement("h4");
+        h4.textContent = "Question " + key + " : " + (q.question || "(sans texte)");
+        div.appendChild(h4);
+
+        const pQuestion = document.createElement("p");
+        pQuestion.textContent = q.question || "";
+        div.appendChild(pQuestion);
+
+        if (q.image) {
+          const pImage = document.createElement("p");
+          pImage.className = "meta";
+          pImage.textContent = "Image : " + q.image;
+          div.appendChild(pImage);
+        }
+
+        const pChoix = document.createElement("p");
+        pChoix.className = "meta";
+        pChoix.textContent =
+          "Choix : " + (q.choix || []).join(" | ") +
+          " | Bonne réponse : " + (q.bonneReponse ?? "-") +
+          " | Points : " + (q.points ?? 1) +
+          " | Active : " + (q.active ? "oui" : "non");
+        div.appendChild(pChoix);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const btnToggle = document.createElement("button");
+        btnToggle.className = "secondaire";
+        btnToggle.textContent = q.active ? "Désactiver" : "Activer";
+        btnToggle.addEventListener("click", function() {
+          toggleQuestionActive(classe, key, !q.active);
+        });
+
+        const btnSupprimer = document.createElement("button");
+        btnSupprimer.className = "danger";
+        btnSupprimer.textContent = "Supprimer";
+        btnSupprimer.addEventListener("click", function() {
+          if (confirm("Supprimer la question " + key + " ?")) {
+            supprimerQuestion(classe, key);
+          }
+        });
+
+        actions.appendChild(btnToggle);
+        actions.appendChild(btnSupprimer);
+        div.appendChild(actions);
+
+        listeQuestions.appendChild(div);
+      });
+    }
+
+    function toggleQuestionActive(classe, key, active) {
+      console.log("[admin-evaluations.html] toggleQuestionActive", classe, key, active);
+
+      db.ref("evaluations/questions/" + classe + "/" + key + "/active").set(active)
+        .then(function() {
+          // Recharger la liste
+          chargerQuestionsPourClasse(classe);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur toggle active :", erreur);
+          alert("Erreur lors de la modification.");
+        });
+    }
+
+    function supprimerQuestion(classe, key) {
+      console.log("[admin-evaluations.html] supprimerQuestion", classe, key);
+
+      db.ref("evaluations/questions/" + classe + "/" + key).remove()
+        .then(function() {
+          chargerQuestionsPourClasse(classe);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur suppression question :", erreur);
+          alert("Erreur lors de la suppression.");
+        });
+    }
+
+    function ajouterQuestion() {
+      console.log("[admin-evaluations.html] ajouterQuestion()");
+
+      const classe = selectClasse.value;
+      const questionText = inputQuestion.value.trim();
+      const imageUrl = inputImage.value.trim();
+      const choix0 = inputChoix0.value.trim();
+      const choix1 = inputChoix1.value.trim();
+      const choix2 = inputChoix2.value.trim();
+      const choix3 = inputChoix3.value.trim();
+      const bonneReponse = parseInt(inputBonneReponse.value, 10);
+      const points = parseInt(inputPoints.value, 10);
+
+      messageAjoutQuestion.textContent = "";
+      messageAjoutQuestion.classList.remove("success", "error");
+
+      if (!questionText) {
+        messageAjoutQuestion.textContent = "Le texte de la question est obligatoire.";
+        messageAjoutQuestion.classList.add("error");
+        return;
+      }
+
+      if (!choix0 || !choix1 || !choix2 || !choix3) {
+        messageAjoutQuestion.textContent = "Les 4 choix sont obligatoires.";
+        messageAjoutQuestion.classList.add("error");
+        return;
+      }
+
+      if (bonneReponse < 0 || bonneReponse > 3) {
+        messageAjoutQuestion.textContent = "La bonne réponse doit être entre 0 et 3.";
+        messageAjoutQuestion.classList.add("error");
+        return;
+      }
+
+      if (points < 1) {
+        messageAjoutQuestion.textContent = "Les points doivent être au moins 1.";
+        messageAjoutQuestion.classList.add("error");
+        return;
+      }
+
+      const nouvelleQuestion = {
+        question: questionText,
+        image: imageUrl || "",
+        choix: [choix0, choix1, choix2, choix3],
+        bonneReponse: bonneReponse,
+        points: points,
+        active: true
+      };
+
+      // Générer un id unique simple
+      const now = Date.now();
+      const key = "q_" + now;
+
+      messageAjoutQuestion.textContent = "Ajout en cours...";
+
+      db.ref("evaluations/questions/" + classe + "/" + key).set(nouvelleQuestion)
+        .then(function() {
+          messageAjoutQuestion.textContent = "Question ajoutée avec succès.";
+          messageAjoutQuestion.classList.add("success");
+
+          // Vider les champs
+          inputQuestion.value = "";
+          inputImage.value = "";
+          inputChoix0.value = "";
+          inputChoix1.value = "";
+          inputChoix2.value = "";
+          inputChoix3.value = "";
+          inputBonneReponse.value = "0";
+          inputPoints.value
