@@ -248,34 +248,64 @@
     }
 
     function ouvrirCours() {
+      console.log("[maths/index.html] Début ouvrirCours");
+
       if (typeof firebase === "undefined") {
+        console.error("[maths/index.html] firebase est undefined");
         afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
         return;
       }
 
       if (typeof auth === "undefined") {
+        console.error("[maths/index.html] auth est undefined");
         afficherErreur("Firebase Authentication n’est pas disponible.");
         return;
       }
 
       if (!db) {
+        console.error("[maths/index.html] db est undefined ou null");
         afficherErreur(
           "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
         );
         return;
       }
 
+      console.log("[maths/index.html] auth.currentUser avant test :", auth.currentUser);
+
       const user = auth.currentUser;
 
       if (!user) {
-        // Pas connecté → on redirige vers la connexion
-        window.location.href = "../connexion.html";
+        console.log("[maths/index.html] Pas d'utilisateur connecté immédiatement. Écoute onAuthStateChanged...");
+
+        // On attend que Firebase restaure la session
+        auth.onAuthStateChanged(function(u) {
+          console.log("[maths/index.html] onAuthStateChanged appelé avec :", u ? u.uid : "null");
+
+          if (!u) {
+            // Vraiment pas connecté → redirection vers connexion
+            window.location.href = "../connexion.html";
+            return;
+          }
+
+          // Connecté → on lance le traitement avec u
+          ouvrirCoursAvecUtilisateur(u);
+        });
+
         return;
       }
 
+      console.log("[maths/index.html] Utilisateur déjà connecté :", user.uid);
+      ouvrirCoursAvecUtilisateur(user);
+    }
+
+    function ouvrirCoursAvecUtilisateur(user) {
+      console.log("[maths/index.html] ouvrirCoursAvecUtilisateur pour UID :", user.uid);
+
       db.ref("eleves/" + user.uid + "/classe").once("value")
         .then(function(snapshot) {
-          const classeBrute = snapshot.val();
+          console.log("[maths/index.html] snapshot classe :", snapshot ? snapshot.val() : "null");
+
+          const classeBrute = snapshot ? snapshot.val() : null;
 
           if (!classeBrute) {
             afficherErreur(
@@ -286,6 +316,9 @@
 
           const classe = normaliserClasse(classeBrute);
           const pageCours = pagesParClasse[classe];
+
+          console.log("[maths/index.html] Classe normalisée :", classe);
+          console.log("[maths/index.html] Page cours trouvée :", pageCours || "aucune");
 
           if (!pageCours) {
             afficherErreur(
@@ -300,11 +333,12 @@
           message.textContent = "Redirection en cours...";
 
           window.setTimeout(function() {
+            console.log("[maths/index.html] Redirection vers :", pageCours);
             window.location.href = pageCours;
           }, 300);
         })
         .catch(function(erreur) {
-          console.error("Erreur Firebase :", erreur);
+          console.error("[maths/index.html] Erreur lors de la lecture de la classe :", erreur);
 
           if (erreur && erreur.code === "PERMISSION_DENIED") {
             afficherErreur(
@@ -340,4 +374,4 @@
   </script>
 
 </body>
-  </html>
+</html>
