@@ -217,7 +217,7 @@
     <h1>Administration - Campus Flex</h1>
 
     <ul>
-      <li><a href="index.html">Accueil</a></li>
+      <li><a href="maths/index.html">Accueil</a></li>
       <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
@@ -268,16 +268,16 @@
         </a>
 
         <a href="admin-eleves.html">
-  Gérer les élèves
-</a>
+          Gérer les élèves
+        </a>
 
         <a href="admin-resultats.html">
-  Voir les résultats
-</a>
+          Voir les résultats
+        </a>
       </div>
 
       <div style="margin-top: 20px;">
-        <a href="index.html" class="btn" style="
+        <a href="maths/index.html" class="btn" style="
           display: inline-block;
           padding: 11px 22px;
           border-radius: 24px;
@@ -402,16 +402,16 @@
       e.preventDefault();
 
       if (!auth) {
-        window.location.href = "index.html";
+        window.location.href = "maths/index.html";
         return;
       }
 
       auth.signOut()
         .then(function() {
-          window.location.href = "index.html";
+          window.location.href = "maths/index.html";
         })
         .catch(function() {
-          window.location.href = "index.html";
+          window.location.href = "maths/index.html";
         });
     });
 
@@ -444,4 +444,4 @@
   </script>
 
 </body>
-  </html>
+</html>
