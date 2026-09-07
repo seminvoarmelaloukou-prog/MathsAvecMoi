@@ -17,21 +17,25 @@
       --bleu-fonce: #1e2c66;
       --orange: #f39c12;
       --fond: #f5f7ff;
+      --texte: #333333;
+      --gris: #666666;
+      --rouge: #c0392b;
+      --vert: #1e8449;
     }
 
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     body {
       min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: var(--fond);
-      color: #333;
       display: flex;
       flex-direction: column;
+      font-family: Arial, sans-serif;
+      background: var(--fond);
+      color: var(--texte);
     }
 
     nav {
@@ -44,15 +48,14 @@
 
     nav h1 {
       font-size: 22px;
-      font-weight: bold;
     }
 
     main {
       width: 100%;
-      max-width: 460px;
+      max-width: 500px;
+      flex: 1;
       margin: 35px auto;
       padding: 0 18px;
-      flex: 1;
     }
 
     .card {
@@ -63,14 +66,14 @@
     }
 
     .card h2 {
-      text-align: center;
       color: var(--bleu);
-      font-size: 23px;
+      text-align: center;
+      font-size: 24px;
       margin-bottom: 10px;
     }
 
     .intro {
-      color: #666;
+      color: var(--gris);
       text-align: center;
       font-size: 14px;
       line-height: 1.5;
@@ -84,8 +87,8 @@
     label {
       display: block;
       color: #444;
-      font-size: 14px;
       font-weight: bold;
+      font-size: 14px;
       margin-bottom: 7px;
     }
 
@@ -95,9 +98,10 @@
       padding: 12px 13px;
       border: 1px solid #cfd4e6;
       border-radius: 8px;
+      background: white;
+      color: var(--texte);
       font-size: 15px;
       outline: none;
-      background: white;
     }
 
     input:focus,
@@ -111,15 +115,15 @@
       color: #777;
       font-size: 12px;
       margin-top: 5px;
-      line-height: 1.35;
+      line-height: 1.4;
     }
 
     button {
       width: 100%;
+      margin-top: 5px;
+      padding: 13px 18px;
       border: none;
       border-radius: 25px;
-      padding: 13px 18px;
-      margin-top: 5px;
       background: var(--orange);
       color: white;
       font-size: 16px;
@@ -140,18 +144,18 @@
     }
 
     #message {
-      min-height: 20px;
-      text-align: center;
+      min-height: 21px;
       margin-top: 16px;
+      text-align: center;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .connexion {
-      text-align: center;
-      color: #666;
-      font-size: 14px;
       margin-top: 20px;
+      color: var(--gris);
+      text-align: center;
+      font-size: 14px;
     }
 
     .connexion a {
@@ -160,13 +164,17 @@
       text-decoration: none;
     }
 
+    .connexion a:hover {
+      text-decoration: underline;
+    }
+
     footer {
+      margin-top: 25px;
+      padding: 14px;
       background: var(--bleu);
       color: white;
-      font-size: 13px;
       text-align: center;
-      padding: 14px;
-      margin-top: 25px;
+      font-size: 13px;
     }
   </style>
 </head>
@@ -182,10 +190,32 @@
       <h2>Créer un compte</h2>
 
       <p class="intro">
-        Crée ton espace élève pour suivre tes cours de mathématiques et utiliser Nora, ton tuteur IA.
+        Crée ton espace apprenant pour accéder à tes cours de mathématiques et suivre ta progression.
       </p>
 
       <form id="form-inscription">
+
+        <div class="champ">
+          <label for="prenom">Prénom</label>
+          <input
+            type="text"
+            id="prenom"
+            placeholder="Exemple : Armel"
+            autocomplete="given-name"
+            required
+          >
+        </div>
+
+        <div class="champ">
+          <label for="nom">Nom</label>
+          <input
+            type="text"
+            id="nom"
+            placeholder="Exemple : Aloukou"
+            autocomplete="family-name"
+            required
+          >
+        </div>
 
         <div class="champ">
           <label for="identifiant">Identifiant</label>
@@ -194,9 +224,12 @@
             id="identifiant"
             placeholder="Exemple : armel2026"
             minlength="3"
+            autocomplete="username"
             required
           >
-          <span class="aide">Choisis un identifiant d’au moins 3 caractères.</span>
+          <span class="aide">
+            Choisis un identifiant d’au moins 3 caractères.
+          </span>
         </div>
 
         <div class="champ">
@@ -205,8 +238,24 @@
             type="email"
             id="email"
             placeholder="exemple@email.com"
+            autocomplete="email"
             required
           >
+        </div>
+
+        <div class="champ">
+          <label for="telephone">Numéro WhatsApp</label>
+          <input
+            type="tel"
+            id="telephone"
+            placeholder="Exemple : 2250700000000"
+            inputmode="numeric"
+            autocomplete="tel"
+            required
+          >
+          <span class="aide">
+            Indique le numéro international sans +, espace ni tiret. Exemple pour la Côte d’Ivoire : 2250700000000.
+          </span>
         </div>
 
         <div class="champ">
@@ -220,7 +269,6 @@
             <option value="Seconde">Seconde</option>
             <option value="Première">Première</option>
             <option value="Terminale">Terminale</option>
-            <option value="Autre">Autre</option>
           </select>
         </div>
 
@@ -231,6 +279,7 @@
             id="mot-de-passe"
             placeholder="Au moins 6 caractères"
             minlength="6"
+            autocomplete="new-password"
             required
           >
         </div>
@@ -242,11 +291,14 @@
             id="confirmation-mot-de-passe"
             placeholder="Réécris ton mot de passe"
             minlength="6"
+            autocomplete="new-password"
             required
           >
         </div>
 
-        <button id="btn-inscription" type="submit">Créer mon compte</button>
+        <button id="btn-inscription" type="submit">
+          Créer mon compte
+        </button>
 
         <p id="message"></p>
       </form>
@@ -259,7 +311,7 @@
   </main>
 
   <footer>
-    © 2026 Campus Flex — Tous droits réservés
+    © 2026 Campus Flex - Tous droits réservés
   </footer>
 
   <script>
@@ -272,39 +324,115 @@
       message.style.color = couleur;
     }
 
+    function nettoyerTexte(texte) {
+      return texte.trim().replace(/s+/g, " ");
+    }
+
+    function nettoyerTelephone(telephone) {
+      return telephone.replace(/[^0-9]/g, "");
+    }
+
+    function erreurFirebaseEnFrancais(erreur) {
+      if (!erreur || !erreur.code) {
+        return "Une erreur est survenue. Réessaie.";
+      }
+
+      if (erreur.code === "auth/email-already-in-use") {
+        return "Cette adresse e-mail possède déjà un compte.";
+      }
+
+      if (erreur.code === "auth/invalid-email") {
+        return "L’adresse e-mail n’est pas valide.";
+      }
+
+      if (erreur.code === "auth/weak-password") {
+        return "Le mot de passe doit contenir au moins 6 caractères.";
+      }
+
+      if (erreur.code === "auth/network-request-failed") {
+        return "Problème de connexion Internet. Vérifie ta connexion puis réessaie.";
+      }
+
+      if (erreur.code === "PERMISSION_DENIED") {
+        return "Firebase refuse l’enregistrement. Vérifie les règles de Realtime Database.";
+      }
+
+      return "Erreur : " + erreur.message;
+    }
+
     form.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const identifiant = document.getElementById("identifiant").value.trim();
+      const prenom = nettoyerTexte(document.getElementById("prenom").value);
+      const nom = nettoyerTexte(document.getElementById("nom").value);
+      const identifiant = nettoyerTexte(
+        document.getElementById("identifiant").value
+      );
       const email = document.getElementById("email").value.trim();
+      const telephone = nettoyerTelephone(
+        document.getElementById("telephone").value
+      );
       const classe = document.getElementById("classe").value;
       const motDePasse = document.getElementById("mot-de-passe").value;
-      const confirmation = document.getElementById("confirmation-mot-de-passe").value;
+      const confirmation = document.getElementById(
+        "confirmation-mot-de-passe"
+      ).value;
+
+      if (prenom.length < 2) {
+        afficherMessage("Indique un prénom valide.", "var(--rouge)");
+        return;
+      }
+
+      if (nom.length < 2) {
+        afficherMessage("Indique un nom valide.", "var(--rouge)");
+        return;
+      }
 
       if (identifiant.length < 3) {
-        afficherMessage("L’identifiant doit contenir au moins 3 caractères.", "#c0392b");
+        afficherMessage(
+          "L’identifiant doit contenir au moins 3 caractères.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      if (telephone.length < 8 || telephone.length > 15) {
+        afficherMessage(
+          "Indique un numéro WhatsApp international valide, sans + ni espace.",
+          "var(--rouge)"
+        );
         return;
       }
 
       if (!classe) {
-        afficherMessage("Choisis ta classe.", "#c0392b");
+        afficherMessage("Choisis ta classe.", "var(--rouge)");
         return;
       }
 
       if (motDePasse.length < 6) {
-        afficherMessage("Le mot de passe doit contenir au moins 6 caractères.", "#c0392b");
+        afficherMessage(
+          "Le mot de passe doit contenir au moins 6 caractères.",
+          "var(--rouge)"
+        );
         return;
       }
 
       if (motDePasse !== confirmation) {
-        afficherMessage("Les deux mots de passe ne sont pas identiques.", "#c0392b");
+        afficherMessage(
+          "Les deux mots de passe ne sont pas identiques.",
+          "var(--rouge)"
+        );
         return;
       }
 
-      if (typeof firebase === "undefined" || typeof db === "undefined") {
+      if (
+        typeof firebase === "undefined" ||
+        typeof auth === "undefined" ||
+        !db
+      ) {
         afficherMessage(
           "Firebase n’est pas correctement configuré. Vérifie firebase-config.js.",
-          "#c0392b"
+          "var(--rouge)"
         );
         return;
       }
@@ -313,51 +441,52 @@
       bouton.textContent = "Création en cours...";
       afficherMessage("", "");
 
-      firebase.auth()
-        .createUserWithEmailAndPassword(email, motDePasse)
+      auth.createUserWithEmailAndPassword(email, motDePasse)
         .then(function(resultat) {
-          const uid = resultat.user.uid;
+          const user = resultat.user;
+          const uid = user.uid;
 
-          localStorage.setItem("cf_identifiant", identifiant);
           localStorage.setItem("cf_uid", uid);
+          localStorage.setItem("cf_identifiant", identifiant);
 
-          return db.ref("eleves/" + uid).set({
-            identifiant: identifiant,
-            email: email,
-            classe: classe,
-            dateInscription: Date.now(),
-            devoirsFaits: 0,
-            chapitresVus: 0,
-            videosVues: 0,
-            joursConnexion: 0
+          return user.updateProfile({
+            displayName: prenom + " " + nom
+          })
+          .then(function() {
+            return db.ref("eleves/" + uid).set({
+              uid: uid,
+              prenom: prenom,
+              nom: nom,
+              identifiant: identifiant,
+              email: email,
+              telephone: telephone,
+              classe: classe,
+              points: 0,
+              streak: 0,
+              bestStreak: 0,
+              lastCheckin: "",
+              dateInscription: Date.now()
+            });
           });
         })
         .then(function() {
           afficherMessage(
-            "Compte créé avec succès. Redirection vers les mathématiques...",
-            "#27ae60"
+            "Compte créé avec succès. Redirection vers ton profil...",
+            "var(--vert)"
           );
 
-          setTimeout(function() {
-            window.location.href = "maths/index.html";
+          window.setTimeout(function() {
+            window.location.href = "maths/profil.html";
           }, 1200);
         })
         .catch(function(erreur) {
-          console.error(erreur);
+          console.error("Erreur inscription :", erreur);
 
-          let texteErreur = "Une erreur est survenue. Réessaie.";
+          afficherMessage(
+            erreurFirebaseEnFrancais(erreur),
+            "var(--rouge)"
+          );
 
-          if (erreur.code === "auth/email-already-in-use") {
-            texteErreur = "Cette adresse e-mail possède déjà un compte.";
-          } else if (erreur.code === "auth/invalid-email") {
-            texteErreur = "L’adresse e-mail n’est pas valide.";
-          } else if (erreur.code === "auth/weak-password") {
-            texteErreur = "Le mot de passe doit contenir au moins 6 caractères.";
-          } else if (erreur.code === "PERMISSION_DENIED") {
-            texteErreur = "Firebase refuse l’enregistrement des données. Vérifie les règles de Realtime Database.";
-          }
-
-          afficherMessage(texteErreur, "#c0392b");
           bouton.disabled = false;
           bouton.textContent = "Créer mon compte";
         });
@@ -365,4 +494,4 @@
   </script>
 
 </body>
-</html>
+  </html>
