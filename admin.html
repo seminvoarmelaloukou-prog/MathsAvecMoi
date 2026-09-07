@@ -1,60 +1,146 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administration — Campus Flex</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Campus Flex</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="auth-guard.js"></script>
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
 
-<style>
-  body{ font-family:sans-serif; background:#f5f7ff; margin:0; padding:20px; }
-  h1{ color:#2c3e8c; }
-  .msg{ color:#B3401F; }
-</style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7ff;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      color: #2c3e8c;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      color: #2c3e8c;
+      font-size: 18px;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    .msg {
+      color: #B3401F;
+      font-weight: bold;
+    }
+
+    .success {
+      color: #27ae60;
+      font-weight: bold;
+    }
+
+    a {
+      color: #2c3e8c;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .section {
+      background: white;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      margin-top: 16px;
+    }
+  </style>
 </head>
+
 <body>
 
-  <h1>Administration</h1>
-  <div id="contenu">
+  <h1>Administration — Campus Flex</h1>
+
+  <div id="contenu" class="section">
     <p>Vérification des droits...</p>
   </div>
 
   <script>
-  (function(){
-    var contenu = document.getElementById('contenu');
+    (function() {
+      var contenu = document.getElementById('contenu');
 
-    firebase.auth().onAuthStateChanged(function(user){
-      if (!user){
-        contenu.innerHTML = '<p>Aucun utilisateur connecté.</p>';
+      if (typeof firebase === 'undefined' || typeof auth === 'undefined' || typeof db === 'undefined') {
+        contenu.innerHTML =
+          '<p class="msg">Firebase n’est pas correctement configuré.</p>';
         return;
       }
 
-      contenu.innerHTML = '<p>Connecté avec uid : ' + user.uid + '</p><p>Vérification en cours...</p>';
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          contenu.innerHTML =
+            '<p>Aucun utilisateur connecté.</p>' +
+            '<p>Connecte-toi avec un compte administrateur pour accéder à cette page.</p>';
+          return;
+        }
 
-      if (typeof db === 'undefined' || !db){
-        contenu.innerHTML += '<p class="msg">Firebase Database indisponible.</p>';
-        return;
-      }
+        contenu.innerHTML =
+          '<p>Connecté avec l’uid : <code>' + user.uid + '</code></p>' +
+          '<p>Vérification de ton statut administrateur...</p>';
 
-      db.ref('admins/' + user.uid).once('value')
-        .then(function(snap){
-          contenu.innerHTML += '<p>Valeur lue : ' + JSON.stringify(snap.val()) + '</p>';
-          if (snap.val() === true){
-            contenu.innerHTML += '<p>Bienvenue, tu es bien administrateur.</p>';
-          } else {
-            contenu.innerHTML += '<p class="msg">Accès réservé aux administrateurs.</p>';
-          }
-        })
-        .catch(function(erreur){
-          contenu.innerHTML += '<p class="msg">Erreur : ' + erreur.message + '</p>';
-        });
-    });
-  })();
+        // On lit dans "administrateurs" (et non "admins") pour correspondre à ta DB
+        db.ref('administrateurs/' + user.uid).once('value')
+          .then(function(snap) {
+            console.log('[admin.html] administrateurs/' + user.uid + ' =', snap ? snap.val() : 'null');
+
+            if (!snap || !snap.exists()) {
+              contenu.innerHTML +=
+                '<p class="msg">Ce compte n’est pas enregistré comme administrateur.</p>' +
+                '<p>Si tu penses que c’est une erreur, contacte le responsable du projet.</p>';
+              return;
+            }
+
+            var adminData = snap.val();
+            contenu.innerHTML +=
+              '<p class="success">Bienvenue, tu es bien administrateur.</p>' +
+              '<p>Compte : ' + (adminData.email || adminData.nom || user.email || user.uid) + '</p>';
+
+            // Section : Liens de gestion
+            contenu.innerHTML +=
+              '<h2>Gestion des évaluations</h2>' +
+              '<p>' +
+                '<a href="admin-evaluations.html">Accéder à la gestion des évaluations</a>' +
+              '</p>' +
+              '<p>' +
+                'Sur cette page, tu pourras :' +
+                '<ul>' +
+                  '<li>activer/désactiver l’évaluation officielle,</li>' +
+                  '<li>ajouter, modifier ou supprimer des questions par classe,</li>' +
+                  '<li>voir la liste des questions existantes.</li>' +
+                '</ul>' +
+              '</p>';
+
+            // Section : Retour
+            contenu.innerHTML +=
+              '<h2>Navigation</h2>' +
+              '<p><a href="../index.html">Retour à l’accueil du site</a></p>';
+          })
+          .catch(function(erreur) {
+            console.error('[admin.html] Erreur lecture administrateurs :', erreur);
+            contenu.innerHTML +=
+              '<p class="msg">Erreur lors de la vérification : ' + erreur.message + '</p>';
+          });
+      });
+    })();
   </script>
 
 </body>
