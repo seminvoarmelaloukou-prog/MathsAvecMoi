@@ -329,13 +329,16 @@
             return;
           }
 
-          titre.textContent = "Ouverture des cours de " + classe;
-          message.textContent = "Redirection en cours...";
+          // Option 2 : on ne redirige pas vers une page de cours inexistante,
+          // mais vers le profil, avec un message explicatif.
+          titre.textContent = "Cours de " + classe;
+          message.textContent =
+            "Ta classe est : " + classe + ". Les contenus sont en cours de préparation. Redirection vers ton profil...";
 
           window.setTimeout(function() {
-            console.log("[maths/index.html] Redirection vers :", pageCours);
-            window.location.href = pageCours;
-          }, 300);
+            console.log("[maths/index.html] Redirection vers : profil.html");
+            window.location.href = "profil.html";
+          }, 1200);
         })
         .catch(function(erreur) {
           console.error("[maths/index.html] Erreur lors de la lecture de la classe :", erreur);
