@@ -1,61 +1,447 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administration — Campus Flex</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration - Campus Flex</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="auth-guard.js"></script>
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
 
-<style>
-  body{ font-family:sans-serif; background:#f5f7ff; margin:0; padding:20px; }
-  h1{ color:#2c3e8c; }
-  .msg{ color:#B3401F; }
-</style>
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1000px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .loader {
+      width: 38px;
+      height: 38px;
+      margin: 22px auto 15px;
+      border: 4px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    .error {
+      color: var(--error) !important;
+      margin-top: 15px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .stat-card {
+      background: #f8f9ff;
+      border: 1px solid #e3e7f6;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-card .label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--indigo);
+    }
+
+    .menu-admin {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .menu-admin a,
+    .menu-admin button {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      background: #f8f9ff;
+      border: 1px solid #e3e7f6;
+      color: var(--indigo);
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .menu-admin a:hover,
+    .menu-admin button:hover {
+      background: #eef1ff;
+    }
+
+    .menu-admin button {
+      background: #fff;
+    }
+
+    footer {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 14px;
+      font-size: 13px;
+    }
+
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 700px) {
+      nav {
+        justify-content: center;
+        text-align: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      main {
+        margin: 20px auto;
+        padding: 0 14px;
+      }
+
+      .stats-grid,
+      .menu-admin {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-  <h1>Administration</h1>
-  <div id="contenu">
-    <p>Vérification des droits...</p>
-  </div>
+  <nav>
+    <h1>Administration - Campus Flex</h1>
+
+    <ul>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- SECTION : CHARGEMENT / VÉRIFICATION -->
+    <section class="card" id="card-chargement">
+      <h2>Chargement</h2>
+
+      <div class="loader" id="loader"></div>
+
+      <p id="message-chargement">
+        Vérification de tes droits administrateur...
+      </p>
+    </section>
+
+    <!-- SECTION : TABLEAU DE BORD -->
+    <section class="card" id="card-dashboard" style="display: none;">
+      <h2>Tableau de bord</h2>
+
+      <p id="message-admin"></p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="label">Élèves inscrits</div>
+          <div class="value" id="stat-nb-eleves">–</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="label">Évaluation officielle</div>
+          <div class="value" id="stat-eval-active">–</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="label">Administrateurs</div>
+          <div class="value" id="stat-nb-admins">–</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top: 22px; color: var(--indigo); font-size: 18px;">
+        Gestion
+      </h3>
+
+      <div class="menu-admin">
+        <a href="admin-evaluations.html">
+          Gestion des évaluations
+        </a>
+
+        <button type="button" onclick="alert('Fonctionnalité à venir : liste et gestion des élèves')">
+          Gérer les élèves
+        </button>
+
+        <button type="button" onclick="alert('Fonctionnalité à venir : résultats détaillés')">
+          Voir les résultats
+        </button>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <a href="index.html" class="btn" style="
+          display: inline-block;
+          padding: 11px 22px;
+          border-radius: 24px;
+          background: var(--indigo);
+          color: white;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: bold;
+        ">
+          Retour à l'accueil
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 Campus Flex - Tous droits réservés
+  </footer>
 
   <script>
-  (function(){
-    var contenu = document.getElementById('contenu');
+    const cardChargement = document.getElementById("card-chargement");
+    const cardDashboard = document.getElementById("card-dashboard");
 
-    firebase.auth().onAuthStateChanged(function(user){
-      if (!user){
-        contenu.innerHTML = '<p>Aucun utilisateur connecté.</p>';
-        return;
-      }
+    const messageChargement = document.getElementById("message-chargement");
+    const loader = document.getElementById("loader");
+    const messageAdmin = document.getElementById("message-admin");
 
-      contenu.innerHTML = '<p>Connecté avec uid : ' + user.uid + '</p><p>Vérification en cours...</p>';
+    const statNbEleves = document.getElementById("stat-nb-eleves");
+    const statEvalActive = document.getElementById("stat-eval-active");
+    const statNbAdmins = document.getElementById("stat-nb-admins");
 
-      if (typeof db === 'undefined' || !db){
-        contenu.innerHTML += '<p class="msg">Firebase Database indisponible.</p>';
-        return;
-      }
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-      db.ref('admins/' + user.uid).once('value')
-        .then(function(snap){
-          contenu.innerHTML += '<p>Valeur lue : ' + JSON.stringify(snap.val()) + '</p>';
-          if (snap.val() === true){
-            contenu.innerHTML += '<p>Bienvenue, tu es bien administrateur.</p>';
-          } else {
-            contenu.innerHTML += '<p class="msg">Accès réservé aux administrateurs.</p>';
-          }
+    function afficherErreur(texte) {
+      messageChargement.textContent = texte;
+      messageChargement.classList.add("error");
+      loader.style.display = "none";
+    }
+
+    function chargerStats() {
+      console.log("[admin.html] chargerStats()");
+
+      // Nombre d'élèves
+      db.ref("eleves").once("value")
+        .then(function(snap) {
+          const nb = snap ? snap.numChildren() : 0;
+          statNbEleves.textContent = String(nb);
         })
-        .catch(function(erreur){
-          contenu.innerHTML += '<p class="msg">Erreur : ' + erreur.message + '</p>';
+        .catch(function() {
+          statNbEleves.textContent = "–";
+        });
+
+      // État évaluation officielle
+      db.ref("evaluations/config/evaluation_officielle_active").once("value")
+        .then(function(snap) {
+          const active = snap && snap.val() === true;
+          statEvalActive.textContent = active ? "Activée" : "Désactivée";
+        })
+        .catch(function() {
+          statEvalActive.textContent = "–";
+        });
+
+      // Nombre d'administrateurs
+      db.ref("administrateurs").once("value")
+        .then(function(snap) {
+          const nb = snap ? snap.numChildren() : 0;
+          statNbAdmins.textContent = String(nb);
+        })
+        .catch(function() {
+          statNbAdmins.textContent = "–";
+        });
+    }
+
+    function verifierAdmin() {
+      console.log("[admin.html] verifierAdmin()");
+
+      if (!db || !auth) {
+        afficherErreur("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        afficherErreur("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
+        return;
+      }
+
+      db.ref("administrateurs/" + user.uid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreur("Ce compte n'est pas enregistré comme administrateur.");
+            return;
+          }
+
+          const adminData = snap.val();
+          console.log("[admin.html] Admin :", adminData);
+
+          // Afficher le tableau de bord
+          cardChargement.style.display = "none";
+          cardDashboard.style.display = "block";
+
+          messageAdmin.textContent =
+            "Connecté en tant que : " +
+            (adminData.nom || adminData.email || user.email || "Administrateur");
+
+          // Charger les stats
+          chargerStats();
+        })
+        .catch(function(erreur) {
+          console.error("[admin.html] Erreur vérification admin :", erreur);
+          afficherErreur(
+            "Impossible de vérifier tes droits : " +
+            (erreur && erreur.message ? erreur.message : "erreur inconnue")
+          );
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      auth.signOut()
+        .then(function() {
+          window.location.href = "index.html";
+        })
+        .catch(function() {
+          window.location.href = "index.html";
         });
     });
-  })();
+
+    // Initialisation
+    (function init() {
+      console.log("[admin.html] init()");
+
+      if (!auth || !db) {
+        afficherErreur("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageChargement.textContent = "Vérification de ta connexion...";
+
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+
+          verifierAdmin();
+        });
+
+        return;
+      }
+
+      verifierAdmin();
+    })();
   </script>
 
 </body>
-</html>
+  </html>
