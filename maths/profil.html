@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-  <!-- Configuration Firebase à la racine du projet -->
+  <!-- Fichier à la racine : MathsAvecMoi/firebase-config.js -->
   <script src="../firebase-config.js"></script>
 
   <style>
@@ -165,14 +165,6 @@
       transform: translateY(-1px);
     }
 
-    .btn-orange {
-      background: var(--orange);
-    }
-
-    .btn-orange:hover {
-      background: #d68910;
-    }
-
     .encouragement {
       background: #fff8e1;
       color: #5c5233;
@@ -304,9 +296,15 @@
     <h1>Campus Flex - Mon profil</h1>
 
     <ul>
-      <li><a href="#" id="lien-mathematiques">Mathématiques</a></li>
-      <li><a href="../index.html">Accueil</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+      <li>
+        <a href="#" id="lien-mathematiques">Mathématiques</a>
+      </li>
+      <li>
+        <a href="../index.html">Accueil</a>
+      </li>
+      <li>
+        <a href="#" id="lien-deconnexion">Déconnexion</a>
+      </li>
     </ul>
   </nav>
 
@@ -375,22 +373,32 @@
 
     let classeEleve = "";
 
+    /*
+      Ces chemins correspondent à la structure :
+      maths/6eme/index.html
+      maths/5eme/index.html
+      maths/4eme/index.html
+      maths/3eme/index.html
+      maths/seconde/index.html
+      maths/premiere/index.html
+      maths/terminale/index.html
+    */
     const pagesParClasse = {
-      "6e": "6e/index.html",
-      "6eme": "6e/index.html",
-      "6ème": "6e/index.html",
+      "6e": "6eme/index.html",
+      "6eme": "6eme/index.html",
+      "6ème": "6eme/index.html",
 
-      "5e": "5e/index.html",
-      "5eme": "5e/index.html",
-      "5ème": "5e/index.html",
+      "5e": "5eme/index.html",
+      "5eme": "5eme/index.html",
+      "5ème": "5eme/index.html",
 
-      "4e": "4e/index.html",
-      "4eme": "4e/index.html",
-      "4ème": "4e/index.html",
+      "4e": "4eme/index.html",
+      "4eme": "4eme/index.html",
+      "4ème": "4eme/index.html",
 
-      "3e": "3e/index.html",
-      "3eme": "3e/index.html",
-      "3ème": "3e/index.html",
+      "3e": "3eme/index.html",
+      "3eme": "3eme/index.html",
+      "3ème": "3eme/index.html",
 
       "Seconde": "seconde/index.html",
       "seconde": "seconde/index.html",
@@ -631,4 +639,4 @@
   </script>
 
 </body>
-    </html>
+</html>
