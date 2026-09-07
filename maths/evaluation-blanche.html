@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évaluation blanche - Campus Flex</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+
+  <style>
+    :root {
+      --bleu: #2c3e8c;
+      --bleu-fonce: #1e2c66;
+      --orange: #f39c12;
+      --fond: #f5f7ff;
+      --texte: #333333;
+      --gris: #666666;
+      --rouge: #c0392b;
+      --vert: #1e8449;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+    }
+
+    nav {
+      background: var(--bleu);
+      color: white;
+      padding: 15px 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      font-size: 22px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 720px;
+      flex: 1;
+      margin: 35px auto;
+      padding: 0 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 28px 22px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+    }
+
+    .card h2 {
+      color: var(--bleu);
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      color: var(--gris);
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .question-block {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e6e9f5;
+    }
+
+    .question-block:last-child {
+      border-bottom: none;
+      margin-bottom: 10px;
+    }
+
+    .question-titre {
+      font-size: 16px;
+      font-weight: bold;
+      color: #222;
+      margin-bottom: 10px;
+    }
+
+    .question-image {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin: 10px 0 14px 0;
+      display: block;
+    }
+
+    .choix-list {
+      list-style: none;
+    }
+
+    .choix-item {
+      margin: 8px 0;
+    }
+
+    .choix-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: #333;
+      cursor: pointer;
+    }
+
+    .choix-label input {
+      margin-top: 3px;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 13px 18px;
+      border: none;
+      border-radius: 25px;
+      background: var(--orange);
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #d68910;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondaire {
+      background: var(--bleu);
+    }
+
+    .btn-secondaire:hover {
+      background: var(--bleu-fonce);
+    }
+
+    .btn:disabled {
+      background: #b8b8b8;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #message {
+      min-height: 21px;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .resultat-box {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f0f7ff;
+      border-left: 4px solid var(--bleu);
+      border-radius: 8px;
+    }
+
+    .resultat-box h3 {
+      color: var(--bleu);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .resultat-box p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .correction {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #444;
+    }
+
+    .correction strong {
+      color: var(--vert);
+    }
+
+    .correction .mauvaise {
+      color: var(--rouge);
+    }
+
+    footer {
+      margin-top: 25px;
+      padding: 14px;
+      background: var(--bleu);
+      color: white;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 520px) {
+      main {
+        margin: 22px auto;
+        padding: 0 14px;
+      }
+
+      .card {
+        padding: 23px 17px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Campus Flex</h1>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Évaluation blanche</h2>
+
+      <p class="intro">
+        Réponds aux questions ci-dessous. Certaines questions peuvent contenir une image.
+        Ton score sera enregistré automatiquement.
+      </p>
+
+      <form id="form-eval-blanche">
+        <div id="questions-container"></div>
+
+        <button
+          id="btn-valider"
+          class="btn btn-secondaire"
+          type="button"
+        >
+          Valider mes réponses
+        </button>
+
+        <p id="message"></p>
+
+        <div id="resultat" class="resultat-box" style="display: none;">
+          <h3>Résultat</h3>
+          <p id="texte-resultat"></p>
+          <div id="correction" class="correction"></div>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    © 2026 Campus Flex - Tous droits réservés
+  </footer>
+
+  <script>
+    const form = document.getElementById("form-eval-blanche");
+    const questionsContainer = document.getElementById("questions-container");
+    const btnValider = document.getElementById("btn-valider");
+    const message = document.getElementById("message");
+    const resultatBox = document.getElementById("resultat");
+    const texteResultat = document.getElementById("texte-resultat");
+    const correctionDiv = document.getElementById("correction");
+
+    let questions = [];
+    let resultatEnregistre = false;
+
+    function afficherMessage(texte, couleur) {
+      message.textContent = texte;
+      message.style.color = couleur;
+    }
+
+    function nettoyerTexte(texte) {
+      return String(texte || "").trim();
+    }
+
+    function chargerQuestions() {
+      if (!db) {
+        return Promise.reject(new Error("Firebase Database non configuré."));
+      }
+
+      return db.ref("evaluations_blanches/questions").once("value")
+        .then(function(snap) {
+          if (!snap.exists()) {
+            throw new Error("Aucune question trouvée dans evaluations_blanches/questions.");
+          }
+
+          const liste = [];
+
+          snap.forEach(function(child) {
+            const q = child.val();
+
+            if (!q || !q.question || !q.choix || !Array.isArray(q.choix)) {
+              return;
+            }
+
+            if (q.active === false) {
+              return;
+            }
+
+            liste.push({
+              id: child.key,
+              question: String(q.question),
+              image: q.image ? String(q.image) : "",
+              choix: q.choix.map(String),
+              bonneReponse: typeof q.bonneReponse === "number" ? q.bonneReponse : 0,
+              points: typeof q.points === "number" ? q.points : 1
+            });
+          });
+
+          if (liste.length === 0) {
+            throw new Error("Aucune question active trouvée.");
+          }
+
+          questions = liste;
+        });
+    }
+
+    function afficherQuestions() {
+      questionsContainer.innerHTML = "";
+
+      questions.forEach(function(q, index) {
+        const bloc = document.createElement("div");
+        bloc.className = "question-block";
+
+        const titre = document.createElement("div");
+        titre.className = "question-titre";
+        titre.textContent = (index + 1) + ". " + q.question;
+        bloc.appendChild(titre);
+
+        if (q.image && nettoyerTexte(q.image) !== "") {
+          const img = document.createElement("img");
+          img.className = "question-image";
+          img.src = q.image;
+          img.alt = "Illustration de la question " + (index + 1);
+          bloc.appendChild(img);
+        }
+
+        const liste = document.createElement("ul");
+        liste.className = "choix-list";
+
+        q.choix.forEach(function(choixText, i) {
+          const li = document.createElement("li");
+          li.className = "choix-item";
+
+          const label = document.createElement("label");
+          label.className = "choix-label";
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "question-" + q.id;
+          input.value = String(i);
+
+          const span = document.createElement("span");
+          span.textContent = choixText;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          li.appendChild(label);
+          liste.appendChild(li);
+        });
+
+        bloc.appendChild(liste);
+        questionsContainer.appendChild(bloc);
+      });
+    }
+
+    function lireReponses() {
+      const reponses = {};
+
+      questions.forEach(function(q) {
+        const selected = document.querySelector(
+          "input[name='question-" + q.id + "']:checked"
+        );
+
+        if (selected) {
+          reponses[q.id] = parseInt(selected.value, 10);
+        } else {
+          reponses[q.id] = null;
+        }
+      });
+
+      return reponses;
+    }
+
+    function calculerScore(reponses) {
+      let score = 0;
+      let maxScore = 0;
+
+      questions.forEach(function(q) {
+        maxScore += q.points;
+
+        if (reponses[q.id] === q.bonneReponse) {
+          score += q.points;
+        }
+      });
+
+      return {
+        score: score,
+        maxScore: maxScore
+      };
+    }
+
+    function genererCorrection(reponses) {
+      let html = "";
+
+      questions.forEach(function(q, index) {
+        const reponseDonnee = reponses[q.id];
+        const estJuste = reponseDonnee === q.bonneReponse;
+
+        html += "<p>";
+        html += "<strong>Question " + (index + 1) + " :</strong> " + q.question + "<br>";
+
+        if (reponseDonnee === null) {
+          html += "<span class='mauvaise'>Aucune réponse donnée.</span> ";
+        } else if (estJuste) {
+          html += "<strong>Ta réponse : " + q.choix[reponseDonnee] + " (correcte)</strong> ";
+        } else {
+          html += "<span class='mauvaise'>Ta réponse : " + q.choix[reponseDonnee] + " (incorrecte)</span> ";
+        }
+
+        html += "<br><strong>Réponse attendue : </strong>" + q.choix[q.bonneReponse];
+        html += "</p>";
+      });
+
+      return html;
+    }
+
+    function enregistrerResultat(score, maxScore, reponses) {
+      if (!auth || !auth.currentUser || !db) {
+        throw new Error("Utilisateur non connecté ou Firebase non configuré.");
+      }
+
+      const user = auth.currentUser;
+
+      const donnees = {
+        uid: user.uid,
+        type: "blanche",
+        date: Date.now(),
+        score: score,
+        maxScore: maxScore,
+        reponses: reponses,
+        questions: questions.map(function(q) {
+          return {
+            id: q.id,
+            question: q.question,
+            bonneReponse: q.bonneReponse,
+            points: q.points
+          };
+        })
+      };
+
+      return db.ref("evaluations_blanches/resultats/" + user.uid + "/" + Date.now()).set(donnees);
+    }
+
+    btnValider.addEventListener("click", function() {
+      if (resultatEnregistre) {
+        afficherMessage(
+          "Tu as déjà validé cette évaluation blanche.",
+          "var(--gris)"
+        );
+        return;
+      }
+
+      const reponses = lireReponses();
+
+      let toutesRepondues = true;
+      questions.forEach(function(q) {
+        if (reponses[q.id] === null) {
+          toutesRepondues = false;
+        }
+      });
+
+      if (!toutesRepondues) {
+        afficherMessage(
+          "Réponds à toutes les questions avant de valider.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      btnValider.disabled = true;
+      btnValider.textContent = "Calcul en cours...";
+      afficherMessage("", "");
+
+      const resultat = calculerScore(reponses);
+
+      texteResultat.textContent =
+        "Ton score : " + resultat.score + " / " + resultat.maxScore + " points.";
+
+      correctionDiv.innerHTML = genererCorrection(reponses);
+      resultatBox.style.display = "block";
+
+      enregistrerResultat(resultat.score, resultat.maxScore, reponses)
+        .then(function() {
+          resultatEnregistre = true;
+          afficherMessage(
+            "Résultat enregistré avec succès.",
+            "var(--vert)"
+          );
+          btnValider.textContent = "Évaluation validée";
+        })
+        .catch(function(erreur) {
+          console.error("Erreur enregistrement évaluation :", erreur);
+          afficherMessage(
+            "Erreur lors de l’enregistrement du résultat.",
+            "var(--rouge)"
+          );
+          btnValider.disabled = false;
+          btnValider.textContent = "Valider mes réponses";
+        });
+    });
+
+    (function init() {
+      if (typeof firebase === "undefined" || typeof auth === "undefined" || !db) {
+        afficherMessage(
+          "Firebase n’est pas correctement configuré.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      if (!auth.currentUser) {
+        afficherMessage(
+          "Tu dois être connecté pour accéder à cette évaluation.",
+          "var(--rouge)"
+        );
+        btnValider.disabled = true;
+        return;
+      }
+
+      afficherMessage("Chargement des questions...", "var(--gris)");
+
+      chargerQuestions()
+        .then(function() {
+          afficherMessage("", "");
+          afficherQuestions();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement questions :", erreur);
+          afficherMessage(
+            "Impossible de charger les questions : " + erreur.message,
+            "var(--rouge)"
+          );
+        });
+    })();
+  </script>
+
+</body>
+</html>
