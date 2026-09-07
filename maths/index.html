@@ -247,27 +247,6 @@
         .replace(/s+/g, " ");
     }
 
-    function obtenirUtilisateur() {
-      return new Promise(function(resolve) {
-        const utilisateurActuel = auth.currentUser;
-
-        if (utilisateurActuel) {
-          resolve(utilisateurActuel);
-          return;
-        }
-
-        const desinscrire = auth.onAuthStateChanged(function(user) {
-          desinscrire();
-          resolve(user);
-        });
-
-        window.setTimeout(function() {
-          desinscrire();
-          resolve(auth.currentUser);
-        }, 7000);
-      });
-    }
-
     function ouvrirCours() {
       if (typeof firebase === "undefined") {
         afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
@@ -286,27 +265,32 @@
         return;
       }
 
-      obtenirUtilisateur()
-        .then(function(user) {
-          if (!user) {
-            window.location.href = "../connexion.html";
-            return null;
-          }
+      const user = auth.currentUser;
 
-          return db.ref("eleves/" + user.uid + "/classe").once("value");
-        })
+      if (!user) {
+        // Pas connecté → on redirige vers la connexion
+        window.location.href = "../connexion.html";
+        return;
+      }
+
+      db.ref("eleves/" + user.uid + "/classe").once("value")
         .then(function(snapshot) {
-          if (!snapshot) {
+          const classeBrute = snapshot.val();
+
+          if (!classeBrute) {
+            afficherErreur(
+              "Ta classe n’est pas renseignée. Ouvre ton profil pour la compléter."
+            );
             return;
           }
 
-          const classe = normaliserClasse(snapshot.val());
+          const classe = normaliserClasse(classeBrute);
           const pageCours = pagesParClasse[classe];
 
           if (!pageCours) {
             afficherErreur(
               "Ta classe actuelle est : " +
-              (classe ? """ + classe + """ : "non renseignée") +
+              (classe ? "« " + classe + " »" : "non renseignée") +
               ". Ouvre ton profil pour vérifier ta classe."
             );
             return;
@@ -356,4 +340,4 @@
   </script>
 
 </body>
-</html>
+  </html>
