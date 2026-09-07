@@ -717,4 +717,105 @@
 
       if (code.length !== 6) {
         afficherMessage(
-          "Saisis les 
+          "Saisis les 6 chiffres du code SMS.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      boutonVerifierCode.disabled = true;
+      boutonVerifierCode.textContent = "Vérification...";
+      afficherMessage("", "");
+
+      /*
+        Après le code correct :
+        - Firebase crée le compte téléphone.
+        - Puis on lie e-mail + mot de passe à ce même compte.
+        - On conserve un seul UID Firebase.
+      */
+      confirmationResult.confirm(code)
+        .then(function(resultatTelephone) {
+          const user = resultatTelephone.user;
+
+          const credentialEmail = firebase.auth.EmailAuthProvider.credential(
+            donneesInscription.email,
+            donneesInscription.motDePasse
+          );
+
+          return user.linkWithCredential(credentialEmail);
+        })
+        .then(function(resultatFinal) {
+          const user = resultatFinal.user;
+
+          return user.updateProfile({
+            displayName:
+              donneesInscription.prenom + " " + donneesInscription.nom
+          })
+          .then(function() {
+            return db.ref("eleves/" + user.uid).set({
+              uid: user.uid,
+
+              prenom: donneesInscription.prenom,
+              nom: donneesInscription.nom,
+              identifiant: donneesInscription.identifiant,
+              email: donneesInscription.email,
+
+              pays: donneesInscription.pays,
+              indicatifPays: donneesInscription.indicatifPays,
+              telephoneLocal: donneesInscription.telephoneLocal,
+              telephone: donneesInscription.telephone,
+              telephoneInternational:
+                donneesInscription.telephoneInternational,
+              telephoneVerifie: true,
+
+              classe: donneesInscription.classe,
+
+              points: 0,
+              streak: 0,
+              bestStreak: 0,
+              lastCheckin: "",
+              inscriptionFinalisee: true,
+              dateInscription: Date.now()
+            });
+          });
+        })
+        .then(function() {
+          localStorage.setItem(
+            "cf_identifiant",
+            donneesInscription.identifiant
+          );
+
+          afficherMessage(
+            "Numéro vérifié et compte créé. Redirection vers ton profil...",
+            "var(--vert)"
+          );
+
+          window.setTimeout(function() {
+            window.location.href = "maths/profil.html";
+          }, 1200);
+        })
+        .catch(function(erreur) {
+          afficherMessage(
+            traduireErreur(erreur),
+            "var(--rouge)"
+          );
+
+          boutonVerifierCode.disabled = false;
+          boutonVerifierCode.textContent =
+            "Vérifier le code et créer mon compte";
+        });
+    });
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!confirmationResult) {
+        boutonEnvoyerCode.click();
+      } else {
+        boutonVerifierCode.click();
+      }
+    });
+  </script>
+
+</body>
+</html>
