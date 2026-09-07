@@ -12,7 +12,7 @@ const firebaseConfig = {
 };
 
 // Initialise Firebase une seule fois
-if (!firebase.apps.length) {
+if (!firebase.apps || !firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
@@ -23,6 +23,6 @@ const auth = firebase.auth();
 const db = firebase.database();
 
 // Firebase Storage : seulement si le SDK Storage est chargé
-const storage = firebase.storage
+const storage = (typeof firebase.storage === "function")
   ? firebase.storage()
   : null;
