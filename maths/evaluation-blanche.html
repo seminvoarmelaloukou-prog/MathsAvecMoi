@@ -276,6 +276,8 @@
 
     let questions = [];
     let resultatEnregistre = false;
+    let classeEleve = null;
+    let uidEleve = null;
 
     function afficherMessage(texte, couleur) {
       message.textContent = texte;
@@ -286,15 +288,31 @@
       return String(texte || "").trim();
     }
 
-    function chargerQuestions() {
-      if (!db) {
-        return Promise.reject(new Error("Firebase Database non configuré."));
+    function chargerClasseEtQuestions() {
+      if (!db || !auth || !auth.currentUser) {
+        return Promise.reject(new Error("Utilisateur non connecté ou Firebase non configuré."));
       }
 
-      return db.ref("evaluations_blanches/questions").once("value")
+      uidEleve = auth.currentUser.uid;
+
+      return db.ref("eleves/" + uidEleve).once("value")
         .then(function(snap) {
           if (!snap.exists()) {
-            throw new Error("Aucune question trouvée dans evaluations_blanches/questions.");
+            throw new Error("Profil élève introuvable. Assure-toi d’avoir finalisé ton inscription.");
+          }
+
+          const eleve = snap.val();
+          classeEleve = eleve && eleve.classe ? eleve.classe : null;
+
+          if (!classeEleve) {
+            throw new Error("Classe non renseignée dans ton profil.");
+          }
+
+          return db.ref("evaluations_blanches/questions/" + classeEleve).once("value");
+        })
+        .then(function(snap) {
+          if (!snap.exists()) {
+            throw new Error("Aucune question trouvée pour ta classe (" + classeEleve + ").");
           }
 
           const liste = [];
@@ -321,7 +339,7 @@
           });
 
           if (liste.length === 0) {
-            throw new Error("Aucune question active trouvée.");
+            throw new Error("Aucune question active trouvée pour ta classe.");
           }
 
           questions = liste;
@@ -443,10 +461,13 @@
         throw new Error("Utilisateur non connecté ou Firebase non configuré.");
       }
 
-      const user = auth.currentUser;
+      if (!classeEleve || !uidEleve) {
+        throw new Error("Classe ou UID élève non disponible.");
+      }
 
       const donnees = {
-        uid: user.uid,
+        uid: uidEleve,
+        classe: classeEleve,
         type: "blanche",
         date: Date.now(),
         score: score,
@@ -462,7 +483,14 @@
         })
       };
 
-      return db.ref("evaluations_blanches/resultats/" + user.uid + "/" + Date.now()).set(donnees);
+      return db
+        .ref(
+          "evaluations_blanches/resultats/" +
+            classeEleve + "/" +
+            uidEleve + "/" +
+            Date.now()
+        )
+        .set(donnees);
     }
 
     btnValider.addEventListener("click", function() {
@@ -541,9 +569,9 @@
         return;
       }
 
-      afficherMessage("Chargement des questions...", "var(--gris)");
+      afficherMessage("Chargement de ton profil et des questions...", "var(--gris)");
 
-      chargerQuestions()
+      chargerClasseEtQuestions()
         .then(function() {
           afficherMessage("", "");
           afficherQuestions();
