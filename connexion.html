@@ -6,9 +6,10 @@
 
   <title>Connexion - Campus Flex</title>
 
-  <!-- Firebase -->
+  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
 
   <style>
@@ -176,55 +177,81 @@
     const message = document.getElementById("message");
     const bouton = document.getElementById("btnConnexion");
 
+    /**
+     * Affiche un message à l'utilisateur.
+     * @param {string} texte
+     * @param {"success"|"error"} type
+     */
+    function afficherMessage(texte, type) {
+      message.textContent = texte;
+      message.style.color = type === "success" ? "#27ae60" : "#c0392b";
+    }
+
+    /**
+     * Vérifie si l'utilisateur est un administrateur.
+     * @param {firebase.User} user
+     * @returns {Promise<boolean>}
+     */
+    function estAdministrateur(user) {
+      if (!firebase.database) {
+        throw new Error("Realtime Database non disponible");
+      }
+
+      return firebase.database()
+        .ref("administrateurs/" + user.uid)
+        .once("value")
+        .then(function(snap) {
+          return !!(snap && snap.exists());
+        });
+    }
+
     formulaire.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const email = document
-        .getElementById("email")
-        .value
-        .trim();
-
-      const motDePasse = document
-        .getElementById("motDePasse")
-        .value;
+      const email = document.getElementById("email").value.trim();
+      const motDePasse = document.getElementById("motDePasse").value;
 
       bouton.disabled = true;
       bouton.textContent = "Connexion...";
+      afficherMessage("", "success");
 
       firebase.auth()
         .signInWithEmailAndPassword(email, motDePasse)
-        .then(function() {
+        .then(function(userCredential) {
+          const user = userCredential.user;
 
-          message.textContent =
-            "✅ Connexion réussie ! Redirection...";
-
-          message.style.color = "#27ae60";
-
-          setTimeout(function() {
-            // Redirection vers la page des maths
-            window.location.href = "maths/index.html";
-          }, 800);
-
+          // Vérifier si c'est un admin
+          return estAdministrateur(user)
+            .then(function(admin) {
+              if (admin) {
+                afficherMessage("✅ Connexion réussie ! Redirection vers l'administration...", "success");
+                setTimeout(function() {
+                  window.location.href = "admin.html";
+                }, 800);
+              } else {
+                afficherMessage("✅ Connexion réussie ! Redirection vers tes cours...", "success");
+                setTimeout(function() {
+                  window.location.href = "maths/index.html";
+                }, 800);
+              }
+            });
         })
         .catch(function(erreur) {
+          console.error("Erreur connexion :", erreur);
 
           let texte = "❌ Adresse e-mail ou mot de passe incorrect.";
 
           if (erreur.code === "auth/user-not-found") {
             texte = "❌ Aucun compte ne correspond à cette adresse e-mail.";
-          }
-
-          if (erreur.code === "auth/wrong-password") {
+          } else if (erreur.code === "auth/wrong-password") {
             texte = "❌ Mot de passe incorrect.";
-          }
-
-          if (erreur.code === "auth/invalid-credential") {
+          } else if (erreur.code === "auth/invalid-credential") {
             texte = "❌ Adresse e-mail ou mot de passe incorrect.";
+          } else if (erreur.code === "auth/invalid-email") {
+            texte = "❌ Adresse e-mail invalide.";
           }
 
-          message.textContent = texte;
-          message.style.color = "#c0392b";
-
+          afficherMessage(texte, "error");
           bouton.disabled = false;
           bouton.textContent = "Se connecter";
         });
