@@ -191,94 +191,118 @@
   <footer>
     © 2026 Campus Flex - Tous droits réservés
   </footer>
+<script>
+  const titre = document.getElementById("titre");
+  const message = document.getElementById("message");
+  const loader = document.getElementById("loader");
+  const boutonProfil = document.getElementById("bouton-profil");
+  const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-  <script>
-    const titre = document.getElementById("titre");
-    const message = document.getElementById("message");
-    const loader = document.getElementById("loader");
-    const boutonProfil = document.getElementById("bouton-profil");
-    const lienDeconnexion = document.getElementById("lien-deconnexion");
+  const pagesParClasse = {
+    "6e": "6e/index.html",
+    "6eme": "6e/index.html",
+    "6ème": "6e/index.html",
+    "5e": "5e/index.html",
+    "5eme": "5e/index.html",
+    "5ème": "5e/index.html",
+    "4e": "4e/index.html",
+    "4eme": "4e/index.html",
+    "4ème": "4e/index.html",
+    "3e": "3e/index.html",
+    "3eme": "3e/index.html",
+    "3ème": "3e/index.html",
+    "Seconde": "seconde/index.html",
+    "seconde": "seconde/index.html",
+    "Première": "premiere/index.html",
+    "Premiere": "premiere/index.html",
+    "premiere": "premiere/index.html",
+    "Terminale": "terminale/index.html",
+    "terminale": "terminale/index.html"
+  };
 
-    const pagesParClasse = {
-      "6e": "6e/index.html",
-      "5e": "5e/index.html",
-      "4e": "4e/index.html",
-      "3e": "3e/index.html",
-      "Seconde": "seconde/index.html",
-      "Première": "premiere/index.html",
-      "Terminale": "terminale/index.html"
-    };
+  function afficherErreur(texte) {
+    titre.textContent = "Impossible d’ouvrir le cours";
+    message.textContent = texte;
+    message.classList.add("error");
+    loader.style.display = "none";
+    boutonProfil.style.display = "inline-block";
+  }
 
-    function afficherErreur(texte) {
-      titre.textContent = "Impossible d’ouvrir les cours";
-      message.textContent = texte;
-      message.classList.add("error");
-      loader.style.display = "none";
-      boutonProfil.style.display = "inline-block";
-    }
+  function normaliserClasse(classe) {
+    return String(classe || "")
+      .trim()
+      .replace(/s+/g, " ");
+  }
 
-    if (typeof auth === "undefined" || !db) {
-      afficherErreur(
-        "Firebase n’est pas disponible. Vérifie firebase-config.js et les scripts Firebase."
-      );
-    } else {
-      auth.onAuthStateChanged(function(user) {
-        if (!user) {
-          window.location.href = "../connexion.html";
-          return;
-        }
-
-        db.ref("eleves/" + user.uid + "/classe").once("value")
-          .then(function(snapshot) {
-            const classe = snapshot.val();
-            const pageCours = pagesParClasse[classe];
-
-            if (!pageCours) {
-              afficherErreur(
-                "Ta classe n’est pas renseignée ou n’est pas reconnue. Ouvre ton profil pour vérifier ta classe."
-              );
-              return;
-            }
-
-            titre.textContent = "Ouverture des cours de " + classe;
-            message.textContent = "Redirection vers ton espace de mathématiques...";
-
-            window.location.href = pageCours;
-          })
-          .catch(function(erreur) {
-            console.error("Erreur de lecture de classe :", erreur);
-
-            if (erreur.code === "PERMISSION_DENIED") {
-              afficherErreur(
-                "Firebase refuse l’accès à ton profil. Vérifie les règles de Realtime Database."
-              );
-            } else {
-              afficherErreur(
-                "Impossible de charger ta classe. Vérifie ta connexion Internet puis réessaie."
-              );
-            }
-          });
-      });
-    }
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-
-      if (typeof auth === "undefined") {
-        window.location.href = "../index.html";
+  if (typeof firebase === "undefined") {
+    afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
+  } else if (typeof auth === "undefined") {
+    afficherErreur("Firebase Authentication n’est pas disponible.");
+  } else if (!db) {
+    afficherErreur("Realtime Database n’est pas disponible.");
+  } else {
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = "../connexion.html";
         return;
       }
 
-      auth.signOut()
-        .then(function() {
-          window.location.href = "../index.html";
+      db.ref("eleves/" + user.uid).once("value")
+        .then(function(snapshot) {
+          const profil = snapshot.val() || {};
+          const classe = normaliserClasse(profil.classe);
+          const pageCours = pagesParClasse[classe];
+
+          console.log("Profil lu :", profil);
+          console.log("Classe trouvée :", classe);
+
+          if (!pageCours) {
+            afficherErreur(
+              "Ta classe actuelle est : "" + (classe || "non renseignée") +
+              "". Ouvre ton profil et vérifie la valeur de ta classe."
+            );
+            return;
+          }
+
+          titre.textContent = "Ouverture des cours de " + classe;
+          message.textContent = "Redirection en cours...";
+
+          window.location.href = pageCours;
         })
         .catch(function(erreur) {
-          console.error("Erreur de déconnexion :", erreur);
-          window.location.href = "../index.html";
+          console.error("Erreur Firebase :", erreur);
+
+          if (erreur.code === "PERMISSION_DENIED") {
+            afficherErreur(
+              "Accès refusé par Firebase. Vérifie les règles de Realtime Database."
+            );
+          } else {
+            afficherErreur(
+              "Erreur de connexion à Firebase : " + erreur.message
+            );
+          }
         });
     });
-  </script>
+  }
+
+  lienDeconnexion.addEventListener("click", function(e) {
+    e.preventDefault();
+
+    if (typeof auth === "undefined") {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    auth.signOut()
+      .then(function() {
+        window.location.href = "../index.html";
+      })
+      .catch(function(erreur) {
+        console.error("Erreur de déconnexion :", erreur);
+        window.location.href = "../index.html";
+      });
+  });
+</script>
 
 </body>
 </html>
