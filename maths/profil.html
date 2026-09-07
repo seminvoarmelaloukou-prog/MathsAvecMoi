@@ -323,8 +323,6 @@
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
     function afficherErreurChargement(texte) {
-      document.getElementById("titre-chargement") &&
-        (document.getElementById("titre-chargement").textContent = "Erreur");
       messageChargement.textContent = texte;
       messageChargement.classList.add("error");
       loader.style.display = "none";
@@ -373,7 +371,7 @@
 
       if (!db) {
         messageEvaluation.textContent =
-          "Impossible de vérifier l’état des évaluations (base de données non disponible).";
+          "Impossible de vérifier l'état des évaluations (base de données non disponible).";
         btnEvaluationOfficielle.style.display = "none";
         return;
       }
@@ -394,17 +392,17 @@
           if (active) {
             btnEvaluationOfficielle.style.display = "inline-block";
             messageEvaluation.textContent =
-              "L’évaluation officielle est actuellement activée.";
+              "L'évaluation officielle est actuellement activée.";
           } else {
             btnEvaluationOfficielle.style.display = "none";
             messageEvaluation.textContent =
-              "L’évaluation officielle n’est pas encore activée par l’administrateur.";
+              "L'évaluation officielle n'est pas encore activée par l'administrateur.";
           }
         })
         .catch(function(erreur) {
           console.error("[profil.html] Erreur lecture config évaluation :", erreur);
           messageEvaluation.textContent =
-            "Impossible de vérifier l’état des évaluations (voir console).";
+            "Impossible de vérifier l'état des évaluations (voir console).";
         });
     }
 
@@ -412,18 +410,18 @@
       console.log("[profil.html] chargerProfil");
 
       if (typeof firebase === "undefined") {
-        afficherErreurChargement("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
+        afficherErreurChargement("Firebase n'est pas chargé. Vérifie les scripts Firebase.");
         return;
       }
 
       if (typeof auth === "undefined") {
-        afficherErreurChargement("Firebase Authentication n’est pas disponible.");
+        afficherErreurChargement("Firebase Authentication n'est pas disponible.");
         return;
       }
 
       if (!db) {
         afficherErreurChargement(
-          "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
+          "Realtime Database n'est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
         );
         return;
       }
@@ -454,13 +452,30 @@
     function chargerProfilAvecUtilisateur(user) {
       console.log("[profil.html] chargerProfilAvecUtilisateur pour UID :", user.uid);
 
-      db.ref("eleves/" + user.uid).once("value")
-        .then(function(snapshot) {
-          console.log("[profil.html] snapshot eleves/UID :", snapshot ? snapshot.exists() : "null");
+      // 1. Vérifier si c'est un administrateur
+      db.ref("administrateurs/" + user.uid).once("value")
+        .then(function(snapAdmin) {
+          if (snapAdmin && snapAdmin.exists()) {
+            // C'est un admin → on le redirige vers admin.html
+            window.location.href = "../admin.html";
+            // On arrête ici, on ne charge pas le profil élève
+            return Promise.reject(new Error("REDIRECT_ADMIN"));
+          }
 
-          if (!snapshot || !snapshot.exists()) {
+          // 2. Sinon, charger le profil élève
+          return db.ref("eleves/" + user.uid).once("value");
+        })
+        .then(function(snapshot) {
+          if (!snapshot) {
+            // Déjà redirigé si admin
+            return;
+          }
+
+          console.log("[profil.html] snapshot eleves/UID :", snapshot.exists());
+
+          if (!snapshot.exists()) {
             afficherErreurChargement(
-              "Ton profil n’existe pas dans la base de données. Contacte l’administrateur."
+              "Ton profil n'existe pas dans la base de données. Contacte l'administrateur."
             );
             return;
           }
@@ -469,11 +484,16 @@
           afficherProfil(eleve);
         })
         .catch(function(erreur) {
+          if (erreur && erreur.message === "REDIRECT_ADMIN") {
+            // Redirection déjà faite, on ne fait rien d'autre
+            return;
+          }
+
           console.error("[profil.html] Erreur lors du chargement du profil :", erreur);
 
           if (erreur && erreur.code === "PERMISSION_DENIED") {
             afficherErreurChargement(
-              "Firebase refuse l’accès à ton profil. Vérifie les règles de Realtime Database."
+              "Firebase refuse l'accès à ton profil. Vérifie les règles de Realtime Database."
             );
           } else {
             afficherErreurChargement(
