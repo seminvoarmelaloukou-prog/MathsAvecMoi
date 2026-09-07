@@ -5,43 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon profil - Campus Flex</title>
 
-  <!-- Firebase -->
+  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-
-  <!-- Fichier à la racine : MathsAvecMoi/firebase-config.js -->
   <script src="../firebase-config.js"></script>
 
   <style>
     :root {
-      --bleu: #2c3e8c;
-      --bleu-fonce: #1e2c66;
-      --orange: #f39c12;
-      --fond: #f5f7ff;
-      --texte: #333333;
-      --gris: #666666;
-      --rouge: #c0392b;
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
     }
 
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
     }
 
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: var(--fond);
-      color: var(--texte);
+      background: var(--background);
+      color: var(--text);
       display: flex;
       flex-direction: column;
     }
 
     nav {
-      background: var(--bleu);
-      color: white;
+      background: var(--indigo);
       padding: 14px 20px;
       display: flex;
       justify-content: space-between;
@@ -52,254 +51,174 @@
     }
 
     nav h1 {
+      color: white;
       font-size: 20px;
     }
 
     nav ul {
       display: flex;
-      gap: 16px;
-      list-style: none;
       flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
     }
 
-    nav ul li a {
+    nav a {
       color: white;
       text-decoration: none;
       font-size: 14px;
-      cursor: pointer;
     }
 
-    nav ul li a:hover {
+    nav a:hover {
       text-decoration: underline;
     }
 
     main {
+      flex: 1;
       width: 100%;
       max-width: 900px;
-      margin: 30px auto;
+      margin: 45px auto;
       padding: 0 20px;
-      flex: 1;
     }
 
     .card {
       background: white;
+      padding: 28px 22px;
       border-radius: 14px;
-      padding: 24px 20px;
-      margin-bottom: 20px;
+      text-align: center;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
     }
 
     .card h2 {
-      color: var(--bleu);
-      font-size: 22px;
-      margin-bottom: 14px;
+      color: var(--indigo);
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
     }
 
     .description {
-      color: var(--gris);
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 15px;
+      margin-bottom: 18px;
     }
 
     .info-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+      text-align: left;
     }
 
     .info-item {
-      background: #f7f8ff;
-      border: 1px solid #e6e9f7;
+      background: #f8f9ff;
+      padding: 14px;
       border-radius: 10px;
-      padding: 15px;
+      border-left: 4px solid var(--indigo);
     }
 
-    .info-label {
+    .info-item strong {
+      color: var(--indigo);
       display: block;
-      color: var(--gris);
-      font-size: 13px;
       margin-bottom: 6px;
+      font-size: 13px;
     }
 
-    .info-value {
-      display: block;
-      font-size: 16px;
-      color: var(--texte);
-      font-weight: bold;
-      overflow-wrap: anywhere;
+    .info-item span {
+      font-size: 15px;
     }
 
-    .chargement,
-    .erreur {
-      grid-column: 1 / -1;
-      font-size: 14px;
-      line-height: 1.5;
+    .loader {
+      width: 38px;
+      height: 38px;
+      margin: 22px auto 15px;
+      border: 4px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
     }
 
-    .chargement {
-      color: var(--gris);
-    }
-
-    .erreur {
-      color: var(--rouge);
+    .error {
+      color: var(--error) !important;
+      margin-top: 15px;
     }
 
     .btn {
       display: inline-block;
       margin-top: 18px;
-      padding: 12px 21px;
-      border: none;
+      padding: 11px 22px;
       border-radius: 24px;
-      background: var(--bleu);
+      background: var(--indigo);
       color: white;
       text-decoration: none;
       font-size: 14px;
       font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     .btn:hover {
-      background: var(--bleu-fonce);
-      transform: translateY(-1px);
+      background: var(--indigo-dark);
     }
 
-    .encouragement {
-      background: #fff8e1;
-      color: #5c5233;
-      border-left: 4px solid var(--orange);
-      border-radius: 7px;
-      padding: 13px 15px;
-      font-size: 14px;
-      line-height: 1.5;
+    .btn-secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
     }
 
+    .btn-secondaire:hover {
+      background: #cdd5f6;
+    }
+
+    /* Section Évaluations */
     .evaluations-section {
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 10px;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-top: 14px;
     }
 
     .btn-eval {
       display: inline-block;
-      padding: 12px 18px;
-      border: none;
+      padding: 11px 22px;
       border-radius: 24px;
-      background: var(--orange);
+      background: var(--indigo);
       color: white;
       text-decoration: none;
       font-size: 14px;
       font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .btn-eval:hover {
-      background: #d68910;
-      transform: translateY(-1px);
+      text-align: center;
     }
 
     .btn-eval.secondaire {
-      background: var(--bleu);
+      background: #e3e7f6;
+      color: var(--indigo);
     }
 
-    .btn-eval.secondaire:hover {
-      background: var(--bleu-fonce);
+    .btn-eval:hover {
+      opacity: 0.9;
     }
 
     .message-eval {
-      width: 100%;
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--gris);
-      line-height: 1.4;
-    }
-
-    .chat-container {
-      height: 300px;
-      overflow-y: auto;
-      background: #fafafa;
-      border: 1px solid #e1e1e1;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 14px;
-    }
-
-    .chat-message {
-      width: fit-content;
-      max-width: 84%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      margin-bottom: 12px;
       font-size: 14px;
-      line-height: 1.45;
-      overflow-wrap: anywhere;
-    }
-
-    .chat-message.eleve {
-      margin-left: auto;
-      background: var(--bleu);
-      color: white;
-      border-bottom-right-radius: 3px;
-    }
-
-    .chat-message.nora {
-      background: #e9ebf3;
-      color: var(--texte);
-      border-bottom-left-radius: 3px;
-    }
-
-    .chat-message.nora strong {
-      display: block;
-      color: var(--bleu);
-      font-size: 13px;
-      margin-bottom: 3px;
-    }
-
-    .chat-form {
-      display: flex;
-      gap: 10px;
-    }
-
-    .chat-form input {
-      flex: 1;
-      min-width: 0;
-      border: 1px solid #cfd4e6;
-      border-radius: 24px;
-      padding: 12px 15px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .chat-form input:focus {
-      border-color: var(--bleu);
-      box-shadow: 0 0 0 3px rgba(44, 62, 140, 0.12);
-    }
-
-    .chat-form button {
-      border: none;
-      border-radius: 24px;
-      padding: 12px 17px;
-      background: var(--orange);
-      color: white;
-      font-size: 14px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .chat-form button:hover {
-      background: #d68910;
+      color: var(--muted);
+      margin-top: 6px;
     }
 
     footer {
-      margin-top: 20px;
-      padding: 14px;
-      text-align: center;
-      background: var(--bleu);
+      background: var(--indigo);
       color: white;
+      text-align: center;
+      padding: 14px;
       font-size: 13px;
+    }
+
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     @media (max-width: 600px) {
@@ -313,20 +232,8 @@
       }
 
       main {
-        margin: 20px auto;
-        padding: 0 13px;
-      }
-
-      .card {
-        padding: 18px 15px;
-      }
-
-      .chat-container {
-        height: 260px;
-      }
-
-      .chat-form button {
-        padding: 12px 14px;
+        margin: 25px auto;
+        padding: 0 14px;
       }
     }
   </style>
@@ -338,42 +245,44 @@
     <h1>Campus Flex - Mon profil</h1>
 
     <ul>
-      <li>
-        <a href="#" id="lien-mathematiques">Mathématiques</a>
-      </li>
-      <li>
-        <a href="../index.html">Accueil</a>
-      </li>
-      <li>
-        <a href="#" id="lien-deconnexion">Déconnexion</a>
-      </li>
+      <li><a href="index.html">Cours</a></li>
+      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
   <main>
 
-    <section class="card">
-      <h2>Mes informations</h2>
+    <!-- SECTION : CHARGEMENT -->
+    <section class="card" id="card-chargement">
+      <h2>Chargement de ton profil</h2>
 
-      <div class="info-grid" id="infos-eleve">
-        <p class="chargement">Chargement de tes informations...</p>
+      <div id="loader" class="loader"></div>
+
+      <p id="message-chargement">
+        Récupération de tes informations...
+      </p>
+    </section>
+
+    <!-- SECTION : PROFIL (affichée après chargement) -->
+    <section class="card" id="card-profil" style="display: none;">
+      <h2>Mon profil</h2>
+
+      <p class="description">
+        Voici les informations associées à ton compte.
+      </p>
+
+      <div class="info-grid" id="info-grid">
+        <!-- Rempli dynamiquement -->
       </div>
 
-      <a href="#" id="bouton-etudier" class="btn">
-        Commencer à étudier
+      <a href="index.html" class="btn">
+        Retour aux cours
       </a>
     </section>
 
-    <section class="card">
-      <h2>Continue comme ça</h2>
-
-      <div class="encouragement">
-        Chaque effort compte. Avance à ton rythme, entraîne-toi régulièrement et pose tes questions lorsque tu bloques.
-      </div>
-    </section>
-
-    <!-- NOUVELLE SECTION : ÉVALUATIONS -->
-    <section class="card">
+    <!-- SECTION : ÉVALUATIONS -->
+    <section class="card" id="card-evaluations" style="display: none;">
       <h2>Évaluations</h2>
 
       <p class="description">
@@ -392,33 +301,6 @@
         <p id="message-evaluation" class="message-eval"></p>
       </div>
     </section>
-    <!-- FIN NOUVELLE SECTION -->
-
-    <section class="card" id="chat-nora">
-      <h2>Nora - Tuteur IA</h2>
-
-      <p class="description">
-        Pose une question sur un exercice, un cours ou une méthode. Nora t’aidera à avancer étape par étape.
-      </p>
-
-      <div class="chat-container" id="messages-nora">
-        <div class="chat-message nora">
-          <strong>Nora</strong>
-          Bonjour. Quel exercice ou quel chapitre de mathématiques veux-tu travailler aujourd’hui ?
-        </div>
-      </div>
-
-      <form class="chat-form" id="form-nora">
-        <input
-          type="text"
-          id="question-nora"
-          placeholder="Écris ta question..."
-          autocomplete="off"
-          required
-        >
-        <button type="submit">Envoyer</button>
-      </form>
-    </section>
 
   </main>
 
@@ -427,158 +309,87 @@
   </footer>
 
   <script>
-    const infosEleve = document.getElementById("infos-eleve");
-    const messagesNora = document.getElementById("messages-nora");
-    const formNora = document.getElementById("form-nora");
-    const inputNora = document.getElementById("question-nora");
-    const lienDeconnexion = document.getElementById("lien-deconnexion");
-    const lienMathematiques = document.getElementById("lien-mathematiques");
-    const boutonEtudier = document.getElementById("bouton-etudier");
+    const cardChargement = document.getElementById("card-chargement");
+    const cardProfil = document.getElementById("card-profil");
+    const cardEvaluations = document.getElementById("card-evaluations");
 
-    const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
+    const messageChargement = document.getElementById("message-chargement");
+    const loader = document.getElementById("loader");
+    const infoGrid = document.getElementById("info-grid");
+
     const messageEvaluation = document.getElementById("message-evaluation");
+    const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
 
-    let classeEleve = "";
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    /*
-      Ces chemins correspondent à la structure :
-      maths/6eme/index.html
-      maths/5eme/index.html
-      maths/4eme/index.html
-      maths/3eme/index.html
-      maths/seconde/index.html
-      maths/premiere/index.html
-      maths/terminale/index.html
-    */
-    const pagesParClasse = {
-      "6e": "6eme/index.html",
-      "6eme": "6eme/index.html",
-      "6ème": "6eme/index.html",
-
-      "5e": "5eme/index.html",
-      "5eme": "5eme/index.html",
-      "5ème": "5eme/index.html",
-
-      "4e": "4eme/index.html",
-      "4eme": "4eme/index.html",
-      "4ème": "4eme/index.html",
-
-      "3e": "3eme/index.html",
-      "3eme": "3eme/index.html",
-      "3ème": "3eme/index.html",
-
-      "Seconde": "seconde/index.html",
-      "seconde": "seconde/index.html",
-
-      "Première": "premiere/index.html",
-      "Premiere": "premiere/index.html",
-      "premiere": "premiere/index.html",
-
-      "Terminale": "terminale/index.html",
-      "terminale": "terminale/index.html"
-    };
-
-    function echapperHtml(texte) {
-      const element = document.createElement("div");
-      element.textContent = texte || "";
-      return element.innerHTML;
+    function afficherErreurChargement(texte) {
+      document.getElementById("titre-chargement") &&
+        (document.getElementById("titre-chargement").textContent = "Erreur");
+      messageChargement.textContent = texte;
+      messageChargement.classList.add("error");
+      loader.style.display = "none";
     }
 
-    function normaliserClasse(classe) {
-      return String(classe || "")
-        .trim()
-        .replace(/s+/g, " ");
-    }
+    function afficherProfil(eleve) {
+      cardChargement.style.display = "none";
+      cardProfil.style.display = "block";
+      cardEvaluations.style.display = "block";
 
-    function afficherErreurProfil(texte) {
-      infosEleve.innerHTML = `
-        <p class="erreur">${echapperHtml(texte)}</p>
-      `;
-    }
+      const champs = [
+        { label: "Prénom", valeur: eleve.prenom },
+        { label: "Nom", valeur: eleve.nom },
+        { label: "Identifiant", valeur: eleve.identifiant },
+        { label: "Email", valeur: eleve.email },
+        { label: "Classe", valeur: eleve.classe },
+        { label: "Téléphone", valeur: eleve.telephoneInternational },
+        { label: "Points", valeur: String(eleve.points || 0) },
+        { label: "Série actuelle", valeur: String(eleve.streak || 0) + " jours" },
+        { label: "Meilleure série", valeur: String(eleve.bestStreak || 0) + " jours" }
+      ];
 
-    function afficherProfil(profil, user) {
-      const identifiant = profil.identifiant || "Non renseigné";
-      const email = profil.email || user.email || "Non renseigné";
-      const classe = profil.classe || "À compléter";
+      infoGrid.innerHTML = "";
 
-      classeEleve = normaliserClasse(classe);
+      champs.forEach(function(champ) {
+        const div = document.createElement("div");
+        div.className = "info-item";
 
-      infosEleve.innerHTML = `
-        <div class="info-item">
-          <span class="info-label">Identifiant</span>
-          <span class="info-value">${echapperHtml(identifiant)}</span>
-        </div>
+        const strong = document.createElement("strong");
+        strong.textContent = champ.label;
 
-        <div class="info-item">
-          <span class="info-label">E-mail</span>
-          <span class="info-value">${echapperHtml(email)}</span>
-        </div>
+        const span = document.createElement("span");
+        span.textContent = champ.valeur || "—";
 
-        <div class="info-item">
-          <span class="info-label">Classe</span>
-          <span class="info-value">${echapperHtml(classe)}</span>
-        </div>
-      `;
-    }
+        div.appendChild(strong);
+        div.appendChild(span);
+        infoGrid.appendChild(div);
+      });
 
-    function creerProfilSiNecessaire(user) {
-      const profilRef = db.ref("eleves/" + user.uid);
-
-      return profilRef.once("value")
-        .then(function(snapshot) {
-          const profilExistant = snapshot.val();
-
-          if (profilExistant) {
-            return profilExistant;
-          }
-
-          const nouveauProfil = {
-            identifiant: localStorage.getItem("cf_identifiant") || "Élève",
-            email: user.email || "",
-            classe: "À compléter",
-            dateInscription: Date.now(),
-            devoirsFaits: 0,
-            chapitresVus: 0,
-            videosVues: 0,
-            joursConnexion: 1
-          };
-
-          return profilRef.set(nouveauProfil)
-            .then(function() {
-              return nouveauProfil;
-            });
-        });
-    }
-
-    function ouvrirCours(e) {
-      if (e) {
-        e.preventDefault();
-      }
-
-      const destination = pagesParClasse[classeEleve];
-
-      if (!destination) {
-        alert(
-          "Ta classe n’est pas reconnue : " +
-          (classeEleve || "non renseignée") +
-          ". Vérifie la classe affichée dans ton profil."
-        );
-        return;
-      }
-
-      window.location.href = destination;
+      // Gestion des évaluations
+      gererEvaluations();
     }
 
     function gererEvaluations() {
+      console.log("[profil.html] gererEvaluations : db =", !!db, "auth =", !!auth, "user =", auth ? auth.currentUser : "auth undefined");
+
       if (!db) {
         messageEvaluation.textContent =
           "Impossible de vérifier l’état des évaluations (base de données non disponible).";
+        btnEvaluationOfficielle.style.display = "none";
+        return;
+      }
+
+      if (!auth || !auth.currentUser) {
+        messageEvaluation.textContent =
+          "Connexion requise pour afficher les évaluations.";
+        btnEvaluationOfficielle.style.display = "none";
         return;
       }
 
       db.ref("evaluations/config/evaluation_officielle_active").once("value")
         .then(function(snap) {
-          const active = snap.val() === true;
+          console.log("[profil.html] evaluation_officielle_active =", snap ? snap.val() : "snap null");
+
+          const active = snap && snap.val() === true;
 
           if (active) {
             btnEvaluationOfficielle.style.display = "inline-block";
@@ -591,129 +402,87 @@
           }
         })
         .catch(function(erreur) {
-          console.error("Erreur lecture config évaluation :", erreur);
+          console.error("[profil.html] Erreur lecture config évaluation :", erreur);
           messageEvaluation.textContent =
-            "Impossible de vérifier l’état des évaluations.";
+            "Impossible de vérifier l’état des évaluations (voir console).";
         });
     }
 
-    if (typeof firebase === "undefined") {
-      afficherErreurProfil("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
-    } else if (typeof auth === "undefined") {
-      afficherErreurProfil("Firebase Authentication n’est pas disponible.");
-    } else if (!db) {
-      afficherErreurProfil(
-        "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
-      );
-    } else {
-      auth.onAuthStateChanged(function(user) {
-        if (!user) {
-          window.location.href = "../connexion.html";
-          return;
-        }
+    function chargerProfil() {
+      console.log("[profil.html] chargerProfil");
 
-        creerProfilSiNecessaire(user)
-          .then(function(profil) {
-            afficherProfil(profil, user);
-            gererEvaluations();
-          })
-          .catch(function(erreur) {
-            console.error("Erreur Firebase :", erreur);
-
-            if (erreur.code === "PERMISSION_DENIED") {
-              afficherErreurProfil(
-                "Accès refusé par les règles Firebase. Vérifie les règles de Realtime Database."
-              );
-            } else {
-              afficherErreurProfil(
-                "Impossible de charger ou créer ton profil. Vérifie ta connexion Internet."
-              );
-            }
-          });
-      });
-    }
-
-    lienMathematiques.addEventListener("click", ouvrirCours);
-    boutonEtudier.addEventListener("click", ouvrirCours);
-
-    function ajouterMessageEleve(question) {
-      const message = document.createElement("div");
-      message.className = "chat-message eleve";
-      message.textContent = question;
-      messagesNora.appendChild(message);
-      messagesNora.scrollTop = messagesNora.scrollHeight;
-    }
-
-    function ajouterMessageNora(reponse) {
-      const message = document.createElement("div");
-      message.className = "chat-message nora";
-
-      const nom = document.createElement("strong");
-      nom.textContent = "Nora";
-
-      message.appendChild(nom);
-      message.appendChild(document.createTextNode(reponse));
-
-      messagesNora.appendChild(message);
-      messagesNora.scrollTop = messagesNora.scrollHeight;
-    }
-
-    function reponseDeNora(question) {
-      const q = question.toLowerCase();
-
-      if (q.includes("bonjour") || q.includes("salut")) {
-        return "Bonjour. Dis-moi sur quel exercice ou quel chapitre tu veux travailler.";
-      }
-
-      if (q.includes("équation") || q.includes("equation")) {
-        return "Pour résoudre une équation, le but est d’isoler l’inconnue. Envoie-moi l’équation exacte et nous allons avancer étape par étape.";
-      }
-
-      if (q.includes("fraction") || q.includes("fractions")) {
-        return "Dis-moi le calcul avec les fractions. Nous allons d’abord identifier s’il faut additionner, soustraire, multiplier ou diviser.";
-      }
-
-      if (q.includes("exercice") || q.includes("devoir")) {
-        return "Envoie-moi l’énoncé complet et explique ce que tu as déjà essayé. Je t’aiderai à trouver la bonne méthode.";
-      }
-
-      if (
-        q.includes("cours") ||
-        q.includes("leçon") ||
-        q.includes("lecon") ||
-        q.includes("chapitre")
-      ) {
-        return "Dis-moi le nom du chapitre ou la notion que tu veux revoir. Je peux t’expliquer avec un exemple simple.";
-      }
-
-      if (q.includes("fonction") || q.includes("fonctions")) {
-        return "Pour une fonction, envoie-moi son expression, un tableau de valeurs ou une photo de l’énoncé. Nous verrons ensemble ce qui est demandé.";
-      }
-
-      if (q.includes("pythagore")) {
-        return "Le théorème de Pythagore s’utilise dans un triangle rectangle. Envoie-moi les longueurs connues et ce que tu dois calculer.";
-      }
-
-      return "Je peux t’aider. Envoie-moi l’énoncé complet, les données importantes et l’étape précise qui te bloque.";
-    }
-
-    formNora.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const question = inputNora.value.trim();
-
-      if (!question) {
+      if (typeof firebase === "undefined") {
+        afficherErreurChargement("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
         return;
       }
 
-      ajouterMessageEleve(question);
-      inputNora.value = "";
-      inputNora.focus();
+      if (typeof auth === "undefined") {
+        afficherErreurChargement("Firebase Authentication n’est pas disponible.");
+        return;
+      }
 
-      window.setTimeout(function() {
-        ajouterMessageNora(reponseDeNora(question));
-      }, 500);
-    });
+      if (!db) {
+        afficherErreurChargement(
+          "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
+        );
+        return;
+      }
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        console.log("[profil.html] Pas d'utilisateur connecté immédiatement. Écoute onAuthStateChanged...");
+
+        auth.onAuthStateChanged(function(u) {
+          console.log("[profil.html] onAuthStateChanged appelé avec :", u ? u.uid : "null");
+
+          if (!u) {
+            window.location.href = "../connexion.html";
+            return;
+          }
+
+          chargerProfilAvecUtilisateur(u);
+        });
+
+        return;
+      }
+
+      console.log("[profil.html] Utilisateur déjà connecté :", user.uid);
+      chargerProfilAvecUtilisateur(user);
+    }
+
+    function chargerProfilAvecUtilisateur(user) {
+      console.log("[profil.html] chargerProfilAvecUtilisateur pour UID :", user.uid);
+
+      db.ref("eleves/" + user.uid).once("value")
+        .then(function(snapshot) {
+          console.log("[profil.html] snapshot eleves/UID :", snapshot ? snapshot.exists() : "null");
+
+          if (!snapshot || !snapshot.exists()) {
+            afficherErreurChargement(
+              "Ton profil n’existe pas dans la base de données. Contacte l’administrateur."
+            );
+            return;
+          }
+
+          const eleve = snapshot.val();
+          afficherProfil(eleve);
+        })
+        .catch(function(erreur) {
+          console.error("[profil.html] Erreur lors du chargement du profil :", erreur);
+
+          if (erreur && erreur.code === "PERMISSION_DENIED") {
+            afficherErreurChargement(
+              "Firebase refuse l’accès à ton profil. Vérifie les règles de Realtime Database."
+            );
+          } else {
+            afficherErreurChargement(
+              "Impossible de charger ton profil : " +
+              (erreur && erreur.message ? erreur.message : "erreur inconnue")
+            );
+          }
+        });
+    }
 
     lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
@@ -727,12 +496,13 @@
         .then(function() {
           window.location.href = "../index.html";
         })
-        .catch(function(erreur) {
-          console.error("Erreur de déconnexion :", erreur);
+        .catch(function() {
           window.location.href = "../index.html";
         });
     });
+
+    chargerProfil();
   </script>
 
 </body>
-        </html>
+</html>
