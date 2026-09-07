@@ -176,6 +176,17 @@
       text-align: center;
       font-size: 13px;
     }
+
+    @media (max-width: 500px) {
+      main {
+        margin: 22px auto;
+        padding: 0 14px;
+      }
+
+      .card {
+        padding: 23px 17px;
+      }
+    }
   </style>
 </head>
 
@@ -244,17 +255,58 @@
         </div>
 
         <div class="champ">
+          <label for="pays">Pays</label>
+          <select id="pays" required>
+            <option value="">Choisis ton pays</option>
+
+            <option value="213" data-pays="Algérie">Algérie (+213)</option>
+            <option value="229" data-pays="Bénin">Bénin (+229)</option>
+            <option value="237" data-pays="Cameroun">Cameroun (+237)</option>
+            <option value="236" data-pays="Centrafrique">Centrafrique (+236)</option>
+            <option value="235" data-pays="Tchad">Tchad (+235)</option>
+            <option value="269" data-pays="Comores">Comores (+269)</option>
+            <option value="242" data-pays="Congo-Brazzaville">Congo-Brazzaville (+242)</option>
+            <option value="243" data-pays="RDC - Congo-Kinshasa">RDC - Congo-Kinshasa (+243)</option>
+            <option value="225" data-pays="Côte d’Ivoire">Côte d’Ivoire (+225)</option>
+            <option value="253" data-pays="Djibouti">Djibouti (+253)</option>
+            <option value="241" data-pays="Gabon">Gabon (+241)</option>
+            <option value="224" data-pays="Guinée">Guinée (+224)</option>
+            <option value="226" data-pays="Burkina Faso">Burkina Faso (+226)</option>
+            <option value="231" data-pays="Liberia">Liberia (+231)</option>
+            <option value="261" data-pays="Madagascar">Madagascar (+261)</option>
+            <option value="223" data-pays="Mali">Mali (+223)</option>
+            <option value="212" data-pays="Maroc">Maroc (+212)</option>
+            <option value="222" data-pays="Mauritanie">Mauritanie (+222)</option>
+            <option value="230" data-pays="Maurice">Maurice (+230)</option>
+            <option value="227" data-pays="Niger">Niger (+227)</option>
+            <option value="250" data-pays="Rwanda">Rwanda (+250)</option>
+            <option value="221" data-pays="Sénégal">Sénégal (+221)</option>
+            <option value="248" data-pays="Seychelles">Seychelles (+248)</option>
+            <option value="228" data-pays="Togo">Togo (+228)</option>
+            <option value="216" data-pays="Tunisie">Tunisie (+216)</option>
+
+            <option value="32" data-pays="Belgique">Belgique (+32)</option>
+            <option value="33" data-pays="France">France (+33)</option>
+            <option value="352" data-pays="Luxembourg">Luxembourg (+352)</option>
+            <option value="377" data-pays="Monaco">Monaco (+377)</option>
+            <option value="41" data-pays="Suisse">Suisse (+41)</option>
+            <option value="1" data-pays="Canada">Canada (+1)</option>
+            <option value="509" data-pays="Haïti">Haïti (+509)</option>
+          </select>
+        </div>
+
+        <div class="champ">
           <label for="telephone">Numéro WhatsApp</label>
           <input
             type="tel"
             id="telephone"
-            placeholder="Exemple : 2250700000000"
+            placeholder="Exemple : 0700000000"
             inputmode="numeric"
             autocomplete="tel"
             required
           >
           <span class="aide">
-            Indique le numéro international sans +, espace ni tiret. Exemple pour la Côte d’Ivoire : 2250700000000.
+            Écris ton numéro local sans l’indicatif pays. Les espaces et tirets seront supprimés automatiquement.
           </span>
         </div>
 
@@ -369,9 +421,23 @@
         document.getElementById("identifiant").value
       );
       const email = document.getElementById("email").value.trim();
-      const telephone = nettoyerTelephone(
+
+      const selectPays = document.getElementById("pays");
+      const indicatifPays = selectPays.value;
+      const pays = selectPays.options[selectPays.selectedIndex].dataset.pays || "";
+
+      const telephoneLocal = nettoyerTelephone(
         document.getElementById("telephone").value
       );
+
+      /*
+        On retire un premier zéro éventuel du numéro local.
+        Exemple : 0700000000 devient 700000000.
+        Le résultat complet devient 225700000000 pour la Côte d’Ivoire.
+      */
+      const telephoneLocalSansZero = telephoneLocal.replace(/^0+/, "");
+      const telephone = indicatifPays + telephoneLocalSansZero;
+
       const classe = document.getElementById("classe").value;
       const motDePasse = document.getElementById("mot-de-passe").value;
       const confirmation = document.getElementById(
@@ -396,9 +462,26 @@
         return;
       }
 
-      if (telephone.length < 8 || telephone.length > 15) {
+      if (!indicatifPays || !pays) {
+        afficherMessage("Choisis ton pays.", "var(--rouge)");
+        return;
+      }
+
+      if (!telephoneLocalSansZero) {
         afficherMessage(
-          "Indique un numéro WhatsApp international valide, sans + ni espace.",
+          "Indique ton numéro WhatsApp.",
+          "var(--rouge)"
+        );
+        return;
+      }
+
+      if (
+        telephone.length < 8 ||
+        telephone.length > 15 ||
+        !/^[1-9][0-9]+$/.test(telephone)
+      ) {
+        afficherMessage(
+          "Le numéro WhatsApp n’est pas valide. Vérifie le pays et le numéro local.",
           "var(--rouge)"
         );
         return;
@@ -459,7 +542,12 @@
               nom: nom,
               identifiant: identifiant,
               email: email,
+
+              pays: pays,
+              indicatifPays: indicatifPays,
+              telephoneLocal: telephoneLocalSansZero,
               telephone: telephone,
+
               classe: classe,
               points: 0,
               streak: 0,
@@ -494,4 +582,4 @@
   </script>
 
 </body>
-  </html>
+</html>
