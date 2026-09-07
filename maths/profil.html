@@ -66,6 +66,7 @@
       color: white;
       text-decoration: none;
       font-size: 14px;
+      cursor: pointer;
     }
 
     nav ul li a:hover {
@@ -303,7 +304,7 @@
     <h1>Campus Flex - Mon profil</h1>
 
     <ul>
-      <li><a href="index.html">Mathématiques</a></li>
+      <li><a href="#" id="lien-mathematiques">Mathématiques</a></li>
       <li><a href="../index.html">Accueil</a></li>
       <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
@@ -318,7 +319,9 @@
         <p class="chargement">Chargement de tes informations...</p>
       </div>
 
-      <a href="index.html" class="btn">Commencer à étudier</a>
+      <a href="#" id="bouton-etudier" class="btn">
+        Commencer à étudier
+      </a>
     </section>
 
     <section class="card">
@@ -367,11 +370,49 @@
     const formNora = document.getElementById("form-nora");
     const inputNora = document.getElementById("question-nora");
     const lienDeconnexion = document.getElementById("lien-deconnexion");
+    const lienMathematiques = document.getElementById("lien-mathematiques");
+    const boutonEtudier = document.getElementById("bouton-etudier");
+
+    let classeEleve = "";
+
+    const pagesParClasse = {
+      "6e": "6e/index.html",
+      "6eme": "6e/index.html",
+      "6ème": "6e/index.html",
+
+      "5e": "5e/index.html",
+      "5eme": "5e/index.html",
+      "5ème": "5e/index.html",
+
+      "4e": "4e/index.html",
+      "4eme": "4e/index.html",
+      "4ème": "4e/index.html",
+
+      "3e": "3e/index.html",
+      "3eme": "3e/index.html",
+      "3ème": "3e/index.html",
+
+      "Seconde": "seconde/index.html",
+      "seconde": "seconde/index.html",
+
+      "Première": "premiere/index.html",
+      "Premiere": "premiere/index.html",
+      "premiere": "premiere/index.html",
+
+      "Terminale": "terminale/index.html",
+      "terminale": "terminale/index.html"
+    };
 
     function echapperHtml(texte) {
       const element = document.createElement("div");
       element.textContent = texte || "";
       return element.innerHTML;
+    }
+
+    function normaliserClasse(classe) {
+      return String(classe || "")
+        .trim()
+        .replace(/s+/g, " ");
     }
 
     function afficherErreurProfil(texte) {
@@ -384,6 +425,8 @@
       const identifiant = profil.identifiant || "Non renseigné";
       const email = profil.email || user.email || "Non renseigné";
       const classe = profil.classe || "À compléter";
+
+      classeEleve = normaliserClasse(classe);
 
       infosEleve.innerHTML = `
         <div class="info-item">
@@ -432,6 +475,25 @@
         });
     }
 
+    function ouvrirCours(e) {
+      if (e) {
+        e.preventDefault();
+      }
+
+      const destination = pagesParClasse[classeEleve];
+
+      if (!destination) {
+        alert(
+          "Ta classe n’est pas reconnue : " +
+          (classeEleve || "non renseignée") +
+          ". Vérifie la classe affichée dans ton profil."
+        );
+        return;
+      }
+
+      window.location.href = destination;
+    }
+
     if (typeof firebase === "undefined") {
       afficherErreurProfil("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
     } else if (typeof auth === "undefined") {
@@ -466,6 +528,9 @@
           });
       });
     }
+
+    lienMathematiques.addEventListener("click", ouvrirCours);
+    boutonEtudier.addEventListener("click", ouvrirCours);
 
     function ajouterMessageEleve(question) {
       const message = document.createElement("div");
@@ -566,4 +631,4 @@
   </script>
 
 </body>
-  </html>
+    </html>
