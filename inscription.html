@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inscription - Campus Flex</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -110,6 +109,12 @@
       box-shadow: 0 0 0 3px rgba(44, 62, 140, 0.12);
     }
 
+    input:disabled,
+    select:disabled {
+      background: #f1f1f1;
+      cursor: not-allowed;
+    }
+
     .aide {
       display: block;
       color: #777;
@@ -118,7 +123,33 @@
       line-height: 1.4;
     }
 
-    button {
+    .verification-card {
+      display: none;
+      background: #fff8e1;
+      border-left: 4px solid var(--orange);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 18px 0;
+    }
+
+    .verification-card.visible {
+      display: block;
+    }
+
+    .verification-card h3 {
+      color: var(--bleu);
+      font-size: 16px;
+      margin-bottom: 7px;
+    }
+
+    .verification-card p {
+      color: #5c5233;
+      font-size: 13px;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .btn {
       width: 100%;
       margin-top: 5px;
       padding: 13px 18px;
@@ -132,12 +163,20 @@
       transition: background 0.2s ease, transform 0.2s ease;
     }
 
-    button:hover {
+    .btn:hover {
       background: #d68910;
       transform: translateY(-1px);
     }
 
-    button:disabled {
+    .btn-secondaire {
+      background: var(--bleu);
+    }
+
+    .btn-secondaire:hover {
+      background: var(--bleu-fonce);
+    }
+
+    .btn:disabled {
       background: #b8b8b8;
       cursor: not-allowed;
       transform: none;
@@ -201,7 +240,7 @@
       <h2>Créer un compte</h2>
 
       <p class="intro">
-        Crée ton espace apprenant pour accéder à tes cours de mathématiques et suivre ta progression.
+        Crée ton espace apprenant. Ton numéro WhatsApp doit être vérifié par SMS.
       </p>
 
       <form id="form-inscription">
@@ -258,7 +297,6 @@
           <label for="pays">Pays</label>
           <select id="pays" required>
             <option value="">Choisis ton pays</option>
-
             <option value="213" data-pays="Algérie">Algérie (+213)</option>
             <option value="229" data-pays="Bénin">Bénin (+229)</option>
             <option value="237" data-pays="Cameroun">Cameroun (+237)</option>
@@ -284,7 +322,6 @@
             <option value="248" data-pays="Seychelles">Seychelles (+248)</option>
             <option value="228" data-pays="Togo">Togo (+228)</option>
             <option value="216" data-pays="Tunisie">Tunisie (+216)</option>
-
             <option value="32" data-pays="Belgique">Belgique (+32)</option>
             <option value="33" data-pays="France">France (+33)</option>
             <option value="352" data-pays="Luxembourg">Luxembourg (+352)</option>
@@ -306,7 +343,7 @@
             required
           >
           <span class="aide">
-            Écris ton numéro local sans l’indicatif pays. Les espaces et tirets seront supprimés automatiquement.
+            Écris ton numéro local sans l’indicatif pays.
           </span>
         </div>
 
@@ -348,9 +385,33 @@
           >
         </div>
 
-        <button id="btn-inscription" type="submit">
-          Créer mon compte
+        <div id="recaptcha-container"></div>
+
+        <button id="btn-creer-envoyer" class="btn btn-secondaire" type="button">
+          Créer mon compte et envoyer le code SMS
         </button>
+
+        <div id="verification-sms" class="verification-card">
+          <h3>Vérification du numéro</h3>
+
+          <p id="texte-verification">
+            Un code de vérification a été envoyé par SMS.
+          </p>
+
+          <label for="code-sms">Code reçu par SMS</label>
+          <input
+            type="text"
+            id="code-sms"
+            placeholder="Exemple : 123456"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+          >
+
+          <button id="btn-verifier-code" class="btn" type="button">
+            Vérifier le code et finaliser mon compte
+          </button>
+        </div>
 
         <p id="message"></p>
       </form>
@@ -369,7 +430,16 @@
   <script>
     const form = document.getElementById("form-inscription");
     const message = document.getElementById("message");
-    const bouton = document.getElementById("btn-inscription");
+    const boutonCreerEnvoyer = document.getElementById("btn-creer-envoyer");
+    const boutonVerifierCode = document.getElementById("btn-verifier-code");
+    const blocVerification = document.getElementById("verification-sms");
+    const texteVerification = document.getElementById("texte-verification");
+    const inputCodeSms = document.getElementById("code-sms");
+
+    let recaptchaVerifier = null;
+    let verificationId = null;
+    let donneesInscription = null;
+    let utilisateurEmail = null;
 
     function afficherMessage(texte, couleur) {
       message.textContent = texte;
@@ -384,37 +454,40 @@
       return telephone.replace(/[^0-9]/g, "");
     }
 
-    function erreurFirebaseEnFrancais(erreur) {
+    function traduireErreur(erreur) {
       if (!erreur || !erreur.code) {
-        return "Une erreur est survenue. Réessaie.";
+        return erreur && erreur.message
+          ? erreur.message
+          : "Une erreur est survenue. Réessaie.";
       }
 
-      if (erreur.code === "auth/email-already-in-use") {
-        return "Cette adresse e-mail possède déjà un compte.";
-      }
+      const erreurs = {
+        "auth/invalid-phone-number":
+          "Le numéro de téléphone n’est pas valide.",
+        "auth/too-many-requests":
+          "Trop de demandes ont été faites. Attends avant de réessayer.",
+        "auth/quota-exceeded":
+          "Le quota d’envoi de SMS est dépassé. Réessaie plus tard.",
+        "auth/captcha-check-failed":
+          "La vérification de sécurité a échoué. Réessaie.",
+        "auth/invalid-verification-code":
+          "Le code SMS est incorrect.",
+        "auth/code-expired":
+          "Le code SMS a expiré. Demande un nouveau code.",
+        "auth/email-already-in-use":
+          "Cette adresse e-mail possède déjà un compte.",
+        "auth/credential-already-in-use":
+          "Ce numéro de téléphone est déjà associé à un autre compte.",
+        "auth/weak-password":
+          "Le mot de passe doit contenir au moins 6 caractères.",
+        "auth/network-request-failed":
+          "Problème de connexion Internet. Vérifie ta connexion."
+      };
 
-      if (erreur.code === "auth/invalid-email") {
-        return "L’adresse e-mail n’est pas valide.";
-      }
-
-      if (erreur.code === "auth/weak-password") {
-        return "Le mot de passe doit contenir au moins 6 caractères.";
-      }
-
-      if (erreur.code === "auth/network-request-failed") {
-        return "Problème de connexion Internet. Vérifie ta connexion puis réessaie.";
-      }
-
-      if (erreur.code === "PERMISSION_DENIED") {
-        return "Firebase refuse l’enregistrement. Vérifie les règles de Realtime Database.";
-      }
-
-      return "Erreur : " + erreur.message;
+      return erreurs[erreur.code] || ("Erreur : " + erreur.message);
     }
 
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-
+    function lireEtVerifierFormulaire() {
       const prenom = nettoyerTexte(document.getElementById("prenom").value);
       const nom = nettoyerTexte(document.getElementById("nom").value);
       const identifiant = nettoyerTexte(
@@ -424,19 +497,16 @@
 
       const selectPays = document.getElementById("pays");
       const indicatifPays = selectPays.value;
-      const pays = selectPays.options[selectPays.selectedIndex].dataset.pays || "";
+      const pays =
+        selectPays.options[selectPays.selectedIndex].dataset.pays || "";
 
-      const telephoneLocal = nettoyerTelephone(
+      const telephoneLocalBrut = nettoyerTelephone(
         document.getElementById("telephone").value
       );
 
-      /*
-        On retire un premier zéro éventuel du numéro local.
-        Exemple : 0700000000 devient 700000000.
-        Le résultat complet devient 225700000000 pour la Côte d’Ivoire.
-      */
-      const telephoneLocalSansZero = telephoneLocal.replace(/^0+/, "");
-      const telephone = indicatifPays + telephoneLocalSansZero;
+      const telephoneLocal = telephoneLocalBrut.replace(/^0+/, "");
+      const telephone = indicatifPays + telephoneLocal;
+      const telephoneInternational = "+" + telephone;
 
       const classe = document.getElementById("classe").value;
       const motDePasse = document.getElementById("mot-de-passe").value;
@@ -445,34 +515,23 @@
       ).value;
 
       if (prenom.length < 2) {
-        afficherMessage("Indique un prénom valide.", "var(--rouge)");
-        return;
+        throw new Error("Indique un prénom valide.");
       }
 
       if (nom.length < 2) {
-        afficherMessage("Indique un nom valide.", "var(--rouge)");
-        return;
+        throw new Error("Indique un nom valide.");
       }
 
       if (identifiant.length < 3) {
-        afficherMessage(
-          "L’identifiant doit contenir au moins 3 caractères.",
-          "var(--rouge)"
-        );
-        return;
+        throw new Error("L’identifiant doit contenir au moins 3 caractères.");
       }
 
       if (!indicatifPays || !pays) {
-        afficherMessage("Choisis ton pays.", "var(--rouge)");
-        return;
+        throw new Error("Choisis ton pays.");
       }
 
-      if (!telephoneLocalSansZero) {
-        afficherMessage(
-          "Indique ton numéro WhatsApp.",
-          "var(--rouge)"
-        );
-        return;
+      if (!telephoneLocal) {
+        throw new Error("Indique ton numéro WhatsApp.");
       }
 
       if (
@@ -480,106 +539,168 @@
         telephone.length > 15 ||
         !/^[1-9][0-9]+$/.test(telephone)
       ) {
-        afficherMessage(
-          "Le numéro WhatsApp n’est pas valide. Vérifie le pays et le numéro local.",
-          "var(--rouge)"
-        );
-        return;
+        throw new Error("Le numéro WhatsApp n’est pas valide.");
       }
 
       if (!classe) {
-        afficherMessage("Choisis ta classe.", "var(--rouge)");
-        return;
+        throw new Error("Choisis ta classe.");
       }
 
       if (motDePasse.length < 6) {
-        afficherMessage(
-          "Le mot de passe doit contenir au moins 6 caractères.",
-          "var(--rouge)"
-        );
-        return;
+        throw new Error("Le mot de passe doit contenir au moins 6 caractères.");
       }
 
       if (motDePasse !== confirmation) {
-        afficherMessage(
-          "Les deux mots de passe ne sont pas identiques.",
-          "var(--rouge)"
-        );
-        return;
+        throw new Error("Les deux mots de passe ne sont pas identiques.");
       }
 
+      return {
+        prenom: prenom,
+        nom: nom,
+        identifiant: identifiant,
+        email: email,
+        pays: pays,
+        indicatifPays: indicatifPays,
+        telephoneLocal: telephoneLocal,
+        telephone: telephone,
+        telephoneInternational: telephoneInternational,
+        classe: classe,
+        motDePasse: motDePasse
+      };
+    }
+
+    function desactiverFormulaire(desactive) {
+      const champs = form.querySelectorAll(
+        "input:not(#code-sms), select"
+      );
+
+      champs.forEach(function(champ) {
+        champ.disabled = desactive;
+      });
+
+      boutonCreerEnvoyer.disabled = desactive;
+    }
+
+    function initialiserRecaptcha() {
+      if (recaptchaVerifier) {
+        return Promise.resolve();
+      }
+
+      recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: function() {
+            console.log("reCAPTCHA validé.");
+          },
+          "expired-callback": function() {
+            afficherMessage(
+              "La vérification de sécurité a expiré. Réessaie.",
+              "var(--rouge)"
+            );
+          }
+        }
+      );
+
+      return recaptchaVerifier.render();
+    }
+
+    boutonCreerEnvoyer.addEventListener("click", function() {
       if (
         typeof firebase === "undefined" ||
         typeof auth === "undefined" ||
         !db
       ) {
         afficherMessage(
-          "Firebase n’est pas correctement configuré. Vérifie firebase-config.js.",
+          "Firebase n’est pas correctement configuré.",
           "var(--rouge)"
         );
         return;
       }
 
-      bouton.disabled = true;
-      bouton.textContent = "Création en cours...";
+      try {
+        donneesInscription = lireEtVerifierFormulaire();
+      } catch (erreur) {
+        afficherMessage(erreur.message, "var(--rouge)");
+        return;
+      }
+
+      boutonCreerEnvoyer.disabled = true;
+      boutonCreerEnvoyer.textContent = "Création et envoi en cours...";
       afficherMessage("", "");
 
-      auth.createUserWithEmailAndPassword(email, motDePasse)
-        .then(function(resultat) {
-          const user = resultat.user;
-          const uid = user.uid;
+      /*
+        Crée un seul compte principal avec e-mail et mot de passe.
+        Le numéro sera lié à CE MÊME compte après la confirmation du code.
+      */
+      auth.createUserWithEmailAndPassword(
+        donneesInscription.email,
+        donneesInscription.motDePasse
+      )
+      .then(function(resultat) {
+        utilisateurEmail = resultat.user;
 
-          localStorage.setItem("cf_uid", uid);
-          localStorage.setItem("cf_identifiant", identifiant);
-
-          return user.updateProfile({
-            displayName: prenom + " " + nom
-          })
-          .then(function() {
-            return db.ref("eleves/" + uid).set({
-              uid: uid,
-              prenom: prenom,
-              nom: nom,
-              identifiant: identifiant,
-              email: email,
-
-              pays: pays,
-              indicatifPays: indicatifPays,
-              telephoneLocal: telephoneLocalSansZero,
-              telephone: telephone,
-
-              classe: classe,
-              points: 0,
-              streak: 0,
-              bestStreak: 0,
-              lastCheckin: "",
-              dateInscription: Date.now()
-            });
-          });
-        })
-        .then(function() {
-          afficherMessage(
-            "Compte créé avec succès. Redirection vers ton profil...",
-            "var(--vert)"
-          );
-
-          window.setTimeout(function() {
-            window.location.href = "maths/profil.html";
-          }, 1200);
-        })
-        .catch(function(erreur) {
-          console.error("Erreur inscription :", erreur);
-
-          afficherMessage(
-            erreurFirebaseEnFrancais(erreur),
-            "var(--rouge)"
-          );
-
-          bouton.disabled = false;
-          bouton.textContent = "Créer mon compte";
+        return utilisateurEmail.updateProfile({
+          displayName:
+            donneesInscription.prenom + " " + donneesInscription.nom
         });
-    });
-  </script>
+      })
+      .then(function() {
+        return initialiserRecaptcha();
+      })
+      .then(function() {
+        /*
+          Envoie un SMS sans connecter un second utilisateur :
+          PhoneAuthProvider.verifyPhoneNumber donne directement
+          un verificationId, utilisable ensuite avec linkWithCredential.
+        */
+        const fournisseurTelephone = new firebase.auth.PhoneAuthProvider();
 
-</body>
-</html>
+        return fournisseurTelephone.verifyPhoneNumber(
+          donneesInscription.telephoneInternational,
+          recaptchaVerifier
+        );
+      })
+      .then(function(idVerification) {
+        verificationId = idVerification;
+
+        texteVerification.textContent =
+          "Un code a été envoyé au numéro " +
+          donneesInscription.telephoneInternational +
+          ". Saisis-le ci-dessous pour finaliser ton compte.";
+
+        blocVerification.classList.add("visible");
+        desactiverFormulaire(true);
+
+        inputCodeSms.focus();
+
+        afficherMessage(
+          "Code SMS envoyé. Vérifie tes messages.",
+          "var(--vert)"
+        );
+      })
+      .catch(function(erreur) {
+        console.error("Erreur création ou envoi SMS :", erreur);
+
+        afficherMessage(
+          traduireErreur(erreur),
+          "var(--rouge)"
+        );
+
+        boutonCreerEnvoyer.disabled = false;
+        boutonCreerEnvoyer.textContent =
+          "Créer mon compte et envoyer le code SMS";
+
+        /*
+          Si le compte vient d’être créé mais que l’envoi SMS échoue,
+          l’utilisateur peut se connecter ultérieurement. Le profil n’est
+          toutefois pas écrit dans la base avant la validation du téléphone.
+        */
+      });
+    });
+
+    boutonVerifierCode.addEventListener("click", function() {
+      const code = nettoyerTelephone(inputCodeSms.value);
+
+      if (!verificationId || !utilisateurEmail || !donneesInscription) {
+     
