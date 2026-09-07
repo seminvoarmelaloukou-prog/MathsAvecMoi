@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Évaluation officielle - Campus Flex</title>
+
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 760px;
+      margin: 45px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 28px 22px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .question {
+      margin-bottom: 26px;
+      text-align: left;
+    }
+
+    .question h3 {
+      font-size: 17px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .question img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .choix {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .choix label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid #d9e0f3;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #f8f9ff;
+      font-size: 15px;
+    }
+
+    .choix label:hover {
+      background: #eef1ff;
+    }
+
+    .choix input[type="radio"] {
+      accent-color: var(--indigo);
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 11px 22px;
+      border-radius: 24px;
+      background: var(--indigo);
+      color: white;
+      border: none;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+    }
+
+    .btn:disabled {
+      background: var(--gris);
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 16px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .loader {
+      width: 38px;
+      height: 38px;
+      margin: 22px auto 15px;
+      border: 4px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    footer {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 14px;
+      font-size: 13px;
+    }
+
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        justify-content: center;
+        text-align: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      main {
+        margin: 25px auto;
+        padding: 0 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Campus Flex - Évaluation officielle</h1>
+
+    <ul>
+      <li><a href="profil.html">Mon profil</a></li>
+      <li><a href="index.html">Cours</a></li>
+      <li><a href="../index.html">Accueil</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- SECTION : MESSAGE / CHARGEMENT -->
+    <section class="card" id="card-message">
+      <h2 id="titre-message">Chargement</h2>
+
+      <div id="loader" class="loader"></div>
+
+      <p id="texte-message">
+        Vérification de l’état de l’évaluation officielle...
+      </p>
+    </section>
+
+    <!-- SECTION : QUESTIONS (cachée au début) -->
+    <section class="card" id="card-questions" style="display: none;">
+      <h2>Évaluation officielle</h2>
+
+      <p class="description">
+        Cette évaluation compte pour ton suivi. Réponds sérieusement à toutes les questions.
+      </p>
+
+      <form id="form-evaluation">
+        <div id="liste-questions"></div>
+
+        <button type="button" class="btn" id="btn-valider">
+          Valider mes réponses
+        </button>
+      </form>
+
+      <p id="message-resultat" class="message"></p>
+
+      <a href="profil.html" class="btn" id="btn-retour-profil" style="display:none; margin-left: 10px;">
+        Retour au profil
+      </a>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2026 Campus Flex - Tous droits réservés
+  </footer>
+
+  <script>
+    const cardMessage = document.getElementById("card-message");
+    const cardQuestions = document.getElementById("card-questions");
+
+    const titreMessage = document.getElementById("titre-message");
+    const texteMessage = document.getElementById("texte-message");
+    const loader = document.getElementById("loader");
+
+    const listeQuestions = document.getElementById("liste-questions");
+    const formEvaluation = document.getElementById("form-evaluation");
+    const btnValider = document.getElementById("btn-valider");
+    const messageResultat = document.getElementById("message-resultat");
+    const btnRetourProfil = document.getElementById("btn-retour-profil");
+
+    let questionsData = {};
+    let classeEleve = "";
+    let evaluationActive = false;
+
+    function afficherMessage(titre, texte, couleur) {
+      cardMessage.style.display = "block";
+      cardQuestions.style.display = "none";
+
+      titreMessage.textContent = titre || "Message";
+      texteMessage.textContent = texte || "";
+      texteMessage.style.color = couleur || "var(--muted)";
+      loader.style.display = "none";
+    }
+
+    function normaliserClasse(valeur) {
+      return String(valeur || "")
+        .trim()
+        .replace(/s+/g, " ");
+    }
+
+    function verifierEvaluationOfficielle() {
+      console.log("[evaluation.html] verifierEvaluationOfficielle()");
+
+      if (!db) {
+        throw new Error("Realtime Database non disponible");
+      }
+
+      if (!auth || !auth.currentUser) {
+        throw new Error("Utilisateur non connecté");
+      }
+
+      // 1. Vérifier si l'évaluation officielle est activée
+      return db.ref("evaluations/config/evaluation_officielle_active").once("value")
+        .then(function(snapConfig) {
+          const active = snapConfig && snapConfig.val() === true;
+          console.log("[evaluation.html] evaluation_officielle_active =", active);
+
+          if (!active) {
+            throw new Error("EVALUATION_INACTIVE");
+          }
+
+          evaluationActive = true;
+
+          // 2. Lire la classe de l'élève
+          return db.ref("eleves/" + auth.currentUser.uid + "/classe").once("value");
+        })
+        .then(function(snapClasse) {
+          const classeBrute = snapClasse ? snapClasse.val() : null;
+
+          if (!classeBrute) {
+            throw new Error("Ta classe n’est pas renseignée.");
+          }
+
+          classeEleve = normaliserClasse(classeBrute);
+          console.log("[evaluation.html] Classe détectée :", classeEleve);
+
+          // 3. Lire les questions officielles pour cette classe
+          return db.ref("evaluations/questions/" + classeEleve).once("value");
+        })
+        .then(function(snapQuestions) {
+          console.log("[evaluation.html] Snapshot questions officielles :", snapQuestions ? snapQuestions.exists() : "null");
+
+          if (!snapQuestions || !snapQuestions.exists()) {
+            throw new Error("Aucune question officielle n’est disponible pour ta classe (" + classeEleve + ").");
+          }
+
+          questionsData = snapQuestions.val() || {};
+          console.log("[evaluation.html] Questions officielles chargées :", Object.keys(questionsData).length);
+        });
+    }
+
+    function afficherQuestions() {
+      console.log("[evaluation.html] afficherQuestions()");
+
+      if (!questionsData || Object.keys(questionsData).length === 0) {
+        afficherMessage(
+          "Aucune question",
+          "Aucune question n’est disponible pour ta classe pour le moment.",
+          "var(--error)"
+        );
+        return;
+      }
+
+      cardMessage.style.display = "none";
+      cardQuestions.style.display = "block";
+      listeQuestions.innerHTML = "";
+
+      let index = 0;
+
+      Object.keys(questionsData).forEach(function(key) {
+        const q = questionsData[key];
+
+        if (!q || !q.active) {
+          return;
+        }
+
+        index++;
+
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "question";
+
+        const h3 = document.createElement("h3");
+        h3.textContent = "Question " + index + " : " + q.question;
+        questionDiv.appendChild(h3);
+
+        if (q.image) {
+          const img = document.createElement("img");
+          img.src = q.image;
+          img.alt = "Illustration de la question";
+          questionDiv.appendChild(img);
+        }
+
+        const choixDiv = document.createElement("div");
+        choixDiv.className = "choix";
+
+        q.choix.forEach(function(choixText, i) {
+          const label = document.createElement("label");
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "question-" + key;
+          input.value = String(i);
+
+          const span = document.createElement("span");
+          span.textContent = choixText;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          choixDiv.appendChild(label);
+        });
+
+        questionDiv.appendChild(choixDiv);
+        listeQuestions.appendChild(questionDiv);
+      });
+
+      btnValider.disabled = false;
+    }
+
+    function validerEvaluation() {
+      console.log("[evaluation.html] validerEvaluation()");
+
+      if (!auth || !auth.currentUser) {
+        afficherMessage(
+          "Déconnexion détectée",
+          "Tu dois être connecté pour envoyer tes réponses.",
+          "var(--error)"
+        );
+        btnValider.disabled = true;
+        return;
+      }
+
+      const uid = auth.currentUser.uid;
+      const now = Date.now();
+
+      let score = 0;
+      let totalPoints = 0;
+      let nbQuestions = 0;
+
+      const reponses = {};
+
+      Object.keys(questionsData).forEach(function(key) {
+        const q = questionsData[key];
+
+        if (!q || !q.active) {
+          return;
+        }
+
+        nbQuestions++;
+        totalPoints += (q.points || 1);
+
+        const selected = document.querySelector(
+          'input[name="question-' + key + '"]:checked'
+        );
+
+        const reponseIndex = selected ? parseInt(selected.value, 10) : -1;
+        reponses[key] = reponseIndex;
+
+        if (reponseIndex === q.bonneReponse) {
+          score += (q.points || 1);
+        }
+      });
+
+      if (nbQuestions === 0) {
+        afficherMessage(
+          "Aucune question",
+          "Aucune question active n’a été trouvée.",
+          "var(--error)"
+        );
+        return;
+      }
+
+      // Sauvegarde du résultat
+      const resultat = {
+        uid: uid,
+        classe: classeEleve,
+        date: now,
+        score: score,
+        totalPoints: totalPoints,
+        nbQuestions: nbQuestions,
+        reponses: reponses,
+        type: "officielle"
+      };
+
+      db.ref("evaluations/resultats/" + uid + "/" + now)
+        .set(resultat)
+        .then(function() {
+          console.log("[evaluation.html] Résultat officiel enregistré.");
+
+          messageResultat.textContent =
+            "Ton score : " + score + " / " + totalPoints +
+            " (" + nbQuestions + " question(s)).";
+
+          messageResultat.style.color = "var(--success)";
+          btnValider.disabled = true;
+          btnRetourProfil.style.display = "inline-block";
+        })
+        .catch(function(erreur) {
+          console.error("[evaluation.html] Erreur enregistrement résultat officiel :", erreur);
+
+          messageResultat.textContent =
+            "Erreur lors de l’enregistrement de ton résultat. Réessaie plus tard.";
+          messageResultat.style.color = "var(--error)";
+        });
+    }
+
+    (function init() {
+      console.log("[evaluation.html] init()");
+
+      if (typeof firebase === "undefined" || typeof auth === "undefined" || !db) {
+        afficherMessage(
+          "Configuration",
+          "Firebase n’est pas correctement configuré.",
+          "var(--error)"
+        );
+        btnValider.disabled = true;
+        return;
+      }
+
+      if (!auth.currentUser) {
+        afficherMessage("Vérification de ta connexion…", "Chargement...", "var(--gris)");
+
+        auth.onAuthStateChanged(function(user) {
+          console.log("[evaluation.html] onAuthStateChanged :", user ? user.uid : "null");
+
+          if (!user) {
+            afficherMessage(
+              "Connexion requise",
+              "Tu dois être connecté pour accéder à cette évaluation.",
+              "var(--error)"
+            );
+            btnValider.disabled = true;
+            return;
+          }
+
+          // Utilisateur connecté : on vérifie l'évaluation
+          afficherMessage("Vérification de l’évaluation officielle...", "", "var(--gris)");
+
+          verifierEvaluationOfficielle()
+            .then(function() {
+              afficherMessage("", "", "");
+              afficherQuestions();
+            })
+            .catch(function(erreur) {
+              console.error("Erreur vérification évaluation officielle :", erreur);
+
+              if (erreur.message === "EVALUATION_INACTIVE") {
+                afficherMessage(
+                  "Évaluation non activée",
+                  "L’évaluation officielle n’est pas encore activée par l’administrateur.",
+                  "var(--error)"
+                );
+              } else {
+                afficherMessage(
+                  "Erreur",
+                  "Impossible de charger l’évaluation : " + erreur.message,
+                  "var(--error)"
+                );
+              }
+            });
+        });
+
+        return;
+      }
+
+      // Déjà connecté
+      afficherMessage("Vérification de l’évaluation officielle...", "", "var(--gris)");
+
+      verifierEvaluationOfficielle()
+        .then(function() {
+          afficherMessage("", "", "");
+          afficherQuestions();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur vérification évaluation officielle :", erreur);
+
+          if (erreur.message === "EVALUATION_INACTIVE") {
+            afficherMessage(
+              "Évaluation non activée",
+              "L’évaluation officielle n’est pas encore activée par l’administrateur.",
+              "var(--error)"
+            );
+          } else {
+            afficherMessage(
+              "Erreur",
+              "Impossible de charger l’évaluation : " + erreur.message,
+              "var(--error)"
+            );
+          }
+        });
+    })();
+
+    btnValider.addEventListener("click", validerEvaluation);
+  </script>
+
+</body>
+</html>
