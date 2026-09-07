@@ -175,6 +175,48 @@
       line-height: 1.5;
     }
 
+    .evaluations-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .btn-eval {
+      display: inline-block;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 24px;
+      background: var(--orange);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .btn-eval:hover {
+      background: #d68910;
+      transform: translateY(-1px);
+    }
+
+    .btn-eval.secondaire {
+      background: var(--bleu);
+    }
+
+    .btn-eval.secondaire:hover {
+      background: var(--bleu-fonce);
+    }
+
+    .message-eval {
+      width: 100%;
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--gris);
+      line-height: 1.4;
+    }
+
     .chat-container {
       height: 300px;
       overflow-y: auto;
@@ -330,6 +372,28 @@
       </div>
     </section>
 
+    <!-- NOUVELLE SECTION : ÉVALUATIONS -->
+    <section class="card">
+      <h2>Évaluations</h2>
+
+      <p class="description">
+        Retrouve ici tes évaluations blanches (entraînement) et les évaluations officielles activées par l’administrateur.
+      </p>
+
+      <div class="evaluations-section">
+        <a href="evaluation-blanche.html" class="btn-eval secondaire">
+          Évaluation blanche
+        </a>
+
+        <a href="evaluation.html" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">
+          Évaluation
+        </a>
+
+        <p id="message-evaluation" class="message-eval"></p>
+      </div>
+    </section>
+    <!-- FIN NOUVELLE SECTION -->
+
     <section class="card" id="chat-nora">
       <h2>Nora - Tuteur IA</h2>
 
@@ -370,6 +434,9 @@
     const lienDeconnexion = document.getElementById("lien-deconnexion");
     const lienMathematiques = document.getElementById("lien-mathematiques");
     const boutonEtudier = document.getElementById("bouton-etudier");
+
+    const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
+    const messageEvaluation = document.getElementById("message-evaluation");
 
     let classeEleve = "";
 
@@ -502,6 +569,34 @@
       window.location.href = destination;
     }
 
+    function gererEvaluations() {
+      if (!db) {
+        messageEvaluation.textContent =
+          "Impossible de vérifier l’état des évaluations (base de données non disponible).";
+        return;
+      }
+
+      db.ref("evaluations/config/evaluation_officielle_active").once("value")
+        .then(function(snap) {
+          const active = snap.val() === true;
+
+          if (active) {
+            btnEvaluationOfficielle.style.display = "inline-block";
+            messageEvaluation.textContent =
+              "L’évaluation officielle est actuellement activée.";
+          } else {
+            btnEvaluationOfficielle.style.display = "none";
+            messageEvaluation.textContent =
+              "L’évaluation officielle n’est pas encore activée par l’administrateur.";
+          }
+        })
+        .catch(function(erreur) {
+          console.error("Erreur lecture config évaluation :", erreur);
+          messageEvaluation.textContent =
+            "Impossible de vérifier l’état des évaluations.";
+        });
+    }
+
     if (typeof firebase === "undefined") {
       afficherErreurProfil("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
     } else if (typeof auth === "undefined") {
@@ -520,6 +615,7 @@
         creerProfilSiNecessaire(user)
           .then(function(profil) {
             afficherProfil(profil, user);
+            gererEvaluations();
           })
           .catch(function(erreur) {
             console.error("Erreur Firebase :", erreur);
@@ -639,4 +735,4 @@
   </script>
 
 </body>
-</html>
+        </html>
