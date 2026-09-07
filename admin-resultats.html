@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résultats - Admin - Campus Flex</title>
+
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * {
+      flex: 0 0 auto;
+    }
+
+    label {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    input[type="text"],
+    select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    input[type="text"] {
+      min-width: 220px;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--indigo-dark);
+    }
+
+    button.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    button.secondaire:hover {
+      background: #cdd5f6;
+    }
+
+    .message {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .message.success {
+      color: var(--success);
+    }
+
+    .message.error {
+      color: var(--error);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    thead {
+      background: #f2f5ff;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e3e7f6;
+      text-align: left;
+    }
+
+    th {
+      color: var(--indigo);
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: #fafbff;
+    }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 900px) {
+      table {
+        font-size: 13px;
+      }
+
+      th, td {
+        padding: 8px 5px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      nav {
+        justify-content: center;
+        text-align: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      main {
+        margin: 20px auto;
+        padding: 0 14px;
+      }
+
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      input[type="text"] {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Résultats</h1>
+
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- SECTION : VÉRIFICATION ADMIN -->
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">
+          Vérification de tes droits administrateur...
+        </p>
+      </div>
+    </section>
+
+    <!-- SECTION : RÉSULTATS -->
+    <section class="card" id="card-resultats" style="display: none;">
+      <h2>Résultats des élèves</h2>
+
+      <p>
+        Consulte les résultats des évaluations blanches et officielles.
+      </p>
+
+      <div class="row">
+        <label for="select-type">Type :</label>
+        <select id="select-type">
+          <option value="tous">Tous</option>
+          <option value="blanche">Évaluations blanches</option>
+          <option value="officielle">Évaluations officielles</option>
+        </select>
+
+        <label for="select-classe">Classe :</label>
+        <select id="select-classe">
+          <option value="">Toutes les classes</option>
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="Seconde">Seconde</option>
+          <option value="Première">Première</option>
+          <option value="Terminale">Terminale</option>
+        </select>
+
+        <label for="input-recherche">Recherche :</label>
+        <input
+          type="text"
+          id="input-recherche"
+          placeholder="Nom, prénom, email ou identifiant"
+        />
+
+        <button id="btn-appliquer-filtres" class="secondaire">
+          Appliquer
+        </button>
+      </div>
+
+      <div id="loader-table" class="loader" style="display: none; margin: 12px 0;"></div>
+
+      <table id="table-resultats">
+        <thead>
+          <tr>
+            <th>Élève</th>
+            <th>Classe</th>
+            <th>Type</th>
+            <th>Date</th>
+            <th>Score</th>
+            <th>Total</th>
+            <th>Questions</th>
+          </tr>
+        </thead>
+        <tbody id="corps-table-resultats">
+          <!-- Rempli dynamiquement -->
+        </tbody>
+      </table>
+
+      <p id="message-aucun-resultat" class="message" style="display: none;">
+        Aucun résultat trouvé.
+      </p>
+    </section>
+
+  </main>
+
+  <script>
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardResultats = document.getElementById("card-resultats");
+
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
+
+    const selectType = document.getElementById("select-type");
+    const selectClasse = document.getElementById("select-classe");
+    const inputRecherche = document.getElementById("input-recherche");
+    const btnAppliquerFiltres = document.getElementById("btn-appliquer-filtres");
+
+    const loaderTable = document.getElementById("loader-table");
+    const corpsTable = document.getElementById("corps-table-resultats");
+    const messageAucunResultat = document.getElementById("message-aucun-resultat");
+
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    let tousLesResultats = [];
+    let mapEleves = {}; // uid -> infos élève
+    let adminUid = null;
+
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function verifierAdmin() {
+      console.log("[admin-resultats.html] verifierAdmin()");
+
+      if (!db || !auth) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
+      }
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
+        return Promise.reject(new Error("Pas connecté"));
+      }
+
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
+          }
+
+          const adminData = snap.val();
+          console.log("[admin-resultats.html] Admin :", adminData);
+
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+          cardResultats.style.display = "block";
+          chargerDonnees();
+        });
+    }
+
+    function chargerDonnees() {
+      console.log("[admin-resultats.html] chargerDonnees()");
+
+      loaderTable.style.display = "block";
+      corpsTable.innerHTML = "";
+      messageAucunResultat.style.display = "none";
+
+      // 1. Charger tous les élèves (pour afficher nom/prénom/classe)
+      db.ref("eleves").once("value")
+        .then(function(snapEleves) {
+          mapEleves = {};
+
+          if (snapEleves && snapEleves.exists()) {
+            snapEleves.forEach(function(childSnap) {
+              const uid = childSnap.key;
+              const eleve = childSnap.val();
+              mapEleves[uid] = {
+                uid: uid,
+                nom: eleve.nom || "",
+                prenom: eleve.prenom || "",
+                email: eleve.email || "",
+                identifiant: eleve.identifiant || "",
+                classe: eleve.classe || ""
+              };
+            });
+          }
+
+          // 2. Charger résultats blanches + officiels
+          return Promise.all([
+            db.ref("evaluations_blanches/resultats").once("value"),
+            db.ref("evaluations/resultats").once("value")
+          ]);
+        })
+        .then(function([snapBlanches, snapOfficielles]) {
+          tousLesResultats = [];
+
+          // Résultats blanches
+          if (snapBlanches && snapBlanches.exists()) {
+            snapBlanches.forEach(function(uidSnap) {
+              const uid = uidSnap.key;
+              const eleveInfo = mapEleves[uid] || { nom: "", prenom: "", classe: "" };
+
+              uidSnap.forEach(function(resSnap) {
+                const res = resSnap.val();
+                tousLesResultats.push({
+                  uid: uid,
+                  nom: eleveInfo.nom || "–",
+                  prenom: eleveInfo.prenom || "–",
+                  email: eleveInfo.email || "–",
+                  identifiant: eleveInfo.identifiant || "–",
+                  classe: res.classe || eleveInfo.classe || "–",
+                  type: "blanche",
+                  date: res.date,
+                  score: res.score,
+                  totalPoints: res.totalPoints,
+                  nbQuestions: res.nbQuestions
+                });
+              });
+            });
+          }
+
+          // Résultats officiels
+          if (snapOfficielles && snapOfficielles.exists()) {
+            snapOfficielles.forEach(function(uidSnap) {
+              const uid = uidSnap.key;
+              const eleveInfo = mapEleves[uid] || { nom: "", prenom: "", classe: "" };
+
+              uidSnap.forEach(function(resSnap) {
+                const res = resSnap.val();
+                tousLesResultats.push({
+                  uid: uid,
+                  nom: eleveInfo.nom || "–",
+                  prenom: eleveInfo.prenom || "–",
+                  email: eleveInfo.email || "–",
+                  identifiant: eleveInfo.identifiant || "–",
+                  classe: res.classe || eleveInfo.classe || "–",
+                  type: "officielle",
+                  date: res.date,
+                  score: res.score,
+                  totalPoints: res.totalPoints,
+                  nbQuestions: res.nbQuestions
+                });
+              });
+            });
+          }
+
+          loaderTable.style.display = "none";
+          afficherTableau(tousLesResultats);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement résultats :", erreur);
+          loaderTable.style.display = "none";
+          messageAucunResultat.textContent = "Impossible de charger les résultats.";
+          messageAucunResultat.classList.add("error");
+          messageAucunResultat.style.display = "block";
+        });
+    }
+
+    function afficherTableau(resultats) {
+      corpsTable.innerHTML = "";
+
+      if (resultats.length === 0) {
+        messageAucunResultat.textContent = "Aucun résultat trouvé avec ces critères.";
+        messageAucunResultat.classList.remove("error");
+        messageAucunResultat.style.display = "block";
+        return;
+      }
+
+      messageAucunResultat.style.display = "none";
+
+      // Trier par date décroissante
+      resultats.sort(function(a, b) {
+        return (b.date || 0) - (a.date || 0);
+      });
+
+      resultats.forEach(function(r) {
+        const tr = document.createElement("tr");
+
+        // Élève
+        const tdEleve = document.createElement("td");
+        tdEleve.textContent = (r.prenom || "") + " " + (r.nom || "");
+        tr.appendChild(tdEleve);
+
+        // Classe
+        const tdClasse = document.createElement("td");
+        tdClasse.textContent = r.classe || "–";
+        tr.appendChild(tdClasse);
+
+        // Type
+        const tdType = document.createElement("td");
+        tdType.textContent = r.type === "blanche" ? "Blanche" : "Officielle";
+        tr.appendChild(tdType);
+
+        // Date
+        const tdDate = document.createElement("td");
+        if (r.date) {
+          const d = new Date(r.date);
+          tdDate.textContent = d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        } else {
+          tdDate.textContent = "–";
+        }
+        tr.appendChild(tdDate);
+
+        // Score
+        const tdScore = document.createElement("td");
+        tdScore.textContent = (r.score ?? 0) + " / " + (r.totalPoints ?? 0);
+        tr.appendChild(tdScore);
+
+        // Total (on répète un peu, mais c'est clair)
+        const tdTotal = document.createElement("td");
+        tdTotal.textContent = (r.totalPoints ?? 0) + " pts";
+        tr.appendChild(tdTotal);
+
+        // Questions
+        const tdQuestions = document.createElement("td");
+        tdQuestions.textContent = (r.nbQuestions ?? 0) + " q.";
+        tr.appendChild(tdQuestions);
+
+        corpsTable.appendChild(tr);
+      });
+    }
+
+    function filtrerResultats() {
+      const type = selectType.value;
+      const classe = selectClasse.value;
+      const texte = inputRecherche.value.trim().toLowerCase();
+
+      let resultat = tousLesResultats;
+
+      // Filtre type
+      if (type !== "tous") {
+        resultat = resultat.filter(function(r) {
+          return r.type === type;
+        });
+      }
+
+      // Filtre classe
+      if (classe) {
+        resultat = resultat.filter(function(r) {
+          return (r.classe || "") === classe;
+        });
+      }
+
+      // Recherche texte (nom, prénom, email, identifiant)
+      if (texte) {
+        resultat = resultat.filter(function(r) {
+          return (
+            (r.nom || "").toLowerCase().includes(texte) ||
+            (r.prenom || "").toLowerCase().includes(texte) ||
+            (r.email || "").toLowerCase().includes(texte) ||
+            (r.identifiant || "").toLowerCase().includes(texte)
+          );
+        });
+      }
+
+      afficherTableau(resultat);
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      auth.signOut()
+        .then(function() {
+          window.location.href = "index.html";
+        })
+        .catch(function() {
+          window.location.href = "index.html";
+        });
+    });
+
+    btnAppliquerFiltres.addEventListener("click", filtrerResultats);
+
+    (function init() {
+      console.log("[admin-resultats.html] init()");
+
+      if (!auth || !db) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
+
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+
+          verifierAdmin();
+        });
+
+        return;
+      }
+
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>
