@@ -445,34 +445,70 @@
         }
       });
 
-      const pathResultat =
+      const baseResultatsPath =
         (typeEval === "blanche"
           ? "evaluations_blanches/resultats/"
-          : "evaluations/resultats/") + userActuel.uid;
+          : "evaluations/resultats/");
 
-      const objetResultat = {
-        evaluationId: typeEval,
-        classe: classeEleve,
-        datePassation: Date.now(),
-        reponses: reponses,
-        score: score,
-        maxScore: maxScore,
-        type: typeEval
-      };
+      const pathResultat = baseResultatsPath + userActuel.uid;
 
+      // 1. Compter le nombre de tentatives déjà existantes
       btnEnvoyer.disabled = true;
-      btnEnvoyer.textContent = "Enregistrement…";
+      btnEnvoyer.textContent = "Vérification…";
 
       firebase.database()
         .ref(pathResultat)
-        .set(objetResultat)
+        .once("value")
+        .then(function(snap) {
+          let nbTentatives = 0;
+
+          if (snap.exists()) {
+            const data = snap.val();
+            nbTentatives = Object.keys(data).length;
+          }
+
+          if (nbTentatives >= 3) {
+            btnEnvoyer.textContent = "Envoyer mes réponses";
+            btnEnvoyer.disabled = false;
+            alert(
+              "Tu as déjà atteint le nombre maximum de 3 tentatives pour cette évaluation. " +
+              "Tu ne peux plus envoyer de nouvelle tentative."
+            );
+            throw new Error("LIMITE_TENTATIVES_ATTEINTE");
+          }
+
+          // 2. Créer un identifiant de tentative unique
+          const idTentative = "tentative" + (nbTentatives + 1);
+
+          const objetResultat = {
+            evaluationId: typeEval,
+            classe: classeEleve,
+            datePassation: Date.now(),
+            reponses: reponses,
+            score: score,
+            maxScore: maxScore,
+            type: typeEval
+          };
+
+          btnEnvoyer.textContent = "Enregistrement…";
+
+          return firebase.database()
+            .ref(pathResultat + "/" + idTentative)
+            .set(objetResultat);
+        })
         .then(function() {
+          // Si on arrive ici, l'enregistrement a réussi
           btnEnvoyer.textContent = "Envoyé";
           afficherResultat(score, maxScore);
         })
         .catch(function(err) {
+          if (err && err.message === "LIMITE_TENTATIVES_ATTEINTE") {
+            // On a déjà affiché l'alerte, on ne fait rien de plus
+            return;
+          }
+
           console.error("Erreur enregistrement résultat :", err);
-          btnEnvoyer.textContent = "Erreur lors de l’envoi";
+          btnEnvoyer.textContent = "Envoyer mes réponses";
           btnEnvoyer.disabled = false;
           alert("Une erreur est survenue lors de l’envoi de tes réponses.");
         });
@@ -486,4 +522,4 @@
   </script>
 
 </body>
-  </html>
+</html>
