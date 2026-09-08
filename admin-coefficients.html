@@ -163,7 +163,6 @@
 
   <main>
 
-    <!-- SECTION : VÉRIFICATION ADMIN -->
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>
       <div class="row">
@@ -172,10 +171,9 @@
       </div>
     </section>
 
-    <!-- SECTION : GESTION DES COEFFICIENTS -->
     <section class="card" id="card-coefficients" style="display: none;">
       <h2>Gestion des coefficients par classe</h2>
-      <p>Définis le coefficient de mathématiques pour chaque classe (1 à 6).</p>
+      <p>Définis le coefficient de mathématiques pour chaque classe (1 à 10).</p>
 
       <div class="row">
         <label for="select-classe-coef">Classe :</label>
@@ -198,12 +196,12 @@
           <option value="Tle E">Tle E</option>
         </select>
 
-        <label for="input-coefficient">Coefficient (1-6) :</label>
+        <label for="input-coefficient">Coefficient (1-10) :</label>
         <input
           type="number"
           id="input-coefficient"
           min="1"
-          max="6"
+          max="10"
           value="1"
           style="width: 80px;"
         />
@@ -334,8 +332,8 @@
       messageCoef.textContent = "Enregistrement en cours...";
       messageCoef.classList.remove("success", "error");
 
-      if (coef < 1 || coef > 6) {
-        messageCoef.textContent = "Le coefficient doit être entre 1 et 6.";
+      if (coef < 1 || coef > 10) {
+        messageCoef.textContent = "Le coefficient doit être entre 1 et 10.";
         messageCoef.classList.add("error");
         return;
       }
@@ -389,4 +387,4 @@
   </script>
 
 </body>
-</html>
+          </html>
