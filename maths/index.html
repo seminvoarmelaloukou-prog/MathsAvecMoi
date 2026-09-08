@@ -308,8 +308,8 @@
 
     <section class="eval-section">
       <h2>Évaluations en ligne</h2>
-      <p style="text-align:center; color: var(--muted); margin-bottom: 10px;">
-        Passe une évaluation correspondant à ta classe et consulte tes résultats.
+      <p id="texteIntroEvaluations" style="text-align:center; color: var(--muted); margin-bottom: 10px;">
+        Chargement…
       </p>
 
       <div id="evaluationsContainer" class="eval-grid"></div>
@@ -324,12 +324,9 @@
   <script>
     const niveauxContainer = document.getElementById("niveauxContainer");
     const evaluationsContainer = document.getElementById("evaluationsContainer");
+    const texteIntroEvaluations = document.getElementById("texteIntroEvaluations");
     const btnDeconnexion = document.getElementById("deconnexion");
 
-    /*
-      Liste complète des classes.
-      actif: true seulement si le dossier ET le fichier existent réellement.
-    */
     const NIVEAUX = [
       {
         id: "6e",
@@ -523,37 +520,7 @@
       niveauxContainer.appendChild(card);
     }
 
-    function afficherTousNiveaux() {
-      niveauxContainer.innerHTML = "";
-
-      NIVEAUX.forEach(function(niveau) {
-        const card = document.createElement("div");
-        card.className = "niveau-card" + (niveau.actif ? "" : " indisponible");
-
-        const boutonCours = niveau.actif
-          ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
-          : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
-
-        const boutonEvaluation = niveau.actif
-          ? "<a href='../evaluations.html?type=blanche&classe=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>"
-          : "<span class='btn btn-secondaire btn-disabled'>Évaluations bientôt disponibles</span>";
-
-        const statut = niveau.actif
-          ? "<span class='statut'>Cours disponible</span>"
-          : "<span class='statut'>Préparation en cours</span>";
-
-        card.innerHTML =
-          "<h3>" + niveau.nom + "</h3>" +
-          "<p>" + niveau.desc + "</p>" +
-          boutonCours +
-          boutonEvaluation +
-          statut;
-
-        niveauxContainer.appendChild(card);
-      });
-    }
-
-    function afficherEvaluationsGlobales() {
+    function afficherEvaluationsPourClasse(classe) {
       evaluationsContainer.innerHTML = "";
 
       firebase.database()
@@ -566,12 +533,17 @@
             officielleActive = !!snapConfig.val().evaluation_officielle_active;
           }
 
+          // Texte d’intro personnalisé selon la classe
+          texteIntroEvaluations.textContent =
+            "Tu es en " + classe + ". Voici tes évaluations de mathématiques.";
+
           const blanche = document.createElement("div");
           blanche.className = "eval-card";
           blanche.innerHTML =
-            "<h3>Évaluation blanche</h3>" +
-            "<p>Choisis d’abord ta classe ci-dessus afin de passer l’évaluation blanche correspondante.</p>" +
-            "<div class='etat-eval'>Disponible pour les classes déjà préparées</div>";
+            "<h3>Évaluation blanche – " + classe + "</h3>" +
+            "<p>Passe l’évaluation blanche correspondant à ta classe.</p>" +
+            "<a href='../evaluations.html?type=blanche&classe=" + classe + "' class='btn-eval'>Passer l’évaluation</a>" +
+            "<div class='etat-eval'>Disponible</div>";
 
           evaluationsContainer.appendChild(blanche);
 
@@ -579,15 +551,19 @@
             const officielle = document.createElement("div");
             officielle.className = "eval-card";
             officielle.innerHTML =
-              "<h3>Évaluation officielle</h3>" +
-              "<p>Choisis d’abord ta classe ci-dessus afin de passer l’évaluation officielle correspondante.</p>" +
-              "<div class='etat-eval'>Disponible selon l’activation administrateur</div>";
+              "<h3>Évaluation officielle – " + classe + "</h3>" +
+              "<p>Passe l’évaluation officielle correspondant à ta classe.</p>" +
+              "<a href='../evaluations.html?type=officielle&classe=" + classe + "' class='btn-eval'>Passer l’évaluation</a>" +
+              "<div class='etat-eval'>Disponible</div>";
 
             evaluationsContainer.appendChild(officielle);
           }
         })
         .catch(function(err) {
           console.error("Erreur chargement configuration évaluations :", err);
+
+          texteIntroEvaluations.textContent =
+            "Tu es en " + classe + ". Voici tes évaluations de mathématiques.";
 
           evaluationsContainer.innerHTML =
             "<p>Impossible de charger les évaluations pour le moment.</p>";
@@ -626,9 +602,8 @@
               return;
             }
 
-            // IMPORTANT : on n'affiche QUE la classe de l'élève
             afficherNiveauxPourClasse(classeEleve);
-            afficherEvaluationsGlobales();
+            afficherEvaluationsPourClasse(classeEleve);
           })
           .catch(function(err) {
             console.error("Erreur lecture profil élève :", err);
