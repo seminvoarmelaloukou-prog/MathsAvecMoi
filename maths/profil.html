@@ -717,3 +717,136 @@
       noraQuestionInput.value = "";
       repondreNora(question);
     })
+// Question avec Entrée
+    noraQuestionInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        noraBtnEnvoyer.click();
+      }
+    });
+
+    // Bouton vocal
+    noraBtnParler.addEventListener("click", function() {
+      if (!reconnaissanceVocale) {
+        initialiserReconnaissanceVocale();
+      }
+
+      if (!reconnaissanceVocale) {
+        noraMessage.textContent = "La reconnaissance vocale n'est pas disponible.";
+        noraMessage.classList.add("error");
+        return;
+      }
+
+      try {
+        noraBtnParler.disabled = true;
+        reconnaissanceVocale.start();
+      } catch (erreur) {
+        console.error("Erreur démarrage reconnaissance :", erreur);
+        noraMessage.textContent = "Erreur microphone. Utilise le mode écrit.";
+        noraMessage.classList.add("error");
+        noraBtnParler.disabled = false;
+      }
+    });
+
+    // === FIN FONCTIONS NORA ===
+
+    function chargerProfil() {
+      if (typeof firebase === "undefined") {
+        afficherErreurChargement("Firebase n'est pas chargé. Vérifie les scripts Firebase.");
+        return;
+      }
+
+      if (typeof auth === "undefined") {
+        afficherErreurChargement("Firebase Authentication n'est pas disponible.");
+        return;
+      }
+
+      if (!db) {
+        afficherErreurChargement(
+          "Realtime Database n'est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
+        );
+        return;
+      }
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        auth.onAuthStateChanged(function(u) {
+          if (!u) {
+            window.location.href = "../connexion.html";
+            return;
+          }
+          chargerProfilAvecUtilisateur(u);
+        });
+        return;
+      }
+
+      chargerProfilAvecUtilisateur(user);
+    }
+
+    function chargerProfilAvecUtilisateur(user) {
+      db.ref("administrateurs/" + user.uid).once("value")
+        .then(function(snapAdmin) {
+          if (snapAdmin && snapAdmin.exists()) {
+            window.location.href = "../admin.html";
+            return Promise.reject(new Error("REDIRECT_ADMIN"));
+          }
+
+          return db.ref("eleves/" + user.uid).once("value");
+        })
+        .then(function(snapshot) {
+          if (!snapshot) {
+            return;
+          }
+
+          if (!snapshot.exists()) {
+            afficherErreurChargement(
+              "Ton profil n'existe pas dans la base de données. Contacte l'administrateur."
+            );
+            return;
+          }
+
+          const eleve = snapshot.val();
+          afficherProfil(eleve);
+        })
+        .catch(function(erreur) {
+          if (erreur && erreur.message === "REDIRECT_ADMIN") {
+            return;
+          }
+
+          console.error("[profil.html] Erreur lors du chargement du profil :", erreur);
+
+          if (erreur && erreur.code === "PERMISSION_DENIED") {
+            afficherErreurChargement(
+              "Firebase refuse l'accès à ton profil. Vérifie les règles de Realtime Database."
+            );
+          } else {
+            afficherErreurChargement(
+              "Impossible de charger ton profil : " +
+              (erreur && erreur.message ? erreur.message : "erreur inconnue")
+            );
+          }
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (typeof auth === "undefined") {
+        window.location.href = "../index.html";
+        return;
+      }
+
+      auth.signOut()
+        .then(function() {
+          window.location.href = "../index.html";
+        })
+        .catch(function() {
+          window.location.href = "../index.html";
+        });
+    });
+
+    chargerProfil();
+  </script>
+
+</body>
+</html>
