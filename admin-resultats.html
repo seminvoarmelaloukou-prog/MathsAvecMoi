@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Résultats - Admin - Campus Flex</title>
 
-  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -24,12 +23,7 @@
       --gris: #7f8c8d;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -50,27 +44,10 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 {
-      color: white;
-      font-size: 20px;
-    }
-
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
 
     main {
       flex: 1;
@@ -109,17 +86,11 @@
       margin-bottom: 14px;
     }
 
-    .row > * {
-      flex: 0 0 auto;
-    }
+    .row > * { flex: 0 0 auto; }
 
-    label {
-      font-size: 14px;
-      color: var(--text);
-    }
+    label { font-size: 14px; color: var(--text); }
 
-    input[type="text"],
-    select {
+    input[type="text"], select {
       padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid #cfd8f0;
@@ -127,9 +98,7 @@
       background: #fff;
     }
 
-    input[type="text"] {
-      min-width: 220px;
-    }
+    input[type="text"] { min-width: 220px; }
 
     button {
       padding: 8px 14px;
@@ -142,31 +111,18 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: var(--indigo-dark);
-    }
+    button:hover { background: var(--indigo-dark); }
 
     button.secondaire {
       background: #e3e7f6;
       color: var(--indigo);
     }
 
-    button.secondaire:hover {
-      background: #cdd5f6;
-    }
+    button.secondaire:hover { background: #cdd5f6; }
 
-    .message {
-      font-size: 14px;
-      margin-top: 8px;
-    }
-
-    .message.success {
-      color: var(--success);
-    }
-
-    .message.error {
-      color: var(--error);
-    }
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
 
     table {
       width: 100%;
@@ -175,24 +131,14 @@
       font-size: 14px;
     }
 
-    thead {
-      background: #f2f5ff;
-    }
-
+    thead { background: #f2f5ff; }
     th, td {
       padding: 10px 8px;
       border-bottom: 1px solid #e3e7f6;
       text-align: left;
     }
-
-    th {
-      color: var(--indigo);
-      font-weight: bold;
-    }
-
-    tr:hover {
-      background: #fafbff;
-    }
+    th { color: var(--indigo); font-weight: bold; }
+    tr:hover { background: #fafbff; }
 
     .loader {
       width: 32px;
@@ -203,46 +149,19 @@
       animation: tourner 0.8s linear infinite;
     }
 
-    @keyframes tourner {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    @keyframes tourner { to { transform: rotate(360deg); } }
 
     @media (max-width: 900px) {
-      table {
-        font-size: 13px;
-      }
-
-      th, td {
-        padding: 8px 5px;
-      }
+      table { font-size: 13px; }
+      th, td { padding: 8px 5px; }
     }
 
     @media (max-width: 700px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 20px auto;
-        padding: 0 14px;
-      }
-
-      .row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      input[type="text"] {
-        min-width: 0;
-        width: 100%;
-      }
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+      input[type="text"] { min-width: 0; width: 100%; }
     }
   </style>
 </head>
@@ -251,7 +170,6 @@
 
   <nav>
     <h1>Admin - Résultats</h1>
-
     <ul>
       <li><a href="admin.html">Tableau de bord</a></li>
       <li><a href="index.html">Accueil</a></li>
@@ -261,25 +179,17 @@
 
   <main>
 
-    <!-- SECTION : VÉRIFICATION ADMIN -->
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>
-
       <div class="row">
         <div class="loader" id="loader-admin"></div>
-        <p id="message-admin-check">
-          Vérification de tes droits administrateur...
-        </p>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
       </div>
     </section>
 
-    <!-- SECTION : RÉSULTATS -->
     <section class="card" id="card-resultats" style="display: none;">
       <h2>Résultats des élèves</h2>
-
-      <p>
-        Consulte les résultats des évaluations blanches et officielles.
-      </p>
+      <p>Consulte les résultats des évaluations blanches et officielles.</p>
 
       <div class="row">
         <label for="select-type">Type :</label>
@@ -296,9 +206,18 @@
           <option value="5e">5e</option>
           <option value="4e">4e</option>
           <option value="3e">3e</option>
-          <option value="Seconde">Seconde</option>
-          <option value="Première">Première</option>
-          <option value="Terminale">Terminale</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
         </select>
 
         <label for="input-recherche">Recherche :</label>
@@ -308,9 +227,7 @@
           placeholder="Nom, prénom, email ou identifiant"
         />
 
-        <button id="btn-appliquer-filtres" class="secondaire">
-          Appliquer
-        </button>
+        <button id="btn-appliquer-filtres" class="secondaire">Appliquer</button>
       </div>
 
       <div id="loader-table" class="loader" style="display: none; margin: 12px 0;"></div>
@@ -327,14 +244,10 @@
             <th>Questions</th>
           </tr>
         </thead>
-        <tbody id="corps-table-resultats">
-          <!-- Rempli dynamiquement -->
-        </tbody>
+        <tbody id="corps-table-resultats"></tbody>
       </table>
 
-      <p id="message-aucun-resultat" class="message" style="display: none;">
-        Aucun résultat trouvé.
-      </p>
+      <p id="message-aucun-resultat" class="message" style="display: none;">Aucun résultat trouvé.</p>
     </section>
 
   </main>
@@ -358,7 +271,7 @@
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
     let tousLesResultats = [];
-    let mapEleves = {}; // uid -> infos élève
+    let mapEleves = {};
     let adminUid = null;
 
     function afficherErreurAdmin(texte) {
@@ -368,15 +281,12 @@
     }
 
     function verifierAdmin() {
-      console.log("[admin-resultats.html] verifierAdmin()");
-
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
-
       if (!user) {
         afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
@@ -393,8 +303,6 @@
           }
 
           const adminData = snap.val();
-          console.log("[admin-resultats.html] Admin :", adminData);
-
           loaderAdmin.style.display = "none";
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
@@ -404,13 +312,10 @@
     }
 
     function chargerDonnees() {
-      console.log("[admin-resultats.html] chargerDonnees()");
-
       loaderTable.style.display = "block";
       corpsTable.innerHTML = "";
       messageAucunResultat.style.display = "none";
 
-      // 1. Charger tous les élèves (pour afficher nom/prénom/classe)
       db.ref("eleves").once("value")
         .then(function(snapEleves) {
           mapEleves = {};
@@ -430,7 +335,6 @@
             });
           }
 
-          // 2. Charger résultats blanches + officiels
           return Promise.all([
             db.ref("evaluations_blanches/resultats").once("value"),
             db.ref("evaluations/resultats").once("value")
@@ -439,7 +343,6 @@
         .then(function([snapBlanches, snapOfficielles]) {
           tousLesResultats = [];
 
-          // Résultats blanches
           if (snapBlanches && snapBlanches.exists()) {
             snapBlanches.forEach(function(uidSnap) {
               const uid = uidSnap.key;
@@ -464,7 +367,6 @@
             });
           }
 
-          // Résultats officiels
           if (snapOfficielles && snapOfficielles.exists()) {
             snapOfficielles.forEach(function(uidSnap) {
               const uid = uidSnap.key;
@@ -513,7 +415,6 @@
 
       messageAucunResultat.style.display = "none";
 
-      // Trier par date décroissante
       resultats.sort(function(a, b) {
         return (b.date || 0) - (a.date || 0);
       });
@@ -521,22 +422,18 @@
       resultats.forEach(function(r) {
         const tr = document.createElement("tr");
 
-        // Élève
         const tdEleve = document.createElement("td");
         tdEleve.textContent = (r.prenom || "") + " " + (r.nom || "");
         tr.appendChild(tdEleve);
 
-        // Classe
         const tdClasse = document.createElement("td");
         tdClasse.textContent = r.classe || "–";
         tr.appendChild(tdClasse);
 
-        // Type
         const tdType = document.createElement("td");
         tdType.textContent = r.type === "blanche" ? "Blanche" : "Officielle";
         tr.appendChild(tdType);
 
-        // Date
         const tdDate = document.createElement("td");
         if (r.date) {
           const d = new Date(r.date);
@@ -546,17 +443,14 @@
         }
         tr.appendChild(tdDate);
 
-        // Score
         const tdScore = document.createElement("td");
         tdScore.textContent = (r.score ?? 0) + " / " + (r.totalPoints ?? 0);
         tr.appendChild(tdScore);
 
-        // Total (on répète un peu, mais c'est clair)
         const tdTotal = document.createElement("td");
         tdTotal.textContent = (r.totalPoints ?? 0) + " pts";
         tr.appendChild(tdTotal);
 
-        // Questions
         const tdQuestions = document.createElement("td");
         tdQuestions.textContent = (r.nbQuestions ?? 0) + " q.";
         tr.appendChild(tdQuestions);
@@ -572,21 +466,18 @@
 
       let resultat = tousLesResultats;
 
-      // Filtre type
       if (type !== "tous") {
         resultat = resultat.filter(function(r) {
           return r.type === type;
         });
       }
 
-      // Filtre classe
       if (classe) {
         resultat = resultat.filter(function(r) {
           return (r.classe || "") === classe;
         });
       }
 
-      // Recherche texte (nom, prénom, email, identifiant)
       if (texte) {
         resultat = resultat.filter(function(r) {
           return (
@@ -603,26 +494,18 @@
 
     lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
-
       if (!auth) {
         window.location.href = "index.html";
         return;
       }
-
-      auth.signOut()
-        .then(function() {
-          window.location.href = "index.html";
-        })
-        .catch(function() {
-          window.location.href = "index.html";
-        });
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
     });
 
     btnAppliquerFiltres.addEventListener("click", filtrerResultats);
 
     (function init() {
-      console.log("[admin-resultats.html] init()");
-
       if (!auth || !db) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return;
@@ -630,16 +513,13 @@
 
       if (!auth.currentUser) {
         messageAdminCheck.textContent = "Vérification de ta connexion...";
-
         auth.onAuthStateChanged(function(user) {
           if (!user) {
             window.location.href = "connexion.html";
             return;
           }
-
           verifierAdmin();
         });
-
         return;
       }
 
@@ -648,4 +528,4 @@
   </script>
 
 </body>
-</html>
+  </html>
