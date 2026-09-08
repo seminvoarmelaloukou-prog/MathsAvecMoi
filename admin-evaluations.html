@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="../firebase-config.js"></script>
+  <script src="firebase-config.js"></script>
 
   <style>
     :root {
@@ -104,7 +104,7 @@
     .row {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
       margin-bottom: 14px;
     }
@@ -260,7 +260,7 @@
 
     <ul>
       <li><a href="admin.html">Tableau de bord</a></li>
-      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="index.html">Site public</a></li>
       <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
@@ -455,15 +455,15 @@
       console.log("[admin-evaluations.html] verifierAdmin()");
 
       if (!db || !auth) {
-        afficherErreurAdmin("Firebase n’est pas correctement configuré.");
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
 
       if (!user) {
-        afficherErreurAdmin("Tu dois être connecté en tant qu’administrateur.");
-        window.location.href = "../connexion.html";
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
         return Promise.reject(new Error("Pas connecté"));
       }
 
@@ -472,7 +472,7 @@
       return db.ref("administrateurs/" + adminUid).once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) {
-            afficherErreurAdmin("Ce compte n’est pas enregistré comme administrateur.");
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
             throw new Error("Pas admin");
           }
 
@@ -627,7 +627,6 @@
 
       db.ref("evaluations/questions/" + classe + "/" + key + "/active").set(active)
         .then(function() {
-          // Recharger la liste
           chargerQuestionsPourClasse(classe);
         })
         .catch(function(erreur) {
@@ -698,7 +697,6 @@
         active: true
       };
 
-      // Générer un id unique simple
       const now = Date.now();
       const key = "q_" + now;
 
@@ -709,7 +707,6 @@
           messageAjoutQuestion.textContent = "Question ajoutée avec succès.";
           messageAjoutQuestion.classList.add("success");
 
-          // Vider les champs
           inputQuestion.value = "";
           inputImage.value = "";
           inputChoix0.value = "";
@@ -719,12 +716,11 @@
           inputBonneReponse.value = "0";
           inputPoints.value = "1";
 
-          // Recharger la liste
           chargerQuestionsPourClasse(classe);
         })
         .catch(function(erreur) {
           console.error("Erreur ajout question :", erreur);
-          messageAjoutQuestion.textContent = "Erreur lors de l’ajout de la question.";
+          messageAjoutQuestion.textContent = "Erreur lors de l'ajout de la question.";
           messageAjoutQuestion.classList.add("error");
         });
     }
@@ -733,16 +729,16 @@
       e.preventDefault();
 
       if (!auth) {
-        window.location.href = "../index.html";
+        window.location.href = "index.html";
         return;
       }
 
       auth.signOut()
         .then(function() {
-          window.location.href = "../index.html";
+          window.location.href = "index.html";
         })
         .catch(function() {
-          window.location.href = "../index.html";
+          window.location.href = "index.html";
         });
     });
 
@@ -755,12 +751,11 @@
 
     btnAjouterQuestion.addEventListener("click", ajouterQuestion);
 
-    // Initialisation
     (function init() {
       console.log("[admin-evaluations.html] init()");
 
       if (!auth || !db) {
-        afficherErreurAdmin("Firebase n’est pas correctement configuré.");
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return;
       }
 
@@ -769,7 +764,7 @@
 
         auth.onAuthStateChanged(function(user) {
           if (!user) {
-            window.location.href = "../connexion.html";
+            window.location.href = "connexion.html";
             return;
           }
 
