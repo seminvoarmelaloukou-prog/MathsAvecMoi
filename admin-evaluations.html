@@ -719,4 +719,65 @@
           chargerQuestionsPourClasse(classe);
         })
         .catch(function(erreur) {
+          console.error("Erreur ajout question :", erreur);
+          messageAjoutQuestion.textContent = "Erreur lors de l'ajout de la question.";
+          messageAjoutQuestion.classList.add("error");
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      auth.signOut()
+        .then(function() {
+          window.location.href = "index.html";
+        })
+        .catch(function() {
+          window.location.href = "index.html";
+        });
+    });
+
+    btnSauverConfig.addEventListener("click", sauverConfig);
+
+    btnChargerQuestions.addEventListener("click", function() {
+      const classe = selectClasse.value;
+      chargerQuestionsPourClasse(classe);
+    });
+
+    btnAjouterQuestion.addEventListener("click", ajouterQuestion);
+
+    (function init() {
+      console.log("[admin-evaluations.html] init()");
+
+      if (!auth || !db) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
+
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+
+          verifierAdmin();
+        });
+
+        return;
+      }
+
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>
     
