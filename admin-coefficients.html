@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coefficients - Admin - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * { flex: 0 0 auto; }
+
+    label { font-size: 14px; color: var(--text); }
+
+    select, input[type="number"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--indigo-dark); }
+
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    thead { background: #f2f5ff; }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e3e7f6;
+      text-align: left;
+    }
+    th { color: var(--indigo); font-weight: bold; }
+    tr:hover { background: #fafbff; }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Coefficients</h1>
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- SECTION : VÉRIFICATION ADMIN -->
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
+      </div>
+    </section>
+
+    <!-- SECTION : GESTION DES COEFFICIENTS -->
+    <section class="card" id="card-coefficients" style="display: none;">
+      <h2>Gestion des coefficients par classe</h2>
+      <p>Définis le coefficient de mathématiques pour chaque classe (1 à 6).</p>
+
+      <div class="row">
+        <label for="select-classe-coef">Classe :</label>
+        <select id="select-classe-coef">
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
+        </select>
+
+        <label for="input-coefficient">Coefficient (1-6) :</label>
+        <input
+          type="number"
+          id="input-coefficient"
+          min="1"
+          max="6"
+          value="1"
+          style="width: 80px;"
+        />
+
+        <button id="btn-sauver-coef">Enregistrer</button>
+      </div>
+
+      <p id="message-coef" class="message"></p>
+
+      <h3 style="margin-top: 22px; color: var(--indigo); font-size: 18px;">
+        Coefficients actuels
+      </h3>
+
+      <div id="loader-coef" class="loader" style="display: none; margin: 12px 0;"></div>
+
+      <table id="table-coefficients">
+        <thead>
+          <tr>
+            <th>Classe</th>
+            <th>Coefficient</th>
+          </tr>
+        </thead>
+        <tbody id="corps-table-coefficients"></tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <script>
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardCoefficients = document.getElementById("card-coefficients");
+
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
+
+    const selectClasseCoef = document.getElementById("select-classe-coef");
+    const inputCoefficient = document.getElementById("input-coefficient");
+    const btnSauverCoef = document.getElementById("btn-sauver-coef");
+    const messageCoef = document.getElementById("message-coef");
+
+    const loaderCoef = document.getElementById("loader-coef");
+    const corpsTableCoefficients = document.getElementById("corps-table-coefficients");
+
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    let adminUid = null;
+
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function verifierAdmin() {
+      if (!db || !auth) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
+      }
+
+      const user = auth.currentUser;
+      if (!user) {
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
+        return Promise.reject(new Error("Pas connecté"));
+      }
+
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
+          }
+
+          const adminData = snap.val();
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+          cardCoefficients.style.display = "block";
+          chargerCoefficients();
+        });
+    }
+
+    function chargerCoefficients() {
+      loaderCoef.style.display = "block";
+      corpsTableCoefficients.innerHTML = "";
+
+      db.ref("coefficients").once("value")
+        .then(function(snap) {
+          loaderCoef.style.display = "none";
+
+          if (!snap || !snap.exists()) {
+            corpsTableCoefficients.innerHTML = "<tr><td colspan='2'>Aucun coefficient défini.</td></tr>";
+            return;
+          }
+
+          const data = snap.val();
+          const classes = Object.keys(data);
+
+          classes.forEach(function(classe) {
+            const coef = data[classe].maths || 1;
+
+            const tr = document.createElement("tr");
+
+            const tdClasse = document.createElement("td");
+            tdClasse.textContent = classe;
+            tr.appendChild(tdClasse);
+
+            const tdCoef = document.createElement("td");
+            tdCoef.textContent = coef;
+            tr.appendChild(tdCoef);
+
+            corpsTableCoefficients.appendChild(tr);
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement coefficients :", erreur);
+          loaderCoef.style.display = "none";
+          corpsTableCoefficients.innerHTML = "<tr><td colspan='2'>Erreur de chargement.</td></tr>";
+        });
+    }
+
+    function sauverCoefficient() {
+      const classe = selectClasseCoef.value;
+      const coef = parseInt(inputCoefficient.value, 10);
+
+      messageCoef.textContent = "Enregistrement en cours...";
+      messageCoef.classList.remove("success", "error");
+
+      if (coef < 1 || coef > 6) {
+        messageCoef.textContent = "Le coefficient doit être entre 1 et 6.";
+        messageCoef.classList.add("error");
+        return;
+      }
+
+      db.ref("coefficients/" + classe + "/maths").set(coef)
+        .then(function() {
+          messageCoef.textContent = "Coefficient enregistré avec succès.";
+          messageCoef.classList.add("success");
+          chargerCoefficients();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur sauvegarde coefficient :", erreur);
+          messageCoef.textContent = "Erreur lors de l'enregistrement.";
+          messageCoef.classList.add("error");
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
+    });
+
+    btnSauverCoef.addEventListener("click", sauverCoefficient);
+
+    (function init() {
+      if (!auth || !db) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+          verifierAdmin();
+        });
+        return;
+      }
+
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>
