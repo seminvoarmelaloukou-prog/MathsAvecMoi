@@ -740,3 +740,47 @@
 
           const eleve = snapshot.val();
     
+afficherProfil(eleve);
+        })
+        .catch(function(erreur) {
+          if (erreur && erreur.message === "REDIRECT_ADMIN") {
+            return;
+          }
+
+          console.error("[profil.html] Erreur lors du chargement du profil :", erreur);
+
+          if (erreur && erreur.code === "PERMISSION_DENIED") {
+            afficherErreurChargement(
+              "Firebase refuse l'accès à ton profil. Vérifie les règles de Realtime Database."
+            );
+          } else {
+            afficherErreurChargement(
+              "Impossible de charger ton profil : " +
+              (erreur && erreur.message ? erreur.message : "erreur inconnue")
+            );
+          }
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (typeof auth === "undefined") {
+        window.location.href = "../index.html";
+        return;
+      }
+
+      auth.signOut()
+        .then(function() {
+          window.location.href = "../index.html";
+        })
+        .catch(function() {
+          window.location.href = "../index.html";
+        });
+    });
+
+    chargerProfil();
+  </script>
+
+</body>
+</html>
