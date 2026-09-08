@@ -177,8 +177,9 @@
     <h1>🎓 Campus Flex</h1>
     <ul>
       <li><a href="index.html">Accueil</a></li>
-      <li><a href="connexion.html">Se connecter</a></li>
-      <li><a href="inscription.html">S’inscrire</a></li>
+      <li><a href="maths/index.html">Maths</a></li>
+      <li><a href="profil.html">Mon profil</a></li>
+      <li><a href="#" id="deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
@@ -214,8 +215,26 @@
   <script>
     const blanchesContainer = document.getElementById("blanchesContainer");
     const officiellesContainer = document.getElementById("officiellesContainer");
+    const btnDeconnexion = document.getElementById("deconnexion");
 
     let userActuel = null;
+
+    btnDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (!confirm("Veux-tu vraiment te déconnecter ?")) {
+        return;
+      }
+
+      firebase.auth().signOut()
+        .then(function() {
+          window.location.href = "connexion.html";
+        })
+        .catch(function(err) {
+          console.error("Erreur déconnexion :", err);
+          alert("Une erreur est survenue lors de la déconnexion.");
+        });
+    });
 
     window.addEventListener("load", function() {
       if (!firebase.auth || !firebase.database) {
@@ -286,9 +305,21 @@
         return r;
       });
 
+      // Compatible avec les anciens champs (datePassation, maxScore)
+      // et les nouveaux (date, totalPoints).
+      function getDate(r) {
+        return r.date || r.datePassation || null;
+      }
+
+      function getTotal(r) {
+        return typeof r.totalPoints === "number"
+          ? r.totalPoints
+          : (typeof r.maxScore === "number" ? r.maxScore : null);
+      }
+
       // Trier par date (plus récent en premier)
       resultats.sort(function(a, b) {
-        return (b.datePassation || 0) - (a.datePassation || 0);
+        return (getDate(b) || 0) - (getDate(a) || 0);
       });
 
       if (resultats.length === 0) {
@@ -304,17 +335,19 @@
 
         const classeAffichee = r.classe || "Classe non précisée";
 
-        const dateStr = r.datePassation
-          ? new Date(r.datePassation).toLocaleDateString("fr-FR", {
+        const dateValeur = getDate(r);
+        const dateStr = dateValeur
+          ? new Date(dateValeur).toLocaleDateString("fr-FR", {
               day: "2-digit",
               month: "2-digit",
               year: "numeric"
             })
           : "Date inconnue";
 
+        const totalValeur = getTotal(r);
         const scoreText =
-          (typeof r.score === "number" && typeof r.maxScore === "number")
-            ? r.score + " / " + r.maxScore
+          (typeof r.score === "number" && typeof totalValeur === "number")
+            ? r.score + " / " + totalValeur
             : "Score non disponible";
 
         div.innerHTML =
