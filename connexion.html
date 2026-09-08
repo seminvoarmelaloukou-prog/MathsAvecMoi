@@ -177,21 +177,13 @@
     const message = document.getElementById("message");
     const bouton = document.getElementById("btnConnexion");
 
-    /**
-     * Affiche un message à l'utilisateur.
-     * @param {string} texte
-     * @param {"success"|"error"} type
-     */
+    let enCoursDeConnexion = false;
+
     function afficherMessage(texte, type) {
       message.textContent = texte;
       message.style.color = type === "success" ? "#27ae60" : "#c0392b";
     }
 
-    /**
-     * Vérifie si l'utilisateur est un administrateur.
-     * @param {firebase.User} user
-     * @returns {Promise<boolean>}
-     */
     function estAdministrateur(user) {
       if (!firebase.database) {
         throw new Error("Realtime Database non disponible");
@@ -208,6 +200,11 @@
     formulaire.addEventListener("submit", function(e) {
       e.preventDefault();
 
+      if (enCoursDeConnexion) {
+        return;
+      }
+      enCoursDeConnexion = true;
+
       const email = document.getElementById("email").value.trim();
       const motDePasse = document.getElementById("motDePasse").value;
 
@@ -220,7 +217,6 @@
         .then(function(userCredential) {
           const user = userCredential.user;
 
-          // Vérifier si c'est un admin
           return estAdministrateur(user)
             .then(function(admin) {
               if (admin) {
@@ -231,7 +227,6 @@
               } else {
                 afficherMessage("✅ Connexion réussie ! Redirection vers tes cours...", "success");
                 setTimeout(function() {
-                  // TODO : remplace "maths/index.html" par le bon chemin si nécessaire
                   window.location.href = "maths/index.html";
                 }, 800);
               }
@@ -239,6 +234,7 @@
         })
         .catch(function(erreur) {
           console.error("Erreur connexion :", erreur);
+          enCoursDeConnexion = false;
 
           let texte = "❌ Adresse e-mail ou mot de passe incorrect.";
 
