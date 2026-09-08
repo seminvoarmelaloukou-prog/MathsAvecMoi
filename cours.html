@@ -205,20 +205,38 @@
     const descNiveau = document.getElementById("descNiveau");
     const chapitresContainer = document.getElementById("chapitresContainer");
 
-    // Récupérer le niveau depuis l'URL : cours.html?niveau=6e
     function getNiveauFromURL() {
       const params = new URLSearchParams(window.location.search);
       return params.get("niveau");
     }
 
     const NIVEAUX_INFO = {
+      // Collège
       "6e": { nom: "6e", desc: "Cours de mathématiques pour le niveau 6e." },
       "5e": { nom: "5e", desc: "Cours de mathématiques pour le niveau 5e." },
       "4e": { nom: "4e", desc: "Cours de mathématiques pour le niveau 4e." },
       "3e": { nom: "3e", desc: "Cours de mathématiques pour le niveau 3e." },
-      "Seconde": { nom: "Seconde", desc: "Cours de mathématiques pour la classe de Seconde." },
-      "Première": { nom: "Première", desc: "Cours de mathématiques pour la classe de Première." },
-      "Terminale": { nom: "Terminale", desc: "Cours de mathématiques pour la classe de Terminale." }
+
+      // 2nde
+      "2ndeA": { nom: "2nde A", desc: "Cours de mathématiques pour la classe de 2nde A." },
+      "2ndeB": { nom: "2nde B", desc: "Cours de mathématiques pour la classe de 2nde B." },
+      "2ndeC": { nom: "2nde C", desc: "Cours de mathématiques pour la classe de 2nde C." },
+      "2ndeD": { nom: "2nde D", desc: "Cours de mathématiques pour la classe de 2nde D." },
+      "2ndeE": { nom: "2nde E", desc: "Cours de mathématiques pour la classe de 2nde E." },
+
+      // 1ère
+      "1ereA": { nom: "1ère A", desc: "Cours de mathématiques pour la classe de 1ère A." },
+      "1ereB": { nom: "1ère B", desc: "Cours de mathématiques pour la classe de 1ère B." },
+      "1ereC": { nom: "1ère C", desc: "Cours de mathématiques pour la classe de 1ère C." },
+      "1ereD": { nom: "1ère D", desc: "Cours de mathématiques pour la classe de 1ère D." },
+      "1ereE": { nom: "1ère E", desc: "Cours de mathématiques pour la classe de 1ère E." },
+
+      // Terminale
+      "TleA": { nom: "Tle A", desc: "Cours de mathématiques pour la classe de Tle A." },
+      "TleB": { nom: "Tle B", desc: "Cours de mathématiques pour la classe de Tle B." },
+      "TleC": { nom: "Tle C", desc: "Cours de mathématiques pour la classe de Tle C." },
+      "TleD": { nom: "Tle D", desc: "Cours de mathématiques pour la classe de Tle D." },
+      "TleE": { nom: "Tle E", desc: "Cours de mathématiques pour la classe de Tle E." }
     };
 
     window.addEventListener("load", function() {
@@ -235,8 +253,7 @@
       titreNiveau.textContent = "Cours de " + info.nom;
       descNiveau.textContent = info.desc;
 
-      // Pour l'instant, on affiche des chapitres statiques par niveau.
-      // Plus tard, on pourra les charger depuis Firebase (cours/niveau/chapitres).
+      // Exemple de chapitres (à adapter par classe plus tard)
       const chapitresExemples = {
         "6e": [
           { titre: "Chapitre 1 – Nombres et calculs", contenu: "Découverte des nombres entiers et décimaux, opérations de base." },
@@ -257,28 +274,15 @@
           { titre: "Chapitre 1 – Fonctions linéaires et affines", contenu: "Définition, représentation graphique." },
           { titre: "Chapitre 2 – Inéquations", contenu: "Résolution d’inéquations du premier degré." },
           { titre: "Chapitre 3 – Probabilités de base", contenu: "Expériences aléatoires, calcul de probabilités simples." }
-        ],
-        "Seconde": [
-          { titre: "Chapitre 1 – Fonctions", contenu: "Généralités sur les fonctions, images, antécédents." },
-          { titre: "Chapitre 2 – Équations et inéquations", contenu: "Résolution d’équations et inéquations variées." },
-          { titre: "Chapitre 3 – Vecteurs et droites", contenu: "Notion de vecteur, équation de droite." }
-        ],
-        "Première": [
-          { titre: "Chapitre 1 – Dérivation", contenu: "Nombre dérivé, fonction dérivée, applications." },
-          { titre: "Chapitre 2 – Fonctions de référence", contenu: "Fonctions carré, cube, inverse, etc." },
-          { titre: "Chapitre 3 – Statistiques et probabilités", contenu: "Résumé de statistiques, probabilités conditionnelles." }
-        ],
-        "Terminale": [
-          { titre: "Chapitre 1 – Limites de fonctions", contenu: "Définition et calcul de limites." },
-          { titre: "Chapitre 2 – Continuité", contenu: "Fonctions continues, théorème des valeurs intermédiaires." },
-          { titre: "Chapitre 3 – Intégration", contenu: "Primitives, intégrales, calcul d’aires." }
         ]
+        // Pour les autres classes, on affiche un message par défaut.
       };
 
       const chapitres = chapitresExemples[niveau] || [];
 
       if (chapitres.length === 0) {
-        chapitresContainer.innerHTML = "<p>Aucun chapitre disponible pour le moment.</p>";
+        chapitresContainer.innerHTML =
+          "<p>Les contenus de cours pour " + info.nom + " seront ajoutés prochainement.</p>";
         return;
       }
 
