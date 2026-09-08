@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des cours - Admin - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * { flex: 0 0 auto; }
+
+    label { font-size: 14px; color: var(--text); font-weight: bold; }
+
+    input[type="text"], input[type="url"], select, textarea {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+      font-family: inherit;
+    }
+
+    input[type="text"] { min-width: 200px; }
+    input[type="url"] { min-width: 300px; }
+    textarea {
+      min-width: 100%;
+      max-width: 100%;
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--indigo-dark); }
+
+    button.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    button.secondaire:hover { background: #cdd5f6; }
+
+    button.danger {
+      background: var(--error);
+    }
+
+    button.danger:hover { background: #a93226; }
+
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    .cours-item {
+      border: 1px solid #e3e7f6;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fafbff;
+    }
+
+    .cours-item h3 {
+      font-size: 16px;
+      color: var(--indigo);
+      margin-bottom: 8px;
+    }
+
+    .cours-item p {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .cours-item .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content h3 {
+      color: var(--indigo);
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .modal-content .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-content .form-row > * { flex: 1; min-width: 200px; }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 700px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+      input[type="text"], input[type="url"] { min-width: 0; width: 100%; }
+      .modal-buttons { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Gestion des cours</h1>
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="admin-eleves.html">Élèves</a></li>
+      <li><a href="admin-resultats.html">Résultats</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
+      </div>
+    </section>
+
+    <section class="card" id="card-ajouter-cours" style="display: none;">
+      <h2>Ajouter un cours</h2>
+      <p>Ajoute un nouveau cours pour une classe et une matière.</p>
+
+      <div class="row">
+        <label for="select-classe-cours">Classe :</label>
+        <select id="select-classe-cours">
+          <option value="">Choisir une classe</option>
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
+        </select>
+
+        <label for="select-matiere-cours">Matière :</label>
+        <select id="select-matiere-cours">
+          <option value="">Choisir une matière</option>
+          <option value="Mathématiques">Mathématiques</option>
+          <option value="Français">Français</option>
+          <option value="Anglais">Anglais</option>
+          <option value="Physique-Chimie">Physique-Chimie</option>
+          <option value="SVT">SVT</option>
+          <option value="Histoire-Géo">Histoire-Géo</option>
+          <option value="Philosophie">Philosophie</option>
+          <option value="Économie">Économie</option>
+          <option value="Informatique">Informatique</option>
+          <option value="Autre">Autre</option>
+        </select>
+
+        <button id="btn-voir-cours">Voir les cours</button>
+      </div>
+
+      <button id="btn-ouvrir-modal-ajout" class="secondaire">+ Ajouter un cours</button>
+
+      <p id="message-ajouter" class="message"></p>
+    </section>
+
+    <section class="card" id="card-liste-cours" style="display: none;">
+      <h2 id="titre-liste-cours">Cours</h2>
+      <p id="sous-titre-liste-cours">Liste des cours disponibles.</p>
+
+      <div id="loader-cours" class="loader" style="display: none; margin: 12px 0;"></div>
+
+      <div id="liste-cours-container"></div>
+
+      <p id="message-aucun-cours" class="message" style="display: none;">Aucun cours trouvé pour cette classe et matière.</p>
+    </section>
+
+  </main>
+
+  <div class="modal" id="modal-ajout-cours">
+    <div class="modal-content">
+      <h3 id="titre-modal-ajout">Ajouter un cours</h3>
+
+      <form id="form-ajout-cours">
+        <div class="form-row">
+          <div>
+            <label for="input-titre-cours">Titre du cours *</label>
+            <input type="text" id="input-titre-cours" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-contenu-cours">Contenu (texte) *</label>
+            <textarea id="input-contenu-cours" required></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-image-cours">Image (URL optionnelle)</label>
+            <input type="url" id="input-image-cours" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="secondaire" id="btn-annuler-ajout">Annuler</button>
+          <button type="submit">Ajouter le cours</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-modif-cours">
+    <div class="modal-content">
+      <h3 id="titre-modal-modif">Modifier le cours</h3>
+
+      <form id="form-modif-cours">
+        <div class="form-row">
+          <div>
+            <label for="input-titre-modif">Titre du cours *</label>
+            <input type="text" id="input-titre-modif" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-contenu-modif">Contenu (texte) *</label>
+            <textarea id="input-contenu-modif" required></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-image-modif">Image (URL optionnelle)</label>
+            <input type="url" id="input-image-modif" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="secondaire" id="btn-annuler-modif">Annuler</button>
+          <button type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardAjouterCours = document.getElementById("card-ajouter-cours");
+    const cardListeCours = document.getElementById("card-liste-cours");
+
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
+
+    const selectClasseCours = document.getElementById("select-classe-cours");
+    const selectMatiereCours = document.getElementById("select-matiere-cours");
+    const btnVoirCours = document.getElementById("btn-voir-cours");
+    const btnOuvrirModalAjout = document.getElementById("btn-ouvrir-modal-ajout");
+    const messageAjouter = document.getElementById("message-ajouter");
+
+    const loaderCours = document.getElementById("loader-cours");
+    const listeCoursContainer = document.getElementById("liste-cours-container");
+    const messageAucunCours = document.getElementById("message-aucun-cours");
+    const titreListeCours = document.getElementById("titre-liste-cours");
+    const sousTitreListeCours = document.getElementById("sous-titre-liste-cours");
+
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    const modalAjout = document.getElementById("modal-ajout-cours");
+    const titreModalAjout = document.getElementById("titre-modal-ajout");
+    const formAjoutCours = document.getElementById("form-ajout-cours");
+    const inputTitreCours = document.getElementById("input-titre-cours");
+    const inputContenuCours = document.getElementById("input-contenu-cours");
+    const inputImageCours = document.getElementById("input-image-cours");
+    const btnAnnulerAjout = document.getElementById("btn-annuler-ajout");
+
+    const modalModif = document.getElementById("modal-modif-cours");
+    const titreModalModif = document.getElementById("titre-modal-modif");
+    const formModifCours = document.getElementById("form-modif-cours");
+    const inputTitreModif = document.getElementById("input-titre-modif");
+    const inputContenuModif = document.getElementById("input-contenu-modif");
+    const inputImageModif = document.getElementById("input-image-modif");
+    const btnAnnulerModif = document.getElementById("btn-annuler-modif");
+
+    let adminUid = null;
+    let classeSelectionnee = null;
+    let matiereSelectionnee = null;
+    let coursActuel = null;
+
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function verifierAdmin() {
+      if (!db || !auth) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
+      }
+
+      const user = auth.currentUser;
+      if (!user) {
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
+        return Promise.reject(new Error("Pas connecté"));
+      }
+
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
+          }
+
+          const adminData = snap.val();
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+          cardAjouterCours.style.display = "block";
+        });
+    }
+
+    btnVoirCours.addEventListener("click", function() {
+      const classe = selectClasseCours.value.trim();
+      const matiere = selectMatiereCours.value.trim();
+
+      if (!classe || !matiere) {
+        messageAjouter.textContent = "Choisis une classe et une matière.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+
+      classeSelectionnee = classe;
+      matiereSelectionnee = matiere;
+
+      messageAjouter.textContent = "";
+      cardListeCours.style.display = "block";
+      titreListeCours.textContent = "Cours - " + classe + " - " + matiere;
+      sousTitreListeCours.textContent = "Gère les cours pour cette classe et matière.";
+
+      chargerCours();
+    });
+
+    function chargerCours() {
+      loaderCours.style.display = "block";
+      listeCoursContainer.innerHTML = "";
+      messageAucunCours.style.display = "none";
+
+      if (!classeSelectionnee || !matiereSelectionnee) {
+        loaderCours.style.display = "none";
+        return;
+      }
+
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
+        .then(function(snap) {
+          loaderCours.style.display = "none";
+
+          if (!snap || !snap.exists()) {
+            messageAucunCours.textContent = "Aucun cours trouvé pour " + classeSelectionnee + " - " + matiereSelectionnee + ".";
+            messageAucunCours.style.display = "block";
+            return;
+          }
+
+          const cours = snap.val();
+          const cles = Object.keys(cours);
+
+          if (cles.length === 0) {
+            messageAucunCours.textContent = "Aucun cours trouvé.";
+            messageAucunCours.style.display = "block";
+            return;
+          }
+
+          cles.forEach(function(cle) {
+            const c = cours[cle];
+            const div = document.createElement("div");
+            div.className = "cours-item";
+
+            const h3 = document.createElement("h3");
+            h3.textContent = c.titre || "Sans titre";
+            div.appendChild(h3);
+
+            const pContenu = document.createElement("p");
+            pContenu.textContent = (c.contenu || "").substring(0, 150) + ((c.contenu || "").length > 150 ? "..." : "");
+            div.appendChild(pContenu);
+
+            if (c.image) {
+              const pImage = document.createElement("p");
+              pImage.innerHTML = "🖼️ <a href='" + c.image + "' target='_blank'>Voir l'image</a>";
+              div.appendChild(pImage);
+            }
+
+            const actionsDiv = document.createElement("div");
+            actionsDiv.className = "actions";
+
+            const btnModifier = document.createElement("button");
+            btnModifier.textContent = "Modifier";
+            btnModifier.classList.add("secondaire");
+            btnModifier.addEventListener("click", function() {
+              ouvrirModalModif(cle, c);
+            });
+            actionsDiv.appendChild(btnModifier);
+
+            const btnSupprimer = document.createElement("button");
+            btnSupprimer.textContent = "Supprimer";
+            btnSupprimer.classList.add("danger");
+            btnSupprimer.addEventListener("click", function() {
+              if (confirm("Supprimer ce cours ?")) {
+                supprimerCours(cle);
+              }
+            });
+            actionsDiv.appendChild(btnSupprimer);
+
+            div.appendChild(actionsDiv);
+            listeCoursContainer.appendChild(div);
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement cours :", erreur);
+          loaderCours.style.display = "none";
+          messageAucunCours.textContent = "Erreur de chargement.";
+          messageAucunCours.classList.add("error");
+          messageAucunCours.style.display = "block";
+        });
+    }
+
+    function ouvrirModalAjout() {
+      titreModalAjout.textContent = "Ajouter un cours - " + classeSelectionnee + " - " + matiereSelectionnee;
+      formAjoutCours.reset();
+      modalAjout.style.display = "flex";
+    }
+
+    function fermerModalAjout() {
+      modalAjout.style.display = "none";
+    }
+
+    formAjoutCours.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const titre = inputTitreCours.value.trim();
+      const contenu = inputContenuCours.value.trim();
+      const image = inputImageCours.value.trim();
+
+      if (!titre || !contenu) {
+        alert("Titre et contenu sont obligatoires.");
+        return;
+      }
+
+      const now = Date.now();
+      const cle = "cours_" + now;
+
+      const nouveauCours = {
+        titre: titre,
+        contenu: contenu,
+        image: image || "",
+        dateCreation: now,
+        actif: true
+      };
+
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).set(nouveauCours)
+        .then(function() {
+          fermerModalAjout();
+          messageAjouter.textContent = "Cours ajouté avec succès !";
+          messageAjouter.classList.add("success");
+          chargerCours();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur ajout cours :", erreur);
+          messageAjouter.textContent = "Erreur lors de l'ajout.";
+          messageAjouter.classList.add("error");
+        });
+    });
+
+    function ouvrirModalModif(cle, cours) {
+      coursActuel = { cle: cle, ...cours };
+      titreModalModif.textContent = "Modifier le cours";
+      inputTitreModif.value = cours.titre || "";
+      inputContenuModif.value = cours.contenu || "";
+      inputImageModif.value = cours.image || "";
+      modalModif.style.display = "flex";
+    }
+
+    function fermerModalModif() {
+      modalModif.style.display = "none";
+      coursActuel = null;
+    }
+
+    formModifCours.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!coursActuel) return;
+
+      const titre = inputTitreModif.value.trim();
+      const contenu = inputContenuModif.value.trim();
+      const image = inputImageModif.value.trim();
+
+      if (!titre || !contenu) {
+        alert("Titre et contenu sont obligatoires.");
+        return;
+      }
+
+      const coursModifie = {
+        titre: titre,
+        contenu: contenu,
+        image: image,
+        dateModification: Date.now()
+      };
+
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + coursActuel.cle).update(coursModifie)
+        .then(function() {
+          fermerModalModif();
+          messageAjouter.textContent = "Cours modifié avec succès !";
+          messageAjouter.classList.add("success");
+          chargerCours();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur modification cours :", erreur);
+          messageAjouter.textContent = "Erreur lors de la modification.";
+          messageAjouter.classList.add("error");
+        });
+    });
+
+    function supprimerCours(cle) {
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
+        .then(function() {
+          messageAjouter.textContent = "Cours supprimé avec succès !";
+          messageAjouter.classList.add("success");
+          chargerCours();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur suppression cours :", erreur);
+          messageAjouter.textContent = "Erreur lors de la suppression.";
+          messageAjouter.classList.add("error");
+        });
+    }
+
+    btnOuvrirModalAjout.addEventListener("click", function() {
+      if (!classeSelectionnee || !matiereSelectionnee) {
+        messageAjouter.textContent = "Choisis d'abord une classe et une matière.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+      ouvrirModalAjout();
+    });
+
+    btnAnnulerAjout.addEventListener("click", fermerModalAjout);
+    btnAnnulerModif.addEventListener("click", fermerModalModif);
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
+    });
+
+    (function init() {
+      if (!auth || !db) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+          verifierAdmin();
+        });
+        return;
+      }
+
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>
