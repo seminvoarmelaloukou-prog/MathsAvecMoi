@@ -275,7 +275,7 @@
     <section class="hero">
       <h2>Mathématiques – Du collège au lycée</h2>
       <p>
-        Choisis ton niveau pour accéder aux cours, exercices et évaluations.
+        Choisis ta classe pour accéder aux cours, exercices et évaluations.
       </p>
 
       <div>
@@ -285,7 +285,7 @@
       </div>
     </section>
 
-    <h2 class="section-titre">Cours par niveau</h2>
+    <h2 class="section-titre">Cours par classe</h2>
     <div id="niveauxContainer" class="niveaux-grid">
       <!-- Niveaux injectés par JS -->
     </div>
@@ -312,15 +312,34 @@
     const evaluationsContainer = document.getElementById("evaluationsContainer");
     const btnDeconnexion = document.getElementById("deconnexion");
 
-    // Liste complète des niveaux (toutes classes)
+    // Toutes les classes (collège + lycée, toutes filières)
     const NIVEAUX = [
+      // Collège
       { id: "6e", nom: "6e", desc: "Cours, exercices et évaluations de 6e." },
       { id: "5e", nom: "5e", desc: "Cours, exercices et évaluations de 5e." },
       { id: "4e", nom: "4e", desc: "Cours, exercices et évaluations de 4e." },
       { id: "3e", nom: "3e", desc: "Cours, exercices et évaluations de 3e." },
-      { id: "Seconde", nom: "Seconde", desc: "Cours, exercices et évaluations de Seconde." },
-      { id: "Première", nom: "Première", desc: "Cours, exercices et évaluations de Première." },
-      { id: "Terminale", nom: "Terminale", desc: "Cours, exercices et évaluations de Terminale." }
+
+      // 2nde
+      { id: "2ndeA", nom: "2nde A", desc: "Cours, exercices et évaluations de 2nde A." },
+      { id: "2ndeB", nom: "2nde B", desc: "Cours, exercices et évaluations de 2nde B." },
+      { id: "2ndeC", nom: "2nde C", desc: "Cours, exercices et évaluations de 2nde C." },
+      { id: "2ndeD", nom: "2nde D", desc: "Cours, exercices et évaluations de 2nde D." },
+      { id: "2ndeE", nom: "2nde E", desc: "Cours, exercices et évaluations de 2nde E." },
+
+      // 1ère
+      { id: "1ereA", nom: "1ère A", desc: "Cours, exercices et évaluations de 1ère A." },
+      { id: "1ereB", nom: "1ère B", desc: "Cours, exercices et évaluations de 1ère B." },
+      { id: "1ereC", nom: "1ère C", desc: "Cours, exercices et évaluations de 1ère C." },
+      { id: "1ereD", nom: "1ère D", desc: "Cours, exercices et évaluations de 1ère D." },
+      { id: "1ereE", nom: "1ère E", desc: "Cours, exercices et évaluations de 1ère E." },
+
+      // Terminale
+      { id: "TleA", nom: "Tle A", desc: "Cours, exercices et évaluations de Tle A." },
+      { id: "TleB", nom: "Tle B", desc: "Cours, exercices et évaluations de Tle B." },
+      { id: "TleC", nom: "Tle C", desc: "Cours, exercices et évaluations de Tle C." },
+      { id: "TleD", nom: "Tle D", desc: "Cours, exercices et évaluations de Tle D." },
+      { id: "TleE", nom: "Tle E", desc: "Cours, exercices et évaluations de Tle E." }
     ];
 
     btnDeconnexion.addEventListener("click", function(e) {
@@ -344,8 +363,8 @@
         card.innerHTML =
           "<h3>" + niveau.nom + "</h3>" +
           "<p>" + niveau.desc + "</p>" +
-          "<a href='cours.html?niveau=" + niveau.id + "' class='btn'>Voir les cours</a>" +
-          "<a href='evaluations.html?type=blanche&niveau=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>";
+          "<a href='../cours.html?niveau=" + niveau.id + "' class='btn'>Voir les cours</a>" +
+          "<a href='../evaluations.html?type=blanche&niveau=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>";
 
         niveauxContainer.appendChild(card);
       });
@@ -399,7 +418,7 @@
             card.innerHTML =
               "<h3>" + ev.titre + "</h3>" +
               "<p>" + ev.description + "</p>" +
-              "<a href='evaluations.html?type=" + ev.id + "' class='btn-eval'>Passer l'évaluation</a>" +
+              "<a href='../evaluations.html?type=" + ev.id + "' class='btn-eval'>Passer l'évaluation</a>" +
               "<div class='etat-eval'>" + (ev.active ? "Disponible" : "Bientôt disponible") + "</div>";
 
             evaluationsContainer.appendChild(card);
@@ -414,4 +433,4 @@
   </script>
 
 </body>
-</html>
+  </html>
