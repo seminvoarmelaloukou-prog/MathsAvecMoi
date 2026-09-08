@@ -453,54 +453,71 @@
       headerTitre.textContent = "📚 Mathématiques – " + nomAffiche;
       footerTexte.textContent = "© 2026 Campus Flex — Mathématiques " + nomAffiche + " — Tous droits réservés";
 
-      firebase.database()
-        .ref("cours/" + classe)
-        .once("value")
-        .then(function(snap) {
-          chargement.style.display = "none";
+      // TEMPORAIRE : données de test sans Firebase (pour vérifier que la page fonctionne)
+chargement.style.display = "none";
 
-          if (!snap || !snap.exists()) {
-            afficherErreur("Aucun cours n’est disponible pour la classe " + nomAffiche + " pour le moment.");
-            return;
-          }
+const data = {
+  titre: "Mathématiques - 6e (test)",
+  sas: {
+    sa1: {
+      titre: "SA 1 - Configurations de l’espace",
+      sequences: {
+        seq1: {
+          titre: "Séquence 1 - Cube et pavé droit",
+          contenu: "Bientôt disponible"
+        },
+        seq2: {
+          titre: "Séquence 2 - Cône de révolution",
+          contenu: "Bientôt disponible"
+        },
+        seq3: {
+          titre: "Séquence 3 - Sphère",
+          contenu: "Bientôt disponible"
+        }
+      }
+    },
+    sa2: {
+      titre: "SA 2 - Configurations du plan",
+      sequences: {
+        seq1: {
+          titre: "Séquence 1 - Droites du plan",
+          contenu: "Bientôt disponible"
+        }
+      }
+    }
+  },
+  videos: []
+};
 
-          const data = snap.val();
+sectionCours.style.display = "block";
+sectionVideos.style.display = "block";
 
-          sectionCours.style.display = "block";
-          sectionVideos.style.display = "block";
+coursContenu.innerHTML = construireCours(data);
+videosContenu.innerHTML = construireVideos(data);
 
-          coursContenu.innerHTML = construireCours(data);
-          videosContenu.innerHTML = construireVideos(data);
+// Onglets Cours / Vidéos
+onglets.forEach(function(onglet) {
+  onglet.addEventListener("click", function(e) {
+    e.preventDefault();
 
-          // Onglets Cours / Vidéos
-          onglets.forEach(function(onglet) {
-            onglet.addEventListener("click", function(e) {
-              e.preventDefault();
-
-              onglets.forEach(function(o) {
-                o.classList.remove("active");
-              });
-
-              sectionCours.classList.remove("active");
-              sectionVideos.classList.remove("active");
-
-              onglet.classList.add("active");
-              const sectionId = onglet.getAttribute("data-section");
-              document.getElementById(sectionId).classList.add("active");
-
-              document.getElementById("nav-toggle").checked = false;
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            });
-          });
-
-          // Activer l'onglet par défaut (Cours)
-          sectionCours.classList.add("active");
-        })
-        .catch(function(err) {
-          console.error("Erreur chargement cours :", err);
-          afficherErreur("Impossible de charger le cours pour le moment.");
-        });
+    onglets.forEach(function(o) {
+      o.classList.remove("active");
     });
+
+    sectionCours.classList.remove("active");
+    sectionVideos.classList.remove("active");
+
+    onglet.classList.add("active");
+    const sectionId = onglet.getAttribute("data-section");
+    document.getElementById(sectionId).classList.add("active");
+
+    document.getElementById("nav-toggle").checked = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+});
+
+// Activer l'onglet par défaut (Cours)
+sectionCours.classList.add("active");
 
     function deconnexion() {
       if (typeof firebase !== "undefined" && firebase.auth) {
