@@ -330,7 +330,9 @@
                 prenom: eleve.prenom || "",
                 email: eleve.email || "",
                 identifiant: eleve.identifiant || "",
-                classe: eleve.classe || ""
+                classe: eleve.classe || "",
+                points: eleve.points || 0,
+                streak: eleve.streak || 0
               };
             });
           }
@@ -359,9 +361,9 @@
                   classe: res.classe || eleveInfo.classe || "–",
                   type: "blanche",
                   date: res.date,
-                  score: res.score,
-                  totalPoints: res.totalPoints,
-                  nbQuestions: res.nbQuestions
+                  score: typeof res.score === "number" ? res.score : 0,
+                  totalPoints: typeof res.totalPoints === "number" ? res.totalPoints : 0,
+                  nbQuestions: typeof res.nbQuestions === "number" ? res.nbQuestions : 0
                 });
               });
             });
@@ -383,9 +385,9 @@
                   classe: res.classe || eleveInfo.classe || "–",
                   type: "officielle",
                   date: res.date,
-                  score: res.score,
-                  totalPoints: res.totalPoints,
-                  nbQuestions: res.nbQuestions
+                  score: typeof res.score === "number" ? res.score : 0,
+                  totalPoints: typeof res.totalPoints === "number" ? res.totalPoints : 0,
+                  nbQuestions: typeof res.nbQuestions === "number" ? res.nbQuestions : 0
                 });
               });
             });
@@ -437,7 +439,7 @@
         const tdDate = document.createElement("td");
         if (r.date) {
           const d = new Date(r.date);
-          tdDate.textContent = d.toLocaleDateString() + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+          tdDate.textContent = d.toLocaleDateString('fr-FR') + " " + d.toLocaleTimeString('fr-FR', { hour: "2-digit", minute: "2-digit" });
         } else {
           tdDate.textContent = "–";
         }
@@ -528,4 +530,4 @@
   </script>
 
 </body>
-  </html>
+</html>
