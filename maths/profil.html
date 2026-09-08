@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon profil - Campus Flex</title>
 
-  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -24,12 +23,7 @@
       --gris: #7f8c8d;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -50,27 +44,10 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 {
-      color: white;
-      font-size: 20px;
-    }
-
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
 
     main {
       flex: 1;
@@ -101,9 +78,7 @@
       font-size: 15px;
     }
 
-    .description {
-      margin-bottom: 18px;
-    }
+    .description { margin-bottom: 18px; }
 
     .info-grid {
       display: grid;
@@ -127,9 +102,7 @@
       font-size: 13px;
     }
 
-    .info-item span {
-      font-size: 15px;
-    }
+    .info-item span { font-size: 15px; }
 
     .loader {
       width: 38px;
@@ -141,10 +114,7 @@
       animation: tourner 0.8s linear infinite;
     }
 
-    .error {
-      color: var(--error) !important;
-      margin-top: 15px;
-    }
+    .error { color: var(--error) !important; margin-top: 15px; }
 
     .btn {
       display: inline-block;
@@ -158,20 +128,15 @@
       font-weight: bold;
     }
 
-    .btn:hover {
-      background: var(--indigo-dark);
-    }
+    .btn:hover { background: var(--indigo-dark); }
 
     .btn-secondaire {
       background: #e3e7f6;
       color: var(--indigo);
     }
 
-    .btn-secondaire:hover {
-      background: #cdd5f6;
-    }
+    .btn-secondaire:hover { background: #cdd5f6; }
 
-    /* Section Évaluations */
     .evaluations-section {
       display: flex;
       flex-direction: column;
@@ -197,30 +162,11 @@
       color: var(--indigo);
     }
 
-    .btn-eval:hover {
-      opacity: 0.9;
-    }
+    .btn-eval:hover { opacity: 0.9; }
+    .message-eval { font-size: 14px; color: var(--muted); margin-top: 6px; }
 
-    .message-eval {
-      font-size: 14px;
-      color: var(--muted);
-      margin-top: 6px;
-    }
-
-    /* Section Nora - Tuteur IA */
-    .nora-chat-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .nora-modes {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
+    .nora-chat-container { display: flex; flex-direction: column; gap: 12px; }
+    .nora-modes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .nora-modes button {
       padding: 10px 18px;
       border-radius: 20px;
@@ -230,11 +176,7 @@
       font-weight: bold;
       cursor: pointer;
     }
-
-    .nora-modes button.actif {
-      background: var(--indigo);
-      color: white;
-    }
+    .nora-modes button.actif { background: var(--indigo); color: white; }
 
     .nora-messages {
       border: 1px solid #cfd8f0;
@@ -256,15 +198,8 @@
       word-wrap: break-word;
     }
 
-    .nora-message.eleve {
-      background: #e3e7f6;
-      align-self: flex-end;
-    }
-
-    .nora-message.nora {
-      background: #d4edda;
-      align-self: flex-start;
-    }
+    .nora-message.eleve { background: #e3e7f6; align-self: flex-end; }
+    .nora-message.nora { background: #d4edda; align-self: flex-start; }
 
     .nora-input-container {
       display: flex;
@@ -292,10 +227,7 @@
       font-size: 14px;
     }
 
-    .nora-btn-vocal:disabled {
-      background: var(--gris);
-      cursor: not-allowed;
-    }
+    .nora-btn-vocal:disabled { background: var(--gris); cursor: not-allowed; }
 
     footer {
       background: var(--indigo);
@@ -305,30 +237,13 @@
       font-size: 13px;
     }
 
-    @keyframes tourner {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    @keyframes tourner { to { transform: rotate(360deg); } }
 
     @media (max-width: 600px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 25px auto;
-        padding: 0 14px;
-      }
-
-      .nora-messages {
-        height: 250px;
-      }
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 25px auto; padding: 0 14px; }
+      .nora-messages { height: 250px; }
     }
   </style>
 </head>
@@ -337,7 +252,6 @@
 
   <nav>
     <h1>Campus Flex - Mon profil</h1>
-
     <ul>
       <li><a href="index.html">Cours</a></li>
       <li><a href="../index.html">Accueil</a></li>
@@ -347,92 +261,52 @@
 
   <main>
 
-    <!-- SECTION : CHARGEMENT -->
     <section class="card" id="card-chargement">
       <h2>Chargement de ton profil</h2>
-
       <div id="loader" class="loader"></div>
-
-      <p id="message-chargement">
-        Récupération de tes informations...
-      </p>
+      <p id="message-chargement">Récupération de tes informations...</p>
     </section>
 
-    <!-- SECTION : PROFIL (affichée après chargement) -->
     <section class="card" id="card-profil" style="display: none;">
       <h2>Mon profil</h2>
-
-      <p class="description">
-        Voici les informations associées à ton compte.
-      </p>
-
-      <div class="info-grid" id="info-grid">
-        <!-- Rempli dynamiquement -->
-      </div>
-
-      <a href="index.html" class="btn">
-        Retour aux cours
-      </a>
+      <p class="description">Voici les informations associées à ton compte.</p>
+      <div class="info-grid" id="info-grid"></div>
+      <a href="index.html" class="btn">Retour aux cours</a>
     </section>
 
-    <!-- SECTION : ÉVALUATIONS -->
     <section class="card" id="card-evaluations" style="display: none;">
       <h2>Évaluations</h2>
-
-      <p class="description">
-        Retrouve ici tes évaluations blanches (entraînement) et les évaluations officielles activées par l'administrateur.
-      </p>
-
+      <p class="description">Retrouve ici tes évaluations blanches et officielles.</p>
       <div class="evaluations-section">
-        <a href="evaluation-blanche.html" class="btn-eval secondaire">
-          Évaluation blanche
-        </a>
-
-        <a href="evaluation.html" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">
-          Évaluation
-        </a>
-
+        <a href="evaluation-blanche.html" class="btn-eval secondaire">Évaluation blanche</a>
+        <a href="evaluation.html" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">Évaluation</a>
         <p id="message-evaluation" class="message-eval"></p>
       </div>
     </section>
 
-    <!-- SECTION : TUTEUR NORA -->
     <section class="card" id="card-nora" style="display: none;">
       <h2>🤖 Tuteur Nora - Ton assistant IA</h2>
-
-      <p class="description">
-        Pose tes questions en mathématiques ! Nora peut répondre par écrit ou par vocal.
-      </p>
+      <p class="description">Pose tes questions en mathématiques !</p>
 
       <div class="nora-chat-container">
-        <!-- Modes -->
         <div class="nora-modes">
           <button id="btn-mode-ecrit" class="actif">✍️ Mode Écrit</button>
           <button id="btn-mode-vocal">🎤 Mode Vocal</button>
         </div>
 
-        <!-- Messages -->
         <div id="nora-messages" class="nora-messages">
           <div class="nora-message nora">
             <strong>Nora :</strong> Bonjour ! Je suis Nora, ton tuteur en mathématiques. Pose-moi tes questions !
           </div>
         </div>
 
-        <!-- Input écrit -->
         <div class="nora-input-container" id="nora-input-ecrit">
-          <input
-            type="text"
-            id="nora-question-input"
-            placeholder="Pose ta question à Nora..."
-          />
+          <input type="text" id="nora-question-input" placeholder="Pose ta question à Nora..." />
           <button id="nora-btn-envoyer" class="btn">Envoyer</button>
         </div>
 
-        <!-- Input vocal -->
         <div class="nora-input-container" id="nora-input-vocal" style="display: none;">
-          <button id="nora-btn-parler" class="nora-btn-vocal">
-            🎤 Appuie pour parler
-          </button>
+          <button id="nora-btn-parler" class="nora-btn-vocal">🎤 Appuie pour parler</button>
         </div>
 
         <p id="nora-message" class="message-eval"></p>
@@ -441,9 +315,7 @@
 
   </main>
 
-  <footer>
-    © 2026 Campus Flex - Tous droits réservés
-  </footer>
+  <footer>© 2026 Campus Flex - Tous droits réservés</footer>
 
   <script>
     const cardChargement = document.getElementById("card-chargement");
@@ -457,10 +329,8 @@
 
     const messageEvaluation = document.getElementById("message-evaluation");
     const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
-
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    // Variables Nora
     const btnModeEcrit = document.getElementById("btn-mode-ecrit");
     const btnModeVocal = document.getElementById("btn-mode-vocal");
     const noraMessages = document.getElementById("nora-messages");
@@ -474,9 +344,7 @@
     let modeActuel = "ecrit";
     let reconnaissanceVocale = null;
 
-    // === CLÉ API GEMINI ===
     const GEMINI_API_KEY = "AQ.Ab8RN6ImtMvSH0KTH9Z5frv8uYTOzhXLSkXvHvmyygbfGoABlA";
-    // =====================
 
     function afficherErreurChargement(texte) {
       messageChargement.textContent = texte;
@@ -503,17 +371,13 @@
       ];
 
       infoGrid.innerHTML = "";
-
       champs.forEach(function(champ) {
         const div = document.createElement("div");
         div.className = "info-item";
-
         const strong = document.createElement("strong");
         strong.textContent = champ.label;
-
         const span = document.createElement("span");
         span.textContent = champ.valeur || "—";
-
         div.appendChild(strong);
         div.appendChild(span);
         infoGrid.appendChild(div);
@@ -523,16 +387,8 @@
     }
 
     function gererEvaluations() {
-      if (!db) {
-        messageEvaluation.textContent =
-          "Impossible de vérifier l'état des évaluations (base de données non disponible).";
-        btnEvaluationOfficielle.style.display = "none";
-        return;
-      }
-
-      if (!auth || !auth.currentUser) {
-        messageEvaluation.textContent =
-          "Connexion requise pour afficher les évaluations.";
+      if (!db || !auth || !auth.currentUser) {
+        messageEvaluation.textContent = "Connexion requise.";
         btnEvaluationOfficielle.style.display = "none";
         return;
       }
@@ -540,39 +396,27 @@
       db.ref("evaluations/config/evaluation_officielle_active").once("value")
         .then(function(snap) {
           const active = snap && snap.val() === true;
-
           if (active) {
             btnEvaluationOfficielle.style.display = "inline-block";
-            messageEvaluation.textContent =
-              "L'évaluation officielle est actuellement activée.";
+            messageEvaluation.textContent = "L'évaluation officielle est activée.";
           } else {
             btnEvaluationOfficielle.style.display = "none";
-            messageEvaluation.textContent =
-              "L'évaluation officielle n'est pas encore activée par l'administrateur.";
+            messageEvaluation.textContent = "L'évaluation officielle n'est pas activée.";
           }
         })
-        .catch(function(erreur) {
-          console.error("[profil.html] Erreur lecture config évaluation :", erreur);
-          messageEvaluation.textContent =
-            "Impossible de vérifier l'état des évaluations.";
+        .catch(function() {
+          messageEvaluation.textContent = "Impossible de vérifier.";
         });
     }
-
-    // === FONCTIONS NORA ===
 
     function ajouterMessageNora(expediteur, texte) {
       const div = document.createElement("div");
       div.className = "nora-message " + expediteur;
-
       const strong = document.createElement("strong");
       strong.textContent = expediteur === "eleve" ? "Toi : " : "Nora : ";
-
-      const textSpan = document.createTextNode(texte);
-
       div.appendChild(strong);
-      div.appendChild(textSpan);
+      div.appendChild(document.createTextNode(texte));
       noraMessages.appendChild(div);
-
       noraMessages.scrollTop = noraMessages.scrollHeight;
     }
 
@@ -582,16 +426,14 @@
 
       try {
         const reponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contents: [{
                 parts: [{
-                  text: "Tu es Nora, un tuteur IA en mathématiques pour collégiens et lycéens (6e à Terminale) au Bénin. Réponds de manière claire, pédagogique et encourageante à cette question : " + question
+                  text: "Tu es Nora, un tuteur IA en mathématiques pour collégiens et lycéens (6e à Terminale) au Bénin. Réponds de manière claire, pédagogique et encourageante à : " + question
                 }]
               }]
             })
@@ -601,16 +443,15 @@
         const data = await reponse.json();
         
         if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-          const reponseNora = data.candidates[0].content.parts[0].text;
-          ajouterMessageNora("nora", reponseNora);
+          ajouterMessageNora("nora", data.candidates[0].content.parts[0].text);
         } else {
-          ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie !");
+          ajouterMessageNora("nora", "Je n'arrive pas à répondre. Réessaie !");
         }
 
         noraMessage.textContent = "";
       } catch (erreur) {
         console.error("Erreur API Gemini :", erreur);
-        ajouterMessageNora("nora", "Oups, j'ai un problème de connexion. Vérifie ta connexion internet !");
+        ajouterMessageNora("nora", "Oups, problème de connexion !");
         noraMessage.textContent = "";
         noraMessage.classList.add("error");
       }
@@ -618,9 +459,8 @@
 
     function initialiserReconnaissanceVocale() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
       if (!SpeechRecognition) {
-        noraMessage.textContent = "La reconnaissance vocale n'est pas disponible sur ton navigateur. Utilise le mode écrit.";
+        noraMessage.textContent = "Reconnaissance vocale non disponible.";
         noraMessage.classList.add("error");
         noraBtnParler.style.display = "none";
         btnModeVocal.style.display = "none";
@@ -634,8 +474,7 @@
         reconnaissanceVocale.interimResults = false;
 
         reconnaissanceVocale.onstart = function() {
-          noraMessage.textContent = "🎤 Je t'écoute... Parle maintenant !";
-          noraMessage.classList.remove("error");
+          noraMessage.textContent = "🎤 Je t'écoute...";
           noraBtnParler.textContent = "🔴 Enregistrement...";
           noraBtnParler.style.background = "#c0392b";
         };
@@ -651,16 +490,7 @@
         };
 
         reconnaissanceVocale.onerror = function(event) {
-          console.error("Erreur reconnaissance vocale :", event.error);
-          
-          if (event.error === "not-allowed") {
-            noraMessage.textContent = "Permission refusée. Utilise le mode écrit.";
-          } else if (event.error === "no-speech") {
-            noraMessage.textContent = "Aucun son détecté. Réessaie !";
-          } else {
-            noraMessage.textContent = "Erreur : " + event.error + ". Utilise le mode écrit.";
-          }
-          
+          noraMessage.textContent = "Erreur : " + event.error;
           noraMessage.classList.add("error");
           noraBtnParler.disabled = false;
           noraBtnParler.textContent = "🎤 Appuie pour parler";
@@ -669,20 +499,16 @@
 
         reconnaissanceVocale.onend = function() {
           noraBtnParler.disabled = false;
-          noraBtnParler.textContent = "🎤 Appuie pour parler";
-          noraBtnParler.style.background = "var(--indigo)";
         };
 
       } catch (erreur) {
-        console.error("Erreur initialisation vocale :", erreur);
-        noraMessage.textContent = "La reconnaissance vocale n'est pas disponible. Utilise le mode écrit.";
+        noraMessage.textContent = "Vocal non disponible.";
         noraMessage.classList.add("error");
         noraBtnParler.style.display = "none";
         btnModeVocal.style.display = "none";
       }
     }
 
-    // Mode écrit
     btnModeEcrit.addEventListener("click", function() {
       modeActuel = "ecrit";
       noraInputEcrit.style.display = "flex";
@@ -691,90 +517,58 @@
       btnModeVocal.classList.remove("actif");
     });
 
-    // Mode vocal
     btnModeVocal.addEventListener("click", function() {
       modeActuel = "vocal";
       noraInputEcrit.style.display = "none";
       noraInputVocal.style.display = "flex";
       btnModeEcrit.classList.remove("actif");
       btnModeVocal.classList.add("actif");
-
-      if (!reconnaissanceVocale) {
-        initialiserReconnaissanceVocale();
-      }
+      if (!reconnaissanceVocale) initialiserReconnaissanceVocale();
     });
 
-    // Envoyer question écrite
     noraBtnEnvoyer.addEventListener("click", function() {
       const question = noraQuestionInput.value.trim();
       if (!question) {
-        noraMessage.textContent = "Écris ta question d'abord.";
+        noraMessage.textContent = "Écris ta question.";
         noraMessage.classList.add("error");
         return;
       }
-
       ajouterMessageNora("eleve", question);
       noraQuestionInput.value = "";
       repondreNora(question);
-    })
-// Question avec Entrée
-    noraQuestionInput.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        noraBtnEnvoyer.click();
-      }
     });
 
-    // Bouton vocal
-    noraBtnParler.addEventListener("click", function() {
-      if (!reconnaissanceVocale) {
-        initialiserReconnaissanceVocale();
-      }
+    noraQuestionInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") noraBtnEnvoyer.click();
+    });
 
+    noraBtnParler.addEventListener("click", function() {
+      if (!reconnaissanceVocale) initialiserReconnaissanceVocale();
       if (!reconnaissanceVocale) {
-        noraMessage.textContent = "La reconnaissance vocale n'est pas disponible.";
+        noraMessage.textContent = "Vocal non disponible.";
         noraMessage.classList.add("error");
         return;
       }
-
       try {
         noraBtnParler.disabled = true;
         reconnaissanceVocale.start();
       } catch (erreur) {
-        console.error("Erreur démarrage reconnaissance :", erreur);
-        noraMessage.textContent = "Erreur microphone. Utilise le mode écrit.";
+        noraMessage.textContent = "Erreur micro.";
         noraMessage.classList.add("error");
         noraBtnParler.disabled = false;
       }
     });
 
-    // === FIN FONCTIONS NORA ===
-
     function chargerProfil() {
-      if (typeof firebase === "undefined") {
-        afficherErreurChargement("Firebase n'est pas chargé. Vérifie les scripts Firebase.");
-        return;
-      }
-
-      if (typeof auth === "undefined") {
-        afficherErreurChargement("Firebase Authentication n'est pas disponible.");
-        return;
-      }
-
-      if (!db) {
-        afficherErreurChargement(
-          "Realtime Database n'est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
-        );
+      if (!firebase || !auth || !db) {
+        afficherErreurChargement("Firebase non configuré.");
         return;
       }
 
       const user = auth.currentUser;
-
       if (!user) {
         auth.onAuthStateChanged(function(u) {
-          if (!u) {
-            window.location.href = "../connexion.html";
-            return;
-          }
+          if (!u) { window.location.href = "../connexion.html"; return; }
           chargerProfilAvecUtilisateur(u);
         });
         return;
@@ -790,59 +584,25 @@
             window.location.href = "../admin.html";
             return Promise.reject(new Error("REDIRECT_ADMIN"));
           }
-
           return db.ref("eleves/" + user.uid).once("value");
         })
         .then(function(snapshot) {
-          if (!snapshot) {
+          if (!snapshot || !snapshot.exists()) {
+            afficherErreurChargement("Profil introuvable.");
             return;
           }
-
-          if (!snapshot.exists()) {
-            afficherErreurChargement(
-              "Ton profil n'existe pas dans la base de données. Contacte l'administrateur."
-            );
-            return;
-          }
-
-          const eleve = snapshot.val();
-          afficherProfil(eleve);
+          afficherProfil(snapshot.val());
         })
         .catch(function(erreur) {
-          if (erreur && erreur.message === "REDIRECT_ADMIN") {
-            return;
-          }
-
-          console.error("[profil.html] Erreur lors du chargement du profil :", erreur);
-
-          if (erreur && erreur.code === "PERMISSION_DENIED") {
-            afficherErreurChargement(
-              "Firebase refuse l'accès à ton profil. Vérifie les règles de Realtime Database."
-            );
-          } else {
-            afficherErreurChargement(
-              "Impossible de charger ton profil : " +
-              (erreur && erreur.message ? erreur.message : "erreur inconnue")
-            );
-          }
+          if (erreur && erreur.message === "REDIRECT_ADMIN") return;
+          afficherErreurChargement("Erreur : " + (erreur.message || "inconnue"));
         });
     }
 
     lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
-
-      if (typeof auth === "undefined") {
-        window.location.href = "../index.html";
-        return;
-      }
-
-      auth.signOut()
-        .then(function() {
-          window.location.href = "../index.html";
-        })
-        .catch(function() {
-          window.location.href = "../index.html";
-        });
+      if (!auth) { window.location.href = "../index.html"; return; }
+      auth.signOut().then(() => window.location.href = "../index.html");
     });
 
     chargerProfil();
