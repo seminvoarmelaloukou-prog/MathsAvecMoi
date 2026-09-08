@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion des évaluations - Admin - Campus Flex</title>
 
-  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -24,12 +23,7 @@
       --gris: #7f8c8d;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -50,27 +44,10 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 {
-      color: white;
-      font-size: 20px;
-    }
-
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
 
     main {
       flex: 1;
@@ -109,18 +86,11 @@
       margin-bottom: 14px;
     }
 
-    .row > * {
-      flex: 0 0 auto;
-    }
+    .row > * { flex: 0 0 auto; }
 
-    label {
-      font-size: 14px;
-      color: var(--text);
-    }
+    label { font-size: 14px; color: var(--text); }
 
-    select,
-    input[type="text"],
-    input[type="number"] {
+    select, input[type="text"], input[type="number"] {
       padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid #cfd8f0;
@@ -139,39 +109,21 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: var(--indigo-dark);
-    }
+    button:hover { background: var(--indigo-dark); }
 
     button.secondaire {
       background: #e3e7f6;
       color: var(--indigo);
     }
 
-    button.secondaire:hover {
-      background: #cdd5f6;
-    }
+    button.secondaire:hover { background: #cdd5f6; }
 
-    button.danger {
-      background: var(--error);
-    }
+    button.danger { background: var(--error); }
+    button.danger:hover { background: #a93226; }
 
-    button.danger:hover {
-      background: #a93226;
-    }
-
-    .message {
-      font-size: 14px;
-      margin-top: 8px;
-    }
-
-    .message.success {
-      color: var(--success);
-    }
-
-    .message.error {
-      color: var(--error);
-    }
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
 
     .section-title {
       font-size: 18px;
@@ -180,9 +132,7 @@
       margin: 18px 0 10px;
     }
 
-    .questions-list {
-      margin-top: 12px;
-    }
+    .questions-list { margin-top: 12px; }
 
     .question-item {
       border: 1px solid #e3e7f6;
@@ -198,16 +148,8 @@
       color: var(--text);
     }
 
-    .question-item p {
-      font-size: 14px;
-      margin-bottom: 6px;
-    }
-
-    .question-item .meta {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
+    .question-item p { font-size: 14px; margin-bottom: 6px; }
+    .question-item .meta { font-size: 13px; color: var(--muted); }
     .question-item .actions {
       margin-top: 10px;
       display: flex;
@@ -224,31 +166,13 @@
       animation: tourner 0.8s linear infinite;
     }
 
-    @keyframes tourner {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    @keyframes tourner { to { transform: rotate(360deg); } }
 
     @media (max-width: 700px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 20px auto;
-        padding: 0 14px;
-      }
-
-      .row {
-        flex-direction: column;
-        align-items: stretch;
-      }
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -257,7 +181,6 @@
 
   <nav>
     <h1>Admin - Gestion des évaluations</h1>
-
     <ul>
       <li><a href="admin.html">Tableau de bord</a></li>
       <li><a href="index.html">Site public</a></li>
@@ -267,138 +190,77 @@
 
   <main>
 
-    <!-- SECTION : VÉRIFICATION ADMIN -->
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>
-
       <div class="row">
         <div class="loader" id="loader-admin"></div>
-        <p id="message-admin-check">
-          Vérification de tes droits administrateur...
-        </p>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
       </div>
     </section>
 
-    <!-- SECTION : CONFIGURATION GLOBALE -->
     <section class="card" id="card-config" style="display: none;">
       <h2>Configuration des évaluations officielles</h2>
-
-      <p>
-        Active ou désactive l’évaluation officielle pour tous les élèves.
-      </p>
+      <p>Active ou désactive l'évaluation officielle pour tous les élèves.</p>
 
       <div class="row">
-        <label for="select-eval-active">
-          Évaluation officielle :
-        </label>
-
+        <label for="select-eval-active">Évaluation officielle :</label>
         <select id="select-eval-active">
           <option value="false">Désactivée</option>
           <option value="true">Activée</option>
         </select>
-
-        <button id="btn-sauver-config">
-          Sauvegarder
-        </button>
+        <button id="btn-sauver-config">Sauvegarder</button>
       </div>
 
       <p id="message-config" class="message"></p>
     </section>
 
-    <!-- SECTION : GESTION DES QUESTIONS -->
     <section class="card" id="card-questions" style="display: none;">
       <h2>Gestion des questions (évaluation officielle)</h2>
-
-      <p>
-        Ajoute, modifie ou supprime des questions pour chaque classe.
-      </p>
+      <p>Ajoute, modifie ou supprime des questions pour chaque classe.</p>
 
       <div class="row">
         <label for="select-classe">Classe :</label>
-
         <select id="select-classe">
           <option value="6e">6e</option>
           <option value="5e">5e</option>
           <option value="4e">4e</option>
           <option value="3e">3e</option>
-          <option value="Seconde">Seconde</option>
-          <option value="Première">Première</option>
-          <option value="Terminale">Terminale</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
         </select>
-
-        <button id="btn-charger-questions">
-          Charger les questions
-        </button>
+        <button id="btn-charger-questions">Charger les questions</button>
       </div>
 
       <div class="section-title">Ajouter une question</div>
 
       <div class="row">
-        <input
-          type="text"
-          id="input-question"
-          placeholder="Texte de la question"
-          style="flex: 1 1 300px;"
-        />
-
-        <input
-          type="text"
-          id="input-image"
-          placeholder="URL de l'image (optionnel)"
-          style="flex: 1 1 250px;"
-        />
+        <input type="text" id="input-question" placeholder="Texte de la question" style="flex: 1 1 300px;" />
+        <input type="text" id="input-image" placeholder="URL de l'image (optionnel)" style="flex: 1 1 250px;" />
       </div>
 
       <div class="row">
-        <input
-          type="text"
-          id="input-choix-0"
-          placeholder="Choix 1"
-          style="flex: 1 1 150px;"
-        />
-        <input
-          type="text"
-          id="input-choix-1"
-          placeholder="Choix 2"
-          style="flex: 1 1 150px;"
-        />
-        <input
-          type="text"
-          id="input-choix-2"
-          placeholder="Choix 3"
-          style="flex: 1 1 150px;"
-        />
-        <input
-          type="text"
-          id="input-choix-3"
-          placeholder="Choix 4"
-          style="flex: 1 1 150px;"
-        />
+        <input type="text" id="input-choix-0" placeholder="Choix 1" style="flex: 1 1 150px;" />
+        <input type="text" id="input-choix-1" placeholder="Choix 2" style="flex: 1 1 150px;" />
+        <input type="text" id="input-choix-2" placeholder="Choix 3" style="flex: 1 1 150px;" />
+        <input type="text" id="input-choix-3" placeholder="Choix 4" style="flex: 1 1 150px;" />
       </div>
 
       <div class="row">
         <label for="input-bonne-reponse">Bonne réponse (0–3) :</label>
-        <input
-          type="number"
-          id="input-bonne-reponse"
-          min="0"
-          max="3"
-          value="0"
-          style="width: 70px;"
-        />
-
+        <input type="number" id="input-bonne-reponse" min="0" max="3" value="0" style="width: 70px;" />
         <label for="input-points">Points :</label>
-        <input
-          type="number"
-          id="input-points"
-          min="1"
-          value="1"
-          style="width: 70px;"
-        />
-
-        <button id="btn-ajouter-question">
-          Ajouter la question
-        </button>
+        <input type="number" id="input-points" min="1" value="1" style="width: 70px;" />
+        <button id="btn-ajouter-question">Ajouter la question</button>
       </div>
 
       <p id="message-ajout-question" class="message"></p>
@@ -452,15 +314,12 @@
     }
 
     function verifierAdmin() {
-      console.log("[admin-evaluations.html] verifierAdmin()");
-
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
-
       if (!user) {
         afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
@@ -477,8 +336,6 @@
           }
 
           const adminData = snap.val();
-          console.log("[admin-evaluations.html] Admin :", adminData);
-
           loaderAdmin.style.display = "none";
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
@@ -490,8 +347,6 @@
     }
 
     function chargerConfig() {
-      console.log("[admin-evaluations.html] chargerConfig()");
-
       db.ref("evaluations/config/evaluation_officielle_active").once("value")
         .then(function(snap) {
           const active = snap && snap.val() === true;
@@ -505,8 +360,6 @@
     }
 
     function sauverConfig() {
-      console.log("[admin-evaluations.html] sauverConfig()");
-
       const active = selectEvalActive.value === "true";
 
       messageConfig.textContent = "Sauvegarde en cours...";
@@ -514,7 +367,6 @@
 
       db.ref("evaluations/config/evaluation_officielle_active").set(active)
         .then(function() {
-          console.log("[admin-evaluations.html] Config sauvegardée :", active);
           messageConfig.textContent = "Configuration sauvegardée avec succès.";
           messageConfig.classList.add("success");
         })
@@ -526,8 +378,6 @@
     }
 
     function chargerQuestionsPourClasse(classe) {
-      console.log("[admin-evaluations.html] chargerQuestionsPourClasse(", classe, ")");
-
       loaderQuestions.style.display = "block";
       listeQuestions.innerHTML = "";
       messageAjoutQuestion.textContent = "";
@@ -550,8 +400,7 @@
         .catch(function(erreur) {
           console.error("Erreur chargement questions :", erreur);
           loaderQuestions.style.display = "none";
-          listeQuestions.innerHTML =
-            "<p class='message error'>Impossible de charger les questions.</p>";
+          listeQuestions.innerHTML = "<p class='message error'>Impossible de charger les questions.</p>";
         });
     }
 
@@ -623,8 +472,6 @@
     }
 
     function toggleQuestionActive(classe, key, active) {
-      console.log("[admin-evaluations.html] toggleQuestionActive", classe, key, active);
-
       db.ref("evaluations/questions/" + classe + "/" + key + "/active").set(active)
         .then(function() {
           chargerQuestionsPourClasse(classe);
@@ -636,8 +483,6 @@
     }
 
     function supprimerQuestion(classe, key) {
-      console.log("[admin-evaluations.html] supprimerQuestion", classe, key);
-
       db.ref("evaluations/questions/" + classe + "/" + key).remove()
         .then(function() {
           chargerQuestionsPourClasse(classe);
@@ -649,8 +494,6 @@
     }
 
     function ajouterQuestion() {
-      console.log("[admin-evaluations.html] ajouterQuestion()");
-
       const classe = selectClasse.value;
       const questionText = inputQuestion.value.trim();
       const imageUrl = inputImage.value.trim();
@@ -727,33 +570,23 @@
 
     lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
-
       if (!auth) {
         window.location.href = "index.html";
         return;
       }
-
-      auth.signOut()
-        .then(function() {
-          window.location.href = "index.html";
-        })
-        .catch(function() {
-          window.location.href = "index.html";
-        });
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
     });
 
     btnSauverConfig.addEventListener("click", sauverConfig);
-
     btnChargerQuestions.addEventListener("click", function() {
       const classe = selectClasse.value;
       chargerQuestionsPourClasse(classe);
     });
-
     btnAjouterQuestion.addEventListener("click", ajouterQuestion);
 
     (function init() {
-      console.log("[admin-evaluations.html] init()");
-
       if (!auth || !db) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return;
@@ -761,16 +594,13 @@
 
       if (!auth.currentUser) {
         messageAdminCheck.textContent = "Vérification de ta connexion...";
-
         auth.onAuthStateChanged(function(user) {
           if (!user) {
             window.location.href = "connexion.html";
             return;
           }
-
           verifierAdmin();
         });
-
         return;
       }
 
@@ -779,5 +609,4 @@
   </script>
 
 </body>
-</html>
-    
+  </html>
