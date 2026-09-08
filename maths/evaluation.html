@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Évaluation officielle - Campus Flex</title>
+  <title>Évaluation Officielle - Campus Flex</title>
 
-  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="../firebase-config.js"></script>
+  <script src="firebase-config.js"></script>
 
   <style>
     :root {
@@ -24,12 +23,7 @@
       --gris: #7f8c8d;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -50,48 +44,30 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 {
-      color: white;
-      font-size: 20px;
-    }
-
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
 
     main {
       flex: 1;
       width: 100%;
-      max-width: 760px;
-      margin: 45px auto;
+      max-width: 800px;
+      margin: 35px auto;
       padding: 0 20px;
     }
 
     .card {
       background: white;
-      padding: 28px 22px;
+      padding: 24px 20px;
       border-radius: 14px;
-      text-align: center;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
       margin-bottom: 22px;
     }
 
     .card h2 {
       color: var(--indigo);
-      font-size: 24px;
+      font-size: 22px;
       margin-bottom: 12px;
     }
 
@@ -99,15 +75,19 @@
       color: var(--muted);
       line-height: 1.55;
       font-size: 15px;
+      margin-bottom: 14px;
     }
 
     .question {
-      margin-bottom: 26px;
-      text-align: left;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: #f8f9ff;
+      border-radius: 10px;
+      border-left: 4px solid var(--indigo);
     }
 
     .question h3 {
-      font-size: 17px;
+      font-size: 16px;
       margin-bottom: 12px;
       color: var(--text);
     }
@@ -115,103 +95,86 @@
     .question img {
       max-width: 100%;
       height: auto;
+      margin: 10px 0;
       border-radius: 8px;
-      margin-bottom: 12px;
-      display: block;
     }
 
     .choix {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 10px;
+      margin-top: 12px;
     }
 
     .choix label {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border: 1px solid #d9e0f3;
-      border-radius: 10px;
+      display: block;
+      padding: 12px;
+      background: white;
+      border: 2px solid #e3e7f6;
+      border-radius: 8px;
       cursor: pointer;
-      background: #f8f9ff;
-      font-size: 15px;
+      transition: all 0.2s;
     }
 
     .choix label:hover {
-      background: #eef1ff;
+      border-color: var(--indigo);
+      background: #f0f3ff;
     }
 
     .choix input[type="radio"] {
-      accent-color: var(--indigo);
+      margin-right: 10px;
     }
 
-    .btn {
-      display: inline-block;
-      margin-top: 18px;
-      padding: 11px 22px;
+    .choix input[type="radio"]:checked + span {
+      font-weight: bold;
+      color: var(--indigo);
+    }
+
+    button {
+      padding: 12px 24px;
       border-radius: 24px;
+      border: none;
       background: var(--indigo);
       color: white;
-      border: none;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: bold;
       cursor: pointer;
+      margin-top: 10px;
     }
 
-    .btn:hover {
+    button:hover {
       background: var(--indigo-dark);
     }
 
-    .btn:disabled {
+    button:disabled {
       background: var(--gris);
       cursor: not-allowed;
     }
 
     .message {
-      margin-top: 16px;
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 14px;
+      margin-top: 10px;
     }
 
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
     .loader {
-      width: 38px;
-      height: 38px;
-      margin: 22px auto 15px;
-      border: 4px solid #e3e7f6;
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
       border-top-color: var(--amber);
       border-radius: 50%;
       animation: tourner 0.8s linear infinite;
     }
 
-    footer {
-      background: var(--indigo);
-      color: white;
-      text-align: center;
-      padding: 14px;
-      font-size: 13px;
-    }
-
-    @keyframes tourner {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    @keyframes tourner { to { transform: rotate(360deg); } }
 
     @media (max-width: 600px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 25px auto;
-        padding: 0 14px;
-      }
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .choix { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -219,384 +182,262 @@
 <body>
 
   <nav>
-    <h1>Campus Flex - Évaluation officielle</h1>
-
+    <h1>Évaluation Officielle</h1>
     <ul>
-      <li><a href="profil.html">Mon profil</a></li>
       <li><a href="index.html">Cours</a></li>
-      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="profil.html">Profil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
   <main>
 
-    <!-- SECTION : MESSAGE / CHARGEMENT -->
-    <section class="card" id="card-message">
-      <h2 id="titre-message">Chargement</h2>
-
-      <div id="loader" class="loader"></div>
-
-      <p id="texte-message">
-        Vérification de l’état de l’évaluation officielle...
-      </p>
+    <section class="card" id="card-chargement">
+      <h2>Chargement...</h2>
+      <div class="loader" id="loader"></div>
+      <p id="message-chargement">Récupération des questions...</p>
     </section>
 
-    <!-- SECTION : QUESTIONS (cachée au début) -->
     <section class="card" id="card-questions" style="display: none;">
-      <h2>Évaluation officielle</h2>
+      <h2 id="titre-eval">Évaluation Officielle</h2>
+      <p>Réponds à toutes les questions. Une fois terminé, clique sur "Envoyer mes réponses".</p>
 
-      <p class="description">
-        Cette évaluation compte pour ton suivi. Réponds sérieusement à toutes les questions.
-      </p>
-
-      <form id="form-evaluation">
+      <form id="form-questions">
         <div id="liste-questions"></div>
 
-        <button type="button" class="btn" id="btn-valider">
-          Valider mes réponses
-        </button>
+        <button type="button" id="btn-envoyer">Envoyer mes réponses</button>
       </form>
 
-      <p id="message-resultat" class="message"></p>
+      <p id="message-envoi" class="message"></p>
+    </section>
 
-      <a href="profil.html" class="btn" id="btn-retour-profil" style="display:none; margin-left: 10px;">
-        Retour au profil
-      </a>
+    <section class="card" id="card-resultat" style="display: none;">
+      <h2>Résultat</h2>
+      <p id="texte-resultat"></p>
+      <a href="profil.html" class="btn" style="
+        display: inline-block;
+        margin-top: 15px;
+        padding: 11px 22px;
+        border-radius: 24px;
+        background: var(--indigo);
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: bold;
+      ">Retour au profil</a>
     </section>
 
   </main>
 
-  <footer>
-    © 2026 Campus Flex - Tous droits réservés
-  </footer>
-
   <script>
-    const cardMessage = document.getElementById("card-message");
+    const cardChargement = document.getElementById("card-chargement");
     const cardQuestions = document.getElementById("card-questions");
+    const cardResultat = document.getElementById("card-resultat");
 
-    const titreMessage = document.getElementById("titre-message");
-    const texteMessage = document.getElementById("texte-message");
+    const messageChargement = document.getElementById("message-chargement");
     const loader = document.getElementById("loader");
-
     const listeQuestions = document.getElementById("liste-questions");
-    const formEvaluation = document.getElementById("form-evaluation");
-    const btnValider = document.getElementById("btn-valider");
-    const messageResultat = document.getElementById("message-resultat");
-    const btnRetourProfil = document.getElementById("btn-retour-profil");
+    const titreEval = document.getElementById("titre-eval");
+    const btnEnvoyer = document.getElementById("btn-envoyer");
+    const messageEnvoi = document.getElementById("message-envoi");
+    const texteResultat = document.getElementById("texte-resultat");
 
-    let questionsData = {};
-    let classeEleve = "";
-    let evaluationActive = false;
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    function afficherMessage(titre, texte, couleur) {
-      cardMessage.style.display = "block";
-      cardQuestions.style.display = "none";
+    let userUid = null;
+    let userClasse = null;
+    let questions = {};
+    let nbQuestions = 0;
 
-      titreMessage.textContent = titre || "Message";
-      texteMessage.textContent = texte || "";
-      texteMessage.style.color = couleur || "var(--muted)";
+    function afficherErreurChargement(texte) {
+      messageChargement.textContent = texte;
+      messageChargement.classList.add("error");
       loader.style.display = "none";
     }
 
-    function normaliserClasse(valeur) {
-      return String(valeur || "")
-        .trim()
-        .replace(/s+/g, " ");
-    }
-
-    function verifierEvaluationOfficielle() {
-      console.log("[evaluation.html] verifierEvaluationOfficielle()");
-
-      if (!db) {
-        throw new Error("Realtime Database non disponible");
-      }
-
+    function chargerQuestions() {
       if (!auth || !auth.currentUser) {
-        throw new Error("Utilisateur non connecté");
+        afficherErreurChargement("Tu dois être connecté.");
+        return;
       }
 
-      // 1. Vérifier si l'évaluation officielle est activée
-      return db.ref("evaluations/config/evaluation_officielle_active").once("value")
-        .then(function(snapConfig) {
-          const active = snapConfig && snapConfig.val() === true;
-          console.log("[evaluation.html] evaluation_officielle_active =", active);
+      userUid = auth.currentUser.uid;
 
-          if (!active) {
-            throw new Error("EVALUATION_INACTIVE");
+      db.ref("eleves/" + userUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurChargement("Ton profil n'existe pas.");
+            return;
           }
 
-          evaluationActive = true;
+          const eleve = snap.val();
+          userClasse = eleve.classe;
+          titreEval.textContent = "Évaluation Officielle - " + userClasse;
 
-          // 2. Lire la classe de l'élève
-          return db.ref("eleves/" + auth.currentUser.uid + "/classe").once("value");
-        })
-        .then(function(snapClasse) {
-          const classeBrute = snapClasse ? snapClasse.val() : null;
-
-          if (!classeBrute) {
-            throw new Error("Ta classe n’est pas renseignée.");
-          }
-
-          classeEleve = normaliserClasse(classeBrute);
-          console.log("[evaluation.html] Classe détectée :", classeEleve);
-
-          // 3. Lire les questions officielles pour cette classe
-          return db.ref("evaluations/questions/" + classeEleve).once("value");
+          return db.ref("evaluations/questions/" + userClasse).once("value");
         })
         .then(function(snapQuestions) {
-          console.log("[evaluation.html] Snapshot questions officielles :", snapQuestions ? snapQuestions.exists() : "null");
+          loader.style.display = "none";
 
           if (!snapQuestions || !snapQuestions.exists()) {
-            throw new Error("Aucune question officielle n’est disponible pour ta classe (" + classeEleve + ").");
+            afficherErreurChargement("Aucune question disponible pour ta classe.");
+            return;
           }
 
-          questionsData = snapQuestions.val() || {};
-          console.log("[evaluation.html] Questions officielles chargées :", Object.keys(questionsData).length);
+          questions = snapQuestions.val();
+          const cles = Object.keys(questions);
+          nbQuestions = cles.length;
+
+          if (nbQuestions === 0) {
+            afficherErreurChargement("Aucune question disponible.");
+            return;
+          }
+
+          cardChargement.style.display = "none";
+          cardQuestions.style.display = "block";
+
+          cles.forEach(function(key, index) {
+            const q = questions[key];
+            if (!q.active) return;
+
+            const div = document.createElement("div");
+            div.className = "question";
+
+            const h3 = document.createElement("h3");
+            h3.textContent = "Question " + (index + 1) + " : " + (q.question || "");
+            div.appendChild(h3);
+
+            if (q.image) {
+              const img = document.createElement("img");
+              img.src = q.image;
+              img.alt = "Image question";
+              div.appendChild(img);
+            }
+
+            const choixDiv = document.createElement("div");
+            choixDiv.className = "choix";
+
+            q.choix.forEach(function(choix, i) {
+              const label = document.createElement("label");
+
+              const input = document.createElement("input");
+              input.type = "radio";
+              input.name = "question_" + key;
+              input.value = i;
+
+              const span = document.createElement("span");
+              span.textContent = choix;
+
+              label.appendChild(input);
+              label.appendChild(span);
+              choixDiv.appendChild(label);
+            });
+
+            div.appendChild(choixDiv);
+            listeQuestions.appendChild(div);
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement questions :", erreur);
+          afficherErreurChargement("Erreur de chargement.");
         });
     }
 
-    function afficherQuestions() {
-      console.log("[evaluation.html] afficherQuestions()");
-
-      if (!questionsData || Object.keys(questionsData).length === 0) {
-        afficherMessage(
-          "Aucune question",
-          "Aucune question n’est disponible pour ta classe pour le moment.",
-          "var(--error)"
-        );
-        return;
-      }
-
-      cardMessage.style.display = "none";
-      cardQuestions.style.display = "block";
-      listeQuestions.innerHTML = "";
-
-      let index = 0;
-
-      Object.keys(questionsData).forEach(function(key) {
-        const q = questionsData[key];
-
-        if (!q || !q.active) {
-          return;
-        }
-
-        index++;
-
-        const questionDiv = document.createElement("div");
-        questionDiv.className = "question";
-
-        const h3 = document.createElement("h3");
-        h3.textContent = "Question " + index + " : " + q.question;
-        questionDiv.appendChild(h3);
-
-        if (q.image) {
-          const img = document.createElement("img");
-          img.src = q.image;
-          img.alt = "Illustration de la question";
-          questionDiv.appendChild(img);
-        }
-
-        const choixDiv = document.createElement("div");
-        choixDiv.className = "choix";
-
-        q.choix.forEach(function(choixText, i) {
-          const label = document.createElement("label");
-
-          const input = document.createElement("input");
-          input.type = "radio";
-          input.name = "question-" + key;
-          input.value = String(i);
-
-          const span = document.createElement("span");
-          span.textContent = choixText;
-
-          label.appendChild(input);
-          label.appendChild(span);
-          choixDiv.appendChild(label);
-        });
-
-        questionDiv.appendChild(choixDiv);
-        listeQuestions.appendChild(questionDiv);
-      });
-
-      btnValider.disabled = false;
-    }
-
-    function validerEvaluation() {
-      console.log("[evaluation.html] validerEvaluation()");
-
-      if (!auth || !auth.currentUser) {
-        afficherMessage(
-          "Déconnexion détectée",
-          "Tu dois être connecté pour envoyer tes réponses.",
-          "var(--error)"
-        );
-        btnValider.disabled = true;
-        return;
-      }
-
-      const uid = auth.currentUser.uid;
-      const now = Date.now();
-
+    btnEnvoyer.addEventListener("click", function() {
+      const reponses = {};
       let score = 0;
       let totalPoints = 0;
-      let nbQuestions = 0;
+      let nbQuestionsRepondues = 0;
 
-      const reponses = {};
+      Object.keys(questions).forEach(function(key) {
+        const q = questions[key];
+        if (!q.active) return;
 
-      Object.keys(questionsData).forEach(function(key) {
-        const q = questionsData[key];
+        const selected = document.querySelector("input[name='question_" + key + "']:checked");
+        const reponseEleve = selected ? parseInt(selected.value, 10) : -1;
 
-        if (!q || !q.active) {
-          return;
-        }
+        reponses[key] = reponseEleve;
 
-        nbQuestions++;
-        totalPoints += (q.points || 1);
-
-        const selected = document.querySelector(
-          'input[name="question-' + key + '"]:checked'
-        );
-
-        const reponseIndex = selected ? parseInt(selected.value, 10) : -1;
-        reponses[key] = reponseIndex;
-
-        if (reponseIndex === q.bonneReponse) {
+        if (reponseEleve === q.bonneReponse) {
           score += (q.points || 1);
         }
+
+        totalPoints += (q.points || 1);
+        nbQuestionsRepondues++;
       });
 
-      if (nbQuestions === 0) {
-        afficherMessage(
-          "Aucune question",
-          "Aucune question active n’a été trouvée.",
-          "var(--error)"
-        );
+      if (nbQuestionsRepondues === 0) {
+        messageEnvoi.textContent = "Tu dois répondre à au moins une question.";
+        messageEnvoi.classList.add("error");
         return;
       }
 
-      // Sauvegarde du résultat
+      btnEnvoyer.disabled = true;
+      messageEnvoi.textContent = "Envoi en cours...";
+      messageEnvoi.classList.remove("error");
+
+      const now = Date.now();
+
       const resultat = {
-        uid: uid,
-        classe: classeEleve,
+        classe: userClasse,
         date: now,
         score: score,
         totalPoints: totalPoints,
-        nbQuestions: nbQuestions,
-        reponses: reponses,
-        type: "officielle"
+        nbQuestions: nbQuestionsRepondues,
+        reponses: reponses
       };
 
-      db.ref("evaluations/resultats/" + uid + "/" + now)
-        .set(resultat)
+      db.ref("evaluations/resultats/" + userUid + "/eval_" + now).set(resultat)
         .then(function() {
-          console.log("[evaluation.html] Résultat officiel enregistré.");
+          messageEnvoi.textContent = "Réponses envoyées avec succès !";
+          messageEnvoi.classList.add("success");
 
-          messageResultat.textContent =
-            "Ton score : " + score + " / " + totalPoints +
-            " (" + nbQuestions + " question(s)).";
-
-          messageResultat.style.color = "var(--success)";
-          btnValider.disabled = true;
-          btnRetourProfil.style.display = "inline-block";
+          setTimeout(function() {
+            cardQuestions.style.display = "none";
+            cardResultat.style.display = "block";
+            texteResultat.textContent = "Ton score : " + score + " / " + totalPoints + " (" + nbQuestionsRepondues + " questions)";
+          }, 1500);
         })
         .catch(function(erreur) {
-          console.error("[evaluation.html] Erreur enregistrement résultat officiel :", erreur);
-
-          messageResultat.textContent =
-            "Erreur lors de l’enregistrement de ton résultat. Réessaie plus tard.";
-          messageResultat.style.color = "var(--error)";
+          console.error("Erreur envoi réponses :", erreur);
+          messageEnvoi.textContent = "Erreur lors de l'envoi.";
+          messageEnvoi.classList.add("error");
+          btnEnvoyer.disabled = false;
         });
-    }
+    });
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
+    });
 
     (function init() {
-      console.log("[evaluation.html] init()");
-
-      if (typeof firebase === "undefined" || typeof auth === "undefined" || !db) {
-        afficherMessage(
-          "Configuration",
-          "Firebase n’est pas correctement configuré.",
-          "var(--error)"
-        );
-        btnValider.disabled = true;
+      if (!auth || !db) {
+        afficherErreurChargement("Firebase non configuré.");
         return;
       }
 
       if (!auth.currentUser) {
-        afficherMessage("Vérification de ta connexion…", "Chargement...", "var(--gris)");
-
+        messageChargement.textContent = "Vérification de ta connexion...";
         auth.onAuthStateChanged(function(user) {
-          console.log("[evaluation.html] onAuthStateChanged :", user ? user.uid : "null");
-
           if (!user) {
-            afficherMessage(
-              "Connexion requise",
-              "Tu dois être connecté pour accéder à cette évaluation.",
-              "var(--error)"
-            );
-            btnValider.disabled = true;
+            window.location.href = "connexion.html";
             return;
           }
-
-          // Utilisateur connecté : on vérifie l'évaluation
-          afficherMessage("Vérification de l’évaluation officielle...", "", "var(--gris)");
-
-          verifierEvaluationOfficielle()
-            .then(function() {
-              afficherMessage("", "", "");
-              afficherQuestions();
-            })
-            .catch(function(erreur) {
-              console.error("Erreur vérification évaluation officielle :", erreur);
-
-              if (erreur.message === "EVALUATION_INACTIVE") {
-                afficherMessage(
-                  "Évaluation non activée",
-                  "L’évaluation officielle n’est pas encore activée par l’administrateur.",
-                  "var(--error)"
-                );
-              } else {
-                afficherMessage(
-                  "Erreur",
-                  "Impossible de charger l’évaluation : " + erreur.message,
-                  "var(--error)"
-                );
-              }
-            });
+          chargerQuestions();
         });
-
         return;
       }
 
-      // Déjà connecté
-      afficherMessage("Vérification de l’évaluation officielle...", "", "var(--gris)");
-
-      verifierEvaluationOfficielle()
-        .then(function() {
-          afficherMessage("", "", "");
-          afficherQuestions();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur vérification évaluation officielle :", erreur);
-
-          if (erreur.message === "EVALUATION_INACTIVE") {
-            afficherMessage(
-              "Évaluation non activée",
-              "L’évaluation officielle n’est pas encore activée par l’administrateur.",
-              "var(--error)"
-            );
-          } else {
-            afficherMessage(
-              "Erreur",
-              "Impossible de charger l’évaluation : " + erreur.message,
-              "var(--error)"
-            );
-          }
-        });
+      chargerQuestions();
     })();
-
-    btnValider.addEventListener("click", validerEvaluation);
   </script>
 
 </body>
-</html>
+      </html>
