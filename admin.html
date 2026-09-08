@@ -322,7 +322,6 @@
     function chargerStats() {
       console.log("[admin.html] chargerStats()");
 
-      // Nombre d'élèves
       db.ref("eleves").once("value")
         .then(function(snap) {
           const nb = snap ? snap.numChildren() : 0;
@@ -332,7 +331,6 @@
           statNbEleves.textContent = "–";
         });
 
-      // État évaluation officielle
       db.ref("evaluations/config/evaluation_officielle_active").once("value")
         .then(function(snap) {
           const active = snap && snap.val() === true;
@@ -342,7 +340,6 @@
           statEvalActive.textContent = "–";
         });
 
-      // Nombre d'administrateurs
       db.ref("administrateurs").once("value")
         .then(function(snap) {
           const nb = snap ? snap.numChildren() : 0;
@@ -379,7 +376,6 @@
           const adminData = snap.val();
           console.log("[admin.html] Admin :", adminData);
 
-          // Afficher le tableau de bord
           cardChargement.style.display = "none";
           cardDashboard.style.display = "block";
 
@@ -387,7 +383,6 @@
             "Connecté en tant que : " +
             (adminData.nom || adminData.email || user.email || "Administrateur");
 
-          // Charger les stats
           chargerStats();
         })
         .catch(function(erreur) {
@@ -416,7 +411,6 @@
         });
     });
 
-    // Initialisation
     (function init() {
       console.log("[admin.html] init()");
 
