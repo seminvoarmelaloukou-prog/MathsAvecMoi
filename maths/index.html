@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Campus Flex - Apprentissage flexible des mathématiques</title>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+
   <style>
     :root {
       --indigo: #2c3e8c;
@@ -183,6 +189,12 @@
         font-size: 22px;
       }
     }
+
+    #etatConnexion {
+      margin-top: 18px;
+      font-size: 14px;
+      color: #666;
+    }
   </style>
 </head>
 
@@ -215,6 +227,10 @@
           Se connecter
         </a>
       </div>
+
+      <div id="etatConnexion">
+        Vérification de ta connexion…
+      </div>
     </section>
 
     <section class="features">
@@ -245,6 +261,31 @@
   <footer>
     © 2026 Campus Flex - Tous droits réservés
   </footer>
+
+  <script>
+    const etatDiv = document.getElementById("etatConnexion");
+
+    // Attendre que Firebase soit prêt
+    window.addEventListener("load", function() {
+      if (!firebase.auth) {
+        etatDiv.textContent = "Firebase Auth non disponible.";
+        return;
+      }
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          etatDiv.textContent = "Tu n’es pas connecté. Redirection vers la page de connexion…";
+          // Petit délai pour voir le message
+          setTimeout(function() {
+            window.location.href = "../connexion.html";
+          }, 1500);
+        } else {
+          etatDiv.textContent = "Tu es connecté en tant que " + user.email + ".";
+          // Ici, tu pourras plus tard afficher le contenu réservé aux élèves
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
