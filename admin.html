@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administration - Campus Flex</title>
+  <title>Tableau de bord - Admin - Campus Flex</title>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -20,6 +20,7 @@
       --muted: #666666;
       --error: #c0392b;
       --success: #27ae60;
+      --gris: #7f8c8d;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +52,7 @@
     main {
       flex: 1;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 35px auto;
       padding: 0 20px;
     }
@@ -77,81 +78,78 @@
       margin-bottom: 14px;
     }
 
-    .loader {
-      width: 38px;
-      height: 38px;
-      margin: 22px auto 15px;
-      border: 4px solid #e3e7f6;
-      border-top-color: var(--amber);
-      border-radius: 50%;
-      animation: tourner 0.8s linear infinite;
-    }
-
-    .error { color: var(--error) !important; margin-top: 15px; }
-
-    .stats-grid {
+    .stat-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 16px;
       margin-top: 16px;
     }
 
-    .stat-card {
+    .stat-box {
       background: #f8f9ff;
-      border: 1px solid #e3e7f6;
+      padding: 18px;
       border-radius: 10px;
-      padding: 14px;
-      text-align: center;
+      border-left: 4px solid var(--indigo);
     }
 
-    .stat-card .label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .stat-card .value {
-      font-size: 22px;
-      font-weight: bold;
-      color: var(--indigo);
-    }
-
-    .menu-admin {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-top: 18px;
-      text-align: center;
-    }
-
-    .menu-admin a,
-    .menu-admin button {
-      display: block;
-      width: 100%;
-      padding: 14px;
-      border-radius: 10px;
-      background: #f8f9ff;
-      border: 1px solid #e3e7f6;
-      color: var(--indigo);
-      text-decoration: none;
-      font-weight: bold;
+    .stat-box h3 {
       font-size: 14px;
-      cursor: pointer;
+      color: var(--muted);
+      margin-bottom: 8px;
     }
 
-    .menu-admin a:hover,
-    .menu-admin button:hover {
-      background: #eef1ff;
+    .stat-box .valeur {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--indigo);
     }
 
-    .menu-admin button { background: #fff; }
+    .stat-box .sous-texte {
+      font-size: 13px;
+      color: var(--gris);
+      margin-top: 6px;
+    }
 
-    footer {
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .btn-action {
+      display: block;
+      padding: 16px;
       background: var(--indigo);
       color: white;
       text-align: center;
-      padding: 14px;
-      font-size: 13px;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: var(--indigo-dark);
+      transform: translateY(-2px);
+    }
+
+    .message {
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
     }
 
     @keyframes tourner { to { transform: rotate(360deg); } }
@@ -160,7 +158,8 @@
       nav { justify-content: center; text-align: center; }
       nav ul { justify-content: center; }
       main { margin: 20px auto; padding: 0 14px; }
-      .stats-grid, .menu-admin { grid-template-columns: 1fr; }
+      .stat-grid { grid-template-columns: 1fr; }
+      .actions-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -168,156 +167,199 @@
 <body>
 
   <nav>
-    <h1>Administration - Campus Flex</h1>
+    <h1>Admin - Tableau de bord</h1>
     <ul>
-      <li><a href="admin.html">Tableau de bord</a></li>
-      <li><a href="index.html">Site public</a></li>
+      <li><a href="admin-eleves.html">Gestion des élèves</a></li>
+      <li><a href="admin-resultats.html">Résultats</a></li>
+      <li><a href="index.html">Accueil</a></li>
       <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
   <main>
 
-    <section class="card" id="card-chargement">
-      <h2>Chargement</h2>
-      <div class="loader" id="loader"></div>
-      <p id="message-chargement">Vérification de tes droits administrateur...</p>
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
+      </div>
     </section>
 
-    <section class="card" id="card-dashboard" style="display: none;">
-      <h2>Tableau de bord</h2>
-      <p id="message-admin"></p>
+    <section class="card" id="card-stats" style="display: none;">
+      <h2>Statistiques</h2>
+      <p>Vue d'ensemble de la plateforme.</p>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="label">Élèves inscrits</div>
-          <div class="value" id="stat-nb-eleves">–</div>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <h3>Nombre d'élèves</h3>
+          <div class="valeur" id="stat-nombre-eleves">–</div>
+          <div class="sous-texte" id="stat-nombre-eleves-detail">Chargement...</div>
         </div>
-        <div class="stat-card">
-          <div class="label">Évaluation officielle</div>
-          <div class="value" id="stat-eval-active">–</div>
+
+        <div class="stat-box">
+          <h3>Évaluations blanches</h3>
+          <div class="valeur" id="stat-blanches">–</div>
+          <div class="sous-texte" id="stat-blanches-detail">Chargement...</div>
         </div>
-        <div class="stat-card">
-          <div class="label">Administrateurs</div>
-          <div class="value" id="stat-nb-admins">–</div>
+
+        <div class="stat-box">
+          <h3>Évaluations officielles</h3>
+          <div class="valeur" id="stat-officielles">–</div>
+          <div class="sous-texte" id="stat-officielles-detail">Chargement...</div>
+        </div>
+
+        <div class="stat-box">
+          <h3>Points totaux</h3>
+          <div class="valeur" id="stat-points-totaux">–</div>
+          <div class="sous-texte" id="stat-points-totaux-detail">Chargement...</div>
         </div>
       </div>
+    </section>
 
-      <h3 style="margin-top: 22px; color: var(--indigo); font-size: 18px;">Gestion</h3>
+    <section class="card" id="card-actions" style="display: none;">
+      <h2>Actions rapides</h2>
+      <p>Accède rapidement aux différentes sections d'administration.</p>
 
-      <div class="menu-admin">
-        <a href="admin-evaluations.html">Gestion des évaluations</a>
-        <a href="admin-coefficients.html">Gestion des coefficients</a>
-        <a href="admin-eleves.html">Gérer les élèves</a>
-        <a href="admin-resultats.html">Voir les résultats</a>
-      </div>
-
-      <div style="margin-top: 20px;">
-        <a href="admin.html" class="btn" style="
-          display: inline-block;
-          padding: 11px 22px;
-          border-radius: 24px;
-          background: var(--indigo);
-          color: white;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: bold;
-        ">Retour au tableau de bord</a>
+      <div class="actions-grid">
+        <a href="admin-eleves.html" class="btn-action">Gestion des élèves</a>
+        <a href="admin-resultats.html" class="btn-action">Résultats des élèves</a>
+        <a href="admin-cours.html" class="btn-action">Gestion des cours</a>
+        <a href="admin-evaluations.html" class="btn-action">Évaluations</a>
       </div>
     </section>
 
   </main>
 
-  <footer>
-    © 2026 Campus Flex - Tous droits réservés
-  </footer>
-
   <script>
-    const cardChargement = document.getElementById("card-chargement");
-    const cardDashboard = document.getElementById("card-dashboard");
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardStats = document.getElementById("card-stats");
+    const cardActions = document.getElementById("card-actions");
 
-    const messageChargement = document.getElementById("message-chargement");
-    const loader = document.getElementById("loader");
-    const messageAdmin = document.getElementById("message-admin");
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
 
-    const statNbEleves = document.getElementById("stat-nb-eleves");
-    const statEvalActive = document.getElementById("stat-eval-active");
-    const statNbAdmins = document.getElementById("stat-nb-admins");
+    const statNombreEleves = document.getElementById("stat-nombre-eleves");
+    const statNombreElevesDetail = document.getElementById("stat-nombre-eleves-detail");
+    const statBlanches = document.getElementById("stat-blanches");
+    const statBlanchesDetail = document.getElementById("stat-blanches-detail");
+    const statOfficielles = document.getElementById("stat-officielles");
+    const statOfficiellesDetail = document.getElementById("stat-officielles-detail");
+    const statPointsTotaux = document.getElementById("stat-points-totaux");
+    const statPointsTotauxDetail = document.getElementById("stat-points-totaux-detail");
 
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    function afficherErreur(texte) {
-      messageChargement.textContent = texte;
-      messageChargement.classList.add("error");
-      loader.style.display = "none";
-    }
+    let adminUid = null;
 
-    function chargerStats() {
-      db.ref("eleves").once("value")
-        .then(function(snap) {
-          const nb = snap ? snap.numChildren() : 0;
-          statNbEleves.textContent = String(nb);
-        })
-        .catch(function() {
-          statNbEleves.textContent = "–";
-        });
-
-      db.ref("evaluations/config/evaluation_officielle_active").once("value")
-        .then(function(snap) {
-          const active = snap && snap.val() === true;
-          statEvalActive.textContent = active ? "Activée" : "Désactivée";
-        })
-        .catch(function() {
-          statEvalActive.textContent = "–";
-        });
-
-      db.ref("administrateurs").once("value")
-        .then(function(snap) {
-          const nb = snap ? snap.numChildren() : 0;
-          statNbAdmins.textContent = String(nb);
-        })
-        .catch(function() {
-          statNbAdmins.textContent = "–";
-        });
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
     }
 
     function verifierAdmin() {
       if (!db || !auth) {
-        afficherErreur("Firebase n'est pas correctement configuré.");
-        return;
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
       if (!user) {
-        afficherErreur("Tu dois être connecté en tant qu'administrateur.");
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
-        return;
+        return Promise.reject(new Error("Pas connecté"));
       }
 
-      db.ref("administrateurs/" + user.uid).once("value")
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) {
-            afficherErreur("Ce compte n'est pas enregistré comme administrateur.");
-            return;
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
           }
 
           const adminData = snap.val();
-          cardChargement.style.display = "none";
-          cardDashboard.style.display = "block";
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
-          messageAdmin.textContent =
-            "Connecté en tant que : " +
-            (adminData.nom || adminData.email || user.email || "Administrateur");
+          cardStats.style.display = "block";
+          cardActions.style.display = "block";
 
-          chargerStats();
-        })
-        .catch(function(erreur) {
-          console.error("[admin.html] Erreur vérification admin :", erreur);
-          afficherErreur(
-            "Impossible de vérifier tes droits : " +
-            (erreur && erreur.message ? erreur.message : "erreur inconnue")
-          );
+          chargerStatistiques();
         });
+    }
+
+    function chargerStatistiques() {
+      statNombreEleves.textContent = "–";
+      statBlanches.textContent = "–";
+      statOfficielles.textContent = "–";
+      statPointsTotaux.textContent = "–";
+
+      statNombreElevesDetail.textContent = "Chargement...";
+      statBlanchesDetail.textContent = "Chargement...";
+      statOfficiellesDetail.textContent = "Chargement...";
+      statPointsTotauxDetail.textContent = "Chargement...";
+
+      Promise.all([
+        db.ref("eleves").once("value"),
+        db.ref("evaluations_blanches/resultats").once("value"),
+        db.ref("evaluations/resultats").once("value")
+      ])
+      .then(function([snapEleves, snapBlanches, snapOfficielles]) {
+        let nombreEleves = 0;
+        let nombreClasses = new Set();
+        let pointsTotaux = 0;
+
+        if (snapEleves && snapEleves.exists()) {
+          snapEleves.forEach(function(childSnap) {
+            nombreEleves++;
+            const eleve = childSnap.val();
+            if (eleve.classe) {
+              nombreClasses.add(eleve.classe);
+            }
+            pointsTotaux += (eleve.points || 0);
+          });
+        }
+
+        let nbBlanches = 0;
+        if (snapBlanches && snapBlanches.exists()) {
+          snapBlanches.forEach(function(uidSnap) {
+            uidSnap.forEach(function() {
+              nbBlanches++;
+            });
+          });
+        }
+
+        let nbOfficielles = 0;
+        if (snapOfficielles && snapOfficielles.exists()) {
+          snapOfficielles.forEach(function(uidSnap) {
+            uidSnap.forEach(function() {
+              nbOfficielles++;
+            });
+          });
+        }
+
+        statNombreEleves.textContent = nombreEleves;
+        statNombreElevesDetail.textContent = nombreClasses.size + " classe(s) différente(s)";
+
+        statBlanches.textContent = nbBlanches;
+        statBlanchesDetail.textContent = "Résultats enregistrés";
+
+        statOfficielles.textContent = nbOfficielles;
+        statOfficiellesDetail.textContent = "Résultats enregistrés";
+
+        statPointsTotaux.textContent = pointsTotaux;
+        statPointsTotauxDetail.textContent = "Points cumulés par tous les élèves";
+      })
+      .catch(function(erreur) {
+        console.error("Erreur chargement stats :", erreur);
+        statNombreElevesDetail.textContent = "Erreur de chargement";
+        statBlanchesDetail.textContent = "Erreur";
+        statOfficiellesDetail.textContent = "Erreur";
+        statPointsTotauxDetail.textContent = "Erreur";
+      });
     }
 
     lienDeconnexion.addEventListener("click", function(e) {
@@ -333,12 +375,12 @@
 
     (function init() {
       if (!auth || !db) {
-        afficherErreur("Firebase n'est pas correctement configuré.");
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return;
       }
 
       if (!auth.currentUser) {
-        messageChargement.textContent = "Vérification de ta connexion...";
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
         auth.onAuthStateChanged(function(user) {
           if (!user) {
             window.location.href = "connexion.html";
