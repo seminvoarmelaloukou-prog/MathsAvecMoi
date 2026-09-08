@@ -247,6 +247,7 @@
   <div class="eleve-nav">
     <div class="eleve-info">
       Connecté en tant que <strong id="emailEleve">…</strong>
+      <span id="classeEleve" style="margin-left: 8px; color: var(--indigo); font-weight: bold;"></span>
     </div>
     <button class="btn-deconnexion" onclick="deconnexion()">
       Se déconnecter
@@ -263,38 +264,8 @@
     </section>
 
     <h3 class="section-title">Mes cours</h3>
-    <div class="grid">
-      <div class="card">
-        <h3>6e</h3>
-        <p>
-          Cours, exercices et ressources pour le niveau 6e.
-        </p>
-        <a href="#" class="btn">Accéder</a>
-      </div>
-
-      <div class="card">
-        <h3>5e</h3>
-        <p>
-          Cours, exercices et ressources pour le niveau 5e.
-        </p>
-        <a href="#" class="btn">Accéder</a>
-      </div>
-
-      <div class="card">
-        <h3>4e</h3>
-        <p>
-          Cours, exercices et ressources pour le niveau 4e.
-        </p>
-        <a href="#" class="btn">Accéder</a>
-      </div>
-
-      <div class="card">
-        <h3>3e</h3>
-        <p>
-          Cours, exercices et ressources pour le niveau 3e.
-        </p>
-        <a href="#" class="btn">Accéder</a>
-      </div>
+    <div id="coursContainer" class="grid">
+      <!-- Les cartes de cours seront injectées ici par JS -->
     </div>
 
     <h3 class="section-title">Mes évaluations</h3>
@@ -324,6 +295,31 @@
 
   <script>
     const emailEleveEl = document.getElementById("emailEleve");
+    const classeEleveEl = document.getElementById("classeEleve");
+    const coursContainer = document.getElementById("coursContainer");
+
+    // Liste complète des niveaux (de 6e à Terminale)
+    const NIVEAUX = [
+      { id: "6e",  nom: "6e",  description: "Cours, exercices et ressources pour le niveau 6e." },
+      { id: "5e",  nom: "5e",  description: "Cours, exercices et ressources pour le niveau 5e." },
+      { id: "4e",  nom: "4e",  description: "Cours, exercices et ressources pour le niveau 4e." },
+      { id: "3e",  nom: "3e",  description: "Cours, exercices et ressources pour le niveau 3e." },
+      { id: "2nde",nom: "Seconde", description: "Cours, exercices et ressources pour la classe de Seconde." },
+      { id: "1ere",nom: "Première", description: "Cours, exercices et ressources pour la classe de Première." },
+      { id: "Tle", nom: "Terminale", description: "Cours, exercices et ressources pour la classe de Terminale." }
+    ];
+
+    function afficherNiveau(niveau) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      card.innerHTML =
+        "<h3>" + niveau.nom + "</h3>" +
+        "<p>" + niveau.description + "</p>" +
+        "<a href='#' class='btn'>Accéder</a>";
+
+      coursContainer.appendChild(card);
+    }
 
     window.addEventListener("load", function() {
       if (!firebase.auth) {
@@ -341,7 +337,47 @@
         // Utilisateur connecté : on affiche son email
         emailEleveEl.textContent = user.email;
 
-        // Ici, tu pourras plus tard récupérer sa classe, son nom, etc.
+        // Récupérer la classe de l'élève dans Firebase
+        if (firebase.database) {
+          firebase.database()
+            .ref("eleves/" + user.uid)
+            .once("value")
+            .then(function(snap) {
+              let classe = null;
+
+              if (snap && snap.exists()) {
+                const data = snap.val();
+                classe = data.classe || null;
+              }
+
+              if (classe) {
+                classeEleveEl.textContent = "(" + classe + ")";
+
+                // On affiche uniquement la carte de sa classe
+                const niveau = NIVEAUX.find(function(n) { return n.id === classe; });
+                if (niveau) {
+                  afficherNiveau(niveau);
+                } else {
+                  coursContainer.innerHTML =
+                    "<p>Aucun cours disponible pour ta classe pour le moment.</p>";
+                }
+              } else {
+                classeEleveEl.textContent = "";
+
+                // Si pas de classe renseignée, on affiche un message par défaut
+                coursContainer.innerHTML =
+                  "<p>Ta classe n’est pas encore renseignée. Reviens plus tard pour accéder à tes cours.</p>";
+              }
+            })
+            .catch(function(err) {
+              console.error("Erreur lecture classe élève :", err);
+              coursContainer.innerHTML =
+                "<p>Impossible de charger tes cours pour le moment.</p>";
+            });
+        } else {
+          coursContainer.innerHTML =
+            "<p>Les cours ne sont pas disponibles pour le moment.</p>";
+        }
       });
     });
   </script>
