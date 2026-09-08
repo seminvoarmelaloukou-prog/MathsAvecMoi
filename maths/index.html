@@ -3,13 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ouverture des cours - Campus Flex</title>
-
-  <!-- Firebase : ordre obligatoire -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="../firebase-config.js"></script>
+  <title>Campus Flex - Apprentissage flexible des mathématiques</title>
 
   <style>
     :root {
@@ -19,7 +13,6 @@
       --background: #f5f7ff;
       --text: #333333;
       --muted: #666666;
-      --error: #c0392b;
     }
 
     * {
@@ -73,49 +66,43 @@
     main {
       flex: 1;
       width: 100%;
-      max-width: 760px;
+      max-width: 900px;
       margin: 45px auto;
       padding: 0 20px;
     }
 
-    .card {
+    .hero {
       background: white;
-      padding: 28px 22px;
+      padding: 35px 25px;
       border-radius: 14px;
       text-align: center;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
     }
 
-    .card h2 {
+    .hero h2 {
       color: var(--indigo);
-      font-size: 24px;
+      font-size: 26px;
       margin-bottom: 12px;
     }
 
-    .card p {
+    .hero p {
       color: var(--muted);
-      line-height: 1.55;
+      line-height: 1.6;
       font-size: 15px;
+      margin-bottom: 18px;
     }
 
-    .loader {
-      width: 38px;
-      height: 38px;
-      margin: 22px auto 15px;
-      border: 4px solid #e3e7f6;
-      border-top-color: var(--amber);
-      border-radius: 50%;
-      animation: tourner 0.8s linear infinite;
-    }
-
-    .error {
-      color: var(--error) !important;
-      margin-top: 15px;
+    .cta-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 18px;
     }
 
     .btn {
       display: inline-block;
-      margin-top: 20px;
       padding: 11px 22px;
       border-radius: 24px;
       background: var(--indigo);
@@ -129,18 +116,48 @@
       background: var(--indigo-dark);
     }
 
+    .btn-secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    .btn-secondaire:hover {
+      background: #cdd5f6;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .feature {
+      background: white;
+      padding: 20px 18px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .feature h3 {
+      color: var(--indigo);
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .feature p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
     footer {
       background: var(--indigo);
       color: white;
       text-align: center;
       padding: 14px;
       font-size: 13px;
-    }
-
-    @keyframes tourner {
-      to {
-        transform: rotate(360deg);
-      }
     }
 
     @media (max-width: 600px) {
@@ -157,6 +174,14 @@
         margin: 25px auto;
         padding: 0 14px;
       }
+
+      .hero {
+        padding: 25px 18px;
+      }
+
+      .hero h2 {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
@@ -164,217 +189,62 @@
 <body>
 
   <nav>
-    <h1>Campus Flex - Mathématiques</h1>
+    <h1>🎓 Campus Flex</h1>
 
     <ul>
-      <li><a href="profil.html">Mon profil</a></li>
-      <li><a href="../index.html">Accueil</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+      <li><a href="connexion.html">Se connecter</a></li>
+      <li><a href="inscription.html">S’inscrire</a></li>
     </ul>
   </nav>
 
   <main>
-    <section class="card">
-      <h2 id="titre">Chargement de tes cours</h2>
 
-      <div id="loader" class="loader"></div>
+    <section class="hero">
+      <h2>Apprentissage flexible des mathématiques</h2>
 
-      <p id="message">
-        Recherche de ta classe et ouverture de tes cours...
+      <p>
+        Campus Flex t’accompagne du collège au lycée avec des cours clairs, des exercices progressifs et des évaluations pour mesurer tes progrès.
       </p>
 
-      <a
-        href="profil.html"
-        class="btn"
-        id="bouton-profil"
-        style="display:none;"
-      >
-        Ouvrir mon profil
-      </a>
+      <div class="cta-buttons">
+        <a href="inscription.html" class="btn">
+          Créer un compte
+        </a>
+
+        <a href="connexion.html" class="btn btn-secondaire">
+          Se connecter
+        </a>
+      </div>
     </section>
+
+    <section class="features">
+      <div class="feature">
+        <h3>Cours structurés</h3>
+        <p>
+          Des leçons claires, conformes au programme, de la 6e à la Terminale.
+        </p>
+      </div>
+
+      <div class="feature">
+        <h3>Exercices progressifs</h3>
+        <p>
+          Mets-toi au défi avec des exercices adaptés à ton niveau.
+        </p>
+      </div>
+
+      <div class="feature">
+        <h3>Évaluations & suivi</h3>
+        <p>
+          Évalue-toi et suis tes progrès grâce à un tableau de bord personnel.
+        </p>
+      </div>
+    </section>
+
   </main>
 
   <footer>
     © 2026 Campus Flex - Tous droits réservés
   </footer>
-
-  <script>
-    const titre = document.getElementById("titre");
-    const message = document.getElementById("message");
-    const loader = document.getElementById("loader");
-    const boutonProfil = document.getElementById("bouton-profil");
-    const lienDeconnexion = document.getElementById("lien-deconnexion");
-
-    const pagesParClasse = {
-      "6e": "6e/index.html",
-      "6eme": "6e/index.html",
-      "6ème": "6e/index.html",
-
-      "5e": "5e/index.html",
-      "5eme": "5e/index.html",
-      "5ème": "5e/index.html",
-
-      "4e": "4e/index.html",
-      "4eme": "4e/index.html",
-      "4ème": "4e/index.html",
-
-      "3e": "3e/index.html",
-      "3eme": "3e/index.html",
-      "3ème": "3e/index.html",
-
-      "Seconde": "seconde/index.html",
-      "seconde": "seconde/index.html",
-
-      "Première": "premiere/index.html",
-      "Premiere": "premiere/index.html",
-      "premiere": "premiere/index.html",
-
-      "Terminale": "terminale/index.html",
-      "terminale": "terminale/index.html"
-    };
-
-    function afficherErreur(texte) {
-      titre.textContent = "Impossible d’ouvrir le cours";
-      message.textContent = texte;
-      message.classList.add("error");
-      loader.style.display = "none";
-      boutonProfil.style.display = "inline-block";
-    }
-
-    function normaliserClasse(valeur) {
-      return String(valeur || "")
-        .trim()
-        .replace(/s+/g, " ");
-    }
-
-    function ouvrirCours() {
-      console.log("[maths/index.html] Début ouvrirCours");
-
-      if (typeof firebase === "undefined") {
-        console.error("[maths/index.html] firebase est undefined");
-        afficherErreur("Firebase n’est pas chargé. Vérifie les scripts Firebase.");
-        return;
-      }
-
-      if (typeof auth === "undefined") {
-        console.error("[maths/index.html] auth est undefined");
-        afficherErreur("Firebase Authentication n’est pas disponible.");
-        return;
-      }
-
-      if (!db) {
-        console.error("[maths/index.html] db est undefined ou null");
-        afficherErreur(
-          "Realtime Database n’est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
-        );
-        return;
-      }
-
-      console.log("[maths/index.html] auth.currentUser avant test :", auth.currentUser);
-
-      const user = auth.currentUser;
-
-      if (!user) {
-        console.log("[maths/index.html] Pas d'utilisateur connecté immédiatement. Écoute onAuthStateChanged...");
-
-        // On attend que Firebase restaure la session
-        auth.onAuthStateChanged(function(u) {
-          console.log("[maths/index.html] onAuthStateChanged appelé avec :", u ? u.uid : "null");
-
-          if (!u) {
-            // Vraiment pas connecté → redirection vers connexion
-            window.location.href = "../connexion.html";
-            return;
-          }
-
-          // Connecté → on lance le traitement avec u
-          ouvrirCoursAvecUtilisateur(u);
-        });
-
-        return;
-      }
-
-      console.log("[maths/index.html] Utilisateur déjà connecté :", user.uid);
-      ouvrirCoursAvecUtilisateur(user);
-    }
-
-    function ouvrirCoursAvecUtilisateur(user) {
-      console.log("[maths/index.html] ouvrirCoursAvecUtilisateur pour UID :", user.uid);
-
-      db.ref("eleves/" + user.uid + "/classe").once("value")
-        .then(function(snapshot) {
-          console.log("[maths/index.html] snapshot classe :", snapshot ? snapshot.val() : "null");
-
-          const classeBrute = snapshot ? snapshot.val() : null;
-
-          if (!classeBrute) {
-            afficherErreur(
-              "Ta classe n’est pas renseignée. Ouvre ton profil pour la compléter."
-            );
-            return;
-          }
-
-          const classe = normaliserClasse(classeBrute);
-          const pageCours = pagesParClasse[classe];
-
-          console.log("[maths/index.html] Classe normalisée :", classe);
-          console.log("[maths/index.html] Page cours trouvée :", pageCours || "aucune");
-
-          if (!pageCours) {
-            afficherErreur(
-              "Ta classe actuelle est : " +
-              (classe ? "« " + classe + " »" : "non renseignée") +
-              ". Ouvre ton profil pour vérifier ta classe."
-            );
-            return;
-          }
-
-          // Option 2 : on ne redirige pas vers une page de cours inexistante,
-          // mais vers le profil, avec un message explicatif.
-          titre.textContent = "Cours de " + classe;
-          message.textContent =
-            "Ta classe est : " + classe + ". Les contenus sont en cours de préparation. Redirection vers ton profil...";
-
-          window.setTimeout(function() {
-            console.log("[maths/index.html] Redirection vers : profil.html");
-            window.location.href = "profil.html";
-          }, 1200);
-        })
-        .catch(function(erreur) {
-          console.error("[maths/index.html] Erreur lors de la lecture de la classe :", erreur);
-
-          if (erreur && erreur.code === "PERMISSION_DENIED") {
-            afficherErreur(
-              "Firebase refuse l’accès à ta classe. Vérifie les règles de Realtime Database."
-            );
-          } else {
-            afficherErreur(
-              "Impossible de charger ta classe : " +
-              (erreur && erreur.message ? erreur.message : "erreur inconnue")
-            );
-          }
-        });
-    }
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-
-      if (typeof auth === "undefined") {
-        window.location.href = "../index.html";
-        return;
-      }
-
-      auth.signOut()
-        .then(function() {
-          window.location.href = "../index.html";
-        })
-        .catch(function() {
-          window.location.href = "../index.html";
-        });
-    });
-
-    ouvrirCours();
-  </script>
 
 </body>
 </html>
