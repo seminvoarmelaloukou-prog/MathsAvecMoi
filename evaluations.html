@@ -90,13 +90,25 @@
     .hero h2 {
       color: var(--indigo);
       font-size: 24px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+    }
+
+    .tentative-badge {
+      display: inline-block;
+      background: var(--amber);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-top: 6px;
     }
 
     .hero p {
       color: var(--muted);
       line-height: 1.6;
       font-size: 15px;
+      margin-top: 10px;
     }
 
     .question-card {
@@ -239,6 +251,7 @@
 
     <section class="hero">
       <h2 id="titreEval">Évaluation</h2>
+      <div id="tentativeBadge" class="tentative-badge" style="display:none;"></div>
       <p id="infoEval">
         Chargement de l’évaluation…
       </p>
@@ -265,6 +278,7 @@
 
   <script>
     const titreEval = document.getElementById("titreEval");
+    const tentativeBadge = document.getElementById("tentativeBadge");
     const infoEval = document.getElementById("infoEval");
     const questionsContainer = document.getElementById("questionsContainer");
     const btnEnvoyer = document.getElementById("btnEnvoyer");
@@ -403,13 +417,17 @@
                 infoEval.textContent =
                   "Tu as déjà atteint le nombre maximum de " + maxTentatives + " tentatives. " +
                   "Tu ne peux plus passer cette évaluation.";
+                tentativeBadge.style.display = "none";
                 btnEnvoyer.disabled = true;
                 questionsContainer.innerHTML = "";
                 return;
               }
 
+              // Afficher le badge "Tentative X sur 3"
+              tentativeBadge.textContent = "Tentative " + numeroTentative + " sur " + maxTentatives;
+              tentativeBadge.style.display = "inline-block";
+
               infoEval.textContent =
-                "Tentative " + numeroTentative + " sur " + maxTentatives + ". " +
                 "Réponds aux questions ci-dessous. Tu pourras voir ton score après l’envoi.";
 
               afficherQuestions();
