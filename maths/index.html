@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Espace élève - Campus Flex</title>
+  <title>Mathématiques - Campus Flex</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="../firebase-config.js"></script>
+  <script src="../auth-guard.js"></script>
 
   <style>
     :root {
@@ -19,8 +20,6 @@
       --background: #f5f7ff;
       --text: #333333;
       --muted: #666666;
-      --success: #27ae60;
-      --danger: #c0392b;
     }
 
     * {
@@ -38,7 +37,6 @@
       flex-direction: column;
     }
 
-    /* Nav principale */
     nav {
       background: var(--indigo);
       padding: 14px 20px;
@@ -72,123 +70,158 @@
       text-decoration: underline;
     }
 
-    /* Barre élève */
-    .eleve-nav {
-      background: white;
-      border-bottom: 1px solid #e3e7f6;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .eleve-info {
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    .eleve-info strong {
-      color: var(--indigo);
-    }
-
-    .btn-deconnexion {
-      padding: 8px 16px;
-      border-radius: 20px;
-      background: #e3e7f6;
-      color: var(--indigo);
-      border: none;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .btn-deconnexion:hover {
-      background: #cdd5f6;
-    }
-
     main {
       flex: 1;
       width: 100%;
-      max-width: 1000px;
-      margin: 35px auto;
+      max-width: 900px;
+      margin: 45px auto;
       padding: 0 20px;
     }
 
-    .welcome {
+    .hero {
       background: white;
-      padding: 30px 22px;
+      padding: 35px 25px;
       border-radius: 14px;
+      text-align: center;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
       margin-bottom: 22px;
     }
 
-    .welcome h2 {
+    .hero h2 {
       color: var(--indigo);
-      font-size: 24px;
-      margin-bottom: 10px;
+      font-size: 26px;
+      margin-bottom: 12px;
     }
 
-    .welcome p {
+    .hero p {
       color: var(--muted);
       line-height: 1.6;
       font-size: 15px;
+      margin-bottom: 18px;
     }
 
-    .section-title {
+    .btn {
+      display: inline-block;
+      padding: 11px 22px;
+      border-radius: 24px;
+      background: var(--indigo);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 6px;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+    }
+
+    .btn-secondaire {
+      background: #e3e7f6;
       color: var(--indigo);
-      font-size: 20px;
-      margin: 28px 0 14px;
     }
 
-    .grid {
+    .btn-secondaire:hover {
+      background: #cdd5f6;
+    }
+
+    .section-titre {
+      color: var(--indigo);
+      font-size: 22px;
+      margin: 28px 0 14px;
+      text-align: center;
+    }
+
+    .niveaux-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
-      margin-top: 10px;
+      margin-top: 18px;
     }
 
-    .card {
+    .niveau-card {
       background: white;
       padding: 20px 18px;
       border-radius: 12px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
       text-align: center;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-    }
-
-    .card h3 {
+    .niveau-card h3 {
       color: var(--indigo);
       font-size: 18px;
       margin-bottom: 8px;
     }
 
-    .card p {
+    .niveau-card p {
       color: var(--muted);
       font-size: 14px;
       line-height: 1.5;
+      margin-bottom: 12px;
     }
 
-    .card .btn {
+    .eval-section {
+      margin-top: 40px;
+      background: white;
+      padding: 30px 22px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+    }
+
+    .eval-section h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .eval-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .eval-card {
+      background: #f9fafc;
+      padding: 18px 16px;
+      border-radius: 12px;
+      border: 1px solid #e3e7f6;
+      text-align: center;
+    }
+
+    .eval-card h3 {
+      color: var(--indigo);
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .eval-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .btn-eval {
       display: inline-block;
-      margin-top: 12px;
       padding: 10px 18px;
       border-radius: 22px;
-      background: var(--indigo);
+      background: var(--amber);
       color: white;
       text-decoration: none;
       font-size: 13px;
       font-weight: bold;
     }
 
-    .card .btn:hover {
-      background: var(--indigo-dark);
+    .btn-eval:hover {
+      opacity: 0.9;
+    }
+
+    .etat-eval {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--muted);
     }
 
     footer {
@@ -197,7 +230,6 @@
       text-align: center;
       padding: 14px;
       font-size: 13px;
-      margin-top: 20px;
     }
 
     @media (max-width: 600px) {
@@ -215,17 +247,12 @@
         padding: 0 14px;
       }
 
-      .welcome {
-        padding: 22px 16px;
+      .hero {
+        padding: 25px 18px;
       }
 
-      .welcome h2 {
-        font-size: 20px;
-      }
-
-      .eleve-nav {
-        flex-direction: column;
-        align-items: flex-start;
+      .hero h2 {
+        font-size: 22px;
       }
     }
   </style>
@@ -233,59 +260,46 @@
 
 <body>
 
-  <!-- Nav principale -->
   <nav>
     <h1>🎓 Campus Flex</h1>
     <ul>
       <li><a href="../index.html">Accueil</a></li>
-      <li><a href="../connexion.html">Se connecter</a></li>
-      <li><a href="../inscription.html">S’inscrire</a></li>
+      <li><a href="index.html">Maths</a></li>
+      <li><a href="../mes-resultats.html">Mes résultats</a></li>
+      <li><a href="#" id="deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
-  <!-- Barre élève -->
-  <div class="eleve-nav">
-    <div class="eleve-info">
-      Connecté en tant que <strong id="emailEleve">…</strong>
-      <span id="classeEleve" style="margin-left: 8px; color: var(--indigo); font-weight: bold;"></span>
-    </div>
-    <button class="btn-deconnexion" onclick="deconnexion()">
-      Se déconnecter
-    </button>
-  </div>
-
   <main>
 
-    <section class="welcome">
-      <h2>Bienvenue dans ton espace élève</h2>
+    <section class="hero">
+      <h2>Mathématiques – Du collège au lycée</h2>
       <p>
-        Tu peux accéder ici à tes cours, exercices et évaluations de mathématiques, ainsi qu’à tes résultats.
+        Choisis ton niveau pour accéder aux cours, exercices et évaluations.
       </p>
+
+      <div>
+        <a href="../mes-resultats.html" class="btn btn-secondaire">
+          Voir mes résultats
+        </a>
+      </div>
     </section>
 
-    <h3 class="section-title">Mes cours</h3>
-    <div id="coursContainer" class="grid">
-      <!-- Les cartes de cours seront injectées ici par JS -->
+    <h2 class="section-titre">Cours par niveau</h2>
+    <div id="niveauxContainer" class="niveaux-grid">
+      <!-- Niveaux injectés par JS -->
     </div>
 
-    <h3 class="section-title">Mes évaluations</h3>
-    <div class="grid">
-      <div class="card">
-        <h3>Évaluations disponibles</h3>
-        <p>
-          Passe tes évaluations en ligne et mesure tes progrès.
-        </p>
-        <a href="../index.html" class="btn">Voir les évaluations</a>
-      </div>
+    <section class="eval-section">
+      <h2>Évaluations en ligne</h2>
+      <p style="text-align:center; color: var(--muted); margin-bottom: 10px;">
+        Passe tes évaluations de mathématiques et consulte tes résultats.
+      </p>
 
-      <div class="card">
-        <h3>Historique</h3>
-        <p>
-          Consulte tes anciennes évaluations et tes scores.
-        </p>
-        <a href="../admin-resultats.html" class="btn">Voir mes résultats</a>
+      <div id="evaluationsContainer" class="eval-grid">
+        <!-- Injecté par JS -->
       </div>
-    </div>
+    </section>
 
   </main>
 
@@ -294,91 +308,108 @@
   </footer>
 
   <script>
-    const emailEleveEl = document.getElementById("emailEleve");
-    const classeEleveEl = document.getElementById("classeEleve");
-    const coursContainer = document.getElementById("coursContainer");
+    const niveauxContainer = document.getElementById("niveauxContainer");
+    const evaluationsContainer = document.getElementById("evaluationsContainer");
+    const btnDeconnexion = document.getElementById("deconnexion");
 
-    // Liste complète des niveaux (de 6e à Terminale)
+    // Liste complète des niveaux (toutes classes)
     const NIVEAUX = [
-      { id: "6e",  nom: "6e",  description: "Cours, exercices et ressources pour le niveau 6e." },
-      { id: "5e",  nom: "5e",  description: "Cours, exercices et ressources pour le niveau 5e." },
-      { id: "4e",  nom: "4e",  description: "Cours, exercices et ressources pour le niveau 4e." },
-      { id: "3e",  nom: "3e",  description: "Cours, exercices et ressources pour le niveau 3e." },
-      { id: "2nde",nom: "Seconde", description: "Cours, exercices et ressources pour la classe de Seconde." },
-      { id: "1ere",nom: "Première", description: "Cours, exercices et ressources pour la classe de Première." },
-      { id: "Tle", nom: "Terminale", description: "Cours, exercices et ressources pour la classe de Terminale." }
+      { id: "6e", nom: "6e", desc: "Cours, exercices et évaluations de 6e." },
+      { id: "5e", nom: "5e", desc: "Cours, exercices et évaluations de 5e." },
+      { id: "4e", nom: "4e", desc: "Cours, exercices et évaluations de 4e." },
+      { id: "3e", nom: "3e", desc: "Cours, exercices et évaluations de 3e." },
+      { id: "Seconde", nom: "Seconde", desc: "Cours, exercices et évaluations de Seconde." },
+      { id: "Première", nom: "Première", desc: "Cours, exercices et évaluations de Première." },
+      { id: "Terminale", nom: "Terminale", desc: "Cours, exercices et évaluations de Terminale." }
     ];
 
-    function afficherNiveau(niveau) {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      card.innerHTML =
-        "<h3>" + niveau.nom + "</h3>" +
-        "<p>" + niveau.description + "</p>" +
-        "<a href='#' class='btn'>Accéder</a>";
-
-      coursContainer.appendChild(card);
-    }
+    btnDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (confirm("Veux-tu vraiment te déconnecter ?")) {
+        firebase.auth().signOut().then(function() {
+          window.location.href = "../connexion.html";
+        }).catch(function(err) {
+          console.error("Erreur déconnexion :", err);
+          alert("Une erreur est survenue lors de la déconnexion.");
+        });
+      }
+    });
 
     window.addEventListener("load", function() {
-      if (!firebase.auth) {
-        emailEleveEl.textContent = "Firebase Auth non disponible.";
+      // Afficher les niveaux
+      NIVEAUX.forEach(function(niveau) {
+        const card = document.createElement("div");
+        card.className = "niveau-card";
+
+        card.innerHTML =
+          "<h3>" + niveau.nom + "</h3>" +
+          "<p>" + niveau.desc + "</p>" +
+          "<a href='cours.html?niveau=" + niveau.id + "' class='btn'>Voir les cours</a>" +
+          "<a href='evaluations.html?type=blanche&niveau=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>";
+
+        niveauxContainer.appendChild(card);
+      });
+
+      // Charger la config des évaluations
+      if (!firebase.database) {
+        evaluationsContainer.innerHTML =
+          "<p>Les évaluations ne sont pas disponibles pour le moment.</p>";
         return;
       }
 
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (!user) {
-          // Pas connecté : redirection vers la page de connexion
-          window.location.href = "../connexion.html";
-          return;
-        }
+      firebase.database()
+        .ref("evaluations/config")
+        .once("value")
+        .then(function(snapConfig) {
+          let evalOfficielleActive = false;
 
-        // Utilisateur connecté : on affiche son email
-        emailEleveEl.textContent = user.email;
+          if (snapConfig && snapConfig.exists()) {
+            const config = snapConfig.val();
+            evalOfficielleActive = !!(config.evaluation_officielle_active);
+          }
 
-        // Récupérer la classe de l'élève dans Firebase
-        if (firebase.database) {
-          firebase.database()
-            .ref("eleves/" + user.uid)
-            .once("value")
-            .then(function(snap) {
-              let classe = null;
+          const evaluations = [];
 
-              if (snap && snap.exists()) {
-                const data = snap.val();
-                classe = data.classe || null;
-              }
+          evaluations.push({
+            id: "blanche",
+            titre: "Évaluation blanche",
+            description: "Évalue-toi avec cette évaluation blanche.",
+            active: true
+          });
 
-              if (classe) {
-                classeEleveEl.textContent = "(" + classe + ")";
-
-                // On affiche uniquement la carte de sa classe
-                const niveau = NIVEAUX.find(function(n) { return n.id === classe; });
-                if (niveau) {
-                  afficherNiveau(niveau);
-                } else {
-                  coursContainer.innerHTML =
-                    "<p>Aucun cours disponible pour ta classe pour le moment.</p>";
-                }
-              } else {
-                classeEleveEl.textContent = "";
-
-                // Si pas de classe renseignée, on affiche un message par défaut
-                coursContainer.innerHTML =
-                  "<p>Ta classe n’est pas encore renseignée. Reviens plus tard pour accéder à tes cours.</p>";
-              }
-            })
-            .catch(function(err) {
-              console.error("Erreur lecture classe élève :", err);
-              coursContainer.innerHTML =
-                "<p>Impossible de charger tes cours pour le moment.</p>";
+          if (evalOfficielleActive) {
+            evaluations.push({
+              id: "officielle",
+              titre: "Évaluation officielle",
+              description: "Évaluation officielle de mathématiques.",
+              active: true
             });
-        } else {
-          coursContainer.innerHTML =
-            "<p>Les cours ne sont pas disponibles pour le moment.</p>";
-        }
-      });
+          }
+
+          if (evaluations.length === 0) {
+            evaluationsContainer.innerHTML =
+              "<p>Aucune évaluation disponible pour le moment.</p>";
+            return;
+          }
+
+          evaluations.forEach(function(ev) {
+            const card = document.createElement("div");
+            card.className = "eval-card";
+
+            card.innerHTML =
+              "<h3>" + ev.titre + "</h3>" +
+              "<p>" + ev.description + "</p>" +
+              "<a href='evaluations.html?type=" + ev.id + "' class='btn-eval'>Passer l'évaluation</a>" +
+              "<div class='etat-eval'>" + (ev.active ? "Disponible" : "Bientôt disponible") + "</div>";
+
+            evaluationsContainer.appendChild(card);
+          });
+        })
+        .catch(function(err) {
+          console.error("Erreur chargement config évaluations :", err);
+          evaluationsContainer.innerHTML =
+            "<p>Impossible de charger les évaluations pour le moment.</p>";
+        });
     });
   </script>
 
