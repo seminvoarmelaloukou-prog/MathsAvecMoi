@@ -443,7 +443,7 @@
 
               return tentative &&
                 typeof tentative.score === "number" &&
-                typeof tentative.maxScore === "number" &&
+                typeof tentative.totalPoints === "number" &&
                 tentative.classe === classeEleve &&
                 tentative.type === typeEval;
             }).length;
@@ -595,13 +595,17 @@
 
           const idTentative = "tentative" + (nbTentatives + 1);
 
+          // Champs alignés sur ce qu'attend la page admin-resultats.html :
+          // date (et non datePassation), totalPoints (et non maxScore),
+          // + nbQuestions ajouté.
           const objetResultat = {
             evaluationId: typeEval,
             classe: classeEleve,
-            datePassation: Date.now(),
+            date: Date.now(),
             reponses: reponses,
             score: score,
-            maxScore: maxScore,
+            totalPoints: maxScore,
+            nbQuestions: questions.length,
             type: typeEval
           };
 
