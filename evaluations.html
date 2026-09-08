@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Évaluation - Campus Flex</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -177,6 +176,7 @@
       border-radius: 12px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
       text-align: center;
+      display: none;
     }
 
     #resultat h3 {
@@ -249,10 +249,10 @@
     </div>
 
     <div class="actions">
-      <button id="btnEnvoyer" class="btn">Envoyer mes réponses</button>
+      <button id="btnEnvoyer" class="btn" disabled>Envoyer mes réponses</button>
     </div>
 
-    <div id="resultat" style="display:none;">
+    <div id="resultat">
       <h3>Résultat</h3>
       <p id="texteResultat"></p>
     </div>
@@ -282,6 +282,11 @@
       return params.get("type"); // "blanche" ou "officielle"
     }
 
+    function getClasseFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("classe"); // "6e", "5e", etc.
+    }
+
     window.addEventListener("load", function() {
       if (!firebase.auth || !firebase.database) {
         infoEval.textContent = "Service non disponible pour le moment.";
@@ -290,14 +295,13 @@
 
       firebase.auth().onAuthStateChanged(function(user) {
         if (!user) {
-          // Pas connecté → redirection vers connexion
           window.location.href = "connexion.html";
           return;
         }
 
         userActuel = user;
 
-        // Récupérer la classe de l'élève
+        // Récupérer la classe de l'élève depuis son profil
         firebase.database()
           .ref("eleves/" + user.uid)
           .once("value")
@@ -312,6 +316,17 @@
 
             if (!classeEleve) {
               infoEval.textContent = "Ta classe n’est pas renseignée.";
+              return;
+            }
+
+            // Priorité à la classe dans l'URL (depuis maths/index.html)
+            const classeURL = getClasseFromURL();
+            if (classeURL && classeURL !== classeEleve) {
+              // L'élève essaie de passer une évaluation qui n'est pas sa classe
+              infoEval.textContent =
+                "Cette évaluation n’est pas destinée à ta classe. Tu es inscrit en " +
+                classeEleve + ".";
+              btnEnvoyer.disabled = true;
               return;
             }
 
@@ -341,12 +356,12 @@
         .once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) {
-            infoEval.textContent = "Aucune question disponible pour ta classe pour le moment.";
+            infoEval.textContent =
+              "Aucune question disponible pour ta classe (" + classeEleve + ") pour le moment.";
             return;
           }
 
           const data = snap.val();
-          // Transformer l'objet { q1: {...}, q2: {...} } en tableau
           questions = Object.keys(data).map(function(key) {
             const q = data[key];
             q.id = key;
@@ -354,7 +369,8 @@
           });
 
           if (questions.length === 0) {
-            infoEval.textContent = "Aucune question disponible pour le moment.";
+            infoEval.textContent =
+              "Aucune question disponible pour ta classe (" + classeEleve + ") pour le moment.";
             return;
           }
 
@@ -366,6 +382,7 @@
             "Réponds aux questions ci-dessous. Tu pourras voir ton score après l’envoi.";
 
           afficherQuestions();
+          btnEnvoyer.disabled = false;
         })
         .catch(function(err) {
           console.error("Erreur chargement questions :", err);
@@ -403,8 +420,6 @@
         card.innerHTML = html;
         questionsContainer.appendChild(card);
       });
-
-      btnEnvoyer.disabled = false;
     }
 
     btnEnvoyer.addEventListener("click", function() {
@@ -413,7 +428,6 @@
         return;
       }
 
-      // Recueillir les réponses
       reponses = {};
       let score = 0;
       let maxScore = 0;
@@ -431,7 +445,6 @@
         }
       });
 
-      // Enregistrer le résultat dans Firebase
       const pathResultat =
         (typeEval === "blanche"
           ? "evaluations_blanches/resultats/"
@@ -473,4 +486,4 @@
   </script>
 
 </body>
-</html>
+  </html>
