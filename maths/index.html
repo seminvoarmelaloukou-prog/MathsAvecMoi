@@ -327,8 +327,8 @@
     const btnDeconnexion = document.getElementById("deconnexion");
 
     /*
-      active: true seulement si le dossier ET le fichier existent réellement.
-      Pour l’instant, on garde les cinq classes dont tu as déjà préparé les cours.
+      Liste complète des classes.
+      actif: true seulement si le dossier ET le fichier existent réellement.
     */
     const NIVEAUX = [
       {
@@ -483,7 +483,47 @@
         });
     });
 
-    function afficherNiveaux() {
+    let classeEleve = null;
+
+    function afficherNiveauxPourClasse(classe) {
+      niveauxContainer.innerHTML = "";
+
+      const niveau = NIVEAUX.find(function(n) {
+        return n.id === classe;
+      });
+
+      if (!niveau) {
+        niveauxContainer.innerHTML =
+          "<p>Classe non reconnue : " + classe + "</p>";
+        return;
+      }
+
+      const card = document.createElement("div");
+      card.className = "niveau-card" + (niveau.actif ? "" : " indisponible");
+
+      const boutonCours = niveau.actif
+        ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
+        : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
+
+      const boutonEvaluation = niveau.actif
+        ? "<a href='../evaluations.html?type=blanche&classe=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>"
+        : "<span class='btn btn-secondaire btn-disabled'>Évaluations bientôt disponibles</span>";
+
+      const statut = niveau.actif
+        ? "<span class='statut'>Cours disponible</span>"
+        : "<span class='statut'>Préparation en cours</span>";
+
+      card.innerHTML =
+        "<h3>" + niveau.nom + "</h3>" +
+        "<p>" + niveau.desc + "</p>" +
+        boutonCours +
+        boutonEvaluation +
+        statut;
+
+      niveauxContainer.appendChild(card);
+    }
+
+    function afficherTousNiveaux() {
       niveauxContainer.innerHTML = "";
 
       NIVEAUX.forEach(function(niveau) {
@@ -494,10 +534,6 @@
           ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
           : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
 
-        /*
-          L’évaluation reçoit la classe dans l’URL.
-          evaluations.html devra lire ?classe=... (on corrigera cette page à l’étape 2).
-        */
         const boutonEvaluation = niveau.actif
           ? "<a href='../evaluations.html?type=blanche&classe=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>"
           : "<span class='btn btn-secondaire btn-disabled'>Évaluations bientôt disponibles</span>";
@@ -559,8 +595,47 @@
     }
 
     window.addEventListener("load", function() {
-      afficherNiveaux();
-      afficherEvaluationsGlobales();
+      if (!firebase.auth || !firebase.database) {
+        niveauxContainer.innerHTML =
+          "<p>Service indisponible pour le moment.</p>";
+        return;
+      }
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "../connexion.html";
+          return;
+        }
+
+        firebase.database()
+          .ref("eleves/" + user.uid)
+          .once("value")
+          .then(function(snap) {
+            if (!snap || !snap.exists()) {
+              niveauxContainer.innerHTML =
+                "<p>Ton profil élève n’est pas complet.</p>";
+              return;
+            }
+
+            const data = snap.val();
+            classeEleve = data.classe || null;
+
+            if (!classeEleve) {
+              niveauxContainer.innerHTML =
+                "<p>Ta classe n’est pas renseignée.</p>";
+              return;
+            }
+
+            // IMPORTANT : on n'affiche QUE la classe de l'élève
+            afficherNiveauxPourClasse(classeEleve);
+            afficherEvaluationsGlobales();
+          })
+          .catch(function(err) {
+            console.error("Erreur lecture profil élève :", err);
+            niveauxContainer.innerHTML =
+              "<p>Impossible de charger ta classe pour le moment.</p>";
+          });
+      });
     });
   </script>
 
