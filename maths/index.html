@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campus Flex - Apprentissage flexible des mathématiques</title>
+  <title>Espace élève - Campus Flex</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -19,6 +19,8 @@
       --background: #f5f7ff;
       --text: #333333;
       --muted: #666666;
+      --success: #27ae60;
+      --danger: #c0392b;
     }
 
     * {
@@ -36,6 +38,7 @@
       flex-direction: column;
     }
 
+    /* Nav principale */
     nav {
       background: var(--indigo);
       padding: 14px 20px;
@@ -69,93 +72,123 @@
       text-decoration: underline;
     }
 
+    /* Barre élève */
+    .eleve-nav {
+      background: white;
+      border-bottom: 1px solid #e3e7f6;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .eleve-info {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .eleve-info strong {
+      color: var(--indigo);
+    }
+
+    .btn-deconnexion {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: #e3e7f6;
+      color: var(--indigo);
+      border: none;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-deconnexion:hover {
+      background: #cdd5f6;
+    }
+
     main {
       flex: 1;
       width: 100%;
-      max-width: 900px;
-      margin: 45px auto;
+      max-width: 1000px;
+      margin: 35px auto;
       padding: 0 20px;
     }
 
-    .hero {
+    .welcome {
       background: white;
-      padding: 35px 25px;
+      padding: 30px 22px;
       border-radius: 14px;
-      text-align: center;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
       margin-bottom: 22px;
     }
 
-    .hero h2 {
+    .welcome h2 {
       color: var(--indigo);
-      font-size: 26px;
-      margin-bottom: 12px;
+      font-size: 24px;
+      margin-bottom: 10px;
     }
 
-    .hero p {
+    .welcome p {
       color: var(--muted);
       line-height: 1.6;
       font-size: 15px;
-      margin-bottom: 18px;
     }
 
-    .cta-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 18px;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 11px 22px;
-      border-radius: 24px;
-      background: var(--indigo);
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .btn:hover {
-      background: var(--indigo-dark);
-    }
-
-    .btn-secondaire {
-      background: #e3e7f6;
+    .section-title {
       color: var(--indigo);
+      font-size: 20px;
+      margin: 28px 0 14px;
     }
 
-    .btn-secondaire:hover {
-      background: #cdd5f6;
-    }
-
-    .features {
+    .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
-      margin-top: 22px;
+      margin-top: 10px;
     }
 
-    .feature {
+    .card {
       background: white;
       padding: 20px 18px;
       border-radius: 12px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
       text-align: center;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .feature h3 {
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .card h3 {
       color: var(--indigo);
       font-size: 18px;
       margin-bottom: 8px;
     }
 
-    .feature p {
+    .card p {
       color: var(--muted);
       font-size: 14px;
       line-height: 1.5;
+    }
+
+    .card .btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 10px 18px;
+      border-radius: 22px;
+      background: var(--indigo);
+      color: white;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .card .btn:hover {
+      background: var(--indigo-dark);
     }
 
     footer {
@@ -164,6 +197,7 @@
       text-align: center;
       padding: 14px;
       font-size: 13px;
+      margin-top: 20px;
     }
 
     @media (max-width: 600px) {
@@ -181,80 +215,106 @@
         padding: 0 14px;
       }
 
-      .hero {
-        padding: 25px 18px;
+      .welcome {
+        padding: 22px 16px;
       }
 
-      .hero h2 {
-        font-size: 22px;
+      .welcome h2 {
+        font-size: 20px;
       }
-    }
 
-    #etatConnexion {
-      margin-top: 18px;
-      font-size: 14px;
-      color: #666;
+      .eleve-nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
 
 <body>
 
+  <!-- Nav principale -->
   <nav>
     <h1>🎓 Campus Flex</h1>
-
     <ul>
+      <li><a href="../index.html">Accueil</a></li>
       <li><a href="../connexion.html">Se connecter</a></li>
       <li><a href="../inscription.html">S’inscrire</a></li>
     </ul>
   </nav>
 
+  <!-- Barre élève -->
+  <div class="eleve-nav">
+    <div class="eleve-info">
+      Connecté en tant que <strong id="emailEleve">…</strong>
+    </div>
+    <button class="btn-deconnexion" onclick="deconnexion()">
+      Se déconnecter
+    </button>
+  </div>
+
   <main>
 
-    <section class="hero">
-      <h2>Apprentissage flexible des mathématiques</h2>
-
+    <section class="welcome">
+      <h2>Bienvenue dans ton espace élève</h2>
       <p>
-        Campus Flex t’accompagne du collège au lycée avec des cours clairs, des exercices progressifs et des évaluations pour mesurer tes progrès.
+        Tu peux accéder ici à tes cours, exercices et évaluations de mathématiques, ainsi qu’à tes résultats.
       </p>
-
-      <div class="cta-buttons">
-        <a href="../inscription.html" class="btn">
-          Créer un compte
-        </a>
-
-        <a href="../connexion.html" class="btn btn-secondaire">
-          Se connecter
-        </a>
-      </div>
-
-      <div id="etatConnexion">
-        Vérification de ta connexion…
-      </div>
     </section>
 
-    <section class="features">
-      <div class="feature">
-        <h3>Cours structurés</h3>
+    <h3 class="section-title">Mes cours</h3>
+    <div class="grid">
+      <div class="card">
+        <h3>6e</h3>
         <p>
-          Des leçons claires, conformes au programme, de la 6e à la Terminale.
+          Cours, exercices et ressources pour le niveau 6e.
         </p>
+        <a href="#" class="btn">Accéder</a>
       </div>
 
-      <div class="feature">
-        <h3>Exercices progressifs</h3>
+      <div class="card">
+        <h3>5e</h3>
         <p>
-          Mets-toi au défi avec des exercices adaptés à ton niveau.
+          Cours, exercices et ressources pour le niveau 5e.
         </p>
+        <a href="#" class="btn">Accéder</a>
       </div>
 
-      <div class="feature">
-        <h3>Évaluations & suivi</h3>
+      <div class="card">
+        <h3>4e</h3>
         <p>
-          Évalue-toi et suis tes progrès grâce à un tableau de bord personnel.
+          Cours, exercices et ressources pour le niveau 4e.
         </p>
+        <a href="#" class="btn">Accéder</a>
       </div>
-    </section>
+
+      <div class="card">
+        <h3>3e</h3>
+        <p>
+          Cours, exercices et ressources pour le niveau 3e.
+        </p>
+        <a href="#" class="btn">Accéder</a>
+      </div>
+    </div>
+
+    <h3 class="section-title">Mes évaluations</h3>
+    <div class="grid">
+      <div class="card">
+        <h3>Évaluations disponibles</h3>
+        <p>
+          Passe tes évaluations en ligne et mesure tes progrès.
+        </p>
+        <a href="../index.html" class="btn">Voir les évaluations</a>
+      </div>
+
+      <div class="card">
+        <h3>Historique</h3>
+        <p>
+          Consulte tes anciennes évaluations et tes scores.
+        </p>
+        <a href="../admin-resultats.html" class="btn">Voir mes résultats</a>
+      </div>
+    </div>
 
   </main>
 
@@ -263,26 +323,25 @@
   </footer>
 
   <script>
-    const etatDiv = document.getElementById("etatConnexion");
+    const emailEleveEl = document.getElementById("emailEleve");
 
-    // Attendre que Firebase soit prêt
     window.addEventListener("load", function() {
       if (!firebase.auth) {
-        etatDiv.textContent = "Firebase Auth non disponible.";
+        emailEleveEl.textContent = "Firebase Auth non disponible.";
         return;
       }
 
       firebase.auth().onAuthStateChanged(function(user) {
         if (!user) {
-          etatDiv.textContent = "Tu n’es pas connecté. Redirection vers la page de connexion…";
-          // Petit délai pour voir le message
-          setTimeout(function() {
-            window.location.href = "../connexion.html";
-          }, 1500);
-        } else {
-          etatDiv.textContent = "Tu es connecté en tant que " + user.email + ".";
-          // Ici, tu pourras plus tard afficher le contenu réservé aux élèves
+          // Pas connecté : redirection vers la page de connexion
+          window.location.href = "../connexion.html";
+          return;
         }
+
+        // Utilisateur connecté : on affiche son email
+        emailEleveEl.textContent = user.email;
+
+        // Ici, tu pourras plus tard récupérer sa classe, son nom, etc.
       });
     });
   </script>
