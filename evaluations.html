@@ -97,11 +97,11 @@
       display: inline-block;
       background: var(--amber);
       color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
+      padding: 7px 13px;
+      border-radius: 16px;
       font-size: 13px;
       font-weight: bold;
-      margin-top: 6px;
+      margin: 8px 0 2px;
     }
 
     .hero p {
@@ -251,7 +251,11 @@
 
     <section class="hero">
       <h2 id="titreEval">Évaluation</h2>
-      <div id="tentativeBadge" class="tentative-badge" style="display:none;"></div>
+
+      <div id="tentativeBadge" class="tentative-badge">
+        Chargement de la tentative…
+      </div>
+
       <p id="infoEval">
         Chargement de l’évaluation…
       </p>
@@ -304,6 +308,7 @@
     window.addEventListener("load", function() {
       if (!firebase.auth || !firebase.database) {
         infoEval.textContent = "Service non disponible pour le moment.";
+        tentativeBadge.style.display = "none";
         return;
       }
 
@@ -322,6 +327,7 @@
           .then(function(snap) {
             if (!snap || !snap.exists()) {
               infoEval.textContent = "Ton profil élève n’est pas complet.";
+              tentativeBadge.style.display = "none";
               return;
             }
 
@@ -330,6 +336,7 @@
 
             if (!classeEleve) {
               infoEval.textContent = "Ta classe n’est pas renseignée.";
+              tentativeBadge.style.display = "none";
               return;
             }
 
@@ -340,6 +347,7 @@
               infoEval.textContent =
                 "Cette évaluation n’est pas destinée à ta classe. Tu es inscrit en " +
                 classeEleve + ".";
+              tentativeBadge.style.display = "none";
               btnEnvoyer.disabled = true;
               return;
             }
@@ -347,6 +355,7 @@
             typeEval = getTypeFromURL();
             if (!typeEval || (typeEval !== "blanche" && typeEval !== "officielle")) {
               infoEval.textContent = "Type d’évaluation non valide.";
+              tentativeBadge.style.display = "none";
               return;
             }
 
@@ -355,115 +364,144 @@
           .catch(function(err) {
             console.error("Erreur lecture profil élève :", err);
             infoEval.textContent = "Impossible de charger ton profil.";
+            tentativeBadge.style.display = "none";
           });
       });
     });
 
     function chargerEvaluation() {
-  const pathQuestions =
-    (typeEval === "blanche"
-      ? "evaluations_blanches/questions/"
-      : "evaluations/questions/") + classeEleve;
+      const pathQuestions =
+        (typeEval === "blanche"
+          ? "evaluations_blanches/questions/"
+          : "evaluations/questions/") + classeEleve;
 
-  const baseResultatsPath =
-    (typeEval === "blanche"
-      ? "evaluations_blanches/resultats/"
-      : "evaluations/resultats/");
+      const baseResultatsPath =
+        (typeEval === "blanche"
+          ? "evaluations_blanches/resultats/"
+          : "evaluations/resultats/");
 
-  const pathResultat = baseResultatsPath + userActuel.uid;
+      const pathResultat = baseResultatsPath + userActuel.uid;
+      const maxTentatives = 3;
 
-  firebase.database()
-    .ref(pathQuestions)
-    .once("value")
-    .then(function(snapQuestions) {
-      if (!snapQuestions || !snapQuestions.exists()) {
-        infoEval.textContent =
-          "Aucune question disponible pour ta classe (" + classeEleve + ") pour le moment.";
-        tentativeBadge.style.display = "none";
-        return;
-      }
+      tentativeBadge.textContent = "Vérification des tentatives…";
+      tentativeBadge.style.display = "inline-block";
 
-      const data = snapQuestions.val();
-      questions = Object.keys(data).map(function(key) {
-        const q = data[key];
-        q.id = key;
-        return q;
-      });
-
-      if (questions.length === 0) {
-        infoEval.textContent =
-          "Aucune question disponible pour ta classe (" + classeEleve + ") pour le moment.";
-        tentativeBadge.style.display = "none";
-        return;
-      }
-
-      // Compter les tentatives déjà existantes
-      return firebase.database()
-        .ref(pathResultat)
+      firebase.database()
+        .ref(pathQuestions)
         .once("value")
-        .then(function(snapResultats) {
-          let nbTentatives = 0;
-
-          if (snapResultats.exists()) {
-            nbTentatives = Object.keys(snapResultats.val()).length;
+        .then(function(snapQuestions) {
+          if (!snapQuestions || !snapQuestions.exists()) {
+            tentativeBadge.style.display = "none";
+            infoEval.textContent =
+              "Aucune question disponible pour ta classe (" +
+              classeEleve +
+              ") pour le moment.";
+            return null;
           }
 
-          const maxTentatives = 3;
-          const numeroTentative = nbTentatives + 1;
+          const data = snapQuestions.val();
 
-          titreEval.textContent =
-            (typeEval === "blanche" ? "Évaluation blanche" : "Évaluation officielle") +
-            " – " + classeEleve;
+          questions = Object.keys(data)
+            .map(function(key) {
+              const q = data[key];
+              q.id = key;
+              return q;
+            })
+            .filter(function(q) {
+              return q.active !== false;
+            });
 
-          if (nbTentatives >= maxTentatives) {
+          if (questions.length === 0) {
+            tentativeBadge.style.display = "none";
             infoEval.textContent =
-              "Tu as déjà atteint le nombre maximum de " + maxTentatives + " tentatives. " +
-              "Tu ne peux plus passer cette évaluation.";
-            tentativeBadge.textContent = "Tentative " + numeroTentative + " sur " + maxTentatives;
-            tentativeBadge.style.display = "inline-block";
-            btnEnvoyer.disabled = true;
-            questionsContainer.innerHTML = "";
+              "Aucune question active disponible pour ta classe (" +
+              classeEleve +
+              ") pour le moment.";
+            return null;
+          }
+
+          return firebase.database()
+            .ref(pathResultat)
+            .once("value");
+        })
+        .then(function(snapResultats) {
+          if (snapResultats === null) {
             return;
           }
 
-          // Afficher le badge "Tentative X sur 3"
-          tentativeBadge.textContent = "Tentative " + numeroTentative + " sur " + maxTentatives;
-          tentativeBadge.style.display = "inline-block";
+          let nbTentatives = 0;
+
+          if (snapResultats.exists()) {
+            const resultats = snapResultats.val();
+
+            /*
+              On ne compte que les vraies tentatives.
+              Ceci évite de compter un ancien résultat incomplet.
+            */
+            nbTentatives = Object.keys(resultats).filter(function(id) {
+              const tentative = resultats[id];
+
+              return tentative &&
+                typeof tentative.score === "number" &&
+                typeof tentative.maxScore === "number" &&
+                tentative.classe === classeEleve &&
+                tentative.type === typeEval;
+            }).length;
+          }
+
+          const numeroTentative = nbTentatives + 1;
+
+          titreEval.textContent =
+            (typeEval === "blanche"
+              ? "Évaluation blanche"
+              : "Évaluation officielle") +
+            " – " +
+            classeEleve;
+
+          if (nbTentatives >= maxTentatives) {
+            tentativeBadge.textContent =
+              "Tentatives utilisées : " +
+              nbTentatives +
+              " / " +
+              maxTentatives;
+
+            infoEval.textContent =
+              "Tu as atteint le nombre maximum de " +
+              maxTentatives +
+              " tentatives pour cette évaluation.";
+
+            questionsContainer.innerHTML = "";
+            btnEnvoyer.disabled = true;
+            btnEnvoyer.textContent = "Limite atteinte";
+            return;
+          }
+
+          tentativeBadge.textContent =
+            "Tentative " +
+            numeroTentative +
+            " sur " +
+            maxTentatives +
+            " — " +
+            nbTentatives +
+            " tentative(s) déjà utilisée(s)";
 
           infoEval.textContent =
-            "Réponds aux questions ci-dessous. Tu pourras voir ton score après l’envoi.";
+            "Réponds à toutes les questions puis envoie tes réponses.";
 
           afficherQuestions();
           btnEnvoyer.disabled = false;
+          btnEnvoyer.textContent = "Envoyer mes réponses";
         })
         .catch(function(err) {
-          console.error("Erreur lecture tentatives :", err);
-          // En cas d'erreur, on affiche quand même un badge par défaut
-          tentativeBadge.textContent = "Tentative 1 sur 3";
+          console.error("Erreur chargement évaluation :", err);
+
+          tentativeBadge.textContent = "Tentatives : indisponible";
           tentativeBadge.style.display = "inline-block";
+
           infoEval.textContent =
-            "Réponds aux questions ci-dessous. Tu pourras voir ton score après l’envoi.";
-          afficherQuestions();
-          btnEnvoyer.disabled = false;
-        });
-    })
-    .catch(function(err) {
-      console.error("Erreur chargement questions :", err);
-      infoEval.textContent = "Impossible de charger les questions.";
-      tentativeBadge.style.display = "none";
-    });
-    }
+            "Impossible de charger l’évaluation pour le moment.";
 
-              infoEval.textContent =
-                "Réponds aux questions ci-dessous. Tu pourras voir ton score après l’envoi.";
-
-              afficherQuestions();
-              btnEnvoyer.disabled = false;
-            });
-        })
-        .catch(function(err) {
-          console.error("Erreur chargement questions :", err);
-          infoEval.textContent = "Impossible de charger les questions.";
+          btnEnvoyer.disabled = true;
         });
     }
 
