@@ -64,8 +64,18 @@
       margin-bottom: 22px;
     }
 
-    .card h2 { color: var(--indigo); font-size: 22px; margin-bottom: 12px; }
-    .card p { color: var(--muted); line-height: 1.55; font-size: 15px; margin-bottom: 14px; }
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
 
     .row {
       display: flex;
@@ -186,15 +196,28 @@
           <option value="Tle E">Tle E</option>
         </select>
 
-        <label for="input-coefficient">Coefficient (1-10) :</label>
-        <input type="number" id="input-coefficient" min="1" max="10" value="1" style="width: 80px;" />
+        <label for="select-coefficient">Coefficient :</label>
+        <select id="select-coefficient">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
 
         <button id="btn-sauver-coef">Enregistrer</button>
       </div>
 
       <p id="message-coef" class="message"></p>
 
-      <h3 style="margin-top: 22px; color: var(--indigo); font-size: 18px;">Coefficients actuels</h3>
+      <h3 style="margin-top: 22px; color: var(--indigo); font-size: 18px;">
+        Coefficients actuels
+      </h3>
 
       <div id="loader-coef" class="loader" style="display: none; margin: 12px 0;"></div>
 
@@ -219,7 +242,7 @@
     const messageAdminCheck = document.getElementById("message-admin-check");
 
     const selectClasseCoef = document.getElementById("select-classe-coef");
-    const inputCoefficient = document.getElementById("input-coefficient");
+    const selectCoefficient = document.getElementById("select-coefficient");
     const btnSauverCoef = document.getElementById("btn-sauver-coef");
     const messageCoef = document.getElementById("message-coef");
 
@@ -237,18 +260,12 @@
     }
 
     function verifierAdmin() {
-      console.log("[admin-coefficients.html] verifierAdmin()");
-      console.log("db:", db);
-      console.log("auth:", auth);
-
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
-      console.log("user:", user);
-
       if (!user) {
         afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
@@ -259,7 +276,6 @@
 
       return db.ref("administrateurs/" + adminUid).once("value")
         .then(function(snap) {
-          console.log("snap admin:", snap);
           if (!snap || !snap.exists()) {
             afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
             throw new Error("Pas admin");
@@ -271,21 +287,15 @@
 
           cardCoefficients.style.display = "block";
           chargerCoefficients();
-        })
-        .catch(function(err) {
-          console.error("Erreur verifierAdmin:", err);
-          afficherErreurAdmin("Erreur : " + err.message);
         });
     }
 
     function chargerCoefficients() {
-      console.log("[admin-coefficients.html] chargerCoefficients()");
       loaderCoef.style.display = "block";
       corpsTableCoefficients.innerHTML = "";
 
       db.ref("coefficients").once("value")
         .then(function(snap) {
-          console.log("snap coefficients:", snap);
           loaderCoef.style.display = "none";
 
           if (!snap || !snap.exists()) {
@@ -294,8 +304,12 @@
           }
 
           const data = snap.val();
-          console.log("data coefficients:", data);
           const classes = Object.keys(data);
+
+          if (classes.length === 0) {
+            corpsTableCoefficients.innerHTML = "<tr><td colspan='2'>Aucun coefficient défini.</td></tr>";
+            return;
+          }
 
           classes.forEach(function(classe) {
             const coef = data[classe].maths || 1;
@@ -322,22 +336,13 @@
 
     function sauverCoefficient() {
       const classe = selectClasseCoef.value;
-      const coef = parseInt(inputCoefficient.value, 10);
-
-      console.log("[admin-coefficients.html] sauverCoefficient()", classe, coef);
+      const coef = parseInt(selectCoefficient.value, 10);
 
       messageCoef.textContent = "Enregistrement en cours...";
       messageCoef.classList.remove("success", "error");
 
-      if (coef < 1 || coef > 10) {
-        messageCoef.textContent = "Le coefficient doit être entre 1 et 10.";
-        messageCoef.classList.add("error");
-        return;
-      }
-
       db.ref("coefficients/" + classe + "/maths").set(coef)
         .then(function() {
-          console.log("Coefficient enregistré avec succès");
           messageCoef.textContent = "Coefficient enregistré avec succès.";
           messageCoef.classList.add("success");
           chargerCoefficients();
@@ -363,10 +368,6 @@
     btnSauverCoef.addEventListener("click", sauverCoefficient);
 
     (function init() {
-      console.log("[admin-coefficients.html] init()");
-      console.log("db:", db);
-      console.log("auth:", auth);
-
       if (!auth || !db) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return;
@@ -389,4 +390,4 @@
   </script>
 
 </body>
-  </html>
+</html>
