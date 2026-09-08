@@ -360,10 +360,32 @@
         const card = document.createElement("div");
         card.className = "niveau-card";
 
+        // On construit le lien vers le dossier de la classe dans maths/
+        // Exemple : 6e → "6eme", 5e → "5eme", 4e → "4eme", 3e → "3eme", 2ndeD → "2ndeD"
+        let dossierClasse = "";
+
+        if (niveau.id === "6e") {
+          dossierClasse = "6eme";
+        } else if (niveau.id === "5e") {
+          dossierClasse = "5eme";
+        } else if (niveau.id === "4e") {
+          dossierClasse = "4eme";
+        } else if (niveau.id === "3e") {
+          dossierClasse = "3eme";
+        } else if (niveau.id === "2ndeD") {
+          dossierClasse = "2ndeD";
+        } else {
+          // Pour les autres classes pas encore créées, on met un lien factice
+          dossierClasse = "#";
+        }
+
+        // Si le dossier existe, on pointe vers index.html dedans
+        const lienCours = dossierClasse === "#" ? "#" : dossierClasse + "/index.html";
+
         card.innerHTML =
           "<h3>" + niveau.nom + "</h3>" +
           "<p>" + niveau.desc + "</p>" +
-          "<a href='../cours.html?niveau=" + niveau.id + "' class='btn'>Voir les cours</a>" +
+          "<a href='" + lienCours + "' class='btn'>Voir les cours</a>" +
           "<a href='../evaluations.html?type=blanche&niveau=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>";
 
         niveauxContainer.appendChild(card);
@@ -433,4 +455,4 @@
   </script>
 
 </body>
-  </html>
+</html>
