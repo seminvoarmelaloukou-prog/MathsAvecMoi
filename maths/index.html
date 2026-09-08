@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mathématiques - Campus Flex</title>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -20,6 +19,7 @@
       --background: #f5f7ff;
       --text: #333333;
       --muted: #666666;
+      --disabled: #b7bccb;
     }
 
     * {
@@ -110,6 +110,8 @@
       font-size: 14px;
       font-weight: bold;
       margin: 6px;
+      border: none;
+      cursor: pointer;
     }
 
     .btn:hover {
@@ -123,6 +125,13 @@
 
     .btn-secondaire:hover {
       background: #cdd5f6;
+    }
+
+    .btn-disabled {
+      background: var(--disabled);
+      color: white;
+      cursor: not-allowed;
+      pointer-events: none;
     }
 
     .section-titre {
@@ -147,6 +156,10 @@
       text-align: center;
     }
 
+    .niveau-card.indisponible {
+      opacity: 0.78;
+    }
+
     .niveau-card h3 {
       color: var(--indigo);
       font-size: 18px;
@@ -158,6 +171,13 @@
       font-size: 14px;
       line-height: 1.5;
       margin-bottom: 12px;
+    }
+
+    .statut {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 6px;
     }
 
     .eval-section {
@@ -274,9 +294,7 @@
 
     <section class="hero">
       <h2>Mathématiques – Du collège au lycée</h2>
-      <p>
-        Choisis ta classe pour accéder aux cours, exercices et évaluations.
-      </p>
+      <p>Choisis ta classe pour accéder aux cours, exercices et évaluations.</p>
 
       <div>
         <a href="../mes-resultats.html" class="btn btn-secondaire">
@@ -286,19 +304,15 @@
     </section>
 
     <h2 class="section-titre">Cours par classe</h2>
-    <div id="niveauxContainer" class="niveaux-grid">
-      <!-- Niveaux injectés par JS -->
-    </div>
+    <div id="niveauxContainer" class="niveaux-grid"></div>
 
     <section class="eval-section">
       <h2>Évaluations en ligne</h2>
       <p style="text-align:center; color: var(--muted); margin-bottom: 10px;">
-        Passe tes évaluations de mathématiques et consulte tes résultats.
+        Passe une évaluation correspondant à ta classe et consulte tes résultats.
       </p>
 
-      <div id="evaluationsContainer" class="eval-grid">
-        <!-- Injecté par JS -->
-      </div>
+      <div id="evaluationsContainer" class="eval-grid"></div>
     </section>
 
   </main>
@@ -312,145 +326,241 @@
     const evaluationsContainer = document.getElementById("evaluationsContainer");
     const btnDeconnexion = document.getElementById("deconnexion");
 
-    // Toutes les classes (collège + lycée, toutes filières)
+    /*
+      active: true seulement si le dossier ET le fichier existent réellement.
+      Pour l’instant, on garde les cinq classes dont tu as déjà préparé les cours.
+    */
     const NIVEAUX = [
-      // Collège
-      { id: "6e", nom: "6e", desc: "Cours, exercices et évaluations de 6e." },
-      { id: "5e", nom: "5e", desc: "Cours, exercices et évaluations de 5e." },
-      { id: "4e", nom: "4e", desc: "Cours, exercices et évaluations de 4e." },
-      { id: "3e", nom: "3e", desc: "Cours, exercices et évaluations de 3e." },
-
-      // 2nde
-      { id: "2ndeA", nom: "2nde A", desc: "Cours, exercices et évaluations de 2nde A." },
-      { id: "2ndeB", nom: "2nde B", desc: "Cours, exercices et évaluations de 2nde B." },
-      { id: "2ndeC", nom: "2nde C", desc: "Cours, exercices et évaluations de 2nde C." },
-      { id: "2ndeD", nom: "2nde D", desc: "Cours, exercices et évaluations de 2nde D." },
-      { id: "2ndeE", nom: "2nde E", desc: "Cours, exercices et évaluations de 2nde E." },
-
-      // 1ère
-      { id: "1ereA", nom: "1ère A", desc: "Cours, exercices et évaluations de 1ère A." },
-      { id: "1ereB", nom: "1ère B", desc: "Cours, exercices et évaluations de 1ère B." },
-      { id: "1ereC", nom: "1ère C", desc: "Cours, exercices et évaluations de 1ère C." },
-      { id: "1ereD", nom: "1ère D", desc: "Cours, exercices et évaluations de 1ère D." },
-      { id: "1ereE", nom: "1ère E", desc: "Cours, exercices et évaluations de 1ère E." },
-
-      // Terminale
-      { id: "TleA", nom: "Tle A", desc: "Cours, exercices et évaluations de Tle A." },
-      { id: "TleB", nom: "Tle B", desc: "Cours, exercices et évaluations de Tle B." },
-      { id: "TleC", nom: "Tle C", desc: "Cours, exercices et évaluations de Tle C." },
-      { id: "TleD", nom: "Tle D", desc: "Cours, exercices et évaluations de Tle D." },
-      { id: "TleE", nom: "Tle E", desc: "Cours, exercices et évaluations de Tle E." }
+      {
+        id: "6e",
+        nom: "6e",
+        desc: "Cours, exercices et évaluations de 6e.",
+        actif: true,
+        lienCours: "6eme/index.html"
+      },
+      {
+        id: "5e",
+        nom: "5e",
+        desc: "Cours, exercices et évaluations de 5e.",
+        actif: true,
+        lienCours: "5eme/index.html"
+      },
+      {
+        id: "4e",
+        nom: "4e",
+        desc: "Cours, exercices et évaluations de 4e.",
+        actif: true,
+        lienCours: "4eme/index.html"
+      },
+      {
+        id: "3e",
+        nom: "3e",
+        desc: "Cours, exercices et évaluations de 3e.",
+        actif: true,
+        lienCours: "3eme/index.html"
+      },
+      {
+        id: "2ndeA",
+        nom: "2nde A",
+        desc: "Cours, exercices et évaluations de 2nde A.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "2ndeB",
+        nom: "2nde B",
+        desc: "Cours, exercices et évaluations de 2nde B.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "2ndeC",
+        nom: "2nde C",
+        desc: "Cours, exercices et évaluations de 2nde C.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "2ndeD",
+        nom: "2nde D",
+        desc: "Cours, exercices et évaluations de 2nde D.",
+        actif: true,
+        lienCours: "2ndeD/index.html"
+      },
+      {
+        id: "2ndeE",
+        nom: "2nde E",
+        desc: "Cours, exercices et évaluations de 2nde E.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "1ereA",
+        nom: "1ère A",
+        desc: "Cours, exercices et évaluations de 1ère A.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "1ereB",
+        nom: "1ère B",
+        desc: "Cours, exercices et évaluations de 1ère B.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "1ereC",
+        nom: "1ère C",
+        desc: "Cours, exercices et évaluations de 1ère C.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "1ereD",
+        nom: "1ère D",
+        desc: "Cours, exercices et évaluations de 1ère D.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "1ereE",
+        nom: "1ère E",
+        desc: "Cours, exercices et évaluations de 1ère E.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "TleA",
+        nom: "Tle A",
+        desc: "Cours, exercices et évaluations de Tle A.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "TleB",
+        nom: "Tle B",
+        desc: "Cours, exercices et évaluations de Tle B.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "TleC",
+        nom: "Tle C",
+        desc: "Cours, exercices et évaluations de Tle C.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "TleD",
+        nom: "Tle D",
+        desc: "Cours, exercices et évaluations de Tle D.",
+        actif: false,
+        lienCours: ""
+      },
+      {
+        id: "TleE",
+        nom: "Tle E",
+        desc: "Cours, exercices et évaluations de Tle E.",
+        actif: false,
+        lienCours: ""
+      }
     ];
 
     btnDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
-      if (confirm("Veux-tu vraiment te déconnecter ?")) {
-        firebase.auth().signOut().then(function() {
+
+      if (!confirm("Veux-tu vraiment te déconnecter ?")) {
+        return;
+      }
+
+      firebase.auth().signOut()
+        .then(function() {
           window.location.href = "../connexion.html";
-        }).catch(function(err) {
+        })
+        .catch(function(err) {
           console.error("Erreur déconnexion :", err);
           alert("Une erreur est survenue lors de la déconnexion.");
         });
-      }
     });
 
-    window.addEventListener("load", function() {
-      // Afficher les niveaux
+    function afficherNiveaux() {
+      niveauxContainer.innerHTML = "";
+
       NIVEAUX.forEach(function(niveau) {
         const card = document.createElement("div");
-        card.className = "niveau-card";
+        card.className = "niveau-card" + (niveau.actif ? "" : " indisponible");
 
-        // On construit le lien vers le dossier de la classe dans maths/
-        // Exemple : 6e → "6eme", 5e → "5eme", 4e → "4eme", 3e → "3eme", 2ndeD → "2ndeD"
-        let dossierClasse = "";
+        const boutonCours = niveau.actif
+          ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
+          : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
 
-        if (niveau.id === "6e") {
-          dossierClasse = "6eme";
-        } else if (niveau.id === "5e") {
-          dossierClasse = "5eme";
-        } else if (niveau.id === "4e") {
-          dossierClasse = "4eme";
-        } else if (niveau.id === "3e") {
-          dossierClasse = "3eme";
-        } else if (niveau.id === "2ndeD") {
-          dossierClasse = "2ndeD";
-        } else {
-          // Pour les autres classes pas encore créées, on met un lien factice
-          dossierClasse = "#";
-        }
+        /*
+          L’évaluation reçoit la classe dans l’URL.
+          evaluations.html devra lire ?classe=... (on corrigera cette page à l’étape 2).
+        */
+        const boutonEvaluation = niveau.actif
+          ? "<a href='../evaluations.html?type=blanche&classe=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>"
+          : "<span class='btn btn-secondaire btn-disabled'>Évaluations bientôt disponibles</span>";
 
-        // Si le dossier existe, on pointe vers index.html dedans
-        const lienCours = dossierClasse === "#" ? "#" : dossierClasse + "/index.html";
+        const statut = niveau.actif
+          ? "<span class='statut'>Cours disponible</span>"
+          : "<span class='statut'>Préparation en cours</span>";
 
         card.innerHTML =
           "<h3>" + niveau.nom + "</h3>" +
           "<p>" + niveau.desc + "</p>" +
-          "<a href='" + lienCours + "' class='btn'>Voir les cours</a>" +
-          "<a href='../evaluations.html?type=blanche&niveau=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>";
+          boutonCours +
+          boutonEvaluation +
+          statut;
 
         niveauxContainer.appendChild(card);
       });
+    }
 
-      // Charger la config des évaluations
-      if (!firebase.database) {
-        evaluationsContainer.innerHTML =
-          "<p>Les évaluations ne sont pas disponibles pour le moment.</p>";
-        return;
-      }
+    function afficherEvaluationsGlobales() {
+      evaluationsContainer.innerHTML = "";
 
       firebase.database()
         .ref("evaluations/config")
         .once("value")
         .then(function(snapConfig) {
-          let evalOfficielleActive = false;
+          let officielleActive = false;
 
-          if (snapConfig && snapConfig.exists()) {
-            const config = snapConfig.val();
-            evalOfficielleActive = !!(config.evaluation_officielle_active);
+          if (snapConfig.exists()) {
+            officielleActive = !!snapConfig.val().evaluation_officielle_active;
           }
 
-          const evaluations = [];
+          const blanche = document.createElement("div");
+          blanche.className = "eval-card";
+          blanche.innerHTML =
+            "<h3>Évaluation blanche</h3>" +
+            "<p>Choisis d’abord ta classe ci-dessus afin de passer l’évaluation blanche correspondante.</p>" +
+            "<div class='etat-eval'>Disponible pour les classes déjà préparées</div>";
 
-          evaluations.push({
-            id: "blanche",
-            titre: "Évaluation blanche",
-            description: "Évalue-toi avec cette évaluation blanche.",
-            active: true
-          });
+          evaluationsContainer.appendChild(blanche);
 
-          if (evalOfficielleActive) {
-            evaluations.push({
-              id: "officielle",
-              titre: "Évaluation officielle",
-              description: "Évaluation officielle de mathématiques.",
-              active: true
-            });
+          if (officielleActive) {
+            const officielle = document.createElement("div");
+            officielle.className = "eval-card";
+            officielle.innerHTML =
+              "<h3>Évaluation officielle</h3>" +
+              "<p>Choisis d’abord ta classe ci-dessus afin de passer l’évaluation officielle correspondante.</p>" +
+              "<div class='etat-eval'>Disponible selon l’activation administrateur</div>";
+
+            evaluationsContainer.appendChild(officielle);
           }
-
-          if (evaluations.length === 0) {
-            evaluationsContainer.innerHTML =
-              "<p>Aucune évaluation disponible pour le moment.</p>";
-            return;
-          }
-
-          evaluations.forEach(function(ev) {
-            const card = document.createElement("div");
-            card.className = "eval-card";
-
-            card.innerHTML =
-              "<h3>" + ev.titre + "</h3>" +
-              "<p>" + ev.description + "</p>" +
-              "<a href='../evaluations.html?type=" + ev.id + "' class='btn-eval'>Passer l'évaluation</a>" +
-              "<div class='etat-eval'>" + (ev.active ? "Disponible" : "Bientôt disponible") + "</div>";
-
-            evaluationsContainer.appendChild(card);
-          });
         })
         .catch(function(err) {
-          console.error("Erreur chargement config évaluations :", err);
+          console.error("Erreur chargement configuration évaluations :", err);
+
           evaluationsContainer.innerHTML =
             "<p>Impossible de charger les évaluations pour le moment.</p>";
         });
+    }
+
+    window.addEventListener("load", function() {
+      afficherNiveaux();
+      afficherEvaluationsGlobales();
     });
   </script>
 
