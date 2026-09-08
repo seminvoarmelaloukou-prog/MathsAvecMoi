@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion des élèves - Admin - Campus Flex</title>
 
-  <!-- Firebase : ordre obligatoire -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -24,12 +23,7 @@
       --gris: #7f8c8d;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -50,27 +44,10 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 {
-      color: white;
-      font-size: 20px;
-    }
-
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      text-decoration: underline;
-    }
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
 
     main {
       flex: 1;
@@ -109,17 +86,11 @@
       margin-bottom: 14px;
     }
 
-    .row > * {
-      flex: 0 0 auto;
-    }
+    .row > * { flex: 0 0 auto; }
 
-    label {
-      font-size: 14px;
-      color: var(--text);
-    }
+    label { font-size: 14px; color: var(--text); }
 
-    input[type="text"],
-    select {
+    input[type="text"], input[type="email"], select {
       padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid #cfd8f0;
@@ -127,9 +98,8 @@
       background: #fff;
     }
 
-    input[type="text"] {
-      min-width: 220px;
-    }
+    input[type="text"] { min-width: 220px; }
+    input[type="email"] { min-width: 260px; }
 
     button {
       padding: 8px 14px;
@@ -142,39 +112,24 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: var(--indigo-dark);
-    }
+    button:hover { background: var(--indigo-dark); }
 
     button.secondaire {
       background: #e3e7f6;
       color: var(--indigo);
     }
 
-    button.secondaire:hover {
-      background: #cdd5f6;
-    }
+    button.secondaire:hover { background: #cdd5f6; }
 
     button.danger {
       background: var(--error);
     }
 
-    button.danger:hover {
-      background: #a93226;
-    }
+    button.danger:hover { background: #a93226; }
 
-    .message {
-      font-size: 14px;
-      margin-top: 8px;
-    }
-
-    .message.success {
-      color: var(--success);
-    }
-
-    .message.error {
-      color: var(--error);
-    }
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
 
     table {
       width: 100%;
@@ -183,35 +138,14 @@
       font-size: 14px;
     }
 
-    thead {
-      background: #f2f5ff;
-    }
-
+    thead { background: #f2f5ff; }
     th, td {
       padding: 10px 8px;
       border-bottom: 1px solid #e3e7f6;
       text-align: left;
     }
-
-    th {
-      color: var(--indigo);
-      font-weight: bold;
-    }
-
-    tr:hover {
-      background: #fafbff;
-    }
-
-    .actions-cell {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .actions-cell button {
-      padding: 6px 10px;
-      font-size: 13px;
-    }
+    th { color: var(--indigo); font-weight: bold; }
+    tr:hover { background: #fafbff; }
 
     .loader {
       width: 32px;
@@ -222,103 +156,60 @@
       animation: tourner 0.8s linear infinite;
     }
 
-    @keyframes tourner {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Modale de modification */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
+    @keyframes tourner { to { transform: rotate(360deg); } }
 
     .modal {
-      background: white;
-      border-radius: 12px;
-      padding: 22px 20px;
-      max-width: 520px;
-      width: 90%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
 
-    .modal h3 {
+    .modal-content {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content h3 {
       color: var(--indigo);
       font-size: 18px;
       margin-bottom: 12px;
     }
 
-    .modal .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .modal .form-row label {
-      display: block;
-      width: 100%;
-      margin-bottom: 4px;
-      font-size: 13px;
+    .modal-content p {
       color: var(--muted);
+      margin-bottom: 16px;
     }
 
-    .modal .form-row input,
-    .modal .form-row select {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #cfd8f0;
-      font-size: 14px;
-    }
-
-    .modal .actions {
+    .modal-buttons {
       display: flex;
       gap: 10px;
       justify-content: flex-end;
-      margin-top: 14px;
+      margin-top: 16px;
     }
 
     @media (max-width: 900px) {
-      table {
-        font-size: 13px;
-      }
-
-      th, td {
-        padding: 8px 5px;
-      }
+      table { font-size: 13px; }
+      th, td { padding: 8px 5px; }
     }
 
     @media (max-width: 700px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 20px auto;
-        padding: 0 14px;
-      }
-
-      .row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      input[type="text"] {
-        min-width: 0;
-        width: 100%;
-      }
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+      input[type="text"], input[type="email"] { min-width: 0; width: 100%; }
+      .modal-buttons { flex-direction: column; }
     }
   </style>
 </head>
@@ -327,9 +218,9 @@
 
   <nav>
     <h1>Admin - Gestion des élèves</h1>
-
     <ul>
       <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="admin-resultats.html">Résultats</a></li>
       <li><a href="index.html">Accueil</a></li>
       <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
@@ -337,27 +228,93 @@
 
   <main>
 
-    <!-- SECTION : VÉRIFICATION ADMIN -->
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>
-
       <div class="row">
         <div class="loader" id="loader-admin"></div>
-        <p id="message-admin-check">
-          Vérification de tes droits administrateur...
-        </p>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
       </div>
     </section>
 
-    <!-- SECTION : LISTE DES ÉLÈVES -->
-    <section class="card" id="card-eleves" style="display: none;">
-      <h2>Liste des élèves</h2>
+    <section class="card" id="card-creer-eleve" style="display: none;">
+      <h2>Créer un nouvel élève</h2>
+      <p>Remplis le formulaire ci-dessous pour créer un nouveau compte élève.</p>
 
-      <p>
-        Recherche, filtre, modifie ou supprime des élèves.
-      </p>
+      <form id="form-creer-eleve">
+        <div class="row">
+          <label for="input-nom">Nom :</label>
+          <input type="text" id="input-nom" required />
+
+          <label for="input-prenom">Prénom :</label>
+          <input type="text" id="input-prenom" required />
+        </div>
+
+        <div class="row">
+          <label for="input-email">Email :</label>
+          <input type="email" id="input-email" required />
+
+          <label for="input-identifiant">Identifiant (matricule) :</label>
+          <input type="text" id="input-identifiant" required />
+        </div>
+
+        <div class="row">
+          <label for="input-classe">Classe :</label>
+          <select id="input-classe" required>
+            <option value="">Choisir une classe</option>
+            <option value="6e">6e</option>
+            <option value="5e">5e</option>
+            <option value="4e">4e</option>
+            <option value="3e">3e</option>
+            <option value="2de AB">2de AB</option>
+            <option value="2de C">2de C</option>
+            <option value="2de D">2de D</option>
+            <option value="2de E">2de E</option>
+            <option value="1re AB">1re AB</option>
+            <option value="1re C">1re C</option>
+            <option value="1re D">1re D</option>
+            <option value="1re E">1re E</option>
+            <option value="Tle AB">Tle AB</option>
+            <option value="Tle C">Tle C</option>
+            <option value="Tle D">Tle D</option>
+            <option value="Tle E">Tle E</option>
+          </select>
+
+          <label for="input-mot-de-passe">Mot de passe :</label>
+          <input type="text" id="input-mot-de-passe" required placeholder="Ex: Campus2025!" />
+        </div>
+
+        <button type="submit">Créer l'élève</button>
+      </form>
+
+      <p id="message-creer" class="message"></p>
+    </section>
+
+    <section class="card" id="card-liste-eleves" style="display: none;">
+      <h2>Liste des élèves</h2>
+      <p>Consulte et gère tous les élèves inscrits.</p>
 
       <div class="row">
+        <label for="select-classe">Filtrer par classe :</label>
+        <select id="select-classe">
+          <option value="">Toutes les classes</option>
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
+        </select>
+
         <label for="input-recherche">Recherche :</label>
         <input
           type="text"
@@ -365,21 +322,7 @@
           placeholder="Nom, prénom, email ou identifiant"
         />
 
-        <label for="select-filtre-classe">Filtre par classe :</label>
-        <select id="select-filtre-classe">
-          <option value="">Toutes les classes</option>
-          <option value="6e">6e</option>
-          <option value="5e">5e</option>
-          <option value="4e">4e</option>
-          <option value="3e">3e</option>
-          <option value="Seconde">Seconde</option>
-          <option value="Première">Première</option>
-          <option value="Terminale">Terminale</option>
-        </select>
-
-        <button id="btn-appliquer-filtres" class="secondaire">
-          Appliquer
-        </button>
+        <button id="btn-appliquer-filtres" class="secondaire">Appliquer</button>
       </div>
 
       <div id="loader-table" class="loader" style="display: none; margin: 12px 0;"></div>
@@ -390,6 +333,7 @@
             <th>Nom</th>
             <th>Prénom</th>
             <th>Email</th>
+            <th>Identifiant</th>
             <th>Classe</th>
             <th>Points</th>
             <th>Série</th>
@@ -397,85 +341,44 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody id="corps-table-eleves">
-          <!-- Rempli dynamiquement -->
-        </tbody>
+        <tbody id="corps-table-eleves"></tbody>
       </table>
 
-      <p id="message-aucun-eleve" class="message" style="display: none;">
-        Aucun élève trouvé.
-      </p>
+      <p id="message-aucun-eleve" class="message" style="display: none;">Aucun élève trouvé.</p>
     </section>
 
   </main>
 
-  <!-- MODALE DE MODIFICATION -->
-  <div class="modal-overlay" id="modal-modif">
-    <div class="modal">
-      <h3>Modifier l’élève</h3>
-
-      <input type="hidden" id="modif-uid">
-
-      <div class="form-row">
-        <label for="modif-nom">Nom</label>
-        <input type="text" id="modif-nom" disabled>
+  <div class="modal" id="modal-confirmer-suppression">
+    <div class="modal-content">
+      <h3>Confirmer la suppression</h3>
+      <p id="texte-modal-suppression">Veux-tu vraiment supprimer cet élève ? Cette action est irréversible.</p>
+      <div class="modal-buttons">
+        <button type="button" class="secondaire" id="btn-annuler-suppression">Annuler</button>
+        <button type="button" class="danger" id="btn-confirmer-suppression">Supprimer</button>
       </div>
-
-      <div class="form-row">
-        <label for="modif-prenom">Prénom</label>
-        <input type="text" id="modif-prenom" disabled>
-      </div>
-
-      <div class="form-row">
-        <label for="modif-email">Email</label>
-        <input type="text" id="modif-email" disabled>
-      </div>
-
-      <div class="form-row">
-        <label for="modif-classe">Classe</label>
-        <select id="modif-classe">
-          <option value="6e">6e</option>
-          <option value="5e">5e</option>
-          <option value="4e">4e</option>
-          <option value="3e">3e</option>
-          <option value="Seconde">Seconde</option>
-          <option value="Première">Première</option>
-          <option value="Terminale">Terminale</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <label for="modif-points">Points</label>
-        <input type="number" id="modif-points" min="0" value="0">
-      </div>
-
-      <div class="form-row">
-        <label for="modif-streak">Série (jours)</label>
-        <input type="number" id="modif-streak" min="0" value="0">
-      </div>
-
-      <div class="actions">
-        <button type="button" class="secondaire" id="btn-annuler-modif">
-          Annuler
-        </button>
-        <button type="button" id="btn-sauver-modif">
-          Sauvegarder
-        </button>
-      </div>
-
-      <p id="message-modif" class="message"></p>
     </div>
   </div>
 
   <script>
     const cardAdminCheck = document.getElementById("card-admin-check");
-    const cardEleves = document.getElementById("card-eleves");
+    const cardCreerEleve = document.getElementById("card-creer-eleve");
+    const cardListeEleves = document.getElementById("card-liste-eleves");
 
     const loaderAdmin = document.getElementById("loader-admin");
     const messageAdminCheck = document.getElementById("message-admin-check");
 
+    const formCreerEleve = document.getElementById("form-creer-eleve");
+    const inputNom = document.getElementById("input-nom");
+    const inputPrenom = document.getElementById("input-prenom");
+    const inputEmail = document.getElementById("input-email");
+    const inputIdentifiant = document.getElementById("input-identifiant");
+    const inputClasse = document.getElementById("input-classe");
+    const inputMotDePasse = document.getElementById("input-mot-de-passe");
+    const messageCreer = document.getElementById("message-creer");
+
+    const selectClasse = document.getElementById("select-classe");
     const inputRecherche = document.getElementById("input-recherche");
-    const selectFiltreClasse = document.getElementById("select-filtre-classe");
     const btnAppliquerFiltres = document.getElementById("btn-appliquer-filtres");
 
     const loaderTable = document.getElementById("loader-table");
@@ -484,20 +387,14 @@
 
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
-    const modalModif = document.getElementById("modal-modif");
-    const modifUid = document.getElementById("modif-uid");
-    const modifNom = document.getElementById("modif-nom");
-    const modifPrenom = document.getElementById("modif-prenom");
-    const modifEmail = document.getElementById("modif-email");
-    const modifClasse = document.getElementById("modif-classe");
-    const modifPoints = document.getElementById("modif-points");
-    const modifStreak = document.getElementById("modif-streak");
-    const btnAnnulerModif = document.getElementById("btn-annuler-modif");
-    const btnSauverModif = document.getElementById("btn-sauver-modif");
-    const messageModif = document.getElementById("message-modif");
+    const modalConfirmer = document.getElementById("modal-confirmer-suppression");
+    const texteModalSuppression = document.getElementById("texte-modal-suppression");
+    const btnAnnulerSuppression = document.getElementById("btn-annuler-suppression");
+    const btnConfirmerSuppression = document.getElementById("btn-confirmer-suppression");
 
-    let tousLesEleves = [];
+    let mapEleves = {};
     let adminUid = null;
+    let eleveASupprimer = null;
 
     function afficherErreurAdmin(texte) {
       loaderAdmin.style.display = "none";
@@ -506,15 +403,12 @@
     }
 
     function verifierAdmin() {
-      console.log("[admin-eleves.html] verifierAdmin()");
-
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
         return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
-
       if (!user) {
         afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
@@ -531,67 +425,74 @@
           }
 
           const adminData = snap.val();
-          console.log("[admin-eleves.html] Admin :", adminData);
-
           loaderAdmin.style.display = "none";
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
-          cardEleves.style.display = "block";
+          cardCreerEleve.style.display = "block";
+          cardListeEleves.style.display = "block";
+
           chargerEleves();
         });
     }
 
     function chargerEleves() {
-      console.log("[admin-eleves.html] chargerEleves()");
-
       loaderTable.style.display = "block";
       corpsTable.innerHTML = "";
       messageAucunEleve.style.display = "none";
 
       db.ref("eleves").once("value")
         .then(function(snap) {
-          loaderTable.style.display = "none";
+          mapEleves = {};
 
-          if (!snap || !snap.exists()) {
-            messageAucunEleve.textContent = "Aucun élève inscrit.";
-            messageAucunEleve.style.display = "block";
-            tousLesEleves = [];
-            return;
+          if (snap && snap.exists()) {
+            snap.forEach(function(childSnap) {
+              const uid = childSnap.key;
+              const eleve = childSnap.val();
+
+              mapEleves[uid] = {
+                uid: uid,
+                nom: eleve.nom || "",
+                prenom: eleve.prenom || "",
+                email: eleve.email || "",
+                identifiant: eleve.identifiant || "",
+                classe: eleve.classe || "",
+                points: typeof eleve.points === "number" ? eleve.points : 0,
+                streak: typeof eleve.streak === "number" ? eleve.streak : 0,
+                bestStreak: typeof eleve.bestStreak === "number" ? eleve.bestStreak : 0,
+                dateInscription: eleve.dateInscription || null
+              };
+            });
           }
 
-          const data = [];
-          snap.forEach(function(childSnap) {
-            const uid = childSnap.key;
-            const eleve = childSnap.val();
-            data.push({
-              uid: uid,
-              ...eleve
-            });
-          });
-
-          tousLesEleves = data;
-          afficherTableau(tousLesEleves);
+          loaderTable.style.display = "none";
+          afficherTableau(mapEleves);
         })
         .catch(function(erreur) {
           console.error("Erreur chargement élèves :", erreur);
           loaderTable.style.display = "none";
-          messageAucunEleve.textContent = "Impossible de charger les élèves.";
+          messageAucunEleve.textContent = "Impossible de charger la liste des élèves.";
           messageAucunEleve.classList.add("error");
           messageAucunEleve.style.display = "block";
         });
     }
 
-    function afficherTableau(eleves) {
+    function afficherTableau(elevesObj) {
       corpsTable.innerHTML = "";
 
+      const eleves = Object.values(elevesObj);
+
       if (eleves.length === 0) {
-        messageAucunEleve.textContent = "Aucun élève trouvé avec ces critères.";
+        messageAucunEleve.textContent = "Aucun élève trouvé.";
         messageAucunEleve.classList.remove("error");
         messageAucunEleve.style.display = "block";
         return;
       }
 
       messageAucunEleve.style.display = "none";
+
+      eleves.sort(function(a, b) {
+        return (a.nom || "").localeCompare(b.nom || "");
+      });
 
       eleves.forEach(function(eleve) {
         const tr = document.createElement("tr");
@@ -608,47 +509,38 @@
         tdEmail.textContent = eleve.email || "–";
         tr.appendChild(tdEmail);
 
+        const tdIdentifiant = document.createElement("td");
+        tdIdentifiant.textContent = eleve.identifiant || "–";
+        tr.appendChild(tdIdentifiant);
+
         const tdClasse = document.createElement("td");
         tdClasse.textContent = eleve.classe || "–";
         tr.appendChild(tdClasse);
 
         const tdPoints = document.createElement("td");
-        tdPoints.textContent = String(eleve.points ?? 0);
+        tdPoints.textContent = (eleve.points ?? 0) + " pts";
         tr.appendChild(tdPoints);
 
         const tdStreak = document.createElement("td");
-        tdStreak.textContent = String(eleve.streak ?? 0) + " j";
+        tdStreak.textContent = (eleve.streak ?? 0) + " 🔥";
         tr.appendChild(tdStreak);
 
         const tdInscription = document.createElement("td");
         if (eleve.dateInscription) {
           const d = new Date(eleve.dateInscription);
-          tdInscription.textContent = d.toLocaleDateString();
+          tdInscription.textContent = d.toLocaleDateString('fr-FR');
         } else {
           tdInscription.textContent = "–";
         }
         tr.appendChild(tdInscription);
 
         const tdActions = document.createElement("td");
-        tdActions.className = "actions-cell";
-
-        const btnModifier = document.createElement("button");
-        btnModifier.className = "secondaire";
-        btnModifier.textContent = "Modifier";
-        btnModifier.addEventListener("click", function() {
-          ouvrirModifEleve(eleve);
-        });
-
         const btnSupprimer = document.createElement("button");
-        btnSupprimer.className = "danger";
         btnSupprimer.textContent = "Supprimer";
+        btnSupprimer.classList.add("danger");
         btnSupprimer.addEventListener("click", function() {
-          if (confirm("Supprimer l'élève " + (eleve.prenom || "") + " " + (eleve.nom || "") + " ?")) {
-            supprimerEleve(eleve.uid);
-          }
+          ouvrirModalSuppression(eleve.uid, eleve.nom, eleve.prenom);
         });
-
-        tdActions.appendChild(btnModifier);
         tdActions.appendChild(btnSupprimer);
         tr.appendChild(tdActions);
 
@@ -657,163 +549,93 @@
     }
 
     function filtrerEleves() {
+      const classe = selectClasse.value;
       const texte = inputRecherche.value.trim().toLowerCase();
-      const classe = selectFiltreClasse.value;
 
-      let resultat = tousLesEleves;
+      let resultat = {};
 
-      if (texte) {
-        resultat = resultat.filter(function(e) {
-          return (
-            (e.nom || "").toLowerCase().includes(texte) ||
-            (e.prenom || "").toLowerCase().includes(texte) ||
-            (e.email || "").toLowerCase().includes(texte) ||
-            (e.identifiant || "").toLowerCase().includes(texte)
-          );
-        });
-      }
+      Object.keys(mapEleves).forEach(function(uid) {
+        const eleve = mapEleves[uid];
 
-      if (classe) {
-        resultat = resultat.filter(function(e) {
-          return (e.classe || "") === classe;
-        });
-      }
+        if (classe && (eleve.classe || "") !== classe) {
+          return;
+        }
+
+        if (texte) {
+          const match =
+            (eleve.nom || "").toLowerCase().includes(texte) ||
+            (eleve.prenom || "").toLowerCase().includes(texte) ||
+            (eleve.email || "").toLowerCase().includes(texte) ||
+            (eleve.identifiant || "").toLowerCase().includes(texte);
+
+          if (!match) {
+            return;
+          }
+        }
+
+        resultat[uid] = eleve;
+      });
 
       afficherTableau(resultat);
     }
 
-    function supprimerEleve(uid) {
-      console.log("[admin-eleves.html] supprimerEleve", uid);
-
-      db.ref("eleves/" + uid).remove()
-        .then(function() {
-          // Recharger la liste
-          chargerEleves();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur suppression élève :", erreur);
-          alert("Erreur lors de la suppression de l'élève.");
-        });
-    }
-
-    function ouvrirModifEleve(eleve) {
-      modifUid.value = eleve.uid;
-      modifNom.value = eleve.nom || "";
-      modifPrenom.value = eleve.prenom || "";
-      modifEmail.value = eleve.email || "";
-      modifClasse.value = eleve.classe || "6e";
-      modifPoints.value = String(eleve.points ?? 0);
-      modifStreak.value = String(eleve.streak ?? 0);
-
-      messageModif.textContent = "";
-      messageModif.classList.remove("success", "error");
-
-      modalModif.style.display = "flex";
-    }
-
-    function fermerModif() {
-      modalModif.style.display = "none";
-    }
-
-    function sauverModif() {
-      const uid = modifUid.value;
-      const nouvelleClasse = modifClasse.value;
-      const nouveauxPoints = parseInt(modifPoints.value, 10);
-      const nouveauStreak = parseInt(modifStreak.value, 10);
-
-      if (isNaN(nouveauxPoints) || nouveauxPoints < 0) {
-        messageModif.textContent = "Points invalides.";
-        messageModif.classList.add("error");
-        return;
-      }
-
-      if (isNaN(nouveauStreak) || nouveauStreak < 0) {
-        messageModif.textContent = "Série invalide.";
-        messageModif.classList.add("error");
-        return;
-      }
-
-      messageModif.textContent = "Sauvegarde en cours...";
-      messageModif.classList.remove("success", "error");
-
-      const maj = {
-        classe: nouvelleClasse,
-        points: nouveauxPoints,
-        streak: nouveauStreak
-      };
-
-      db.ref("eleves/" + uid).update(maj)
-        .then(function() {
-          messageModif.textContent = "Modifications enregistrées.";
-          messageModif.classList.add("success");
-
-          setTimeout(function() {
-            fermerModif();
-            chargerEleves();
-          }, 900);
-        })
-        .catch(function(erreur) {
-          console.error("Erreur modification élève :", erreur);
-          messageModif.textContent = "Erreur lors de la sauvegarde.";
-          messageModif.classList.add("error");
-        });
-    }
-
-    lienDeconnexion.addEventListener("click", function(e) {
+    formCreerEleve.addEventListener("submit", function(e) {
       e.preventDefault();
 
+      const nom = inputNom.value.trim();
+      const prenom = inputPrenom.value.trim();
+      const email = inputEmail.value.trim();
+      const identifiant = inputIdentifiant.value.trim();
+      const classe = inputClasse.value.trim();
+      const motDePasse = inputMotDePasse.value.trim();
+
+      if (!nom || !prenom || !email || !identifiant || !classe || !motDePasse) {
+        messageCreer.textContent = "Tous les champs sont obligatoires.";
+        messageCreer.classList.add("error");
+        return;
+      }
+
+      messageCreer.textContent = "Création en cours...";
+      messageCreer.classList.remove("error");
+
       if (!auth) {
-        window.location.href = "index.html";
+        messageCreer.textContent = "Firebase Auth non disponible.";
+        messageCreer.classList.add("error");
         return;
       }
 
-auth.signOut()
-        .then(function() {
-          window.location.href = "index.html";
+      auth.createUserWithEmailAndPassword(email, motDePasse)
+        .then(function(credential) {
+          const uid = credential.user.uid;
+
+          return db.ref("eleves/" + uid).set({
+            nom: nom,
+            prenom: prenom,
+            email: email,
+            identifiant: identifiant,
+            classe: classe,
+            points: 0,
+            streak: 0,
+            bestStreak: 0,
+            dateInscription: Date.now()
+          }).then(function() {
+            return uid;
+          });
         })
-        .catch(function() {
-          window.location.href = "index.html";
-        });
-    });
+        .then(function(uid) {
+          messageCreer.textContent = "Élève créé avec succès !";
+          messageCreer.classList.add("success");
 
-    btnAppliquerFiltres.addEventListener("click", filtrerEleves);
+          formCreerEleve.reset();
 
-    btnAnnulerModif.addEventListener("click", fermerModif);
-    btnSauverModif.addEventListener("click", sauverModif);
-
-    // Fermer modale si on clique en dehors
-    modalModif.addEventListener("click", function(e) {
-      if (e.target === modalModif) {
-        fermerModif();
-      }
-    });
-
-    (function init() {
-      console.log("[admin-eleves.html] init()");
-
-      if (!auth || !db) {
-        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return;
-      }
-
-      if (!auth.currentUser) {
-        messageAdminCheck.textContent = "Vérification de ta connexion...";
-
-        auth.onAuthStateChanged(function(user) {
-          if (!user) {
-            window.location.href = "connexion.html";
-            return;
-          }
-
-          verifierAdmin();
-        });
-
-        return;
-      }
-
-      verifierAdmin();
-    })();
-  </script>
-
-</body>
-</html>
+          mapEleves[uid] = {
+            uid: uid,
+            nom: nom,
+            prenom: prenom,
+            email: email,
+            identifiant: identifiant,
+            classe: classe,
+            points: 0,
+            streak: 0,
+            bestStreak: 0,
+            dateIns
