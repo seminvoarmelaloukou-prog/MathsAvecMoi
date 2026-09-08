@@ -474,6 +474,10 @@
     let modeActuel = "ecrit";
     let reconnaissanceVocale = null;
 
+    // === CLÉ API GEMINI ===
+    const GEMINI_API_KEY = "AQ.Ab8RN6ImtMvSH0KTH9Z5frv8uYTOzhXLSkXvHvmyygbfGoABlA";
+    // =====================
+
     function afficherErreurChargement(texte) {
       messageChargement.textContent = texte;
       messageChargement.classList.add("error");
@@ -572,57 +576,110 @@
       noraMessages.scrollTop = noraMessages.scrollHeight;
     }
 
-    function repondreNora(question) {
+    async function repondreNora(question) {
       noraMessage.textContent = "Nora réfléchit...";
       noraMessage.classList.remove("error");
 
-      // Simulation de réponse (à remplacer par un appel API IA)
-      setTimeout(function() {
-        const reponses = [
-          "C'est une excellente question ! En mathématiques, il faut bien lire l'énoncé et identifier les données importantes.",
-          "Je peux t'aider avec ça. Peux-tu me donner plus de détails sur ce que tu ne comprends pas ?",
-          "Très bien ! Tu es sur la bonne voie. Continue comme ça, tu vas y arriver !",
-          "Voici un indice : essaie de décomposer le problème en petites étapes plus simples.",
-          "Bon raisonnement ! N'oublie pas de vérifier ton résultat à la fin.",
-          "Cette notion peut sembler difficile, mais avec de la pratique, tu vas la maîtriser !"
-        ];
+      try {
+        const reponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: "Tu es Nora, un tuteur IA en mathématiques pour collégiens et lycéens (6e à Terminale) au Bénin. Réponds de manière claire, pédagogique et encourageante à cette question : " + question
+                }]
+              }]
+            })
+          }
+        );
 
-        const reponseAleatoire = reponses[Math.floor(Math.random() * reponses.length)];
-        ajouterMessageNora("nora", reponseAleatoire);
+        const data = await reponse.json();
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+          const reponseNora = data.candidates[0].content.parts[0].text;
+          ajouterMessageNora("nora", reponseNora);
+        } else {
+          ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie !");
+        }
+
         noraMessage.textContent = "";
-      }, 1000);
+      } catch (erreur) {
+        console.error("Erreur API Gemini :", erreur);
+        ajouterMessageNora("nora", "Oups, j'ai un problème de connexion. Vérifie ta connexion internet !");
+        noraMessage.textContent = "";
+        noraMessage.classList.add("error");
+      }
     }
 
     function initialiserReconnaissanceVocale() {
-      if (!("webkitSpeechRecognition" in window)) {
-        noraMessage.textContent = "Ton navigateur ne supporte pas la reconnaissance vocale. Utilise Chrome ou Edge.";
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        noraMessage.textContent = "La reconnaissance vocale n'est pas disponible sur ton navigateur. Utilise le mode écrit.";
         noraMessage.classList.add("error");
-        noraBtnParler.disabled = true;
+        noraBtnParler.style.display = "none";
+        btnModeVocal.style.display = "none";
         return;
       }
 
-      reconnaissanceVocale = new webkitSpeechRecognition();
-      reconnaissanceVocale.lang = "fr-FR";
-      reconnaissanceVocale.continuous = false;
-      reconnaissanceVocale.interimResults = false;
+      try {
+        reconnaissanceVocale = new SpeechRecognition();
+        reconnaissanceVocale.lang = "fr-FR";
+        reconnaissanceVocale.continuous = false;
+        reconnaissanceVocale.interimResults = false;
 
-      reconnaissanceVocale.onresult = function(event) {
-        const question = event.results[0][0].transcript;
-        ajouterMessageNora("eleve", question);
-        repondreNora(question);
-        noraMessage.textContent = "";
-        noraBtnParler.disabled = false;
-      };
+        reconnaissanceVocale.onstart = function() {
+          noraMessage.textContent = "🎤 Je t'écoute... Parle maintenant !";
+          noraMessage.classList.remove("error");
+          noraBtnParler.textContent = "🔴 Enregistrement...";
+          noraBtnParler.style.background = "#c0392b";
+        };
 
-      reconnaissanceVocale.onerror = function(event) {
-        noraMessage.textContent = "Erreur de reconnaissance vocale : " + event.error;
+        reconnaissanceVocale.onresult = function(event) {
+          const question = event.results[0][0].transcript;
+          ajouterMessageNora("eleve", question);
+          repondreNora(question);
+          noraMessage.textContent = "";
+          noraBtnParler.disabled = false;
+          noraBtnParler.textContent = "🎤 Appuie pour parler";
+          noraBtnParler.style.background = "var(--indigo)";
+        };
+
+        reconnaissanceVocale.onerror = function(event) {
+          console.error("Erreur reconnaissance vocale :", event.error);
+          
+          if (event.error === "not-allowed") {
+            noraMessage.textContent = "Permission refusée. Utilise le mode écrit.";
+          } else if (event.error === "no-speech") {
+            noraMessage.textContent = "Aucun son détecté. Réessaie !";
+          } else {
+            noraMessage.textContent = "Erreur : " + event.error + ". Utilise le mode écrit.";
+          }
+          
+          noraMessage.classList.add("error");
+          noraBtnParler.disabled = false;
+          noraBtnParler.textContent = "🎤 Appuie pour parler";
+          noraBtnParler.style.background = "var(--indigo)";
+        };
+
+        reconnaissanceVocale.onend = function() {
+          noraBtnParler.disabled = false;
+          noraBtnParler.textContent = "🎤 Appuie pour parler";
+          noraBtnParler.style.background = "var(--indigo)";
+        };
+
+      } catch (erreur) {
+        console.error("Erreur initialisation vocale :", erreur);
+        noraMessage.textContent = "La reconnaissance vocale n'est pas disponible. Utilise le mode écrit.";
         noraMessage.classList.add("error");
-        noraBtnParler.disabled = false;
-      };
-
-      reconnaissanceVocale.onend = function() {
-        noraBtnParler.disabled = false;
-      };
+        noraBtnParler.style.display = "none";
+        btnModeVocal.style.display = "none";
+      }
     }
 
     // Mode écrit
@@ -659,128 +716,4 @@
       ajouterMessageNora("eleve", question);
       noraQuestionInput.value = "";
       repondreNora(question);
-    });
-
-    // Question avec Entrée
-    noraQuestionInput.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        noraBtnEnvoyer.click();
-      }
-    });
-
-    // Bouton vocal
-    noraBtnParler.addEventListener("click", function() {
-      if (!reconnaissanceVocale) {
-        initialiserReconnaissanceVocale();
-      }
-
-      noraMessage.textContent = "Je t'écoute... Parle maintenant !";
-      noraMessage.classList.remove("error");
-      noraBtnParler.disabled = true;
-      reconnaissanceVocale.start();
-    });
-
-    // === FIN FONCTIONS NORA ===
-
-    function chargerProfil() {
-      if (typeof firebase === "undefined") {
-        afficherErreurChargement("Firebase n'est pas chargé. Vérifie les scripts Firebase.");
-        return;
-      }
-
-      if (typeof auth === "undefined") {
-        afficherErreurChargement("Firebase Authentication n'est pas disponible.");
-        return;
-      }
-
-      if (!db) {
-        afficherErreurChargement(
-          "Realtime Database n'est pas disponible. Vérifie firebase-database-compat.js et firebase-config.js."
-        );
-        return;
-      }
-
-      const user = auth.currentUser;
-
-      if (!user) {
-        auth.onAuthStateChanged(function(u) {
-          if (!u) {
-            window.location.href = "../connexion.html";
-            return;
-          }
-          chargerProfilAvecUtilisateur(u);
-        });
-        return;
-      }
-
-      chargerProfilAvecUtilisateur(user);
-    }
-
-    function chargerProfilAvecUtilisateur(user) {
-      db.ref("administrateurs/" + user.uid).once("value")
-        .then(function(snapAdmin) {
-          if (snapAdmin && snapAdmin.exists()) {
-            window.location.href = "../admin.html";
-            return Promise.reject(new Error("REDIRECT_ADMIN"));
-          }
-
-          return db.ref("eleves/" + user.uid).once("value");
-        })
-        .then(function(snapshot) {
-          if (!snapshot) {
-            return;
-          }
-
-          if (!snapshot.exists()) {
-            afficherErreurChargement(
-              "Ton profil n'existe pas dans la base de données. Contacte l'administrateur."
-            );
-            return;
-          }
-
-          const eleve = snapshot.val();
-    
-afficherProfil(eleve);
-        })
-        .catch(function(erreur) {
-          if (erreur && erreur.message === "REDIRECT_ADMIN") {
-            return;
-          }
-
-          console.error("[profil.html] Erreur lors du chargement du profil :", erreur);
-
-          if (erreur && erreur.code === "PERMISSION_DENIED") {
-            afficherErreurChargement(
-              "Firebase refuse l'accès à ton profil. Vérifie les règles de Realtime Database."
-            );
-          } else {
-            afficherErreurChargement(
-              "Impossible de charger ton profil : " +
-              (erreur && erreur.message ? erreur.message : "erreur inconnue")
-            );
-          }
-        });
-    }
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-
-      if (typeof auth === "undefined") {
-        window.location.href = "../index.html";
-        return;
-      }
-
-      auth.signOut()
-        .then(function() {
-          window.location.href = "../index.html";
-        })
-        .catch(function() {
-          window.location.href = "../index.html";
-        });
-    });
-
-    chargerProfil();
-  </script>
-
-</body>
-</html>
+    })
