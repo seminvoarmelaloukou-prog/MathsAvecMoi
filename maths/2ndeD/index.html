@@ -3,49 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mathématiques - Campus Flex</title>
+  <title>2ᵉ D – Mathématiques | Campus Flex</title>
+  <meta name="description" content="Cours et vidéos de mathématiques pour la 2ᵉ D sur Campus Flex.">
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="../firebase-config.js"></script>
-  <script src="../auth-guard.js"></script>
+  <script src="../../firebase-config.js"></script>
 
   <style>
     :root {
       --indigo: #2c3e8c;
       --indigo-dark: #1e2c66;
       --amber: #f39c12;
-      --background: #f5f7ff;
-      --text: #333333;
-      --muted: #666666;
-      --disabled: #b7bccb;
     }
 
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
 
     body {
-      min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: var(--background);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
+      background-color: #f5f7ff;
+      color: #333;
     }
 
     nav {
-      background: var(--indigo);
+      background-color: var(--indigo);
       padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
     }
 
     nav h1 {
@@ -53,544 +47,424 @@
       font-size: 20px;
     }
 
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
+    .nav-toggle {
+      display: none;
     }
 
-    nav a {
+    .nav-toggle-label {
+      display: none;
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
       color: white;
       text-decoration: none;
       font-size: 14px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+      transition: border-color .2s;
     }
 
-    nav a:hover {
-      text-decoration: underline;
+    nav ul li a:hover,
+    nav ul li a.active {
+      border-color: var(--amber);
     }
 
-    main {
-      flex: 1;
-      width: 100%;
-      max-width: 900px;
-      margin: 45px auto;
-      padding: 0 20px;
+    @media (max-width: 640px) {
+
+      .nav-toggle-label {
+        display: block;
+      }
+
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .3s ease;
+      }
+
+      nav ul li {
+        border-top: 1px solid rgba(255,255,255,.1);
+      }
+
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 360px;
+      }
     }
 
-    .hero {
-      background: white;
-      padding: 35px 25px;
-      border-radius: 14px;
+    header {
+      background-color: #2c3e8c;
+      color: white;
       text-align: center;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-      margin-bottom: 22px;
+      padding: 30px 20px;
     }
 
-    .hero h2 {
-      color: var(--indigo);
+    header h2 {
       font-size: 26px;
-      margin-bottom: 12px;
     }
 
-    .hero p {
-      color: var(--muted);
-      line-height: 1.6;
+    section {
+      padding: 20px;
+    }
+
+    h3.sa-title {
+      color: white;
+      background-color: #2c3e8c;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 30px 0 15px;
+      font-size: 18px;
+    }
+
+    h4.seq-title {
+      color: #2c3e8c;
+      margin: 18px 0 8px;
       font-size: 15px;
-      margin-bottom: 18px;
+      border-bottom: 2px solid #e0e4f7;
+      padding-bottom: 4px;
+    }
+
+    .devoir {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      line-height: 2.2;
+    }
+
+    .devoir a {
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .a-venir {
+      color: #999;
+      font-size: 13px;
+    }
+
+    .video-bloc {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .video-bloc h3 {
+      color: #2c3e8c;
+      margin-bottom: 15px;
+    }
+
+    .video-bloc iframe {
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      height: 200px;
+    }
+
+    .section-contenu {
+      display: none;
+    }
+
+    .section-contenu.active {
+      display: block;
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 25px;
     }
 
     .btn {
       display: inline-block;
-      padding: 11px 22px;
-      border-radius: 24px;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
       background: var(--indigo);
       color: white;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
-      margin: 6px;
-      border: none;
-      cursor: pointer;
+      transition: .2s;
     }
 
     .btn:hover {
       background: var(--indigo-dark);
-    }
-
-    .btn-secondaire {
-      background: #e3e7f6;
-      color: var(--indigo);
-    }
-
-    .btn-secondaire:hover {
-      background: #cdd5f6;
-    }
-
-    .btn-disabled {
-      background: var(--disabled);
-      color: white;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
-    .section-titre {
-      color: var(--indigo);
-      font-size: 22px;
-      margin: 28px 0 14px;
-      text-align: center;
-    }
-
-    .niveaux-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 18px;
-    }
-
-    .niveau-card {
-      background: white;
-      padding: 20px 18px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-      text-align: center;
-    }
-
-    .niveau-card.indisponible {
-      opacity: 0.78;
-    }
-
-    .niveau-card h3 {
-      color: var(--indigo);
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .niveau-card p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .statut {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 6px;
-    }
-
-    .eval-section {
-      margin-top: 40px;
-      background: white;
-      padding: 30px 22px;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-    }
-
-    .eval-section h2 {
-      color: var(--indigo);
-      font-size: 22px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-
-    .eval-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 18px;
-    }
-
-    .eval-card {
-      background: #f9fafc;
-      padding: 18px 16px;
-      border-radius: 12px;
-      border: 1px solid #e3e7f6;
-      text-align: center;
-    }
-
-    .eval-card h3 {
-      color: var(--indigo);
-      font-size: 17px;
-      margin-bottom: 8px;
-    }
-
-    .eval-card p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 12px;
-    }
-
-    .btn-eval {
-      display: inline-block;
-      padding: 10px 18px;
-      border-radius: 22px;
-      background: var(--amber);
-      color: white;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .btn-eval:hover {
-      opacity: 0.9;
-    }
-
-    .etat-eval {
-      margin-top: 8px;
-      font-size: 13px;
-      color: var(--muted);
+      transform: translateY(-2px);
     }
 
     footer {
-      background: var(--indigo);
+      background-color: #2c3e8c;
       color: white;
       text-align: center;
-      padding: 14px;
+      padding: 15px;
       font-size: 13px;
-    }
-
-    @media (max-width: 600px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 25px auto;
-        padding: 0 14px;
-      }
-
-      .hero {
-        padding: 25px 18px;
-      }
-
-      .hero h2 {
-        font-size: 22px;
-      }
+      margin-top: 30px;
     }
   </style>
 </head>
 
 <body>
 
+  <!-- NAVIGATION -->
   <nav>
-    <h1>🎓 Campus Flex</h1>
+    <h1>🎓 Campus Flex – 2ᵉ D</h1>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+
     <ul>
-      <li><a href="../index.html">Accueil</a></li>
-      <li><a href="index.html">Maths</a></li>
-      <li><a href="../mes-resultats.html">Mes résultats</a></li>
-      <li><a href="#" id="deconnexion">Déconnexion</a></li>
+      <li>
+        <a href="#" class="onglet active" data-section="cours">
+          Cours
+        </a>
+      </li>
+      <li>
+        <a href="#" class="onglet" data-section="videos">
+          Vidéos
+        </a>
+      </li>
+      <li><a href="../profil.html">Mon profil</a></li>
+      <li>
+        <a href="../../index.html">
+          Accueil
+        </a>
+      </li>
+      <li>
+        <a href="#" id="lien-deconnexion">
+          Déconnexion
+        </a>
+      </li>
     </ul>
   </nav>
 
-  <main>
+  <!-- EN-TÊTE -->
+  <header>
+    <h2>📚 Mathématiques – 2ᵉ D</h2>
+  </header>
 
-    <section class="hero">
-      <h2>Mathématiques – Du collège au lycée</h2>
-      <p>Choisis ta classe pour accéder aux cours, exercices et évaluations.</p>
+  <!-- SECTION COURS -->
+  <section id="cours" class="section-contenu active">
 
-      <div>
-        <a href="../mes-resultats.html" class="btn btn-secondaire">
-          Voir mes résultats
-        </a>
-      </div>
-    </section>
+    <!-- SA 1 — Configurations de l'espace -->
+    <h3 class="sa-title">SA 1 — Configurations de l’espace</h3>
 
-    <h2 class="section-titre">Cours par classe</h2>
-    <div id="niveauxContainer" class="niveaux-grid"></div>
+    <h4 class="seq-title">Séquence 1 — Représentation dans le plan d’objets de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
 
-    <section class="eval-section">
-      <h2>Évaluations en ligne</h2>
-      <p id="texteIntroEvaluations" style="text-align:center; color: var(--muted); margin-bottom: 10px;">
-        Chargement…
+    <h4 class="seq-title">Séquence 2 — Positions relatives d’une droite et d’un plan de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 3 — Positions relatives de deux plans de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 4 — Positions relatives de deux droites de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 5 — Étude du parallélisme de droites et plans de l’espace</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <!-- SA 2 — Organisation des données -->
+    <h3 class="sa-title">SA 2 — Organisation des données</h3>
+
+    <h4 class="seq-title">Séquence 1 — Calcul dans ℝ</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 2 — Généralités sur les fonctions</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 3 — Applications</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 4 — Étude de quelques fonctions</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 5 — Équations et inéquations dans ℝ</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 6 — Statistique</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 7 — Polynômes et fractions rationnelles</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <!-- SA 3 — Lieux géométriques -->
+    <h3 class="sa-title">SA 3 — Lieux géométriques</h3>
+
+    <h4 class="seq-title">Séquence 1 — Vecteurs du plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 2 — Droites dans le plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 3 — Homothétie</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 4 — Symétrie orthogonale – symétrie centrale – translation</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 5 — Angles inscrits ; relations métriques dans un triangle</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 6 — Angles orientés – Trigonométrie</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 7 — Produit scalaire dans le plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 8 — Rotation</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 9 — Cercles dans le plan</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <h4 class="seq-title">Séquence 10 — Équations et inéquations dans ℝ×ℝ</h4>
+    <div class="devoir">
+      <p class="a-venir">Bientôt disponible</p>
+    </div>
+
+    <div class="back">
+      <a href="../profil.html" class="btn">Retour à mon profil</a>
+    </div>
+
+  </section>
+
+  <!-- SECTION VIDÉOS -->
+  <section id="videos" class="section-contenu">
+
+    <h2 style="text-align:center; color:#2c3e8c; margin-bottom:20px;">
+      🎥 Vidéos de 2ᵉ D
+    </h2>
+
+    <div class="video-bloc">
+      <h3>Vidéos de 2ᵉ D</h3>
+      <p style="color:#666;">
+        🎥 Les vidéos de 2ᵉ D seront bientôt disponibles.
       </p>
+    </div>
 
-      <div id="evaluationsContainer" class="eval-grid"></div>
-    </section>
+    <div class="back">
+      <a href="../profil.html" class="btn">Retour à mon profil</a>
+    </div>
 
-  </main>
+  </section>
 
+  <!-- PIED DE PAGE -->
   <footer>
-    © 2026 Campus Flex - Tous droits réservés
+    <p>© 2026 Campus Flex — Mathématiques 2ᵉ D — Tous droits réservés</p>
   </footer>
 
+  <!-- SCRIPT POUR CHANGER D'ONGLET -->
   <script>
-    const niveauxContainer = document.getElementById("niveauxContainer");
-    const evaluationsContainer = document.getElementById("evaluationsContainer");
-    const texteIntroEvaluations = document.getElementById("texteIntroEvaluations");
-    const btnDeconnexion = document.getElementById("deconnexion");
+    const onglets = document.querySelectorAll(".onglet");
+    const sections = document.querySelectorAll(".section-contenu");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+    const menuMobile = document.getElementById("nav-toggle");
 
-    const NIVEAUX = [
-      {
-        id: "6e",
-        nom: "6e",
-        desc: "Cours, exercices et évaluations de 6e.",
-        actif: true,
-        lienCours: "6eme/index.html"
-      },
-      {
-        id: "5e",
-        nom: "5e",
-        desc: "Cours, exercices et évaluations de 5e.",
-        actif: true,
-        lienCours: "5eme/index.html"
-      },
-      {
-        id: "4e",
-        nom: "4e",
-        desc: "Cours, exercices et évaluations de 4e.",
-        actif: true,
-        lienCours: "4eme/index.html"
-      },
-      {
-        id: "3e",
-        nom: "3e",
-        desc: "Cours, exercices et évaluations de 3e.",
-        actif: true,
-        lienCours: "3eme/index.html"
-      },
-      {
-        id: "2de AB",
-        nom: "2nde AB",
-        desc: "Cours, exercices et évaluations de 2nde AB.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "2de C",
-        nom: "2nde C",
-        desc: "Cours, exercices et évaluations de 2nde C.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "2de D",
-        nom: "2nde D",
-        desc: "Cours, exercices et évaluations de 2nde D.",
-        actif: true,
-        lienCours: "2ndeD/index.html"
-      },
-      {
-        id: "2de E",
-        nom: "2nde E",
-        desc: "Cours, exercices et évaluations de 2nde E.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "1re AB",
-        nom: "1ère AB",
-        desc: "Cours, exercices et évaluations de 1ère AB.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "1re C",
-        nom: "1ère C",
-        desc: "Cours, exercices et évaluations de 1ère C.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "1re D",
-        nom: "1ère D",
-        desc: "Cours, exercices et évaluations de 1ère D.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "1re E",
-        nom: "1ère E",
-        desc: "Cours, exercices et évaluations de 1ère E.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "Tle AB",
-        nom: "Tle AB",
-        desc: "Cours, exercices et évaluations de Tle AB.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "Tle C",
-        nom: "Tle C",
-        desc: "Cours, exercices et évaluations de Tle C.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "Tle D",
-        nom: "Tle D",
-        desc: "Cours, exercices et évaluations de Tle D.",
-        actif: false,
-        lienCours: ""
-      },
-      {
-        id: "Tle E",
-        nom: "Tle E",
-        desc: "Cours, exercices et évaluations de Tle E.",
-        actif: false,
-        lienCours: ""
-      }
-    ];
+    onglets.forEach(function(onglet) {
+      onglet.addEventListener("click", function(e) {
+        e.preventDefault();
 
-    btnDeconnexion.addEventListener("click", function(e) {
+        onglets.forEach(o => o.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
+
+        onglet.classList.add("active");
+        const sectionId = onglet.getAttribute("data-section");
+        document.getElementById(sectionId).classList.add("active");
+
+        menuMobile.checked = false;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
 
-      if (!confirm("Veux-tu vraiment te déconnecter ?")) {
-        return;
-      }
-
-      firebase.auth().signOut()
-        .then(function() {
-          window.location.href = "../connexion.html";
-        })
-        .catch(function(err) {
-          console.error("Erreur déconnexion :", err);
-          alert("Une erreur est survenue lors de la déconnexion.");
-        });
-    });
-
-    let classeEleve = null;
-
-    function afficherNiveauxPourClasse(classe) {
-      niveauxContainer.innerHTML = "";
-
-      const niveau = NIVEAUX.find(function(n) {
-        return n.id === classe;
-      });
-
-      if (!niveau) {
-        niveauxContainer.innerHTML =
-          "<p>Classe non reconnue : " + classe + "</p>";
-        return;
-      }
-
-      const card = document.createElement("div");
-      card.className = "niveau-card" + (niveau.actif ? "" : " indisponible");
-
-      const boutonCours = niveau.actif
-        ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
-        : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
-
-      const boutonEvaluation = niveau.actif
-        ? "<a href='../evaluations.html?type=blanche&classe=" + niveau.id + "' class='btn btn-secondaire'>Évaluations</a>"
-        : "<span class='btn btn-secondaire btn-disabled'>Évaluations bientôt disponibles</span>";
-
-      const statut = niveau.actif
-        ? "<span class='statut'>Cours disponible</span>"
-        : "<span class='statut'>Préparation en cours</span>";
-
-      card.innerHTML =
-        "<h3>" + niveau.nom + "</h3>" +
-        "<p>" + niveau.desc + "</p>" +
-        boutonCours +
-        boutonEvaluation +
-        statut;
-
-      niveauxContainer.appendChild(card);
-    }
-
-    function afficherEvaluationsPourClasse(classe) {
-      evaluationsContainer.innerHTML = "";
-
-      firebase.database()
-        .ref("evaluations/config")
-        .once("value")
-        .then(function(snapConfig) {
-          let officielleActive = false;
-
-          if (snapConfig.exists()) {
-            officielleActive = !!snapConfig.val().evaluation_officielle_active;
-          }
-
-          // Texte d’intro personnalisé selon la classe
-          texteIntroEvaluations.textContent =
-            "Tu es en " + classe + ". Voici tes évaluations de mathématiques.";
-
-          const blanche = document.createElement("div");
-          blanche.className = "eval-card";
-          blanche.innerHTML =
-            "<h3>Évaluation blanche – " + classe + "</h3>" +
-            "<p>Passe l’évaluation blanche correspondant à ta classe.</p>" +
-            "<a href='../evaluations.html?type=blanche&classe=" + classe + "' class='btn-eval'>Passer l’évaluation</a>" +
-            "<div class='etat-eval'>Disponible</div>";
-
-          evaluationsContainer.appendChild(blanche);
-
-          if (officielleActive) {
-            const officielle = document.createElement("div");
-            officielle.className = "eval-card";
-            officielle.innerHTML =
-              "<h3>Évaluation officielle – " + classe + "</h3>" +
-              "<p>Passe l’évaluation officielle correspondant à ta classe.</p>" +
-              "<a href='../evaluations.html?type=officielle&classe=" + classe + "' class='btn-eval'>Passer l’évaluation</a>" +
-              "<div class='etat-eval'>Disponible</div>";
-
-            evaluationsContainer.appendChild(officielle);
-          }
-        })
-        .catch(function(err) {
-          console.error("Erreur chargement configuration évaluations :", err);
-
-          texteIntroEvaluations.textContent =
-            "Tu es en " + classe + ". Voici tes évaluations de mathématiques.";
-
-          evaluationsContainer.innerHTML =
-            "<p>Impossible de charger les évaluations pour le moment.</p>";
-        });
-    }
-
-    window.addEventListener("load", function() {
-      if (!firebase.auth || !firebase.database) {
-        niveauxContainer.innerHTML =
-          "<p>Service indisponible pour le moment.</p>";
-        return;
-      }
-
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (!user) {
-          window.location.href = "../connexion.html";
-          return;
-        }
-
-        firebase.database()
-          .ref("eleves/" + user.uid)
-          .once("value")
-          .then(function(snap) {
-            if (!snap || !snap.exists()) {
-              niveauxContainer.innerHTML =
-                "<p>Ton profil élève n’est pas complet.</p>";
-              return;
-            }
-
-            const data = snap.val();
-            classeEleve = data.classe || null;
-
-            if (!classeEleve) {
-              niveauxContainer.innerHTML =
-                "<p>Ta classe n’est pas renseignée.</p>";
-              return;
-            }
-
-            afficherNiveauxPourClasse(classeEleve);
-            afficherEvaluationsPourClasse(classeEleve);
+      if (typeof auth !== "undefined") {
+        auth.signOut()
+          .then(function() {
+            window.location.href = "../../index.html";
           })
-          .catch(function(err) {
-            console.error("Erreur lecture profil élève :", err);
-            niveauxContainer.innerHTML =
-              "<p>Impossible de charger ta classe pour le moment.</p>";
+          .catch(function() {
+            window.location.href = "../../index.html";
           });
-      });
+
+        return;
+      }
+
+      window.location.href = "../../index.html";
     });
+
+    if (typeof auth !== "undefined") {
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "../../connexion.html";
+        }
+      });
+    }
   </script>
 
 </body>
