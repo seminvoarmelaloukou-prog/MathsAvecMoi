@@ -548,38 +548,39 @@
     function verifierAdmin() {
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré. Vérifie firebase-config.js.");
-        return Promise.reject(new Error("Firebase non configuré"));
+        return;
       }
 
-      const user = auth.currentUser;
-      if (!user) {
-        // PAS de redirection automatique, on affiche juste l'erreur
-        afficherErreurAdmin("Tu n'es pas connecté. Connecte-toi d'abord via la page de connexion, puis reviens ici.");
-        return Promise.reject(new Error("Pas connecté"));
-      }
+      // On attend que Firebase ait déterminé l'état de connexion
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          afficherErreurAdmin("Tu n'es pas connecté. Connecte-toi d'abord via la page de connexion, puis reviens ici.");
+          return;
+        }
 
-      adminUid = user.uid;
+        adminUid = user.uid;
 
-      return db.ref("administrateurs/" + adminUid).once("value")
-        .then(function(snap) {
-          if (!snap || !snap.exists()) {
-            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur. UID : " + adminUid);
-            throw new Error("Pas admin");
-          }
+        db.ref("administrateurs/" + adminUid).once("value")
+          .then(function(snap) {
+            if (!snap || !snap.exists()) {
+              afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur. UID : " + adminUid);
+              return;
+            }
 
-          const adminData = snap.val();
-          loaderAdmin.style.display = "none";
-          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+            const adminData = snap.val();
+            loaderAdmin.style.display = "none";
+            messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
-          cardCreerEleve.style.display = "block";
-          cardListeEleves.style.display = "block";
+            cardCreerEleve.style.display = "block";
+            cardListeEleves.style.display = "block";
 
-          chargerEleves();
-        })
-        .catch(function(err) {
-          console.error("Erreur vérification admin :", err);
-          // On ne redirige pas, on laisse le message d'erreur visible
-        });
+            chargerEleves();
+          })
+          .catch(function(err) {
+            console.error("Erreur vérification admin :", err);
+            afficherErreurAdmin("Erreur lors de la vérification : " + (err.message || "inconnue"));
+          });
+      });
     }
 
     function chargerEleves() {
@@ -1039,9 +1040,8 @@
       });
     });
 
-    verifierAdmin().catch(function() {
-      // Erreur déjà gérée dans verifierAdmin
-    });
+    // Lancement de la vérification au chargement de la page
+    verifierAdmin();
 
     actionMasseType.dispatchEvent(new Event("change"));
   </script>
