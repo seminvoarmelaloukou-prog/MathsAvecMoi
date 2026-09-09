@@ -3,12 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6e - Mathématiques - Campus Flex</title>
+  <title>6e - Mathématiques | Campus Flex</title>
+  <meta
+    name="description"
+    content="Cours et vidéos de mathématiques pour la 6e sur Campus Flex."
+  >
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <script src="../../firebase-config.js"></script>
 
   <style>
     :root {
@@ -18,10 +22,14 @@
       --background: #f5f7ff;
       --text: #333333;
       --muted: #666666;
-      --gris: #7f8c8d;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -39,123 +47,217 @@
       align-items: center;
       gap: 15px;
       flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 { color: white; font-size: 20px; }
-    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
-    nav a { color: white; text-decoration: none; font-size: 14px; }
-    nav a:hover { text-decoration: underline; }
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-label {
+      display: none;
+      color: white;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      border-color: var(--amber);
+    }
+
+    header {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    header h2 {
+      font-size: 26px;
+    }
 
     main {
-      flex: 1;
       width: 100%;
-      max-width: 1100px;
-      margin: 35px auto;
+      max-width: 1000px;
+      margin: 0 auto;
       padding: 0 20px;
+      flex: 1;
     }
 
-    .card {
-      background: white;
-      padding: 24px 20px;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-      margin-bottom: 22px;
+    section {
+      padding: 20px 0;
     }
 
-    .card h2 {
+    h3.sa-title {
+      color: white;
+      background: var(--indigo);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 30px 0 15px;
+      font-size: 18px;
+    }
+
+    h4.seq-title {
       color: var(--indigo);
-      font-size: 22px;
-      margin-bottom: 12px;
-    }
-
-    .card p {
-      color: var(--muted);
-      line-height: 1.55;
+      margin: 18px 0 8px;
       font-size: 15px;
-      margin-bottom: 14px;
+      border-bottom: 2px solid #e0e4f7;
+      padding-bottom: 4px;
     }
 
-    .loader {
-      width: 32px;
-      height: 32px;
-      border: 3px solid #e3e7f6;
-      border-top-color: var(--amber);
-      border-radius: 50%;
-      animation: tourner 0.8s linear infinite;
-    }
-
-    @keyframes tourner { to { transform: rotate(360deg); } }
-
-    .sequence {
-      border: 1px solid #e3e7f6;
+    .devoir {
+      background: white;
       border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 14px;
-      background: #fafbff;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      line-height: 1.6;
     }
 
-    .sequence h3 {
-      font-size: 17px;
+    .devoir a {
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .a-venir {
+      color: #999;
+      font-size: 13px;
+    }
+
+    .devoir img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .video-bloc {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .video-bloc h3 {
       color: var(--indigo);
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
 
-    .sequence p {
-      font-size: 14px;
-      color: var(--text);
-      margin-bottom: 10px;
-      line-height: 1.5;
+    .video-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #000;
     }
 
-    .sequence .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+    .video-container iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .section-contenu {
+      display: none;
+    }
+
+    .section-contenu.active {
+      display: block;
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 25px;
     }
 
     .btn {
       display: inline-block;
-      padding: 8px 14px;
-      border-radius: 8px;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
       background: var(--indigo);
       color: white;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
+      transition: 0.2s;
     }
 
     .btn:hover {
       background: var(--indigo-dark);
+      transform: translateY(-2px);
     }
 
-    .btn.secondary {
-      background: #e3e7f6;
-      color: var(--indigo);
+    footer {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      margin-top: 30px;
     }
 
-    .btn.secondary:hover {
-      background: #cdd5f6;
-    }
+    @media (max-width: 640px) {
+      .nav-toggle-label {
+        display: block;
+      }
 
-    .video-container {
-      margin-top: 12px;
-    }
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
 
-    .video-container iframe {
-      width: 100%;
-      max-width: 560px;
-      aspect-ratio: 16 / 9;
-      border-radius: 10px;
-      border: none;
-    }
+      nav ul li {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-    @media (max-width: 700px) {
-      nav { justify-content: center; text-align: center; }
-      nav ul { justify-content: center; }
-      main { margin: 20px auto; padding: 0 14px; }
-      .sequence .actions { flex-direction: column; }
-      .btn { text-align: center; }
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 360px;
+      }
+
+      main {
+        padding: 0 14px;
+      }
     }
   </style>
 </head>
@@ -163,153 +265,192 @@
 <body>
 
   <nav>
-    <h1>6e - Mathématiques</h1>
+    <h1>Campus Flex - 6e</h1>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+
     <ul>
-      <li><a href="eleve-accueil.html">Accueil</a></li>
-      <li><a href="eleve-cours.html">Tous mes cours</a></li>
-      <li><a href="eleve-resultats.html">Mes résultats</a></li>
-      <li><a href="index.html">Déconnexion</a></li>
+      <li><a href="#cours" class="onglet active" data-section="cours">Cours</a></li>
+      <li><a href="#videos" class="onglet" data-section="videos">Vidéos</a></li>
+      <li><a href="../profil.html">Mon profil</a></li>
+      <li><a href="../../index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
+  <header>
+    <h2>Mathématiques - 6e</h2>
+  </header>
+
   <main>
 
-    <section class="card">
-      <h2>Bienvenue en 6e - Mathématiques</h2>
-      <p>
-        Tu trouveras ci-dessous toutes les séquences de ton programme de mathématiques.
-        Pour chaque séquence, tu peux :
-      </p>
-      <ul>
-        <li>lire le contenu du cours,</li>
-        <li>télécharger le fichier PDF/Word si disponible,</li>
-        <li>regarder la vidéo associée si elle existe.</li>
-      </ul>
+    <section id="cours" class="section-contenu active">
+
+      <h3 class="sa-title">SA 1 - Configurations de l’espace</h3>
+
+      <h4 class="seq-title">Séquence 1 - Cube et pavé droit</h4>
+      <div class="devoir" data-key="cours_01"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 2 - Cône de révolution</h4>
+      <div class="devoir" data-key="cours_02"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 3 - Sphère</h4>
+      <div class="devoir" data-key="cours_03"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h3 class="sa-title">SA 2 - Configurations du plan</h3>
+
+      <h4 class="seq-title">Séquence 1 - Droites du plan</h4>
+      <div class="devoir" data-key="cours_04"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 2 - Segment de droite</h4>
+      <div class="devoir" data-key="cours_05"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 3 - Cercle</h4>
+      <div class="devoir" data-key="cours_06"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 4 - Angles</h4>
+      <div class="devoir" data-key="cours_07"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 5 - Triangles</h4>
+      <div class="devoir" data-key="cours_08"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 6 - Parallélogramme</h4>
+      <div class="devoir" data-key="cours_09"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">
+        Séquence 7 - Entiers naturels (multiples, diviseurs, opérations)
+      </h4>
+      <div class="devoir" data-key="cours_10"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 8 - Nombres décimaux</h4>
+      <div class="devoir" data-key="cours_11"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 9 - Fractions</h4>
+      <div class="devoir" data-key="cours_12"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 11 - Calcul littéral</h4>
+      <div class="devoir" data-key="cours_13"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h3 class="sa-title">SA 3 - Applications du plan</h3>
+
+      <h4 class="seq-title">
+        Séquence 1 - Figures symétriques par rapport à une droite
+      </h4>
+      <div class="devoir" data-key="cours_14"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">
+        Séquence 2 - Figures symétriques par rapport à un point
+      </h4>
+      <div class="devoir" data-key="cours_15"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 3 - Glissement</h4>
+      <div class="devoir" data-key="cours_16"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h3 class="sa-title">SA 4 - Organisation des données</h3>
+
+      <h4 class="seq-title">Séquence 1 - Proportionnalité</h4>
+      <div class="devoir" data-key="cours_17"><p class="a-venir">Bientôt disponible</p></div>
+
+      <h4 class="seq-title">Séquence 2 - Statistiques</h4>
+      <div class="devoir" data-key="cours_18"><p class="a-venir">Bientôt disponible</p></div>
+
+      <div class="back">
+        <a href="../profil.html" class="btn">Retour à mon profil</a>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Programme de mathématiques (6e)</h2>
-      <p>Chargement des séquences…</p>
+    <section id="videos" class="section-contenu">
+      <h2 style="text-align:center; color:#2c3e8c; margin:10px 0 20px;">
+        Vidéos de 6e
+      </h2>
 
-      <div class="loader" id="loader-cours"></div>
+      <div class="video-bloc">
+        <h3>Les fractions</h3>
 
-      <div id="liste-sequences"></div>
+        <div class="video-container">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/n0-Jh1Vs-L0"
+            title="Les fractions - Mathématiques 6e"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+      </div>
 
-      <p id="message-aucun-cours" style="display: none; color: var(--muted);">
-        Aucun cours n’est encore disponible pour le moment. Reviens plus tard.
-      </p>
+      <div class="back">
+        <a href="../profil.html" class="btn">Retour à mon profil</a>
+      </div>
     </section>
 
   </main>
 
+  <footer>
+    © 2026 Campus Flex - Mathématiques 6e - Tous droits réservés
+  </footer>
+
   <script>
-    const loaderCours = document.getElementById("loader-cours");
-    const listeSequences = document.getElementById("liste-sequences");
-    const messageAucunCours = document.getElementById("message-aucun-cours");
+    const onglets = document.querySelectorAll(".onglet");
+    const sections = document.querySelectorAll(".section-contenu");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+    const menuMobile = document.getElementById("nav-toggle");
 
-    const classe = "6e";
-    const matiere = "Mathématiques";
+    onglets.forEach(function(onglet) {
+      onglet.addEventListener("click", function(e) {
+        e.preventDefault();
 
-    function chargerCoursEleve() {
-      if (!db) {
-        loaderCours.style.display = "none";
-        messageAucunCours.textContent = "Problème de configuration Firebase.";
-        messageAucunCours.style.display = "block";
+        onglets.forEach(function(element) {
+          element.classList.remove("active");
+        });
+
+        sections.forEach(function(section) {
+          section.classList.remove("active");
+        });
+
+        onglet.classList.add("active");
+
+        const section = document.getElementById(
+          onglet.getAttribute("data-section")
+        );
+
+        if (section) {
+          section.classList.add("active");
+        }
+
+        menuMobile.checked = false;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (typeof auth !== "undefined") {
+        auth.signOut()
+          .then(function() {
+            window.location.href = "../../index.html";
+          })
+          .catch(function() {
+            window.location.href = "../../index.html";
+          });
+
         return;
       }
 
-      db.ref("cours/" + classe + "/" + matiere).once("value")
-        .then(function(snap) {
-          loaderCours.style.display = "none";
+      window.location.href = "../../index.html";
+    });
 
-          if (!snap || !snap.exists()) {
-            messageAucunCours.style.display = "block";
-            return;
-          }
-
-          const cours = snap.val();
-          const cles = Object.keys(cours);
-
-          if (cles.length === 0) {
-            messageAucunCours.style.display = "block";
-            return;
-          }
-
-          // On trie par dateCreation si tu veux un ordre précis
-          cles.sort(function(a, b) {
-            const da = cours[a].dateCreation || 0;
-            const dbVal = cours[b].dateCreation || 0;
-            return da - dbVal;
-          });
-
-          cles.forEach(function(cle, index) {
-            const c = cours[cle];
-            const seqDiv = document.createElement("div");
-            seqDiv.className = "sequence";
-
-            const h3 = document.createElement("h3");
-            h3.textContent = (index + 1) + ". " + (c.titre || "Sans titre");
-            seqDiv.appendChild(h3);
-
-            const pContenu = document.createElement("p");
-            pContenu.textContent = c.contenu || "Contenu non disponible.";
-            seqDiv.appendChild(pContenu);
-
-            const actionsDiv = document.createElement("div");
-            actionsDiv.className = "actions";
-
-            // Bouton PDF
-            if (c.fichier && c.fichier.trim() !== "") {
-              const btnPdf = document.createElement("a");
-              btnPdf.href = c.fichier;
-              btnPdf.target = "_blank";
-              btnPdf.className = "btn";
-              btnPdf.textContent = "📄 Télécharger le cours (PDF/Word)";
-              actionsDiv.appendChild(btnPdf);
-            }
-
-            // Bouton vidéo (lien externe)
-            if (c.video && c.video.trim() !== "") {
-              const btnVideo = document.createElement("a");
-              btnVideo.href = c.video;
-              btnVideo.target = "_blank";
-              btnVideo.className = "btn secondary";
-              btnVideo.textContent = "🎥 Voir la vidéo";
-              actionsDiv.appendChild(btnVideo);
-
-              // Intégration YouTube si c'est un lien YouTube
-              const videoId = extraireIdYouTube(c.video);
-              if (videoId) {
-                const videoContainer = document.createElement("div");
-                videoContainer.className = "video-container";
-
-                const iframe = document.createElement("iframe");
-                iframe.src = "https://www.youtube.com/embed/" + videoId;
-                iframe.title = "Vidéo du cours";
-                iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-                iframe.allowFullscreen = true;
-
-                videoContainer.appendChild(iframe);
-                seqDiv.appendChild(videoContainer);
-              }
-            }
-
-            seqDiv.appendChild(actionsDiv);
-            listeSequences.appendChild(seqDiv);
-          });
-        })
-        .catch(function(err) {
-          console.error("Erreur chargement cours élève :", err);
-          loaderCours.style.display = "none";
-          messageAucunCours.textContent = "Erreur de chargement des cours.";
-          messageAucunCours.style.display = "block";
-        });
-    }
+    // ===================================================================
+    // Chargement dynamique des cours ajoutés depuis l'admin (Firebase).
+    // Pour chaque séquence (cours_01 … cours_18), on affiche :
+    // - le contenu (texte),
+    // - un bouton "Télécharger le cours" si fichier existe,
+    // - la vidéo YouTube intégrée si video existe,
+    // - l'image si image existe.
+    // ===================================================================
 
     function extraireIdYouTube(url) {
-      // Gère https://www.youtube.com/watch?v=ID
-      // et https://youtu.be/ID
-      // et https://www.youtube.com/embed/ID
       try {
         const u = new URL(url);
         if (u.hostname.includes("youtube.com")) {
@@ -327,18 +468,88 @@
       return null;
     }
 
-    // Initialisation
-    (function init() {
-      if (!db) {
-        messageAucunCours.textContent = "Firebase n'est pas configuré correctement.";
-        messageAucunCours.style.display = "block";
-        loaderCours.style.display = "none";
-        return;
-      }
+    function chargerCoursDynamiques() {
+      if (typeof db === "undefined" || !db) return;
 
-      chargerCoursEleve();
-    })();
+      db.ref("cours/6e/Mathématiques").once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            // Aucun cours dans Firebase : on laisse "Bientôt disponible"
+            return;
+          }
+
+          const cours = snap.val();
+
+          Object.keys(cours).forEach(function(cle) {
+            const c = cours[cle];
+            const devoirDiv = document.querySelector('.devoir[data-key="' + cle + '"]');
+            if (!devoirDiv) return;
+
+            let html = "";
+
+            // Titre (optionnel, si tu veux l'afficher dans la carte)
+            if (c.titre) {
+              html += "<p><strong>" + c.titre + "</strong></p>";
+            }
+
+            // Contenu texte
+            if (c.contenu && c.contenu.trim() !== "") {
+              html += "<p>" + String(c.contenu).replace(/
+/g, "<br>") + "</p>";
+            }
+
+            // Bouton fichier (PDF/Word)
+            if (c.fichier && c.fichier.trim() !== "") {
+              html += "<p><a href='" + c.fichier + "' target='_blank' class='btn' style='font-size:13px;padding:8px 16px;'>📄 Télécharger le cours</a></p>";
+            }
+
+            // Image
+            if (c.image && c.image.trim() !== "") {
+              html += "<img src='" + c.image + "' alt='Illustration du cours'>";
+            }
+
+            // Vidéo YouTube (intégrée)
+            if (c.video && c.video.trim() !== "") {
+              const videoId = extraireIdYouTube(c.video);
+              if (videoId) {
+                html += `
+                  <div class="video-container" style="margin-top:10px;">
+                    <iframe
+                      src="https://www.youtube-nocookie.com/embed/${videoId}"
+                      title="Vidéo du cours"
+                      loading="lazy"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowfullscreen>
+                    </iframe>
+                  </div>
+                `;
+              } else {
+                // Si ce n'est pas un lien YouTube valide, on met juste un lien
+                html += "<p><a href='" + c.video + "' target='_blank'>🎥 Voir la vidéo</a></p>";
+              }
+            }
+
+            if (html) {
+              devoirDiv.innerHTML = html;
+            }
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement des cours :", erreur);
+        });
+    }
+
+    if (typeof auth !== "undefined") {
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "../../connexion.html";
+          return;
+        }
+
+        chargerCoursDynamiques();
+      });
+    }
   </script>
 
 </body>
-</html>
+  </html>
