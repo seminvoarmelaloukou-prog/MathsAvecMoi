@@ -611,4 +611,177 @@
         .catch(function(erreur) {
           console.error("Erreur chargement cours :", erreur);
           loaderCours.style.display = "none";
-          messa
+          messageAucunCours.textContent = "Erreur de chargement.";
+          messageAucunCours.classList.add("error");
+          messageAucunCours.style.display = "block";
+        });
+    }
+
+    function ouvrirModalAjout() {
+      titreModalAjout.textContent = "Ajouter un cours - " + classeSelectionnee + " - " + matiereSelectionnee;
+      formAjoutCours.reset();
+      modalAjout.style.display = "flex";
+    }
+
+    function fermerModalAjout() {
+      modalAjout.style.display = "none";
+    }
+
+    formAjoutCours.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const titre = inputTitreCours.value.trim();
+      const contenu = inputContenuCours.value.trim();
+      const fichier = inputFichierCours.value.trim();
+      const video = inputVideoCours.value.trim();
+      const image = inputImageCours.value.trim();
+
+      if (!titre || !contenu) {
+        alert("Titre et contenu sont obligatoires.");
+        return;
+      }
+
+      const now = Date.now();
+      const cle = "cours_" + now;
+
+      const nouveauCours = {
+        titre: titre,
+        contenu: contenu,
+        fichier: fichier || "",
+        video: video || "",
+        image: image || "",
+        dateCreation: now,
+        actif: true
+      };
+
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).set(nouveauCours)
+        .then(function() {
+          fermerModalAjout();
+          messageAjouter.textContent = "Cours ajouté avec succès !";
+          messageAjouter.classList.add("success");
+          chargerCours();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur ajout cours :", erreur);
+          messageAjouter.textContent = "Erreur lors de l'ajout.";
+          messageAjouter.classList.add("error");
+        });
+    });
+
+    function ouvrirModalModif(cle, cours) {
+      coursActuel = { cle: cle, ...cours };
+      titreModalModif.textContent = "Modifier le cours";
+      inputTitreModif.value = cours.titre || "";
+      inputContenuModif.value = cours.contenu || "";
+      inputFichierModif.value = cours.fichier || "";
+      inputVideoModif.value = cours.video || "";
+      inputImageModif.value = cours.image || "";
+      modalModif.style.display = "flex";
+    }
+
+    function fermerModalModif() {
+      modalModif.style.display = "none";
+      coursActuel = null;
+    }
+
+    formModifCours.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!coursActuel) return;
+
+      const titre = inputTitreModif.value.trim();
+      const contenu = inputContenuModif.value.trim();
+      const fichier = inputFichierModif.value.trim();
+      const video = inputVideoModif.value.trim();
+      const image = inputImageModif.value.trim();
+
+      if (!titre || !contenu) {
+        alert("Titre et contenu sont obligatoires.");
+        return;
+      }
+
+      const coursModifie = {
+        titre: titre,
+        contenu: contenu,
+        fichier: fichier,
+        video: video,
+        image: image,
+        dateModification: Date.now()
+      };
+
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + coursActuel.cle).update(coursModifie)
+        .then(function() {
+          fermerModalModif();
+          messageAjouter.textContent = "Cours modifié avec succès !";
+          messageAjouter.classList.add("success");
+          chargerCours();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur modification cours :", erreur);
+          messageAjouter.textContent = "Erreur lors de la modification.";
+          messageAjouter.classList.add("error");
+        });
+    });
+
+    function supprimerCours(cle) {
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
+        .then(function() {
+          messageAjouter.textContent = "Cours supprimé avec succès !";
+          messageAjouter.classList.add("success");
+          chargerCours();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur suppression cours :", erreur);
+          messageAjouter.textContent = "Erreur lors de la suppression.";
+          messageAjouter.classList.add("error");
+        });
+    }
+
+    btnOuvrirModalAjout.addEventListener("click", function() {
+      if (!classeSelectionnee || !matiereSelectionnee) {
+        messageAjouter.textContent = "Choisis d'abord une classe et une matière.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+      ouvrirModalAjout();
+    });
+
+    btnAnnulerAjout.addEventListener("click", fermerModalAjout);
+    btnAnnulerModif.addEventListener("click", fermerModalModif);
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
+    });
+
+    // Initialisation
+    (function init() {
+      if (!auth || !db) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+          verifierAdmin();
+        });
+        return;
+      }
+
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>
