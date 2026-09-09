@@ -384,7 +384,6 @@
       </form>
     </div>
   </div>
-
   <script>
     const cardAdminCheck = document.getElementById("card-admin-check");
     const cardAjouterCours = document.getElementById("card-ajouter-cours");
@@ -436,32 +435,37 @@
 
     function verifierAdmin() {
       if (!db || !auth) {
-        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return Promise.reject(new Error("Firebase non configuré"));
+        afficherErreurAdmin("Firebase n'est pas correctement configuré. Vérifie firebase-config.js.");
+        return;
       }
 
-      const user = auth.currentUser;
-      if (!user) {
-        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
-        window.location.href = "connexion.html";
-        return Promise.reject(new Error("Pas connecté"));
-      }
+      // On attend que Firebase ait déterminé l'état de connexion
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          afficherErreurAdmin("Tu n'es pas connecté. Connecte-toi d'abord via la page de connexion, puis reviens ici.");
+          return;
+        }
 
-      adminUid = user.uid;
+        adminUid = user.uid;
 
-      return db.ref("administrateurs/" + adminUid).once("value")
-        .then(function(snap) {
-          if (!snap || !snap.exists()) {
-            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
-            throw new Error("Pas admin");
-          }
+        db.ref("administrateurs/" + adminUid).once("value")
+          .then(function(snap) {
+            if (!snap || !snap.exists()) {
+              afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur. UID : " + adminUid);
+              return;
+            }
 
-          const adminData = snap.val();
-          loaderAdmin.style.display = "none";
-          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+            const adminData = snap.val();
+            loaderAdmin.style.display = "none";
+            messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
-          cardAjouterCours.style.display = "block";
-        });
+            cardAjouterCours.style.display = "block";
+          })
+          .catch(function(err) {
+            console.error("Erreur vérification admin :", err);
+            afficherErreurAdmin("Erreur lors de la vérification : " + (err.message || "inconnue"));
+          });
+      });
     }
 
     btnVoirCours.addEventListener("click", function() {
@@ -480,7 +484,7 @@
       messageAjouter.textContent = "";
       cardListeCours.style.display = "block";
       titreListeCours.textContent = "Cours - " + classe + " - " + matiere;
-      sousTitreListeCours.textContent = "Gère les cours pour cette classe et matière.";
+      sousTitreListeListeCours.textContent = "Gère les cours pour cette classe et matière.";
 
       chargerCours();
     });
@@ -495,7 +499,6 @@
         return;
       }
 
-      // Chemin exact utilisé : cours / classe / matiere / id_cours
       db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
         .then(function(snap) {
           loaderCours.style.display = "none";
@@ -711,21 +714,36 @@
         return;
       }
 
-      if (!auth.currentUser) {
-        messageAdminCheck.textContent = "Vérification de ta connexion...";
-        auth.onAuthStateChanged(function(user) {
-          if (!user) {
-            window.location.href = "connexion.html";
-            return;
-          }
-          verifierAdmin();
-        });
-        return;
-      }
+      messageAdminCheck.textContent = "Vérification de tes droits administrateur...";
 
-      verifierAdmin();
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          afficherErreurAdmin("Tu n'es pas connecté. Connecte-toi d'abord via la page de connexion, puis reviens ici.");
+          return;
+        }
+
+        adminUid = user.uid;
+
+        db.ref("administrateurs/" + adminUid).once("value")
+          .then(function(snap) {
+            if (!snap || !snap.exists()) {
+              afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur. UID : " + adminUid);
+              return;
+            }
+
+            const adminData = snap.val();
+            loaderAdmin.style.display = "none";
+            messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+            cardAjouterCours.style.display = "block";
+          })
+          .catch(function(err) {
+            console.error("Erreur vérification admin :", err);
+            afficherErreurAdmin("Erreur lors de la vérification : " + (err.message || "inconnue"));
+          });
+      });
     })();
   </script>
-
+              
 </body>
 </html>
