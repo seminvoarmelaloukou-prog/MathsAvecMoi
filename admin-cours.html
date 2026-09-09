@@ -495,12 +495,17 @@
         return;
       }
 
+      // Chemin exact utilisé : cours / classe / matiere / id_cours
       db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
         .then(function(snap) {
           loaderCours.style.display = "none";
 
           if (!snap || !snap.exists()) {
-            messageAucunCours.textContent = "Aucun cours trouvé pour " + classeSelectionnee + " - " + matiereSelectionnee + ".";
+            messageAucunCours.textContent =
+              "Aucun cours trouvé pour " + classeSelectionnee + " - " + matiereSelectionnee + ".
+" +
+              "Vérifie dans Firebase que des cours existent bien sous : cours / " +
+              classeSelectionnee + " / " + matiereSelectionnee;
             messageAucunCours.style.display = "block";
             return;
           }
@@ -618,109 +623,4 @@
       coursActuel = { cle: cle, ...cours };
       titreModalModif.textContent = "Modifier le cours";
       inputTitreModif.value = cours.titre || "";
-      inputContenuModif.value = cours.contenu || "";
-      inputImageModif.value = cours.image || "";
-      modalModif.style.display = "flex";
-    }
-
-    function fermerModalModif() {
-      modalModif.style.display = "none";
-      coursActuel = null;
-    }
-
-    formModifCours.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      if (!coursActuel) return;
-
-      const titre = inputTitreModif.value.trim();
-      const contenu = inputContenuModif.value.trim();
-      const image = inputImageModif.value.trim();
-
-      if (!titre || !contenu) {
-        alert("Titre et contenu sont obligatoires.");
-        return;
-      }
-
-      const coursModifie = {
-        titre: titre,
-        contenu: contenu,
-        image: image,
-        dateModification: Date.now()
-      };
-
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + coursActuel.cle).update(coursModifie)
-        .then(function() {
-          fermerModalModif();
-          messageAjouter.textContent = "Cours modifié avec succès !";
-          messageAjouter.classList.add("success");
-          chargerCours();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur modification cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de la modification.";
-          messageAjouter.classList.add("error");
-        });
-    });
-
-    function supprimerCours(cle) {
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
-        .then(function() {
-          messageAjouter.textContent = "Cours supprimé avec succès !";
-          messageAjouter.classList.add("success");
-          chargerCours();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur suppression cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de la suppression.";
-          messageAjouter.classList.add("error");
-        });
-    }
-
-    btnOuvrirModalAjout.addEventListener("click", function() {
-      if (!classeSelectionnee || !matiereSelectionnee) {
-        messageAjouter.textContent = "Choisis d'abord une classe et une matière.";
-        messageAjouter.classList.add("error");
-        return;
-      }
-      ouvrirModalAjout();
-    });
-
-    btnAnnulerAjout.addEventListener("click", fermerModalAjout);
-    btnAnnulerModif.addEventListener("click", fermerModalModif);
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-      if (!auth) {
-        window.location.href = "index.html";
-        return;
-      }
-      auth.signOut().then(function() {
-        window.location.href = "index.html";
-      });
-    });
-
-    (function init() {
-      if (!auth || !db) {
-        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return;
-      }
-
-      if (!auth.currentUser) {
-        messageAdminCheck.textContent = "Vérification de ta connexion...";
-        auth.onAuthStateChanged(function(user) {
-          if (!user) {
-            window.location.href = "connexion.html";
-            return;
-          }
-          verifierAdmin();
-        });
-        return;
-      }
-
-      verifierAdmin();
-    })();
-  </script>
-
-</body>
-</html>
+      inputContenuModif.value = cour
