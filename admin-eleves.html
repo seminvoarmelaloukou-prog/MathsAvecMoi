@@ -90,7 +90,7 @@
 
     label { font-size: 14px; color: var(--text); }
 
-    input[type="text"], input[type="email"], select {
+    input[type="text"], input[type="email"], input[type="password"], select {
       padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid #cfd8f0;
@@ -100,6 +100,7 @@
 
     input[type="text"] { min-width: 220px; }
     input[type="email"] { min-width: 260px; }
+    input[type="password"] { min-width: 260px; }
 
     button {
       padding: 8px 14px;
@@ -126,6 +127,13 @@
     }
 
     button.danger:hover { background: #a93226; }
+
+    button.warning {
+      background: var(--amber);
+      color: #fff;
+    }
+
+    button.warning:hover { background: #d68910; }
 
     .message { font-size: 14px; margin-top: 8px; }
     .message.success { color: var(--success); }
@@ -175,7 +183,7 @@
       background: white;
       padding: 24px 20px;
       border-radius: 14px;
-      max-width: 500px;
+      max-width: 520px;
       width: 90%;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
@@ -198,6 +206,27 @@
       margin-top: 16px;
     }
 
+    .action-masse-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+      padding: 12px;
+      background: #f9fafd;
+      border-radius: 10px;
+      border: 1px solid #e3e7f6;
+    }
+
+    .action-masse-row.hidden {
+      display: none;
+    }
+
+    .checkbox-col {
+      width: 24px;
+      text-align: center;
+    }
+
     @media (max-width: 900px) {
       table { font-size: 13px; }
       th, td { padding: 8px 5px; }
@@ -208,8 +237,9 @@
       nav ul { justify-content: center; }
       main { margin: 20px auto; padding: 0 14px; }
       .row { flex-direction: column; align-items: stretch; }
-      input[type="text"], input[type="email"] { min-width: 0; width: 100%; }
+      input[type="text"], input[type="email"], input[type="password"] { min-width: 0; width: 100%; }
       .modal-buttons { flex-direction: column; }
+      .action-masse-row { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
@@ -330,6 +360,7 @@
       <table id="table-eleves">
         <thead>
           <tr>
+            <th class="checkbox-col"><input type="checkbox" id="check-tous" title="Tout sélectionner" /></th>
             <th>Nom</th>
             <th>Prénom</th>
             <th>Email</th>
@@ -345,10 +376,45 @@
       </table>
 
       <p id="message-aucun-eleve" class="message" style="display: none;">Aucun élève trouvé.</p>
+
+      <!-- Action en masse -->
+      <div id="action-masse" class="action-masse-row hidden">
+        <strong>Actions en masse :</strong>
+        <label for="action-masse-type">Action :</label>
+        <select id="action-masse-type">
+          <option value="changer-classe">Changer de classe</option>
+          <option value="reset-points">Réinitialiser les points (mettre à 0)</option>
+          <option value="reset-streak">Réinitialiser les séries (streak à 0)</option>
+        </select>
+
+        <label for="action-masse-classe" id="label-action-masse-classe">Nouvelle classe :</label>
+        <select id="action-masse-classe">
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
+        </select>
+
+        <button id="btn-appliquer-action-masse" class="warning">Appliquer à la sélection</button>
+        <span id="message-action-masse" class="message"></span>
+      </div>
     </section>
 
   </main>
 
+  <!-- Modal confirmation suppression -->
   <div class="modal" id="modal-confirmer-suppression">
     <div class="modal-content">
       <h3>Confirmer la suppression</h3>
@@ -357,6 +423,64 @@
         <button type="button" class="secondaire" id="btn-annuler-suppression">Annuler</button>
         <button type="button" class="danger" id="btn-confirmer-suppression">Supprimer</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal modification élève -->
+  <div class="modal" id="modal-modifier-eleve">
+    <div class="modal-content">
+      <h3>Modifier l'élève</h3>
+      <p>Modifie les informations de l'élève ci-dessous. Laisse le mot de passe vide si tu ne veux pas le changer.</p>
+
+      <form id="form-modifier-eleve">
+        <div class="row">
+          <label for="modif-nom">Nom :</label>
+          <input type="text" id="modif-nom" required />
+
+          <label for="modif-prenom">Prénom :</label>
+          <input type="text" id="modif-prenom" required />
+        </div>
+
+        <div class="row">
+          <label for="modif-email">Email :</label>
+          <input type="email" id="modif-email" required />
+
+          <label for="modif-identifiant">Identifiant (matricule) :</label>
+          <input type="text" id="modif-identifiant" required />
+        </div>
+
+        <div class="row">
+          <label for="modif-classe">Classe :</label>
+          <select id="modif-classe" required>
+            <option value="6e">6e</option>
+            <option value="5e">5e</option>
+            <option value="4e">4e</option>
+            <option value="3e">3e</option>
+            <option value="2de AB">2de AB</option>
+            <option value="2de C">2de C</option>
+            <option value="2de D">2de D</option>
+            <option value="2de E">2de E</option>
+            <option value="1re AB">1re AB</option>
+            <option value="1re C">1re C</option>
+            <option value="1re D">1re D</option>
+            <option value="1re E">1re E</option>
+            <option value="Tle AB">Tle AB</option>
+            <option value="Tle C">Tle C</option>
+            <option value="Tle D">Tle D</option>
+            <option value="Tle E">Tle E</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="modif-mot-de-passe">Nouveau mot de passe :</label>
+          <input type="password" id="modif-mot-de-passe" placeholder="Laisser vide pour ne pas changer" />
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="secondaire" id="btn-annuler-modification">Annuler</button>
+          <button type="submit" class="warning">Enregistrer les modifications</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -392,9 +516,28 @@
     const btnAnnulerSuppression = document.getElementById("btn-annuler-suppression");
     const btnConfirmerSuppression = document.getElementById("btn-confirmer-suppression");
 
+    const modalModifier = document.getElementById("modal-modifier-eleve");
+    const formModifierEleve = document.getElementById("form-modifier-eleve");
+    const modifNom = document.getElementById("modif-nom");
+    const modifPrenom = document.getElementById("modif-prenom");
+    const modifEmail = document.getElementById("modif-email");
+    const modifIdentifiant = document.getElementById("modif-identifiant");
+    const modifClasse = document.getElementById("modif-classe");
+    const modifMotDePasse = document.getElementById("modif-mot-de-passe");
+    const btnAnnulerModification = document.getElementById("btn-annuler-modification");
+
+    const checkTous = document.getElementById("check-tous");
+    const actionMasse = document.getElementById("action-masse");
+    const actionMasseType = document.getElementById("action-masse-type");
+    const actionMasseClasse = document.getElementById("action-masse-classe");
+    const labelActionMasseClasse = document.getElementById("label-action-masse-classe");
+    const btnAppliquerActionMasse = document.getElementById("btn-appliquer-action-masse");
+    const messageActionMasse = document.getElementById("message-action-masse");
+
     let mapEleves = {};
     let adminUid = null;
     let eleveASupprimer = null;
+    let eleveAModifier = null;
 
     function afficherErreurAdmin(texte) {
       loaderAdmin.style.display = "none";
@@ -439,6 +582,7 @@
       loaderTable.style.display = "block";
       corpsTable.innerHTML = "";
       messageAucunEleve.style.display = "none";
+      actionMasse.classList.add("hidden");
 
       db.ref("eleves").once("value")
         .then(function(snap) {
@@ -485,6 +629,7 @@
         messageAucunEleve.textContent = "Aucun élève trouvé.";
         messageAucunEleve.classList.remove("error");
         messageAucunEleve.style.display = "block";
+        actionMasse.classList.add("hidden");
         return;
       }
 
@@ -497,24 +642,34 @@
       eleves.forEach(function(eleve) {
         const tr = document.createElement("tr");
 
+        const tdCheck = document.createElement("td");
+        tdCheck.className = "checkbox-col";
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "check-eleve";
+        check.dataset.uid = eleve.uid;
+        check.addEventListener("change", gererAffichageActionMasse);
+        tdCheck.appendChild(check);
+        tr.appendChild(tdCheck);
+
         const tdNom = document.createElement("td");
-        tdNom.textContent = eleve.nom || "–";
+        tdNom.textContent = eleve.nom || "-";
         tr.appendChild(tdNom);
 
         const tdPrenom = document.createElement("td");
-        tdPrenom.textContent = eleve.prenom || "–";
+        tdPrenom.textContent = eleve.prenom || "-";
         tr.appendChild(tdPrenom);
 
         const tdEmail = document.createElement("td");
-        tdEmail.textContent = eleve.email || "–";
+        tdEmail.textContent = eleve.email || "-";
         tr.appendChild(tdEmail);
 
         const tdIdentifiant = document.createElement("td");
-        tdIdentifiant.textContent = eleve.identifiant || "–";
+        tdIdentifiant.textContent = eleve.identifiant || "-";
         tr.appendChild(tdIdentifiant);
 
         const tdClasse = document.createElement("td");
-        tdClasse.textContent = eleve.classe || "–";
+        tdClasse.textContent = eleve.classe || "-";
         tr.appendChild(tdClasse);
 
         const tdPoints = document.createElement("td");
@@ -530,11 +685,20 @@
           const d = new Date(eleve.dateInscription);
           tdInscription.textContent = d.toLocaleDateString('fr-FR');
         } else {
-          tdInscription.textContent = "–";
+          tdInscription.textContent = "-";
         }
         tr.appendChild(tdInscription);
 
         const tdActions = document.createElement("td");
+
+        const btnModifier = document.createElement("button");
+        btnModifier.textContent = "Modifier";
+        btnModifier.style.marginRight = "6px";
+        btnModifier.addEventListener("click", function() {
+          ouvrirModalModification(eleve.uid);
+        });
+        tdActions.appendChild(btnModifier);
+
         const btnSupprimer = document.createElement("button");
         btnSupprimer.textContent = "Supprimer";
         btnSupprimer.classList.add("danger");
@@ -542,10 +706,25 @@
           ouvrirModalSuppression(eleve.uid, eleve.nom, eleve.prenom);
         });
         tdActions.appendChild(btnSupprimer);
+
         tr.appendChild(tdActions);
 
         corpsTable.appendChild(tr);
       });
+
+      gererAffichageActionMasse();
+    }
+
+    function gererAffichageActionMasse() {
+      const checks = document.querySelectorAll(".check-eleve:checked");
+      if (checks.length > 0) {
+        actionMasse.classList.remove("hidden");
+        messageActionMasse.textContent = checks.length + " élève(s) sélectionné(s).";
+        messageActionMasse.className = "message";
+      } else {
+        actionMasse.classList.add("hidden");
+        messageActionMasse.textContent = "";
+      }
     }
 
     function filtrerEleves() {
@@ -643,16 +822,17 @@
 
           afficherTableau(mapEleves);
         })
-        .catch(function(erreur) {
-          console.error("Erreur création élève :", erreur);
-          messageCreer.textContent = "Erreur : " + (erreur.message || "Impossible de créer l'élève");
+        .catch(function(err) {
+          console.error(err);
+          messageCreer.textContent = "Erreur : " + (err.message || "Problème inconnu");
           messageCreer.classList.add("error");
         });
     });
 
     function ouvrirModalSuppression(uid, nom, prenom) {
       eleveASupprimer = uid;
-      texteModalSuppression.textContent = "Veux-tu vraiment supprimer " + (prenom || "") + " " + (nom || "") + " ? Cette action est irréversible.";
+      texteModalSuppression.textContent =
+        "Veux-tu vraiment supprimer l'élève " + (nom || "") + " " + (prenom || "") + " ? Cette action est irréversible.";
       modalConfirmer.style.display = "flex";
     }
 
@@ -661,7 +841,9 @@
       eleveASupprimer = null;
     }
 
-    function supprimerEleve() {
+    btnAnnulerSuppression.addEventListener("click", fermerModalSuppression);
+
+    btnConfirmerSuppression.addEventListener("click", function() {
       if (!eleveASupprimer) return;
 
       const uid = eleveASupprimer;
@@ -672,49 +854,192 @@
           afficherTableau(mapEleves);
           fermerModalSuppression();
         })
-        .catch(function(erreur) {
-          console.error("Erreur suppression élève :", erreur);
-          alert("Erreur lors de la suppression : " + (erreur.message || "Erreur inconnue"));
+        .catch(function(err) {
+          console.error(err);
+          alert("Erreur lors de la suppression : " + (err.message || "inconnue"));
         });
-    }
+    });
 
-    btnAnnulerSuppression.addEventListener("click", fermerModalSuppression);
-    btnConfirmerSuppression.addEventListener("click", supprimerEleve);
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-      if (!auth) {
-        window.location.href = "index.html";
+    function ouvrirModalModification(uid) {
+      const eleve = mapEleves[uid];
+      if (!eleve) {
+        alert("Élève introuvable.");
         return;
       }
-      auth.signOut().then(function() {
-        window.location.href = "index.html";
+
+      eleveAModifier = uid;
+
+      modifNom.value = eleve.nom || "";
+      modifPrenom.value = eleve.prenom || "";
+      modifEmail.value = eleve.email || "";
+      modifIdentifiant.value = eleve.identifiant || "";
+      modifClasse.value = eleve.classe || "6e";
+      modifMotDePasse.value = "";
+
+      modalModifier.style.display = "flex";
+    }
+
+    function fermerModalModification() {
+      modalModifier.style.display = "none";
+      eleveAModifier = null;
+    }
+
+    btnAnnulerModification.addEventListener("click", fermerModalModification);
+
+    formModifierEleve.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!eleveAModifier) return;
+
+      const nom = modifNom.value.trim();
+      const prenom = modifPrenom.value.trim();
+      const email = modifEmail.value.trim();
+      const identifiant = modifIdentifiant.value.trim();
+      const classe = modifClasse.value.trim();
+      const nouveauMotDePasse = modifMotDePasse.value.trim();
+
+      if (!nom || !prenom || !email || !identifiant || !classe) {
+        alert("Tous les champs (sauf mot de passe) sont obligatoires.");
+        return;
+      }
+
+      db.ref("eleves/" + eleveAModifier).update({
+        nom: nom,
+        prenom: prenom,
+        email: email,
+        identifiant: identifiant,
+        classe: classe
+      })
+      .then(function() {
+        if (nouveauMotDePasse) {
+          return auth.updateUser(eleveAModifier, {
+            password: nouveauMotDePasse
+          });
+        }
+      })
+      .then(function() {
+        const m = mapEleves[eleveAModifier];
+        m.nom = nom;
+        m.prenom = prenom;
+        m.email = email;
+        m.identifiant = identifiant;
+        m.classe = classe;
+
+        afficherTableau(mapEleves);
+        fermerModalModification();
+      })
+      .catch(function(err) {
+        console.error(err);
+        alert("Erreur lors de la modification : " + (err.message || "inconnue"));
       });
+    });
+
+    actionMasseType.addEventListener("change", function() {
+      const action = actionMasseType.value;
+      if (action === "changer-classe") {
+        labelActionMasseClasse.style.display = "inline";
+        actionMasseClasse.style.display = "inline-block";
+      } else {
+        labelActionMasseClasse.style.display = "none";
+        actionMasseClasse.style.display = "none";
+      }
+    });
+
+    checkTous.addEventListener("change", function() {
+      const checks = document.querySelectorAll(".check-eleve");
+      checks.forEach(function(c) {
+        c.checked = checkTous.checked;
+      });
+      gererAffichageActionMasse();
+    });
+
+    btnAppliquerActionMasse.addEventListener("click", function() {
+      const action = actionMasseType.value;
+      const nouvelleClasse = actionMasseClasse.value;
+
+      const checks = document.querySelectorAll(".check-eleve:checked");
+      if (checks.length === 0) {
+        messageActionMasse.textContent = "Aucun élève sélectionné.";
+        messageActionMasse.classList.add("error");
+        return;
+      }
+
+      let confirmationText = "";
+      if (action === "changer-classe") {
+        confirmationText = "Changer la classe de " + checks.length + " élève(s) en " + nouvelleClasse + " ?";
+      } else if (action === "reset-points") {
+        confirmationText = "Réinitialiser les points de " + checks.length + " élève(s) à 0 ?";
+      } else if (action === "reset-streak") {
+        confirmationText = "Réinitialiser les séries (streak) de " + checks.length + " élève(s) à 0 ?";
+      }
+
+      if (!confirm(confirmationText)) {
+        return;
+      }
+
+      messageActionMasse.textContent = "Modification en cours...";
+      messageActionMasse.className = "message";
+
+      const updates = {};
+      checks.forEach(function(c) {
+        const uid = c.dataset.uid;
+        if (action === "changer-classe") {
+          updates["eleves/" + uid + "/classe"] = nouvelleClasse;
+        } else if (action === "reset-points") {
+          updates["eleves/" + uid + "/points"] = 0;
+        } else if (action === "reset-streak") {
+          updates["eleves/" + uid + "/streak"] = 0;
+        }
+      });
+
+      db.ref().update(updates)
+        .then(function() {
+          checks.forEach(function(c) {
+            const uid = c.dataset.uid;
+            if (mapEleves[uid]) {
+              if (action === "changer-classe") {
+                mapEleves[uid].classe = nouvelleClasse;
+              } else if (action === "reset-points") {
+                mapEleves[uid].points = 0;
+              } else if (action === "reset-streak") {
+                mapEleves[uid].streak = 0;
+              }
+            }
+          });
+
+          afficherTableau(mapEleves);
+
+          if (action === "changer-classe") {
+            messageActionMasse.textContent = "Classe modifiée avec succès pour " + checks.length + " élève(s).";
+          } else if (action === "reset-points") {
+            messageActionMasse.textContent = "Points réinitialisés avec succès pour " + checks.length + " élève(s).";
+          } else if (action === "reset-streak") {
+            messageActionMasse.textContent = "Séries (streak) réinitialisées avec succès pour " + checks.length + " élève(s).";
+          }
+          messageActionMasse.className = "message success";
+        })
+        .catch(function(err) {
+          console.error(err);
+          messageActionMasse.textContent = "Erreur : " + (err.message || "problème inconnu");
+          messageActionMasse.classList.add("error");
+        });
     });
 
     btnAppliquerFiltres.addEventListener("click", filtrerEleves);
 
-    (function init() {
-      if (!auth || !db) {
-        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return;
-      }
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) return;
+      auth.signOut().then(function() {
+        window.location.href = "connexion.html";
+      });
+    });
 
-      if (!auth.currentUser) {
-        messageAdminCheck.textContent = "Vérification de ta connexion...";
-        auth.onAuthStateChanged(function(user) {
-          if (!user) {
-            window.location.href = "connexion.html";
-            return;
-          }
-          verifierAdmin();
-        });
-        return;
-      }
+    verifierAdmin().catch(function() {
+      // Déjà géré dans verifierAdmin
+    });
 
-      verifierAdmin();
-    })();
+    actionMasseType.dispatchEvent(new Event("change"));
   </script>
-
 </body>
 </html>
