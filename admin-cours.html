@@ -339,6 +339,20 @@
 
         <div class="form-row">
           <div>
+            <label for="input-fichier-cours">Lien vers le fichier (PDF/Word, optionnel)</label>
+            <input type="url" id="input-fichier-cours" placeholder="https://ton-site.com/cours/6e/chap1.pdf" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-video-cours">Lien vidéo (YouTube, optionnel)</label>
+            <input type="url" id="input-video-cours" placeholder="https://www.youtube.com/watch?v=..." />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
             <label for="input-image-cours">Image (URL optionnelle)</label>
             <input type="url" id="input-image-cours" placeholder="https://..." />
           </div>
@@ -369,6 +383,20 @@
           <div>
             <label for="input-contenu-modif">Contenu (texte) *</label>
             <textarea id="input-contenu-modif" required></textarea>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-fichier-modif">Lien vers le fichier (PDF/Word, optionnel)</label>
+            <input type="url" id="input-fichier-modif" placeholder="https://ton-site.com/cours/6e/chap1.pdf" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-video-modif">Lien vidéo (YouTube, optionnel)</label>
+            <input type="url" id="input-video-modif" placeholder="https://www.youtube.com/watch?v=..." />
           </div>
         </div>
 
@@ -414,6 +442,8 @@
     const formAjoutCours = document.getElementById("form-ajout-cours");
     const inputTitreCours = document.getElementById("input-titre-cours");
     const inputContenuCours = document.getElementById("input-contenu-cours");
+    const inputFichierCours = document.getElementById("input-fichier-cours");
+    const inputVideoCours = document.getElementById("input-video-cours");
     const inputImageCours = document.getElementById("input-image-cours");
     const btnAnnulerAjout = document.getElementById("btn-annuler-ajout");
 
@@ -422,6 +452,8 @@
     const formModifCours = document.getElementById("form-modif-cours");
     const inputTitreModif = document.getElementById("input-titre-modif");
     const inputContenuModif = document.getElementById("input-contenu-modif");
+    const inputFichierModif = document.getElementById("input-fichier-modif");
+    const inputVideoModif = document.getElementById("input-video-modif");
     const inputImageModif = document.getElementById("input-image-modif");
     const btnAnnulerModif = document.getElementById("btn-annuler-modif");
 
@@ -533,6 +565,18 @@
             pContenu.textContent = (c.contenu || "").substring(0, 150) + ((c.contenu || "").length > 150 ? "..." : "");
             div.appendChild(pContenu);
 
+            if (c.fichier) {
+              const pFichier = document.createElement("p");
+              pFichier.innerHTML = "📄 <a href='" + c.fichier + "' target='_blank'>Télécharger le cours (PDF/Word)</a>";
+              div.appendChild(pFichier);
+            }
+
+            if (c.video) {
+              const pVideo = document.createElement("p");
+              pVideo.innerHTML = "🎥 <a href='" + c.video + "' target='_blank'>Voir la vidéo</a>";
+              div.appendChild(pVideo);
+            }
+
             if (c.image) {
               const pImage = document.createElement("p");
               pImage.innerHTML = "🖼️ <a href='" + c.image + "' target='_blank'>Voir l'image</a>";
@@ -567,167 +611,4 @@
         .catch(function(erreur) {
           console.error("Erreur chargement cours :", erreur);
           loaderCours.style.display = "none";
-          messageAucunCours.textContent = "Erreur de chargement.";
-          messageAucunCours.classList.add("error");
-          messageAucunCours.style.display = "block";
-        });
-    }
-
-    function ouvrirModalAjout() {
-      titreModalAjout.textContent = "Ajouter un cours - " + classeSelectionnee + " - " + matiereSelectionnee;
-      formAjoutCours.reset();
-      modalAjout.style.display = "flex";
-    }
-
-    function fermerModalAjout() {
-      modalAjout.style.display = "none";
-    }
-
-    formAjoutCours.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const titre = inputTitreCours.value.trim();
-      const contenu = inputContenuCours.value.trim();
-      const image = inputImageCours.value.trim();
-
-      if (!titre || !contenu) {
-        alert("Titre et contenu sont obligatoires.");
-        return;
-      }
-
-      const now = Date.now();
-      const cle = "cours_" + now;
-
-      const nouveauCours = {
-        titre: titre,
-        contenu: contenu,
-        image: image || "",
-        dateCreation: now,
-        actif: true
-      };
-
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).set(nouveauCours)
-        .then(function() {
-          fermerModalAjout();
-          messageAjouter.textContent = "Cours ajouté avec succès !";
-          messageAjouter.classList.add("success");
-          chargerCours();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur ajout cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de l'ajout.";
-          messageAjouter.classList.add("error");
-        });
-    });
-
-    function ouvrirModalModif(cle, cours) {
-      coursActuel = { cle: cle, ...cours };
-      titreModalModif.textContent = "Modifier le cours";
-      inputTitreModif.value = cours.titre || "";
-      inputContenuModif.value = cours.contenu || "";
-      inputImageModif.value = cours.image || "";
-      modalModif.style.display = "flex";
-    }
-
-    function fermerModalModif() {
-      modalModif.style.display = "none";
-      coursActuel = null;
-    }
-
-    formModifCours.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      if (!coursActuel) return;
-
-      const titre = inputTitreModif.value.trim();
-      const contenu = inputContenuModif.value.trim();
-      const image = inputImageModif.value.trim();
-
-      if (!titre || !contenu) {
-        alert("Titre et contenu sont obligatoires.");
-        return;
-      }
-
-      const coursModifie = {
-        titre: titre,
-        contenu: contenu,
-        image: image,
-        dateModification: Date.now()
-      };
-
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + coursActuel.cle).update(coursModifie)
-        .then(function() {
-          fermerModalModif();
-          messageAjouter.textContent = "Cours modifié avec succès !";
-          messageAjouter.classList.add("success");
-          chargerCours();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur modification cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de la modification.";
-          messageAjouter.classList.add("error");
-        });
-    });
-
-    function supprimerCours(cle) {
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
-        .then(function() {
-          messageAjouter.textContent = "Cours supprimé avec succès !";
-          messageAjouter.classList.add("success");
-          chargerCours();
-        })
-        .catch(function(erreur) {
-          console.error("Erreur suppression cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de la suppression.";
-          messageAjouter.classList.add("error");
-        });
-    }
-
-    btnOuvrirModalAjout.addEventListener("click", function() {
-      if (!classeSelectionnee || !matiereSelectionnee) {
-        messageAjouter.textContent = "Choisis d'abord une classe et une matière.";
-        messageAjouter.classList.add("error");
-        return;
-      }
-      ouvrirModalAjout();
-    });
-
-    btnAnnulerAjout.addEventListener("click", fermerModalAjout);
-    btnAnnulerModif.addEventListener("click", fermerModalModif);
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-      if (!auth) {
-        window.location.href = "index.html";
-        return;
-      }
-      auth.signOut().then(function() {
-        window.location.href = "index.html";
-      });
-    });
-
-    // Initialisation
-    (function init() {
-      if (!auth || !db) {
-        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return;
-      }
-
-      if (!auth.currentUser) {
-        messageAdminCheck.textContent = "Vérification de ta connexion...";
-        auth.onAuthStateChanged(function(user) {
-          if (!user) {
-            window.location.href = "connexion.html";
-            return;
-          }
-          verifierAdmin();
-        });
-        return;
-      }
-
-      verifierAdmin();
-    })();
-  </script>
-
-</body>
-</html>
+          messa
