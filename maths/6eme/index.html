@@ -365,7 +365,11 @@
         Vidéos de 6e
       </h2>
 
-      <div class="video-bloc">
+      <div id="loader-videos" class="loader" style="display:none; margin:0 auto 15px;"></div>
+
+      <div id="liste-videos-dynamiques"></div>
+
+      <div class="video-bloc" id="video-statique-fractions">
         <h3>Les fractions</h3>
 
         <div class="video-container">
@@ -390,11 +394,28 @@
     © 2026 Campus Flex - Mathématiques 6e - Tous droits réservés
   </footer>
 
+  <style>
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+  </style>
+
   <script>
     const onglets = document.querySelectorAll(".onglet");
     const sections = document.querySelectorAll(".section-contenu");
     const lienDeconnexion = document.getElementById("lien-deconnexion");
     const menuMobile = document.getElementById("nav-toggle");
+
+    const loaderVideos = document.getElementById("loader-videos");
+    const listeVideosDynamiques = document.getElementById("liste-videos-dynamiques");
+    const videoStatiqueFractions = document.getElementById("video-statique-fractions");
 
     onglets.forEach(function(onglet) {
       onglet.addEventListener("click", function(e) {
@@ -442,14 +463,8 @@
     });
 
     // ===================================================================
-    // Chargement dynamique des cours ajoutés depuis l'admin (Firebase).
-    // Pour chaque séquence (cours_01 … cours_18), on affiche :
-    // - le contenu (texte),
-    // - un bouton "Télécharger le cours" si fichier existe,
-    // - la vidéo YouTube intégrée si video existe,
-    // - l'image si image existe.
+    // UTILS : extraire ID YouTube
     // ===================================================================
-
     function extraireIdYouTube(url) {
       try {
         const u = new URL(url);
@@ -468,6 +483,9 @@
       return null;
     }
 
+    // ===================================================================
+    // CHARGEMENT DYNAMIQUE DES COURS (cours/6e/Mathématiques)
+    // ===================================================================
     function chargerCoursDynamiques() {
       if (typeof db === "undefined" || !db) return;
 
@@ -487,7 +505,7 @@
 
             let html = "";
 
-            // Titre (optionnel, si tu veux l'afficher dans la carte)
+            // Titre (optionnel)
             if (c.titre) {
               html += "<p><strong>" + c.titre + "</strong></p>";
             }
@@ -539,6 +557,85 @@
         });
     }
 
+    // ===================================================================
+    // CHARGEMENT DYNAMIQUE DES VIDÉOS (videos/6e/Mathématiques)
+    // ===================================================================
+    function chargerVideosDynamiques() {
+      if (typeof db === "undefined" || !db) return;
+
+      loaderVideos.style.display = "block";
+      listeVideosDynamiques.innerHTML = "";
+
+      db.ref("videos/6e/Mathématiques").once("value")
+        .then(function(snap) {
+          loaderVideos.style.display = "none";
+
+          if (!snap || !snap.exists()) {
+            // Aucune vidéo dynamique : on garde juste la vidéo statique "Les fractions"
+            return;
+          }
+
+          const videos = snap.val();
+          const cles = Object.keys(videos);
+
+          if (cles.length === 0) {
+            return;
+          }
+
+          // On cache la vidéo statique "Les fractions" si on a des vidéos dynamiques
+          // (tu peux commenter cette ligne si tu veux garder les deux)
+          videoStatiqueFractions.style.display = "none";
+
+          cles.forEach(function(cle) {
+            const v = videos[cle];
+            const lien = v.lien || "";
+            const titre = v.titre || v.sequence || "Vidéo";
+            const sa = v.sa || "";
+
+            const videoId = extraireIdYouTube(lien);
+            if (!videoId) return;
+
+            const bloc = document.createElement("div");
+            bloc.className = "video-bloc";
+
+            const h3 = document.createElement("h3");
+            h3.textContent = titre;
+            bloc.appendChild(h3);
+
+            if (sa) {
+              const pSa = document.createElement("p");
+              pSa.style.color = "var(--muted)";
+              pSa.style.fontSize = "13px";
+              pSa.style.marginBottom = "10px";
+              pSa.textContent = sa;
+              bloc.appendChild(pSa);
+            }
+
+            const videoContainer = document.createElement("div");
+            videoContainer.className = "video-container";
+
+            const iframe = document.createElement("iframe");
+            iframe.src = "https://www.youtube-nocookie.com/embed/" + videoId;
+            iframe.title = titre;
+            iframe.loading = "lazy";
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+            iframe.allowFullscreen = true;
+
+            videoContainer.appendChild(iframe);
+            bloc.appendChild(videoContainer);
+
+            listeVideosDynamiques.appendChild(bloc);
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement des vidéos :", erreur);
+          loaderVideos.style.display = "none";
+        });
+    }
+
+    // ===================================================================
+    // INITIALISATION
+    // ===================================================================
     if (typeof auth !== "undefined") {
       auth.onAuthStateChanged(function(user) {
         if (!user) {
@@ -547,6 +644,7 @@
         }
 
         chargerCoursDynamiques();
+        chargerVideosDynamiques();
       });
     }
   </script>
