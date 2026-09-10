@@ -21,9 +21,16 @@
       --error: #c0392b;
       --success: #27ae60;
       --gris: #7f8c8d;
+      --whatsapp: #25d366;
+      --whatsapp-dark: #128c7e;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       min-height: 100vh;
       font-family: Arial, sans-serif;
@@ -44,15 +51,32 @@
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     }
 
-    nav h1 { color: white; font-size: 20px; }
-    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
-    nav a { color: white; text-decoration: none; font-size: 14px; }
-    nav a:hover { text-decoration: underline; }
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    nav ul {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      list-style: none;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
 
     main {
       flex: 1;
       width: 100%;
-      max-width: 1200px;
+      max-width: 1250px;
       margin: 35px auto;
       padding: 0 20px;
     }
@@ -86,21 +110,44 @@
       margin-bottom: 14px;
     }
 
-    .row > * { flex: 0 0 auto; }
+    .row > * {
+      flex: 0 0 auto;
+    }
 
-    label { font-size: 14px; color: var(--text); }
+    label {
+      font-size: 14px;
+      color: var(--text);
+    }
 
-    input[type="text"], input[type="email"], input[type="password"], select {
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    select,
+    textarea {
       padding: 8px 10px;
       border-radius: 8px;
       border: 1px solid #cfd8f0;
       font-size: 14px;
-      background: #fff;
+      background: white;
+      font-family: inherit;
     }
 
-    input[type="text"] { min-width: 220px; }
-    input[type="email"] { min-width: 260px; }
-    input[type="password"] { min-width: 260px; }
+    input[type="text"] {
+      min-width: 220px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"] {
+      min-width: 210px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+    }
 
     button {
       padding: 8px 14px;
@@ -113,47 +160,92 @@
       cursor: pointer;
     }
 
-    button:hover { background: var(--indigo-dark); }
+    button:hover {
+      background: var(--indigo-dark);
+    }
 
     button.secondaire {
       background: #e3e7f6;
       color: var(--indigo);
     }
 
-    button.secondaire:hover { background: #cdd5f6; }
+    button.secondaire:hover {
+      background: #cdd5f6;
+    }
 
     button.danger {
       background: var(--error);
     }
 
-    button.danger:hover { background: #a93226; }
+    button.danger:hover {
+      background: #a93226;
+    }
 
     button.warning {
       background: var(--amber);
-      color: #fff;
+      color: white;
     }
 
-    button.warning:hover { background: #d68910; }
+    button.warning:hover {
+      background: #d68910;
+    }
 
-    .message { font-size: 14px; margin-top: 8px; }
-    .message.success { color: var(--success); }
-    .message.error { color: var(--error); }
+    .btn-whatsapp {
+      background: var(--whatsapp);
+      margin-right: 6px;
+    }
+
+    .btn-whatsapp:hover {
+      background: var(--whatsapp-dark);
+    }
+
+    .message {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .message.success {
+      color: var(--success);
+    }
+
+    .message.error {
+      color: var(--error);
+    }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 12px;
       font-size: 14px;
+      display: block;
+      overflow-x: auto;
     }
 
-    thead { background: #f2f5ff; }
-    th, td {
+    th,
+    td {
       padding: 10px 8px;
       border-bottom: 1px solid #e3e7f6;
       text-align: left;
+      white-space: nowrap;
     }
-    th { color: var(--indigo); font-weight: bold; }
-    tr:hover { background: #fafbff; }
+
+    thead {
+      background: #f2f5ff;
+    }
+
+    th {
+      color: var(--indigo);
+      font-weight: bold;
+    }
+
+    tr:hover {
+      background: #fafbff;
+    }
+
+    .telephone-cell {
+      white-space: nowrap;
+      font-size: 13px;
+    }
 
     .loader {
       width: 32px;
@@ -164,15 +256,16 @@
       animation: tourner 0.8s linear infinite;
     }
 
-    @keyframes tourner { to { transform: rotate(360deg); } }
+    @keyframes tourner {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
@@ -183,8 +276,10 @@
       background: white;
       padding: 24px 20px;
       border-radius: 14px;
-      max-width: 520px;
-      width: 90%;
+      max-width: 650px;
+      width: 92%;
+      max-height: 90vh;
+      overflow-y: auto;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
@@ -227,19 +322,40 @@
       text-align: center;
     }
 
-    @media (max-width: 900px) {
-      table { font-size: 13px; }
-      th, td { padding: 8px 5px; }
-    }
-
     @media (max-width: 700px) {
-      nav { justify-content: center; text-align: center; }
-      nav ul { justify-content: center; }
-      main { margin: 20px auto; padding: 0 14px; }
-      .row { flex-direction: column; align-items: stretch; }
-      input[type="text"], input[type="email"], input[type="password"] { min-width: 0; width: 100%; }
-      .modal-buttons { flex-direction: column; }
-      .action-masse-row { flex-direction: column; align-items: stretch; }
+      nav {
+        justify-content: center;
+        text-align: center;
+      }
+
+      nav ul {
+        justify-content: center;
+      }
+
+      main {
+        margin: 20px auto;
+        padding: 0 14px;
+      }
+
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      input,
+      select {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .modal-buttons {
+        flex-direction: column;
+      }
+
+      .action-masse-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
     }
   </style>
 </head>
@@ -248,6 +364,7 @@
 
   <nav>
     <h1>Admin - Gestion des élèves</h1>
+
     <ul>
       <li><a href="admin.html">Tableau de bord</a></li>
       <li><a href="admin-resultats.html">Résultats</a></li>
@@ -260,57 +377,87 @@
 
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>
+
       <div class="row">
         <div class="loader" id="loader-admin"></div>
-        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
+        <p id="message-admin-check">
+          Vérification de tes droits administrateur...
+        </p>
       </div>
     </section>
 
     <section class="card" id="card-creer-eleve" style="display: none;">
       <h2>Créer un nouvel élève</h2>
-      <p>Remplis le formulaire ci-dessous pour créer un nouveau compte élève.</p>
+
+      <p>
+        Remplis le formulaire ci-dessous pour créer un nouveau compte élève.
+      </p>
 
       <form id="form-creer-eleve">
+
         <div class="row">
           <label for="input-nom">Nom :</label>
-          <input type="text" id="input-nom" required />
+          <input type="text" id="input-nom" required>
 
           <label for="input-prenom">Prénom :</label>
-          <input type="text" id="input-prenom" required />
+          <input type="text" id="input-prenom" required>
         </div>
 
         <div class="row">
           <label for="input-email">Email :</label>
-          <input type="email" id="input-email" required />
+          <input type="email" id="input-email" required>
 
-          <label for="input-identifiant">Identifiant (matricule) :</label>
-          <input type="text" id="input-identifiant" required />
+          <label for="input-identifiant">Identifiant :</label>
+          <input type="text" id="input-identifiant" required>
         </div>
 
         <div class="row">
           <label for="input-classe">Classe :</label>
           <select id="input-classe" required>
             <option value="">Choisir une classe</option>
-            <option value="6e">6e</option>
-            <option value="5e">5e</option>
-            <option value="4e">4e</option>
-            <option value="3e">3e</option>
-            <option value="2de AB">2de AB</option>
-            <option value="2de C">2de C</option>
-            <option value="2de D">2de D</option>
-            <option value="2de E">2de E</option>
-            <option value="1re AB">1re AB</option>
-            <option value="1re C">1re C</option>
-            <option value="1re D">1re D</option>
-            <option value="1re E">1re E</option>
-            <option value="Tle AB">Tle AB</option>
-            <option value="Tle C">Tle C</option>
-            <option value="Tle D">Tle D</option>
-            <option value="Tle E">Tle E</option>
           </select>
 
           <label for="input-mot-de-passe">Mot de passe :</label>
-          <input type="text" id="input-mot-de-passe" required placeholder="Ex: Campus2025!" />
+          <input
+            type="text"
+            id="input-mot-de-passe"
+            required
+            placeholder="Ex : Campus2025!"
+          >
+        </div>
+
+        <div class="row">
+          <label for="input-pays">Pays :</label>
+          <input type="text" id="input-pays" placeholder="Bénin">
+
+          <label for="input-indicatif-pays">Indicatif :</label>
+          <input
+            type="tel"
+            id="input-indicatif-pays"
+            placeholder="229"
+            inputmode="numeric"
+          >
+
+          <label for="input-telephone-local">Téléphone :</label>
+          <input
+            type="tel"
+            id="input-telephone-local"
+            placeholder="07000000"
+            inputmode="tel"
+          >
+        </div>
+
+        <div class="row">
+          <label for="input-telephone-international">
+            Téléphone international :
+          </label>
+
+          <input
+            type="tel"
+            id="input-telephone-international"
+            placeholder="+22907000000"
+            readonly
+          >
         </div>
 
         <button type="submit">Créer l'élève</button>
@@ -321,49 +468,49 @@
 
     <section class="card" id="card-liste-eleves" style="display: none;">
       <h2>Liste des élèves</h2>
+
       <p>Consulte et gère tous les élèves inscrits.</p>
 
       <div class="row">
         <label for="select-classe">Filtrer par classe :</label>
+
         <select id="select-classe">
           <option value="">Toutes les classes</option>
-          <option value="6e">6e</option>
-          <option value="5e">5e</option>
-          <option value="4e">4e</option>
-          <option value="3e">3e</option>
-          <option value="2de AB">2de AB</option>
-          <option value="2de C">2de C</option>
-          <option value="2de D">2de D</option>
-          <option value="2de E">2de E</option>
-          <option value="1re AB">1re AB</option>
-          <option value="1re C">1re C</option>
-          <option value="1re D">1re D</option>
-          <option value="1re E">1re E</option>
-          <option value="Tle AB">Tle AB</option>
-          <option value="Tle C">Tle C</option>
-          <option value="Tle D">Tle D</option>
-          <option value="Tle E">Tle E</option>
         </select>
 
         <label for="input-recherche">Recherche :</label>
+
         <input
           type="text"
           id="input-recherche"
-          placeholder="Nom, prénom, email ou identifiant"
-        />
+          placeholder="Nom, prénom, email, identifiant ou téléphone"
+        >
 
-        <button id="btn-appliquer-filtres" class="secondaire">Appliquer</button>
+        <button id="btn-appliquer-filtres" class="secondaire">
+          Appliquer
+        </button>
       </div>
 
-      <div id="loader-table" class="loader" style="display: none; margin: 12px 0;"></div>
+      <div
+        id="loader-table"
+        class="loader"
+        style="display: none; margin: 12px 0;">
+      </div>
 
       <table id="table-eleves">
         <thead>
           <tr>
-            <th class="checkbox-col"><input type="checkbox" id="check-tous" title="Tout sélectionner" /></th>
+            <th class="checkbox-col">
+              <input
+                type="checkbox"
+                id="check-tous"
+                title="Tout sélectionner"
+              >
+            </th>
             <th>Nom</th>
             <th>Prénom</th>
             <th>Email</th>
+            <th>Téléphone</th>
             <th>Identifiant</th>
             <th>Classe</th>
             <th>Points</th>
@@ -372,678 +519,55 @@
             <th>Actions</th>
           </tr>
         </thead>
+
         <tbody id="corps-table-eleves"></tbody>
       </table>
 
-      <p id="message-aucun-eleve" class="message" style="display: none;">Aucun élève trouvé.</p>
+      <p
+        id="message-aucun-eleve"
+        class="message"
+        style="display: none;">
+        Aucun élève trouvé.
+      </p>
 
-      <!-- Action en masse -->
       <div id="action-masse" class="action-masse-row hidden">
         <strong>Actions en masse :</strong>
+
         <label for="action-masse-type">Action :</label>
+
         <select id="action-masse-type">
-          <option value="changer-classe">Changer de classe</option>
-          <option value="reset-points">Réinitialiser les points (mettre à 0)</option>
-          <option value="reset-streak">Réinitialiser les séries (streak à 0)</option>
+          <option value="changer-classe">
+            Changer de classe
+          </option>
+          <option value="reset-points">
+            Réinitialiser les points
+          </option>
+          <option value="reset-streak">
+            Réinitialiser les séries
+          </option>
         </select>
 
-        <label for="action-masse-classe" id="label-action-masse-classe">Nouvelle classe :</label>
-        <select id="action-masse-classe">
-          <option value="6e">6e</option>
-          <option value="5e">5e</option>
-          <option value="4e">4e</option>
-          <option value="3e">3e</option>
-          <option value="2de AB">2de AB</option>
-          <option value="2de C">2de C</option>
-          <option value="2de D">2de D</option>
-          <option value="2de E">2de E</option>
-          <option value="1re AB">1re AB</option>
-          <option value="1re C">1re C</option>
-          <option value="1re D">1re D</option>
-          <option value="1re E">1re E</option>
-          <option value="Tle AB">Tle AB</option>
-          <option value="Tle C">Tle C</option>
-          <option value="Tle D">Tle D</option>
-          <option value="Tle E">Tle E</option>
-        </select>
+        <label
+          id="label-action-masse-classe"
+          for="action-masse-classe">
+          Nouvelle classe :
+        </label>
 
-        <button id="btn-appliquer-action-masse" class="warning">Appliquer à la sélection</button>
-        <span id="message-action-masse" class="message"></span>
+        <select id="action-masse-classe"></select>
+
+        <button
+          id="btn-appliquer-action-masse"
+          class="warning">
+          Appliquer à la sélection
+        </button>
+
+        <span
+          id="message-action-masse"
+          class="message">
+        </span>
       </div>
     </section>
 
   </main>
 
-  <!-- Modal confirmation suppression -->
-  <div class="modal" id="modal-confirmer-suppression">
-    <div class="modal-content">
-      <h3>Confirmer la suppression</h3>
-      <p id="texte-modal-suppression">Veux-tu vraiment supprimer cet élève ? Cette action est irréversible.</p>
-      <div class="modal-buttons">
-        <button type="button" class="secondaire" id="btn-annuler-suppression">Annuler</button>
-        <button type="button" class="danger" id="btn-confirmer-suppression">Supprimer</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal modification élève -->
-  <div class="modal" id="modal-modifier-eleve">
-    <div class="modal-content">
-      <h3>Modifier l'élève</h3>
-      <p>Modifie les informations de l'élève ci-dessous. Laisse le mot de passe vide si tu ne veux pas le changer.</p>
-
-      <form id="form-modifier-eleve">
-        <div class="row">
-          <label for="modif-nom">Nom :</label>
-          <input type="text" id="modif-nom" required />
-
-          <label for="modif-prenom">Prénom :</label>
-          <input type="text" id="modif-prenom" required />
-        </div>
-
-        <div class="row">
-          <label for="modif-email">Email :</label>
-          <input type="email" id="modif-email" required />
-
-          <label for="modif-identifiant">Identifiant (matricule) :</label>
-          <input type="text" id="modif-identifiant" required />
-        </div>
-
-        <div class="row">
-          <label for="modif-classe">Classe :</label>
-          <select id="modif-classe" required>
-            <option value="6e">6e</option>
-            <option value="5e">5e</option>
-            <option value="4e">4e</option>
-            <option value="3e">3e</option>
-            <option value="2de AB">2de AB</option>
-            <option value="2de C">2de C</option>
-            <option value="2de D">2de D</option>
-            <option value="2de E">2de E</option>
-            <option value="1re AB">1re AB</option>
-            <option value="1re C">1re C</option>
-            <option value="1re D">1re D</option>
-            <option value="1re E">1re E</option>
-            <option value="Tle AB">Tle AB</option>
-            <option value="Tle C">Tle C</option>
-            <option value="Tle D">Tle D</option>
-            <option value="Tle E">Tle E</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <label for="modif-mot-de-passe">Nouveau mot de passe :</label>
-          <input type="password" id="modif-mot-de-passe" placeholder="Laisser vide pour ne pas changer" />
-        </div>
-
-        <div class="modal-buttons">
-          <button type="button" class="secondaire" id="btn-annuler-modification">Annuler</button>
-          <button type="submit" class="warning">Enregistrer les modifications</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    const cardAdminCheck = document.getElementById("card-admin-check");
-    const cardCreerEleve = document.getElementById("card-creer-eleve");
-    const cardListeEleves = document.getElementById("card-liste-eleves");
-
-    const loaderAdmin = document.getElementById("loader-admin");
-    const messageAdminCheck = document.getElementById("message-admin-check");
-
-    const formCreerEleve = document.getElementById("form-creer-eleve");
-    const inputNom = document.getElementById("input-nom");
-    const inputPrenom = document.getElementById("input-prenom");
-    const inputEmail = document.getElementById("input-email");
-    const inputIdentifiant = document.getElementById("input-identifiant");
-    const inputClasse = document.getElementById("input-classe");
-    const inputMotDePasse = document.getElementById("input-mot-de-passe");
-    const messageCreer = document.getElementById("message-creer");
-
-    const selectClasse = document.getElementById("select-classe");
-    const inputRecherche = document.getElementById("input-recherche");
-    const btnAppliquerFiltres = document.getElementById("btn-appliquer-filtres");
-
-    const loaderTable = document.getElementById("loader-table");
-    const corpsTable = document.getElementById("corps-table-eleves");
-    const messageAucunEleve = document.getElementById("message-aucun-eleve");
-
-    const lienDeconnexion = document.getElementById("lien-deconnexion");
-
-    const modalConfirmer = document.getElementById("modal-confirmer-suppression");
-    const texteModalSuppression = document.getElementById("texte-modal-suppression");
-    const btnAnnulerSuppression = document.getElementById("btn-annuler-suppression");
-    const btnConfirmerSuppression = document.getElementById("btn-confirmer-suppression");
-
-    const modalModifier = document.getElementById("modal-modifier-eleve");
-    const formModifierEleve = document.getElementById("form-modifier-eleve");
-    const modifNom = document.getElementById("modif-nom");
-    const modifPrenom = document.getElementById("modif-prenom");
-    const modifEmail = document.getElementById("modif-email");
-    const modifIdentifiant = document.getElementById("modif-identifiant");
-    const modifClasse = document.getElementById("modif-classe");
-    const modifMotDePasse = document.getElementById("modif-mot-de-passe");
-    const btnAnnulerModification = document.getElementById("btn-annuler-modification");
-
-    const checkTous = document.getElementById("check-tous");
-    const actionMasse = document.getElementById("action-masse");
-    const actionMasseType = document.getElementById("action-masse-type");
-    const actionMasseClasse = document.getElementById("action-masse-classe");
-    const labelActionMasseClasse = document.getElementById("label-action-masse-classe");
-    const btnAppliquerActionMasse = document.getElementById("btn-appliquer-action-masse");
-    const messageActionMasse = document.getElementById("message-action-masse");
-
-    let mapEleves = {};
-    let adminUid = null;
-    let eleveASupprimer = null;
-    let eleveAModifier = null;
-
-    function afficherErreurAdmin(texte) {
-      loaderAdmin.style.display = "none";
-      messageAdminCheck.textContent = texte;
-      messageAdminCheck.classList.add("error");
-    }
-
-    function verifierAdmin() {
-      if (!db || !auth) {
-        afficherErreurAdmin("Firebase n'est pas correctement configuré. Vérifie firebase-config.js.");
-        return;
-      }
-
-      // On attend que Firebase ait déterminé l'état de connexion
-      auth.onAuthStateChanged(function(user) {
-        if (!user) {
-          afficherErreurAdmin("Tu n'es pas connecté. Connecte-toi d'abord via la page de connexion, puis reviens ici.");
-          return;
-        }
-
-        adminUid = user.uid;
-
-        db.ref("administrateurs/" + adminUid).once("value")
-          .then(function(snap) {
-            if (!snap || !snap.exists()) {
-              afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur. UID : " + adminUid);
-              return;
-            }
-
-            const adminData = snap.val();
-            loaderAdmin.style.display = "none";
-            messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
-
-            cardCreerEleve.style.display = "block";
-            cardListeEleves.style.display = "block";
-
-            chargerEleves();
-          })
-          .catch(function(err) {
-            console.error("Erreur vérification admin :", err);
-            afficherErreurAdmin("Erreur lors de la vérification : " + (err.message || "inconnue"));
-          });
-      });
-    }
-
-    function chargerEleves() {
-      loaderTable.style.display = "block";
-      corpsTable.innerHTML = "";
-      messageAucunEleve.style.display = "none";
-      actionMasse.classList.add("hidden");
-
-      db.ref("eleves").once("value")
-        .then(function(snap) {
-          mapEleves = {};
-
-          if (snap && snap.exists()) {
-            snap.forEach(function(childSnap) {
-              const uid = childSnap.key;
-              const eleve = childSnap.val();
-
-              mapEleves[uid] = {
-                uid: uid,
-                nom: eleve.nom || "",
-                prenom: eleve.prenom || "",
-                email: eleve.email || "",
-                identifiant: eleve.identifiant || "",
-                classe: eleve.classe || "",
-                points: typeof eleve.points === "number" ? eleve.points : 0,
-                streak: typeof eleve.streak === "number" ? eleve.streak : 0,
-                bestStreak: typeof eleve.bestStreak === "number" ? eleve.bestStreak : 0,
-                dateInscription: eleve.dateInscription || null
-              };
-            });
-          }
-
-          loaderTable.style.display = "none";
-          afficherTableau(mapEleves);
-        })
-        .catch(function(erreur) {
-          console.error("Erreur chargement élèves :", erreur);
-          loaderTable.style.display = "none";
-          messageAucunEleve.textContent = "Impossible de charger la liste des élèves.";
-          messageAucunEleve.classList.add("error");
-          messageAucunEleve.style.display = "block";
-        });
-    }
-
-    function afficherTableau(elevesObj) {
-      corpsTable.innerHTML = "";
-
-      const eleves = Object.values(elevesObj);
-
-      if (eleves.length === 0) {
-        messageAucunEleve.textContent = "Aucun élève trouvé.";
-        messageAucunEleve.classList.remove("error");
-        messageAucunEleve.style.display = "block";
-        actionMasse.classList.add("hidden");
-        return;
-      }
-
-      messageAucunEleve.style.display = "none";
-
-      eleves.sort(function(a, b) {
-        return (a.nom || "").localeCompare(b.nom || "");
-      });
-
-      eleves.forEach(function(eleve) {
-        const tr = document.createElement("tr");
-
-        const tdCheck = document.createElement("td");
-        tdCheck.className = "checkbox-col";
-        const check = document.createElement("input");
-        check.type = "checkbox";
-        check.className = "check-eleve";
-        check.dataset.uid = eleve.uid;
-        check.addEventListener("change", gererAffichageActionMasse);
-        tdCheck.appendChild(check);
-        tr.appendChild(tdCheck);
-
-        const tdNom = document.createElement("td");
-        tdNom.textContent = eleve.nom || "-";
-        tr.appendChild(tdNom);
-
-        const tdPrenom = document.createElement("td");
-        tdPrenom.textContent = eleve.prenom || "-";
-        tr.appendChild(tdPrenom);
-
-        const tdEmail = document.createElement("td");
-        tdEmail.textContent = eleve.email || "-";
-        tr.appendChild(tdEmail);
-
-        const tdIdentifiant = document.createElement("td");
-        tdIdentifiant.textContent = eleve.identifiant || "-";
-        tr.appendChild(tdIdentifiant);
-
-        const tdClasse = document.createElement("td");
-        tdClasse.textContent = eleve.classe || "-";
-        tr.appendChild(tdClasse);
-
-        const tdPoints = document.createElement("td");
-        tdPoints.textContent = (eleve.points ?? 0) + " pts";
-        tr.appendChild(tdPoints);
-
-        const tdStreak = document.createElement("td");
-        tdStreak.textContent = (eleve.streak ?? 0) + " 🔥";
-        tr.appendChild(tdStreak);
-
-        const tdInscription = document.createElement("td");
-        if (eleve.dateInscription) {
-          const d = new Date(eleve.dateInscription);
-          tdInscription.textContent = d.toLocaleDateString('fr-FR');
-        } else {
-          tdInscription.textContent = "-";
-        }
-        tr.appendChild(tdInscription);
-
-        const tdActions = document.createElement("td");
-
-        const btnModifier = document.createElement("button");
-        btnModifier.textContent = "Modifier";
-        btnModifier.style.marginRight = "6px";
-        btnModifier.addEventListener("click", function() {
-          ouvrirModalModification(eleve.uid);
-        });
-        tdActions.appendChild(btnModifier);
-
-        const btnSupprimer = document.createElement("button");
-        btnSupprimer.textContent = "Supprimer";
-        btnSupprimer.classList.add("danger");
-        btnSupprimer.addEventListener("click", function() {
-          ouvrirModalSuppression(eleve.uid, eleve.nom, eleve.prenom);
-        });
-        tdActions.appendChild(btnSupprimer);
-
-        tr.appendChild(tdActions);
-
-        corpsTable.appendChild(tr);
-      });
-
-      gererAffichageActionMasse();
-    }
-
-    function gererAffichageActionMasse() {
-      const checks = document.querySelectorAll(".check-eleve:checked");
-      if (checks.length > 0) {
-        actionMasse.classList.remove("hidden");
-        messageActionMasse.textContent = checks.length + " élève(s) sélectionné(s).";
-        messageActionMasse.className = "message";
-      } else {
-        actionMasse.classList.add("hidden");
-        messageActionMasse.textContent = "";
-      }
-    }
-
-    function filtrerEleves() {
-      const classe = selectClasse.value;
-      const texte = inputRecherche.value.trim().toLowerCase();
-
-      let resultat = {};
-
-      Object.keys(mapEleves).forEach(function(uid) {
-        const eleve = mapEleves[uid];
-
-        if (classe && (eleve.classe || "") !== classe) {
-          return;
-        }
-
-        if (texte) {
-          const match =
-            (eleve.nom || "").toLowerCase().includes(texte) ||
-            (eleve.prenom || "").toLowerCase().includes(texte) ||
-            (eleve.email || "").toLowerCase().includes(texte) ||
-            (eleve.identifiant || "").toLowerCase().includes(texte);
-
-          if (!match) {
-            return;
-          }
-        }
-
-        resultat[uid] = eleve;
-      });
-
-      afficherTableau(resultat);
-    }
-
-    formCreerEleve.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const nom = inputNom.value.trim();
-      const prenom = inputPrenom.value.trim();
-      const email = inputEmail.value.trim();
-      const identifiant = inputIdentifiant.value.trim();
-      const classe = inputClasse.value.trim();
-      const motDePasse = inputMotDePasse.value.trim();
-
-      if (!nom || !prenom || !email || !identifiant || !classe || !motDePasse) {
-        messageCreer.textContent = "Tous les champs sont obligatoires.";
-        messageCreer.classList.add("error");
-        return;
-      }
-
-      messageCreer.textContent = "Création en cours...";
-      messageCreer.classList.remove("error");
-
-      if (!auth) {
-        messageCreer.textContent = "Firebase Auth non disponible.";
-        messageCreer.classList.add("error");
-        return;
-      }
-
-      auth.createUserWithEmailAndPassword(email, motDePasse)
-        .then(function(credential) {
-          const uid = credential.user.uid;
-
-          return db.ref("eleves/" + uid).set({
-            nom: nom,
-            prenom: prenom,
-            email: email,
-            identifiant: identifiant,
-            classe: classe,
-            points: 0,
-            streak: 0,
-            bestStreak: 0,
-            dateInscription: Date.now()
-          }).then(function() {
-            return uid;
-          });
-        })
-        .then(function(uid) {
-          messageCreer.textContent = "Élève créé avec succès !";
-          messageCreer.classList.add("success");
-
-          formCreerEleve.reset();
-
-          mapEleves[uid] = {
-            uid: uid,
-            nom: nom,
-            prenom: prenom,
-            email: email,
-            identifiant: identifiant,
-            classe: classe,
-            points: 0,
-            streak: 0,
-            bestStreak: 0,
-            dateInscription: Date.now()
-          };
-
-          afficherTableau(mapEleves);
-        })
-        .catch(function(err) {
-          console.error(err);
-          messageCreer.textContent = "Erreur : " + (err.message || "Problème inconnu");
-          messageCreer.classList.add("error");
-        });
-    });
-
-    function ouvrirModalSuppression(uid, nom, prenom) {
-      eleveASupprimer = uid;
-      texteModalSuppression.textContent =
-        "Veux-tu vraiment supprimer l'élève " + (nom || "") + " " + (prenom || "") + " ? Cette action est irréversible.";
-      modalConfirmer.style.display = "flex";
-    }
-
-    function fermerModalSuppression() {
-      modalConfirmer.style.display = "none";
-      eleveASupprimer = null;
-    }
-
-    btnAnnulerSuppression.addEventListener("click", fermerModalSuppression);
-
-    btnConfirmerSuppression.addEventListener("click", function() {
-      if (!eleveASupprimer) return;
-
-      const uid = eleveASupprimer;
-
-      db.ref("eleves/" + uid).remove()
-        .then(function() {
-          delete mapEleves[uid];
-          afficherTableau(mapEleves);
-          fermerModalSuppression();
-        })
-        .catch(function(err) {
-          console.error(err);
-          alert("Erreur lors de la suppression : " + (err.message || "inconnue"));
-        });
-    });
-
-    function ouvrirModalModification(uid) {
-      const eleve = mapEleves[uid];
-      if (!eleve) {
-        alert("Élève introuvable.");
-        return;
-      }
-
-      eleveAModifier = uid;
-
-      modifNom.value = eleve.nom || "";
-      modifPrenom.value = eleve.prenom || "";
-      modifEmail.value = eleve.email || "";
-      modifIdentifiant.value = eleve.identifiant || "";
-      modifClasse.value = eleve.classe || "6e";
-      modifMotDePasse.value = "";
-
-      modalModifier.style.display = "flex";
-    }
-
-    function fermerModalModification() {
-      modalModifier.style.display = "none";
-      eleveAModifier = null;
-    }
-
-    btnAnnulerModification.addEventListener("click", fermerModalModification);
-
-    formModifierEleve.addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      if (!eleveAModifier) return;
-
-      const nom = modifNom.value.trim();
-      const prenom = modifPrenom.value.trim();
-      const email = modifEmail.value.trim();
-      const identifiant = modifIdentifiant.value.trim();
-      const classe = modifClasse.value.trim();
-      const nouveauMotDePasse = modifMotDePasse.value.trim();
-
-      if (!nom || !prenom || !email || !identifiant || !classe) {
-        alert("Tous les champs (sauf mot de passe) sont obligatoires.");
-        return;
-      }
-
-      db.ref("eleves/" + eleveAModifier).update({
-        nom: nom,
-        prenom: prenom,
-        email: email,
-        identifiant: identifiant,
-        classe: classe
-      })
-      .then(function() {
-        if (nouveauMotDePasse) {
-          return auth.updateUser(eleveAModifier, {
-            password: nouveauMotDePasse
-          });
-        }
-      })
-      .then(function() {
-        const m = mapEleves[eleveAModifier];
-        m.nom = nom;
-        m.prenom = prenom;
-        m.email = email;
-        m.identifiant = identifiant;
-        m.classe = classe;
-
-        afficherTableau(mapEleves);
-        fermerModalModification();
-      })
-      .catch(function(err) {
-        console.error(err);
-        alert("Erreur lors de la modification : " + (err.message || "inconnue"));
-      });
-    });
-
-    actionMasseType.addEventListener("change", function() {
-      const action = actionMasseType.value;
-      if (action === "changer-classe") {
-        labelActionMasseClasse.style.display = "inline";
-        actionMasseClasse.style.display = "inline-block";
-      } else {
-        labelActionMasseClasse.style.display = "none";
-        actionMasseClasse.style.display = "none";
-      }
-    });
-
-    checkTous.addEventListener("change", function() {
-      const checks = document.querySelectorAll(".check-eleve");
-      checks.forEach(function(c) {
-        c.checked = checkTous.checked;
-      });
-      gererAffichageActionMasse();
-    });
-
-    btnAppliquerActionMasse.addEventListener("click", function() {
-      const action = actionMasseType.value;
-      const nouvelleClasse = actionMasseClasse.value;
-
-      const checks = document.querySelectorAll(".check-eleve:checked");
-      if (checks.length === 0) {
-        messageActionMasse.textContent = "Aucun élève sélectionné.";
-        messageActionMasse.classList.add("error");
-        return;
-      }
-
-      let confirmationText = "";
-      if (action === "changer-classe") {
-        confirmationText = "Changer la classe de " + checks.length + " élève(s) en " + nouvelleClasse + " ?";
-      } else if (action === "reset-points") {
-        confirmationText = "Réinitialiser les points de " + checks.length + " élève(s) à 0 ?";
-      } else if (action === "reset-streak") {
-        confirmationText = "Réinitialiser les séries (streak) de " + checks.length + " élève(s) à 0 ?";
-      }
-
-      if (!confirm(confirmationText)) {
-        return;
-      }
-
-      messageActionMasse.textContent = "Modification en cours...";
-      messageActionMasse.className = "message";
-
-      const updates = {};
-      checks.forEach(function(c) {
-        const uid = c.dataset.uid;
-        if (action === "changer-classe") {
-          updates["eleves/" + uid + "/classe"] = nouvelleClasse;
-        } else if (action === "reset-points") {
-          updates["eleves/" + uid + "/points"] = 0;
-        } else if (action === "reset-streak") {
-          updates["eleves/" + uid + "/streak"] = 0;
-        }
-      });
-
-      db.ref().update(updates)
-        .then(function() {
-          checks.forEach(function(c) {
-            const uid = c.dataset.uid;
-            if (mapEleves[uid]) {
-              if (action === "changer-classe") {
-                mapEleves[uid].classe = nouvelleClasse;
-              } else if (action === "reset-points") {
-                mapEleves[uid].points = 0;
-              } else if (action === "reset-streak") {
-                mapEleves[uid].streak = 0;
-              }
-            }
-          });
-
-          afficherTableau(mapEleves);
-
-          if (action === "changer-classe") {
-            messageActionMasse.textContent = "Classe modifiée avec succès pour " + checks.length + " élève(s).";
-          } else if (action === "reset-points") {
-            messageActionMasse.textContent = "Points réinitialisés avec succès pour " + checks.length + " élève(s).";
-          } else if (action === "reset-streak") {
-            messageActionMasse.textContent = "Séries (streak) réinitialisées avec succès pour " + checks.length + " élève(s).";
-          }
-          messageActionMasse.className = "message success";
-        })
-        .catch(function(err) {
-          console.error(err);
-          messageActionMasse.textContent = "Erreur : " + (err.message || "problème inconnu");
-          messageActionMasse.classList.add("error");
-        });
-    });
-
-    btnAppliquerFiltres.addEventListener("click", filtrerEleves);
-
-    lienDeconnexion.addEventListener("click", function(e) {
-      e.preventDefault();
-      if (!auth) return;
-      auth.signOut().then(function() {
-        window.location.href = "connexion.html";
-      });
-    });
-
-    // Lancement de la vérification au chargement de la page
-    verifierAdmin();
-
-    actionMasseType.dispatchEvent(new Event("change"));
-  </script>
-</body>
-</html>
+  
