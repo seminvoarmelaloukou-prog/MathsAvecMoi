@@ -417,6 +417,7 @@
     const listeVideosDynamiques = document.getElementById("liste-videos-dynamiques");
     const videoStatiqueFractions = document.getElementById("video-statique-fractions");
 
+    // Gestion des onglets
     onglets.forEach(function(onglet) {
       onglet.addEventListener("click", function(e) {
         e.preventDefault();
@@ -431,9 +432,8 @@
 
         onglet.classList.add("active");
 
-        const section = document.getElementById(
-          onglet.getAttribute("data-section")
-        );
+        const sectionId = onglet.getAttribute("data-section");
+        const section = document.getElementById(sectionId);
 
         if (section) {
           section.classList.add("active");
@@ -462,9 +462,7 @@
       window.location.href = "../../index.html";
     });
 
-    // ===================================================================
     // UTILS : extraire ID YouTube
-    // ===================================================================
     function extraireIdYouTube(url) {
       try {
         const u = new URL(url);
@@ -483,50 +481,50 @@
       return null;
     }
 
-    // ===================================================================
-    // CHARGEMENT DYNAMIQUE DES COURS (cours/6e/Mathématiques)
-    // ===================================================================
+    // CHARGEMENT DYNAMIQUE DES COURS
     function chargerCoursDynamiques() {
-      if (typeof db === "undefined" || !db) return;
+      if (typeof db === "undefined" || !db) {
+        console.warn("db non défini");
+        return;
+      }
 
       db.ref("cours/6e/Mathématiques").once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) {
-            // Aucun cours dans Firebase : on laisse "Bientôt disponible"
+            console.log("Aucun cours dans cours/6e/Mathématiques");
             return;
           }
 
           const cours = snap.val();
+          console.log("Cours chargés :", cours);
 
           Object.keys(cours).forEach(function(cle) {
             const c = cours[cle];
             const devoirDiv = document.querySelector('.devoir[data-key="' + cle + '"]');
-            if (!devoirDiv) return;
+            if (!devoirDiv) {
+              console.log("Pas de div pour la clé :", cle);
+              return;
+            }
 
             let html = "";
 
-            // Titre (optionnel)
             if (c.titre) {
               html += "<p><strong>" + c.titre + "</strong></p>";
             }
 
-            // Contenu texte
             if (c.contenu && c.contenu.trim() !== "") {
               html += "<p>" + String(c.contenu).replace(/
 /g, "<br>") + "</p>";
             }
 
-            // Bouton fichier (PDF/Word)
             if (c.fichier && c.fichier.trim() !== "") {
               html += "<p><a href='" + c.fichier + "' target='_blank' class='btn' style='font-size:13px;padding:8px 16px;'>📄 Télécharger le cours</a></p>";
             }
 
-            // Image
             if (c.image && c.image.trim() !== "") {
               html += "<img src='" + c.image + "' alt='Illustration du cours'>";
             }
 
-            // Vidéo YouTube (intégrée)
             if (c.video && c.video.trim() !== "") {
               const videoId = extraireIdYouTube(c.video);
               if (videoId) {
@@ -542,7 +540,6 @@
                   </div>
                 `;
               } else {
-                // Si ce n'est pas un lien YouTube valide, on met juste un lien
                 html += "<p><a href='" + c.video + "' target='_blank'>🎥 Voir la vidéo</a></p>";
               }
             }
@@ -557,11 +554,12 @@
         });
     }
 
-    // ===================================================================
-    // CHARGEMENT DYNAMIQUE DES VIDÉOS (videos/6e/Mathématiques)
-    // ===================================================================
+    // CHARGEMENT DYNAMIQUE DES VIDÉOS
     function chargerVideosDynamiques() {
-      if (typeof db === "undefined" || !db) return;
+      if (typeof db === "undefined" || !db) {
+        console.warn("db non défini");
+        return;
+      }
 
       loaderVideos.style.display = "block";
       listeVideosDynamiques.innerHTML = "";
@@ -571,19 +569,21 @@
           loaderVideos.style.display = "none";
 
           if (!snap || !snap.exists()) {
-            // Aucune vidéo dynamique : on garde juste la vidéo statique "Les fractions"
+            console.log("Aucune vidéo dans videos/6e/Mathématiques");
+            // On garde la vidéo statique
             return;
           }
 
           const videos = snap.val();
+          console.log("Vidéos chargées :", videos);
+
           const cles = Object.keys(videos);
 
           if (cles.length === 0) {
             return;
           }
 
-          // On cache la vidéo statique "Les fractions" si on a des vidéos dynamiques
-          // (tu peux commenter cette ligne si tu veux garder les deux)
+          // On cache la vidéo statique si on a des vidéos dynamiques
           videoStatiqueFractions.style.display = "none";
 
           cles.forEach(function(cle) {
@@ -593,7 +593,10 @@
             const sa = v.sa || "";
 
             const videoId = extraireIdYouTube(lien);
-            if (!videoId) return;
+            if (!videoId) {
+              console.log("Lien vidéo non valide pour :", v);
+              return;
+            }
 
             const bloc = document.createElement("div");
             bloc.className = "video-bloc";
@@ -633,9 +636,7 @@
         });
     }
 
-    // ===================================================================
     // INITIALISATION
-    // ===================================================================
     if (typeof auth !== "undefined") {
       auth.onAuthStateChanged(function(user) {
         if (!user) {
