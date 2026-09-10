@@ -428,7 +428,9 @@
 
         <div class="row">
           <label for="input-pays">Pays :</label>
-          <input type="text" id="input-pays" placeholder="Bénin">
+          <select id="input-pays">
+            <option value="">Choisir un pays</option>
+          </select>
 
           <label for="input-indicatif-pays">Indicatif :</label>
           <input
@@ -436,6 +438,7 @@
             id="input-indicatif-pays"
             placeholder="229"
             inputmode="numeric"
+            readonly
           >
 
           <label for="input-telephone-local">Téléphone :</label>
@@ -634,7 +637,9 @@
 
         <div class="row">
           <label for="modif-pays">Pays :</label>
-          <input type="text" id="modif-pays" placeholder="Bénin">
+          <select id="modif-pays">
+            <option value="">Choisir un pays</option>
+          </select>
 
           <label for="modif-indicatif-pays">Indicatif :</label>
           <input
@@ -642,6 +647,7 @@
             id="modif-indicatif-pays"
             placeholder="229"
             inputmode="numeric"
+            readonly
           >
 
           <label for="modif-telephone-local">
@@ -753,6 +759,233 @@
     function obtenir(id) {
       return document.getElementById(id);
     }
+
+    const PAYS_INDICATIFS = [
+      { pays: "Afghanistan", indicatif: "93" },
+      { pays: "Afrique du Sud", indicatif: "27" },
+      { pays: "Albanie", indicatif: "355" },
+      { pays: "Algérie", indicatif: "213" },
+      { pays: "Allemagne", indicatif: "49" },
+      { pays: "Andorre", indicatif: "376" },
+      { pays: "Angola", indicatif: "244" },
+      { pays: "Arabie saoudite", indicatif: "966" },
+      { pays: "Argentine", indicatif: "54" },
+      { pays: "Arménie", indicatif: "374" },
+      { pays: "Australie", indicatif: "61" },
+      { pays: "Autriche", indicatif: "43" },
+      { pays: "Azerbaïdjan", indicatif: "994" },
+      { pays: "Bahamas", indicatif: "1242" },
+      { pays: "Bahreïn", indicatif: "973" },
+      { pays: "Bangladesh", indicatif: "880" },
+      { pays: "Barbade", indicatif: "1246" },
+      { pays: "Belgique", indicatif: "32" },
+      { pays: "Belize", indicatif: "501" },
+      { pays: "Bénin", indicatif: "229" },
+      { pays: "Bhoutan", indicatif: "975" },
+      { pays: "Biélorussie", indicatif: "375" },
+      { pays: "Birmanie (Myanmar)", indicatif: "95" },
+      { pays: "Bolivie", indicatif: "591" },
+      { pays: "Bosnie-Herzégovine", indicatif: "387" },
+      { pays: "Botswana", indicatif: "267" },
+      { pays: "Brésil", indicatif: "55" },
+      { pays: "Brunei", indicatif: "673" },
+      { pays: "Bulgarie", indicatif: "359" },
+      { pays: "Burkina Faso", indicatif: "226" },
+      { pays: "Burundi", indicatif: "257" },
+      { pays: "Cambodge", indicatif: "855" },
+      { pays: "Cameroun", indicatif: "237" },
+      { pays: "Canada", indicatif: "1" },
+      { pays: "Cap-Vert", indicatif: "238" },
+      { pays: "République centrafricaine", indicatif: "236" },
+      { pays: "Chili", indicatif: "56" },
+      { pays: "Chine", indicatif: "86" },
+      { pays: "Chypre", indicatif: "357" },
+      { pays: "Colombie", indicatif: "57" },
+      { pays: "Comores", indicatif: "269" },
+      { pays: "Congo-Brazzaville", indicatif: "242" },
+      { pays: "Congo-Kinshasa (RDC)", indicatif: "243" },
+      { pays: "Corée du Nord", indicatif: "850" },
+      { pays: "Corée du Sud", indicatif: "82" },
+      { pays: "Costa Rica", indicatif: "506" },
+      { pays: "Côte d'Ivoire", indicatif: "225" },
+      { pays: "Croatie", indicatif: "385" },
+      { pays: "Cuba", indicatif: "53" },
+      { pays: "Danemark", indicatif: "45" },
+      { pays: "Djibouti", indicatif: "253" },
+      { pays: "Dominique", indicatif: "1767" },
+      { pays: "Égypte", indicatif: "20" },
+      { pays: "Émirats arabes unis", indicatif: "971" },
+      { pays: "Équateur", indicatif: "593" },
+      { pays: "Érythrée", indicatif: "291" },
+      { pays: "Espagne", indicatif: "34" },
+      { pays: "Estonie", indicatif: "372" },
+      { pays: "Eswatini", indicatif: "268" },
+      { pays: "États-Unis", indicatif: "1" },
+      { pays: "Éthiopie", indicatif: "251" },
+      { pays: "Fidji", indicatif: "679" },
+      { pays: "Finlande", indicatif: "358" },
+      { pays: "France", indicatif: "33" },
+      { pays: "Gabon", indicatif: "241" },
+      { pays: "Gambie", indicatif: "220" },
+      { pays: "Géorgie", indicatif: "995" },
+      { pays: "Ghana", indicatif: "233" },
+      { pays: "Grèce", indicatif: "30" },
+      { pays: "Grenade", indicatif: "1473" },
+      { pays: "Guatemala", indicatif: "502" },
+      { pays: "Guinée", indicatif: "224" },
+      { pays: "Guinée-Bissau", indicatif: "245" },
+      { pays: "Guinée équatoriale", indicatif: "240" },
+      { pays: "Guyana", indicatif: "592" },
+      { pays: "Haïti", indicatif: "509" },
+      { pays: "Honduras", indicatif: "504" },
+      { pays: "Hongrie", indicatif: "36" },
+      { pays: "Inde", indicatif: "91" },
+      { pays: "Indonésie", indicatif: "62" },
+      { pays: "Irak", indicatif: "964" },
+      { pays: "Iran", indicatif: "98" },
+      { pays: "Irlande", indicatif: "353" },
+      { pays: "Islande", indicatif: "354" },
+      { pays: "Israël", indicatif: "972" },
+      { pays: "Italie", indicatif: "39" },
+      { pays: "Jamaïque", indicatif: "1876" },
+      { pays: "Japon", indicatif: "81" },
+      { pays: "Jordanie", indicatif: "962" },
+      { pays: "Kazakhstan", indicatif: "7" },
+      { pays: "Kenya", indicatif: "254" },
+      { pays: "Kirghizistan", indicatif: "996" },
+      { pays: "Kiribati", indicatif: "686" },
+      { pays: "Kosovo", indicatif: "383" },
+      { pays: "Koweït", indicatif: "965" },
+      { pays: "Laos", indicatif: "856" },
+      { pays: "Lesotho", indicatif: "266" },
+      { pays: "Lettonie", indicatif: "371" },
+      { pays: "Liban", indicatif: "961" },
+      { pays: "Liberia", indicatif: "231" },
+      { pays: "Libye", indicatif: "218" },
+      { pays: "Liechtenstein", indicatif: "423" },
+      { pays: "Lituanie", indicatif: "370" },
+      { pays: "Luxembourg", indicatif: "352" },
+      { pays: "Macédoine du Nord", indicatif: "389" },
+      { pays: "Madagascar", indicatif: "261" },
+      { pays: "Malaisie", indicatif: "60" },
+      { pays: "Malawi", indicatif: "265" },
+      { pays: "Maldives", indicatif: "960" },
+      { pays: "Mali", indicatif: "223" },
+      { pays: "Malte", indicatif: "356" },
+      { pays: "Maroc", indicatif: "212" },
+      { pays: "Maurice", indicatif: "230" },
+      { pays: "Mauritanie", indicatif: "222" },
+      { pays: "Mexique", indicatif: "52" },
+      { pays: "Moldavie", indicatif: "373" },
+      { pays: "Monaco", indicatif: "377" },
+      { pays: "Mongolie", indicatif: "976" },
+      { pays: "Monténégro", indicatif: "382" },
+      { pays: "Mozambique", indicatif: "258" },
+      { pays: "Namibie", indicatif: "264" },
+      { pays: "Nauru", indicatif: "674" },
+      { pays: "Népal", indicatif: "977" },
+      { pays: "Nicaragua", indicatif: "505" },
+      { pays: "Niger", indicatif: "227" },
+      { pays: "Nigeria", indicatif: "234" },
+      { pays: "Norvège", indicatif: "47" },
+      { pays: "Nouvelle-Zélande", indicatif: "64" },
+      { pays: "Oman", indicatif: "968" },
+      { pays: "Ouganda", indicatif: "256" },
+      { pays: "Ouzbékistan", indicatif: "998" },
+      { pays: "Pakistan", indicatif: "92" },
+      { pays: "Palaos", indicatif: "680" },
+      { pays: "Palestine", indicatif: "970" },
+      { pays: "Panama", indicatif: "507" },
+      { pays: "Papouasie-Nouvelle-Guinée", indicatif: "675" },
+      { pays: "Paraguay", indicatif: "595" },
+      { pays: "Pays-Bas", indicatif: "31" },
+      { pays: "Pérou", indicatif: "51" },
+      { pays: "Philippines", indicatif: "63" },
+      { pays: "Pologne", indicatif: "48" },
+      { pays: "Portugal", indicatif: "351" },
+      { pays: "Qatar", indicatif: "974" },
+      { pays: "République dominicaine", indicatif: "1809" },
+      { pays: "République tchèque", indicatif: "420" },
+      { pays: "Roumanie", indicatif: "40" },
+      { pays: "Royaume-Uni", indicatif: "44" },
+      { pays: "Russie", indicatif: "7" },
+      { pays: "Rwanda", indicatif: "250" },
+      { pays: "Saint-Marin", indicatif: "378" },
+      { pays: "Sainte-Lucie", indicatif: "1758" },
+      { pays: "Salvador", indicatif: "503" },
+      { pays: "Samoa", indicatif: "685" },
+      { pays: "Sao Tomé-et-Principe", indicatif: "239" },
+      { pays: "Sénégal", indicatif: "221" },
+      { pays: "Serbie", indicatif: "381" },
+      { pays: "Seychelles", indicatif: "248" },
+      { pays: "Sierra Leone", indicatif: "232" },
+      { pays: "Singapour", indicatif: "65" },
+      { pays: "Slovaquie", indicatif: "421" },
+      { pays: "Slovénie", indicatif: "386" },
+      { pays: "Somalie", indicatif: "252" },
+      { pays: "Soudan", indicatif: "249" },
+      { pays: "Soudan du Sud", indicatif: "211" },
+      { pays: "Sri Lanka", indicatif: "94" },
+      { pays: "Suède", indicatif: "46" },
+      { pays: "Suisse", indicatif: "41" },
+      { pays: "Suriname", indicatif: "597" },
+      { pays: "Syrie", indicatif: "963" },
+      { pays: "Tadjikistan", indicatif: "992" },
+      { pays: "Tanzanie", indicatif: "255" },
+      { pays: "Tchad", indicatif: "235" },
+      { pays: "Thaïlande", indicatif: "66" },
+      { pays: "Timor oriental", indicatif: "670" },
+      { pays: "Togo", indicatif: "228" },
+      { pays: "Tonga", indicatif: "676" },
+      { pays: "Trinité-et-Tobago", indicatif: "1868" },
+      { pays: "Tunisie", indicatif: "216" },
+      { pays: "Turkménistan", indicatif: "993" },
+      { pays: "Turquie", indicatif: "90" },
+      { pays: "Tuvalu", indicatif: "688" },
+      { pays: "Ukraine", indicatif: "380" },
+      { pays: "Uruguay", indicatif: "598" },
+      { pays: "Vanuatu", indicatif: "678" },
+      { pays: "Vatican", indicatif: "379" },
+      { pays: "Venezuela", indicatif: "58" },
+      { pays: "Viêt Nam", indicatif: "84" },
+      { pays: "Yémen", indicatif: "967" },
+      { pays: "Zambie", indicatif: "260" },
+      { pays: "Zimbabwe", indicatif: "263" }
+    ];
+
+    const INDICATIF_PAR_PAYS = {};
+
+    PAYS_INDICATIFS.forEach(function(entree) {
+      INDICATIF_PAR_PAYS[entree.pays] = entree.indicatif;
+    });
+
+    function remplirListePays() {
+      const selectCreation = obtenir("input-pays");
+      const selectModification = obtenir("modif-pays");
+
+      selectCreation.innerHTML =
+        '<option value="">Choisir un pays</option>';
+
+      selectModification.innerHTML =
+        '<option value="">Choisir un pays</option>';
+
+      PAYS_INDICATIFS.forEach(function(entree) {
+        const texteOption =
+          entree.pays + " (+" + entree.indicatif + ")";
+
+        const optionCreation = document.createElement("option");
+        optionCreation.value = entree.pays;
+        optionCreation.textContent = texteOption;
+        selectCreation.appendChild(optionCreation);
+
+        const optionModification = document.createElement("option");
+        optionModification.value = entree.pays;
+        optionModification.textContent = texteOption;
+        selectModification.appendChild(optionModification);
+      });
+    }
+
+    remplirListePays();
 
     function remplirListeClasses() {
       const inputClasse = obtenir("input-classe");
@@ -995,6 +1228,34 @@
     modifTelephoneLocal.addEventListener(
       "input",
       mettreAJourTelephoneModification
+    );
+
+    obtenir("input-pays").addEventListener(
+      "change",
+      function() {
+        const indicatif =
+          INDICATIF_PAR_PAYS[
+            obtenir("input-pays").value
+          ] || "";
+
+        inputIndicatifPays.value = indicatif;
+
+        mettreAJourTelephoneCreation();
+      }
+    );
+
+    obtenir("modif-pays").addEventListener(
+      "change",
+      function() {
+        const indicatif =
+          INDICATIF_PAR_PAYS[
+            obtenir("modif-pays").value
+          ] || "";
+
+        modifIndicatifPays.value = indicatif;
+
+        mettreAJourTelephoneModification();
+      }
     );
 
     function afficherErreurAdmin(message) {
