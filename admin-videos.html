@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des vidéos - Admin - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * { flex: 0 0 auto; }
+
+    label { font-size: 14px; color: var(--text); font-weight: bold; }
+
+    input[type="text"], input[type="url"], select, textarea {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+      font-family: inherit;
+    }
+
+    input[type="text"] { min-width: 200px; }
+    input[type="url"] { min-width: 300px; }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--indigo-dark); }
+    button:disabled { background: var(--gris); cursor: not-allowed; }
+
+    button.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    button.secondaire:hover { background: #cdd5f6; }
+
+    button.danger {
+      background: var(--error);
+    }
+
+    button.danger:hover { background: #a93226; }
+
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    .video-item {
+      border: 1px solid #e3e7f6;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fafbff;
+    }
+
+    .video-item h3 {
+      font-size: 16px;
+      color: var(--indigo);
+      margin-bottom: 4px;
+    }
+
+    .video-item .sa-badge {
+      display: inline-block;
+      background: #e3e7f6;
+      color: var(--indigo);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .video-item p {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .video-item .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content h3 {
+      color: var(--indigo);
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .modal-content .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-content .form-row > * { flex: 1; min-width: 200px; }
+    .modal-content select { width: 100%; }
+
+    .modal-content .aide {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -8px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 700px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+      input[type="text"], input[type="url"], select { min-width: 0; width: 100%; }
+      .modal-buttons { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Gestion des vidéos</h1>
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="admin-cours.html">Cours</a></li>
+      <li><a href="admin-eleves.html">Élèves</a></li>
+      <li><a href="admin-resultats.html">Résultats</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
+      </div>
+    </section>
+
+    <section class="card" id="card-ajouter-video" style="display: none;">
+      <h2>Ajouter une vidéo</h2>
+      <p>Choisis une classe et une matière pour voir les séquences à remplir.</p>
+
+      <div class="row">
+        <label for="select-classe-video">Classe :</label>
+        <select id="select-classe-video">
+          <option value="">Choisir une classe</option>
+          <option value="6e">6e</option>
+          <option value="5e">5e</option>
+          <option value="4e">4e</option>
+          <option value="3e">3e</option>
+          <option value="2de AB">2de AB</option>
+          <option value="2de C">2de C</option>
+          <option value="2de D">2de D</option>
+          <option value="2de E">2de E</option>
+          <option value="1re AB">1re AB</option>
+          <option value="1re C">1re C</option>
+          <option value="1re D">1re D</option>
+          <option value="1re E">1re E</option>
+          <option value="Tle AB">Tle AB</option>
+          <option value="Tle C">Tle C</option>
+          <option value="Tle D">Tle D</option>
+          <option value="Tle E">Tle E</option>
+        </select>
+
+        <label for="select-matiere-video">Matière :</label>
+        <select id="select-matiere-video">
+          <option value="">Choisir une matière</option>
+          <option value="Mathématiques">Mathématiques</option>
+          <option value="Français">Français</option>
+          <option value="Anglais">Anglais</option>
+          <option value="Physique-Chimie">Physique-Chimie</option>
+          <option value="SVT">SVT</option>
+          <option value="Histoire-Géo">Histoire-Géo</option>
+          <option value="Philosophie">Philosophie</option>
+          <option value="Économie">Économie</option>
+          <option value="Informatique">Informatique</option>
+          <option value="Autre">Autre</option>
+        </select>
+
+        <button id="btn-voir-videos">Voir les vidéos</button>
+      </div>
+
+      <button id="btn-ouvrir-modal-ajout" class="secondaire">+ Ajouter une vidéo</button>
+
+      <p id="message-ajouter" class="message"></p>
+    </section>
+
+    <section class="card" id="card-liste-videos" style="display: none;">
+      <h2 id="titre-liste-videos">Vidéos</h2>
+      <p id="sous-titre-liste-videos">Liste des vidéos disponibles.</p>
+
+      <div id="loader-videos" class="loader" style="display: none; margin: 12px 0;"></div>
+
+      <div id="liste-videos-container"></div>
+
+      <p id="message-aucune-video" class="message" style="display: none;">Aucune vidéo trouvée pour cette classe et matière.</p>
+    </section>
+
+  </main>
+
+  <div class="modal" id="modal-ajout-video">
+    <div class="modal-content">
+      <h3 id="titre-modal-ajout">Ajouter une vidéo</h3>
+
+      <form id="form-ajout-video">
+        <div class="form-row">
+          <div>
+            <label for="select-sequence-video">Séquence *</label>
+            <select id="select-sequence-video" required>
+              <option value="">Choisir une séquence</option>
+            </select>
+            <span class="aide" id="aide-sequence-video"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-lien-video">Lien de la vidéo (YouTube) *</label>
+            <input type="url" id="input-lien-video" placeholder="https://www.youtube.com/watch?v=..." required />
+            <span class="aide">Colle le lien YouTube normal (pas besoin du format "embed").</span>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="secondaire" id="btn-annuler-ajout">Annuler</button>
+          <button type="submit">Ajouter la vidéo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-modif-video">
+    <div class="modal-content">
+      <h3 id="titre-modal-modif">Modifier la vidéo</h3>
+
+      <form id="form-modif-video">
+        <div class="form-row">
+          <div>
+            <label>Séquence</label>
+            <p id="texte-sequence-modif" style="font-weight:bold; color: var(--indigo);"></p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-lien-modif">Lien de la vidéo (YouTube) *</label>
+            <input type="url" id="input-lien-modif" required />
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="button" class="secondaire" id="btn-annuler-modif">Annuler</button>
+          <button type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ===================================================================
+    // Mêmes séquences officielles que admin-cours.html, réutilisées pour
+    // associer chaque vidéo à une séquence précise.
+    // ===================================================================
+    const SEQUENCES_PAR_CLASSE = {
+      "6e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 1 - Cube et pavé droit" },
+          { key: "sa1_seq2", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 2 - Cône de révolution" },
+          { key: "sa1_seq3", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 3 - Sphère" },
+          { key: "sa2_seq1", sa: "SA 2 - Configurations du plan", seq: "Séquence 1 - Droites du plan" },
+          { key: "sa2_seq2", sa: "SA 2 - Configurations du plan", seq: "Séquence 2 - Segment de droite" },
+          { key: "sa2_seq3", sa: "SA 2 - Configurations du plan", seq: "Séquence 3 - Cercle" },
+          { key: "sa2_seq4", sa: "SA 2 - Configurations du plan", seq: "Séquence 4 - Angles" },
+          { key: "sa2_seq5", sa: "SA 2 - Configurations du plan", seq: "Séquence 5 - Triangles" },
+          { key: "sa2_seq6", sa: "SA 2 - Configurations du plan", seq: "Séquence 6 - Parallélogramme" },
+          { key: "sa2_seq7", sa: "SA 2 - Configurations du plan", seq: "Séquence 7 - Entiers naturels" },
+          { key: "sa2_seq8", sa: "SA 2 - Configurations du plan", seq: "Séquence 8 - Nombres décimaux" },
+          { key: "sa2_seq9", sa: "SA 2 - Configurations du plan", seq: "Séquence 9 - Fractions" },
+          { key: "sa2_seq11", sa: "SA 2 - Configurations du plan", seq: "Séquence 11 - Calcul littéral" },
+          { key: "sa3_seq1", sa: "SA 3 - Applications du plan", seq: "Séquence 1 - Figures symétriques par rapport à une droite" },
+          { key: "sa3_seq2", sa: "SA 3 - Applications du plan", seq: "Séquence 2 - Figures symétriques par rapport à un point" },
+          { key: "sa3_seq3", sa: "SA 3 - Applications du plan", seq: "Séquence 3 - Glissement" },
+          { key: "sa4_seq1", sa: "SA 4 - Organisation des données", seq: "Séquence 1 - Proportionnalité" },
+          { key: "sa4_seq2", sa: "SA 4 - Organisation des données", seq: "Séquence 2 - Statistiques" }
+        ]
+      },
+      "5e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 1 — Prisme droit" },
+          { key: "sa1_seq2", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 2 — Division dans ℕ – Nombres premiers" },
+          { key: "sa2_seq1", sa: "SA 2 — Configurations du plan", seq: "Séquence 1 — Distance" },
+          { key: "sa2_seq2", sa: "SA 2 — Configurations du plan", seq: "Séquence 2 — Angles" },
+          { key: "sa2_seq3", sa: "SA 2 — Configurations du plan", seq: "Séquence 3 — Triangles" },
+          { key: "sa2_seq4", sa: "SA 2 — Configurations du plan", seq: "Séquence 4 — Cercle" },
+          { key: "sa2_seq5", sa: "SA 2 — Configurations du plan", seq: "Séquence 5 — Parallélogrammes" },
+          { key: "sa2_seq6", sa: "SA 2 — Configurations du plan", seq: "Séquence 6 — Polygones particuliers" },
+          { key: "sa2_seq7", sa: "SA 2 — Configurations du plan", seq: "Séquence 7 — Nombres décimaux relatifs" },
+          { key: "sa2_seq8", sa: "SA 2 — Configurations du plan", seq: "Séquence 8 — Fractions" },
+          { key: "sa2_seq9", sa: "SA 2 — Configurations du plan", seq: "Séquence 9 — Puissance" },
+          { key: "sa3_seq1", sa: "SA 3 — Applications du plan", seq: "Séquence 1 — Figures symétriques par rapport à une droite" },
+          { key: "sa3_seq2", sa: "SA 3 — Applications du plan", seq: "Séquence 2 — Figures symétriques par rapport à un point" },
+          { key: "sa3_seq3", sa: "SA 3 — Applications du plan", seq: "Séquence 3 — Glissement" },
+          { key: "sa4_seq1", sa: "SA 4 — Organisation des données", seq: "Séquence 1 — Équations" },
+          { key: "sa4_seq2", sa: "SA 4 — Organisation des données", seq: "Séquence 2 — Proportionnalité" }
+        ]
+      },
+      "4e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA1 — Configurations du plan", seq: "Séquence 1 : Angle au centre d’un cercle" },
+          { key: "sa1_seq2", sa: "SA1 — Configurations du plan", seq: "Séquence 2 : Distance" },
+          { key: "sa1_seq3", sa: "SA1 — Configurations du plan", seq: "Séquence 3 : Triangles" },
+          { key: "sa1_seq4", sa: "SA1 — Configurations du plan", seq: "Séquence 4 : Polygones réguliers" },
+          { key: "sa1_seq5", sa: "SA1 — Configurations du plan", seq: "Séquence 5 : Nombres décimaux" },
+          { key: "sa1_seq6", sa: "SA1 — Configurations du plan", seq: "Séquence 6 : Nombres rationnels" },
+          { key: "sa1_seq7", sa: "SA1 — Configurations du plan", seq: "Séquence 7 : Puissances" },
+          { key: "sa1_seq8", sa: "SA1 — Configurations du plan", seq: "Séquence 8 : Calculs sur les expressions algébriques" },
+          { key: "sa2_seq1", sa: "SA2 — Configurations de l’espace", seq: "Séquence 1 : Pyramide" },
+          { key: "sa2_seq2", sa: "SA2 — Configurations de l’espace", seq: "Séquence 2 : Cône de révolution" },
+          { key: "sa2_seq3", sa: "SA2 — Configurations de l’espace", seq: "Séquence 3 : Perspective cavalière" },
+          { key: "sa2_seq4", sa: "SA2 — Configurations de l’espace", seq: "Séquence 4 : Boule et Sphère" },
+          { key: "sa2_seq5", sa: "SA2 — Configurations de l’espace", seq: "Séquence 5 : Notion de droites et plans" },
+          { key: "sa2_seq6", sa: "SA2 — Configurations de l’espace", seq: "Séquence 6 : PPCM et PGCD" },
+          { key: "sa3_seq1", sa: "SA3 — Applications du plan", seq: "Séquence 1 : Symétrie centrale" },
+          { key: "sa3_seq2", sa: "SA3 — Applications du plan", seq: "Séquence 2 : Symétrie orthogonale" },
+          { key: "sa3_seq3", sa: "SA3 — Applications du plan", seq: "Séquence 3 : Translation" },
+          { key: "sa3_seq4", sa: "SA3 — Applications du plan", seq: "Séquence 4 : Projection" },
+          { key: "sa4_seq1", sa: "SA4 — Organisation des données", seq: "Séquence 1 : Équations et inéquations" },
+          { key: "sa4_seq2", sa: "SA4 — Organisation des données", seq: "Séquence 2 : Proportionnalité" },
+          { key: "sa4_seq3", sa: "SA4 — Organisation des données", seq: "Séquence 3 : Statistique" }
+        ]
+      },
+      "3e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Triangles", seq: "Séquence 1 — Nombres réels" },
+          { key: "sa1_seq2", sa: "SA 1 — Triangles", seq: "Séquence 2 — Valeur absolue" },
+          { key: "sa1_seq3", sa: "SA 1 — Triangles", seq: "Séquence 3 — Trigonométrie" },
+          { key: "sa1_seq4", sa: "SA 1 — Triangles", seq: "Séquence 4 — Thalès" },
+          { key: "sa1_seq5", sa: "SA 1 — Triangles", seq: "Séquence 5 — Triangles semblables" },
+          { key: "sa1_seq6", sa: "SA 1 — Triangles", seq: "Séquence 6 — Triangle rectangle" },
+          { key: "sa1_seq7", sa: "SA 1 — Triangles", seq: "Séquence 7 — Angles et cercles" },
+          { key: "sa2_seq1", sa: "SA 2 — Configurations de l’espace", seq: "Séquence 1 — Cône de révolution" },
+          { key: "sa2_seq2", sa: "SA 2 — Configurations de l’espace", seq: "Séquence 2 — Sections planes" },
+          { key: "sa3_seq1", sa: "SA 3 — Calcul littéral", seq: "Séquence 1 — Polynômes" },
+          { key: "sa3_seq2", sa: "SA 3 — Calcul littéral", seq: "Séquence 2 — Équations de droite" },
+          { key: "sa3_seq3", sa: "SA 3 — Calcul littéral", seq: "Séquence 3 — Équations - Inéquations" },
+          { key: "sa3_seq4", sa: "SA 3 — Calcul littéral", seq: "Séquence 4 — Vecteurs" },
+          { key: "sa3_seq5", sa: "SA 3 — Calcul littéral", seq: "Séquence 5 — Coordonnées de vecteurs" },
+          { key: "sa4_seq1", sa: "SA 4 — Organisation des données", seq: "Séquence 1 — Application affine" },
+          { key: "sa4_seq2", sa: "SA 4 — Organisation des données", seq: "Séquence 2 — Application linéaire" },
+          { key: "sa4_seq3", sa: "SA 4 — Organisation des données", seq: "Séquence 3 — Statistique / Probabilités" }
+        ]
+      },
+      "2de D": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 1 — Représentation dans le plan" },
+          { key: "sa1_seq2", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 2 — Positions relatives droite/plan" },
+          { key: "sa1_seq3", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 3 — Positions relatives de deux plans" },
+          { key: "sa1_seq4", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 4 — Positions relatives de deux droites" },
+          { key: "sa1_seq5", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 5 — Parallélisme" },
+          { key: "sa2_seq1", sa: "SA 2 — Organisation des données", seq: "Séquence 1 — Calcul dans ℝ" },
+          { key: "sa2_seq2", sa: "SA 2 — Organisation des données", seq: "Séquence 2 — Généralités sur les fonctions" },
+          { key: "sa2_seq3", sa: "SA 2 — Organisation des données", seq: "Séquence 3 — Applications" },
+          { key: "sa2_seq4", sa: "SA 2 — Organisation des données", seq: "Séquence 4 — Étude de quelques fonctions" },
+          { key: "sa2_seq5", sa: "SA 2 — Organisation des données", seq: "Séquence 5 — Équations et inéquations dans ℝ" },
+          { key: "sa2_seq6", sa: "SA 2 — Organisation des données", seq: "Séquence 6 — Statistique" },
+          { key: "sa2_seq7", sa: "SA 2 — Organisation des données", seq: "Séquence 7 — Polynômes et fractions rationnelles" },
+          { key: "sa3_seq1", sa: "SA 3 — Lieux géométriques", seq: "Séquence 1 — Vecteurs du plan" },
+          { key: "sa3_seq2", sa: "SA 3 — Lieux géométriques", seq: "Séquence 2 — Droites dans le plan" },
+          { key: "sa3_seq3", sa: "SA 3 — Lieux géométriques", seq: "Séquence 3 — Homothétie" },
+          { key: "sa3_seq4", sa: "SA 3 — Lieux géométriques", seq: "Séquence 4 — Symétries – translation" },
+          { key: "sa3_seq5", sa: "SA 3 — Lieux géométriques", seq: "Séquence 5 — Angles inscrits" },
+          { key: "sa3_seq6", sa: "SA 3 — Lieux géométriques", seq: "Séquence 6 — Angles orientés – Trigonométrie" },
+          { key: "sa3_seq7", sa: "SA 3 — Lieux géométriques", seq: "Séquence 7 — Produit scalaire" },
+          { key: "sa3_seq8", sa: "SA 3 — Lieux géométriques", seq: "Séquence 8 — Rotation" },
+          { key: "sa3_seq9", sa: "SA 3 — Lieux géométriques", seq: "Séquence 9 — Cercles dans le plan" },
+          { key: "sa3_seq10", sa: "SA 3 — Lieux géométriques", seq: "Séquence 10 — Équations et inéquations dans ℝ×ℝ" }
+        ]
+      }
+    };
+
+    const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardAjouterVideo = document.getElementById("card-ajouter-video");
+    const cardListeVideos = document.getElementById("card-liste-videos");
+
+    const loaderAdmin = document.getElementById("loader-admin");
+    const messageAdminCheck = document.getElementById("message-admin-check");
+
+    const selectClasseVideo = document.getElementById("select-classe-video");
+    const selectMatiereVideo = document.getElementById("select-matiere-video");
+    const btnVoirVideos = document.getElementById("btn-voir-videos");
+    const btnOuvrirModalAjout = document.getElementById("btn-ouvrir-modal-ajout");
+    const messageAjouter = document.getElementById("message-ajouter");
+
+    const loaderVideos = document.getElementById("loader-videos");
+    const listeVideosContainer = document.getElementById("liste-videos-container");
+    const messageAucuneVideo = document.getElementById("message-aucune-video");
+    const titreListeVideos = document.getElementById("titre-liste-videos");
+    const sousTitreListeVideos = document.getElementById("sous-titre-liste-videos");
+
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    const modalAjout = document.getElementById("modal-ajout-video");
+    const titreModalAjout = document.getElementById("titre-modal-ajout");
+    const formAjoutVideo = document.getElementById("form-ajout-video");
+    const selectSequenceVideo = document.getElementById("select-sequence-video");
+    const aideSequenceVideo = document.getElementById("aide-sequence-video");
+    const inputLienVideo = document.getElementById("input-lien-video");
+    const btnAnnulerAjout = document.getElementById("btn-annuler-ajout");
+
+    const modalModif = document.getElementById("modal-modif-video");
+    const titreModalModif = document.getElementById("titre-modal-modif");
+    const formModifVideo = document.getElementById("form-modif-video");
+    const texteSequenceModif = document.getElementById("texte-sequence-modif");
+    const inputLienModif = document.getElementById("input-lien-modif");
+    const btnAnnulerModif = document.getElementById("btn-annuler-modif");
+
+    let adminUid = null;
+    let classeSelectionnee = null;
+    let matiereSelectionnee = null;
+    let videoActuelle = null;
+
+    function afficherErreurAdmin(texte) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = texte;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function verifierAdmin() {
+      if (!db || !auth) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return Promise.reject(new Error("Firebase non configuré"));
+      }
+
+      const user = auth.currentUser;
+      if (!user) {
+        afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
+        window.location.href = "connexion.html";
+        return Promise.reject(new Error("Pas connecté"));
+      }
+
+      adminUid = user.uid;
+
+      return db.ref("administrateurs/" + adminUid).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+            throw new Error("Pas admin");
+          }
+
+          const adminData = snap.val();
+          loaderAdmin.style.display = "none";
+          messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+
+          cardAjouterVideo.style.display = "block";
+        });
+    }
+
+    function getSequencesActuelles() {
+      if (!classeSelectionnee || !matiereSelectionnee) return null;
+      const parClasse = SEQUENCES_PAR_CLASSE[classeSelectionnee];
+      if (!parClasse) return null;
+      return parClasse[matiereSelectionnee] || null;
+    }
+
+    function peuplerSelectSequence() {
+      selectSequenceVideo.innerHTML = "<option value=''>Choisir une séquence</option>";
+      const sequences = getSequencesActuelles();
+
+      if (!sequences) {
+        aideSequenceVideo.textContent = "Les séquences ne sont pas encore configurées pour " + classeSelectionnee + " - " + matiereSelectionnee + ".";
+        selectSequenceVideo.disabled = true;
+        return false;
+      }
+
+      aideSequenceVideo.textContent = "";
+      selectSequenceVideo.disabled = false;
+
+      sequences.forEach(function(s) {
+        const option = document.createElement("option");
+        option.value = s.key;
+        option.textContent = s.sa + " — " + s.seq;
+        selectSequenceVideo.appendChild(option);
+      });
+
+      return true;
+    }
+
+    btnVoirVideos.addEventListener("click", function() {
+      const classe = selectClasseVideo.value.trim();
+      const matiere = selectMatiereVideo.value.trim();
+
+      if (!classe || !matiere) {
+        messageAjouter.textContent = "Choisis une classe et une matière.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+
+      classeSelectionnee = classe;
+      matiereSelectionnee = matiere;
+
+      messageAjouter.textContent = "";
+      messageAjouter.classList.remove("error", "success");
+      cardListeVideos.style.display = "block";
+      titreListeVideos.textContent = "Vidéos - " + classe + " - " + matiere;
+      sousTitreListeVideos.textContent = "Gère les vidéos pour cette classe et matière.";
+
+      chargerVideos();
+    });
+
+    function libelleSequence(cle) {
+      const sequences = getSequencesActuelles();
+      if (!sequences) return null;
+      return sequences.find(function(s) { return s.key === cle; }) || null;
+    }
+
+    function convertirEnLienEmbed(lien) {
+      // Convertit un lien YouTube normal en lien "embed" pour l'affichage
+      const match = lien.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return "https://www.youtube-nocookie.com/embed/" + match[1];
+      }
+      return lien;
+    }
+
+    function chargerVideos() {
+      loaderVideos.style.display = "block";
+      listeVideosContainer.innerHTML = "";
+      messageAucuneVideo.style.display = "none";
+
+      if (!classeSelectionnee || !matiereSelectionnee) {
+        loaderVideos.style.display = "none";
+        return;
+      }
+
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
+        .then(function(snap) {
+          loaderVideos.style.display = "none";
+
+          if (!snap || !snap.exists()) {
+            messageAucuneVideo.textContent = "Aucune vidéo trouvée pour " + classeSelectionnee + " - " + matiereSelectionnee + ".";
+            messageAucuneVideo.style.display = "block";
+            return;
+          }
+
+          const videos = snap.val();
+          const cles = Object.keys(videos);
+
+          if (cles.length === 0) {
+            messageAucuneVideo.textContent = "Aucune vidéo trouvée.";
+            messageAucuneVideo.style.display = "block";
+            return;
+          }
+
+          cles.forEach(function(cle) {
+            const v = videos[cle];
+            const div = document.createElement("div");
+            div.className = "video-item";
+
+            const badge = document.createElement("span");
+            badge.className = "sa-badge";
+            badge.textContent = v.saLabel || "";
+            div.appendChild(badge);
+
+            const h3 = document.createElement("h3");
+            h3.textContent = v.seqLabel || "Séquence";
+            div.appendChild(h3);
+
+            if (v.lien) {
+              const pLien = document.createElement("p");
+              pLien.innerHTML = "🎥 <a href='" + v.lien + "' target='_blank'>Voir la vidéo</a>";
+              div.appendChild(pLien);
+            }
+
+            const actionsDiv = document.createElement("div");
+            actionsDiv.className = "actions";
+
+            const btnModifier = document.createElement("button");
+            btnModifier.textContent = "Modifier";
+            btnModifier.classList.add("secondaire");
+            btnModifier.addEventListener("click", function() {
+              ouvrirModalModif(cle, v);
+            });
+            actionsDiv.appendChild(btnModifier);
+
+            const btnSupprimer = document.createElement("button");
+            btnSupprimer.textContent = "Supprimer";
+            btnSupprimer.classList.add("danger");
+            btnSupprimer.addEventListener("click", function() {
+              if (confirm("Supprimer cette vidéo ?")) {
+                supprimerVideo(cle);
+              }
+            });
+            actionsDiv.appendChild(btnSupprimer);
+
+            div.appendChild(actionsDiv);
+            listeVideosContainer.appendChild(div);
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement vidéos :", erreur);
+          loaderVideos.style.display = "none";
+          messageAucuneVideo.textContent = "Erreur de chargement.";
+          messageAucuneVideo.classList.add("error");
+          messageAucuneVideo.style.display = "block";
+        });
+    }
+
+    function ouvrirModalAjout() {
+      titreModalAjout.textContent = "Ajouter une vidéo - " + classeSelectionnee + " - " + matiereSelectionnee;
+      formAjoutVideo.reset();
+      peuplerSelectSequence();
+      modalAjout.style.display = "flex";
+    }
+
+    function fermerModalAjout() {
+      modalAjout.style.display = "none";
+    }
+
+    formAjoutVideo.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const sequenceKey = selectSequenceVideo.value;
+      const lienBrut = inputLienVideo.value.trim();
+
+      if (!sequenceKey) {
+        alert("Choisis une séquence.");
+        return;
+      }
+
+      if (!lienBrut) {
+        alert("Colle un lien YouTube.");
+        return;
+      }
+
+      const seqInfo = libelleSequence(sequenceKey);
+      const now = Date.now();
+      const lienEmbed = convertirEnLienEmbed(lienBrut);
+
+      const nouvelleVideo = {
+        sequenceKey: sequenceKey,
+        saLabel: seqInfo ? seqInfo.sa : "",
+        seqLabel: seqInfo ? seqInfo.seq : "",
+        lien: lienEmbed,
+        dateCreation: now,
+        actif: true
+      };
+
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + sequenceKey).set(nouvelleVideo)
+        .then(function() {
+          fermerModalAjout();
+          messageAjouter.textContent = "Vidéo ajoutée avec succès !";
+          messageAjouter.classList.remove("error");
+          messageAjouter.classList.add("success");
+          chargerVideos();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur ajout vidéo :", erreur);
+          messageAjouter.textContent = "Erreur lors de l'ajout.";
+          messageAjouter.classList.add("error");
+        });
+    });
+
+    function ouvrirModalModif(cle, video) {
+      videoActuelle = { cle: cle, ...video };
+      titreModalModif.textContent = "Modifier la vidéo";
+      texteSequenceModif.textContent = (video.saLabel || "") + " — " + (video.seqLabel || "");
+      inputLienModif.value = video.lien || "";
+      modalModif.style.display = "flex";
+    }
+
+    function fermerModalModif() {
+      modalModif.style.display = "none";
+      videoActuelle = null;
+    }
+
+    formModifVideo.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!videoActuelle) return;
+
+      const lienBrut = inputLienModif.value.trim();
+
+      if (!lienBrut) {
+        alert("Colle un lien YouTube.");
+        return;
+      }
+
+      const videoModifiee = {
+        lien: convertirEnLienEmbed(lienBrut),
+        dateModification: Date.now()
+      };
+
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + videoActuelle.cle).update(videoModifiee)
+        .then(function() {
+          fermerModalModif();
+          messageAjouter.textContent = "Vidéo modifiée avec succès !";
+          messageAjouter.classList.remove("error");
+          messageAjouter.classList.add("success");
+          chargerVideos();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur modification vidéo :", erreur);
+          messageAjouter.textContent = "Erreur lors de la modification.";
+          messageAjouter.classList.add("error");
+        });
+    });
+
+    function supprimerVideo(cle) {
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
+        .then(function() {
+          messageAjouter.textContent = "Vidéo supprimée avec succès !";
+          messageAjouter.classList.remove("error");
+          messageAjouter.classList.add("success");
+          chargerVideos();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur suppression vidéo :", erreur);
+          messageAjouter.textContent = "Erreur lors de la suppression.";
+          messageAjouter.classList.add("error");
+        });
+    }
+
+    btnOuvrirModalAjout.addEventListener("click", function() {
+      if (!classeSelectionnee || !matiereSelectionnee) {
+        messageAjouter.textContent = "Choisis d'abord une classe et une matière.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+      ouvrirModalAjout();
+    });
+
+    btnAnnulerAjout.addEventListener("click", fermerModalAjout);
+    btnAnnulerModif.addEventListener("click", fermerModalModif);
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) {
+        window.location.href = "index.html";
+        return;
+      }
+      auth.signOut().then(function() {
+        window.location.href = "index.html";
+      });
+    });
+
+    (function init() {
+      if (!auth || !db) {
+        afficherErreurAdmin("Firebase n'est pas correctement configuré.");
+        return;
+      }
+
+      if (!auth.currentUser) {
+        messageAdminCheck.textContent = "Vérification de ta connexion...";
+        auth.onAuthStateChanged(function(user) {
+          if (!user) {
+            window.location.href = "connexion.html";
+            return;
+          }
+          verifierAdmin();
+        });
+        return;
+      }
+
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>
+          
