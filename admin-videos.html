@@ -393,32 +393,124 @@
 
   <script>
     // ===================================================================
-    // Séquences officielles (mêmes que admin-cours.html)
+    // Mêmes séquences officielles que admin-cours.html, réutilisées pour
+    // associer chaque vidéo à une séquence précise.
     // ===================================================================
     const SEQUENCES_PAR_CLASSE = {
       "6e": {
         "Mathématiques": [
-          { key: "cours_01", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 1 - Cube et pavé droit" },
-          { key: "cours_02", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 2 - Cône de révolution" },
-          { key: "cours_03", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 3 - Sphère" },
-          { key: "cours_04", sa: "SA 2 - Configurations du plan", seq: "Séquence 1 - Droites du plan" },
-          { key: "cours_05", sa: "SA 2 - Configurations du plan", seq: "Séquence 2 - Segment de droite" },
-          { key: "cours_06", sa: "SA 2 - Configurations du plan", seq: "Séquence 3 - Cercle" },
-          { key: "cours_07", sa: "SA 2 - Configurations du plan", seq: "Séquence 4 - Angles" },
-          { key: "cours_08", sa: "SA 2 - Configurations du plan", seq: "Séquence 5 - Triangles" },
-          { key: "cours_09", sa: "SA 2 - Configurations du plan", seq: "Séquence 6 - Parallélogramme" },
-          { key: "cours_10", sa: "SA 2 - Configurations du plan", seq: "Séquence 7 - Entiers naturels" },
-          { key: "cours_11", sa: "SA 2 - Configurations du plan", seq: "Séquence 8 - Nombres décimaux" },
-          { key: "cours_12", sa: "SA 2 - Configurations du plan", seq: "Séquence 9 - Fractions" },
-          { key: "cours_13", sa: "SA 2 - Configurations du plan", seq: "Séquence 11 - Calcul littéral" },
-          { key: "cours_14", sa: "SA 3 - Applications du plan", seq: "Séquence 1 - Figures symétriques par rapport à une droite" },
-          { key: "cours_15", sa: "SA 3 - Applications du plan", seq: "Séquence 2 - Figures symétriques par rapport à un point" },
-          { key: "cours_16", sa: "SA 3 - Applications du plan", seq: "Séquence 3 - Glissement" },
-          { key: "cours_17", sa: "SA 4 - Organisation des données", seq: "Séquence 1 - Proportionnalité" },
-          { key: "cours_18", sa: "SA 4 - Organisation des données", seq: "Séquence 2 - Statistiques" }
+          { key: "sa1_seq1", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 1 - Cube et pavé droit" },
+          { key: "sa1_seq2", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 2 - Cône de révolution" },
+          { key: "sa1_seq3", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 3 - Sphère" },
+          { key: "sa2_seq1", sa: "SA 2 - Configurations du plan", seq: "Séquence 1 - Droites du plan" },
+          { key: "sa2_seq2", sa: "SA 2 - Configurations du plan", seq: "Séquence 2 - Segment de droite" },
+          { key: "sa2_seq3", sa: "SA 2 - Configurations du plan", seq: "Séquence 3 - Cercle" },
+          { key: "sa2_seq4", sa: "SA 2 - Configurations du plan", seq: "Séquence 4 - Angles" },
+          { key: "sa2_seq5", sa: "SA 2 - Configurations du plan", seq: "Séquence 5 - Triangles" },
+          { key: "sa2_seq6", sa: "SA 2 - Configurations du plan", seq: "Séquence 6 - Parallélogramme" },
+          { key: "sa2_seq7", sa: "SA 2 - Configurations du plan", seq: "Séquence 7 - Entiers naturels" },
+          { key: "sa2_seq8", sa: "SA 2 - Configurations du plan", seq: "Séquence 8 - Nombres décimaux" },
+          { key: "sa2_seq9", sa: "SA 2 - Configurations du plan", seq: "Séquence 9 - Fractions" },
+          { key: "sa2_seq11", sa: "SA 2 - Configurations du plan", seq: "Séquence 11 - Calcul littéral" },
+          { key: "sa3_seq1", sa: "SA 3 - Applications du plan", seq: "Séquence 1 - Figures symétriques par rapport à une droite" },
+          { key: "sa3_seq2", sa: "SA 3 - Applications du plan", seq: "Séquence 2 - Figures symétriques par rapport à un point" },
+          { key: "sa3_seq3", sa: "SA 3 - Applications du plan", seq: "Séquence 3 - Glissement" },
+          { key: "sa4_seq1", sa: "SA 4 - Organisation des données", seq: "Séquence 1 - Proportionnalité" },
+          { key: "sa4_seq2", sa: "SA 4 - Organisation des données", seq: "Séquence 2 - Statistiques" }
+        ]
+      },
+      "5e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 1 — Prisme droit" },
+          { key: "sa1_seq2", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 2 — Division dans ℕ – Nombres premiers" },
+          { key: "sa2_seq1", sa: "SA 2 — Configurations du plan", seq: "Séquence 1 — Distance" },
+          { key: "sa2_seq2", sa: "SA 2 — Configurations du plan", seq: "Séquence 2 — Angles" },
+          { key: "sa2_seq3", sa: "SA 2 — Configurations du plan", seq: "Séquence 3 — Triangles" },
+          { key: "sa2_seq4", sa: "SA 2 — Configurations du plan", seq: "Séquence 4 — Cercle" },
+          { key: "sa2_seq5", sa: "SA 2 — Configurations du plan", seq: "Séquence 5 — Parallélogrammes" },
+          { key: "sa2_seq6", sa: "SA 2 — Configurations du plan", seq: "Séquence 6 — Polygones particuliers" },
+          { key: "sa2_seq7", sa: "SA 2 — Configurations du plan", seq: "Séquence 7 — Nombres décimaux relatifs" },
+          { key: "sa2_seq8", sa: "SA 2 — Configurations du plan", seq: "Séquence 8 — Fractions" },
+          { key: "sa2_seq9", sa: "SA 2 — Configurations du plan", seq: "Séquence 9 — Puissance" },
+          { key: "sa3_seq1", sa: "SA 3 — Applications du plan", seq: "Séquence 1 — Figures symétriques par rapport à une droite" },
+          { key: "sa3_seq2", sa: "SA 3 — Applications du plan", seq: "Séquence 2 — Figures symétriques par rapport à un point" },
+          { key: "sa3_seq3", sa: "SA 3 — Applications du plan", seq: "Séquence 3 — Glissement" },
+          { key: "sa4_seq1", sa: "SA 4 — Organisation des données", seq: "Séquence 1 — Équations" },
+          { key: "sa4_seq2", sa: "SA 4 — Organisation des données", seq: "Séquence 2 — Proportionnalité" }
+        ]
+      },
+      "4e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA1 — Configurations du plan", seq: "Séquence 1 : Angle au centre d’un cercle" },
+          { key: "sa1_seq2", sa: "SA1 — Configurations du plan", seq: "Séquence 2 : Distance" },
+          { key: "sa1_seq3", sa: "SA1 — Configurations du plan", seq: "Séquence 3 : Triangles" },
+          { key: "sa1_seq4", sa: "SA1 — Configurations du plan", seq: "Séquence 4 : Polygones réguliers" },
+          { key: "sa1_seq5", sa: "SA1 — Configurations du plan", seq: "Séquence 5 : Nombres décimaux" },
+          { key: "sa1_seq6", sa: "SA1 — Configurations du plan", seq: "Séquence 6 : Nombres rationnels" },
+          { key: "sa1_seq7", sa: "SA1 — Configurations du plan", seq: "Séquence 7 : Puissances" },
+          { key: "sa1_seq8", sa: "SA1 — Configurations du plan", seq: "Séquence 8 : Calculs sur les expressions algébriques" },
+          { key: "sa2_seq1", sa: "SA2 — Configurations de l’espace", seq: "Séquence 1 : Pyramide" },
+          { key: "sa2_seq2", sa: "SA2 — Configurations de l’espace", seq: "Séquence 2 : Cône de révolution" },
+          { key: "sa2_seq3", sa: "SA2 — Configurations de l’espace", seq: "Séquence 3 : Perspective cavalière" },
+          { key: "sa2_seq4", sa: "SA2 — Configurations de l’espace", seq: "Séquence 4 : Boule et Sphère" },
+          { key: "sa2_seq5", sa: "SA2 — Configurations de l’espace", seq: "Séquence 5 : Notion de droites et plans" },
+          { key: "sa2_seq6", sa: "SA2 — Configurations de l’espace", seq: "Séquence 6 : PPCM et PGCD" },
+          { key: "sa3_seq1", sa: "SA3 — Applications du plan", seq: "Séquence 1 : Symétrie centrale" },
+          { key: "sa3_seq2", sa: "SA3 — Applications du plan", seq: "Séquence 2 : Symétrie orthogonale" },
+          { key: "sa3_seq3", sa: "SA3 — Applications du plan", seq: "Séquence 3 : Translation" },
+          { key: "sa3_seq4", sa: "SA3 — Applications du plan", seq: "Séquence 4 : Projection" },
+          { key: "sa4_seq1", sa: "SA4 — Organisation des données", seq: "Séquence 1 : Équations et inéquations" },
+          { key: "sa4_seq2", sa: "SA4 — Organisation des données", seq: "Séquence 2 : Proportionnalité" },
+          { key: "sa4_seq3", sa: "SA4 — Organisation des données", seq: "Séquence 3 : Statistique" }
+        ]
+      },
+      "3e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Triangles", seq: "Séquence 1 — Nombres réels" },
+          { key: "sa1_seq2", sa: "SA 1 — Triangles", seq: "Séquence 2 — Valeur absolue" },
+          { key: "sa1_seq3", sa: "SA 1 — Triangles", seq: "Séquence 3 — Trigonométrie" },
+          { key: "sa1_seq4", sa: "SA 1 — Triangles", seq: "Séquence 4 — Thalès" },
+          { key: "sa1_seq5", sa: "SA 1 — Triangles", seq: "Séquence 5 — Triangles semblables" },
+          { key: "sa1_seq6", sa: "SA 1 — Triangles", seq: "Séquence 6 — Triangle rectangle" },
+          { key: "sa1_seq7", sa: "SA 1 — Triangles", seq: "Séquence 7 — Angles et cercles" },
+          { key: "sa2_seq1", sa: "SA 2 — Configurations de l’espace", seq: "Séquence 1 — Cône de révolution" },
+          { key: "sa2_seq2", sa: "SA 2 — Configurations de l’espace", seq: "Séquence 2 — Sections planes" },
+          { key: "sa3_seq1", sa: "SA 3 — Calcul littéral", seq: "Séquence 1 — Polynômes" },
+          { key: "sa3_seq2", sa: "SA 3 — Calcul littéral", seq: "Séquence 2 — Équations de droite" },
+          { key: "sa3_seq3", sa: "SA 3 — Calcul littéral", seq: "Séquence 3 — Équations - Inéquations" },
+          { key: "sa3_seq4", sa: "SA 3 — Calcul littéral", seq: "Séquence 4 — Vecteurs" },
+          { key: "sa3_seq5", sa: "SA 3 — Calcul littéral", seq: "Séquence 5 — Coordonnées de vecteurs" },
+          { key: "sa4_seq1", sa: "SA 4 — Organisation des données", seq: "Séquence 1 — Application affine" },
+          { key: "sa4_seq2", sa: "SA 4 — Organisation des données", seq: "Séquence 2 — Application linéaire" },
+          { key: "sa4_seq3", sa: "SA 4 — Organisation des données", seq: "Séquence 3 — Statistique / Probabilités" }
+        ]
+      },
+      "2de D": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 1 — Représentation dans le plan" },
+          { key: "sa1_seq2", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 2 — Positions relatives droite/plan" },
+          { key: "sa1_seq3", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 3 — Positions relatives de deux plans" },
+          { key: "sa1_seq4", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 4 — Positions relatives de deux droites" },
+          { key: "sa1_seq5", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 5 — Parallélisme" },
+          { key: "sa2_seq1", sa: "SA 2 — Organisation des données", seq: "Séquence 1 — Calcul dans ℝ" },
+          { key: "sa2_seq2", sa: "SA 2 — Organisation des données", seq: "Séquence 2 — Généralités sur les fonctions" },
+          { key: "sa2_seq3", sa: "SA 2 — Organisation des données", seq: "Séquence 3 — Applications" },
+          { key: "sa2_seq4", sa: "SA 2 — Organisation des données", seq: "Séquence 4 — Étude de quelques fonctions" },
+          { key: "sa2_seq5", sa: "SA 2 — Organisation des données", seq: "Séquence 5 — Équations et inéquations dans ℝ" },
+          { key: "sa2_seq6", sa: "SA 2 — Organisation des données", seq: "Séquence 6 — Statistique" },
+          { key: "sa2_seq7", sa: "SA 2 — Organisation des données", seq: "Séquence 7 — Polynômes et fractions rationnelles" },
+          { key: "sa3_seq1", sa: "SA 3 — Lieux géométriques", seq: "Séquence 1 — Vecteurs du plan" },
+          { key: "sa3_seq2", sa: "SA 3 — Lieux géométriques", seq: "Séquence 2 — Droites dans le plan" },
+          { key: "sa3_seq3", sa: "SA 3 — Lieux géométriques", seq: "Séquence 3 — Homothétie" },
+          { key: "sa3_seq4", sa: "SA 3 — Lieux géométriques", seq: "Séquence 4 — Symétries – translation" },
+          { key: "sa3_seq5", sa: "SA 3 — Lieux géométriques", seq: "Séquence 5 — Angles inscrits" },
+          { key: "sa3_seq6", sa: "SA 3 — Lieux géométriques", seq: "Séquence 6 — Angles orientés – Trigonométrie" },
+          { key: "sa3_seq7", sa: "SA 3 — Lieux géométriques", seq: "Séquence 7 — Produit scalaire" },
+          { key: "sa3_seq8", sa: "SA 3 — Lieux géométriques", seq: "Séquence 8 — Rotation" },
+          { key: "sa3_seq9", sa: "SA 3 — Lieux géométriques", seq: "Séquence 9 — Cercles dans le plan" },
+          { key: "sa3_seq10", sa: "SA 3 — Lieux géométriques", seq: "Séquence 10 — Équations et inéquations dans ℝ×ℝ" }
         ]
       }
-      // Tu pourras compléter 5e, 4e, 3e, etc. plus tard si besoin.
     };
 
     const cardAdminCheck = document.getElementById("card-admin-check");
@@ -471,23 +563,23 @@
     function verifierAdmin() {
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return;
+        return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
       if (!user) {
         afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
-        return;
+        return Promise.reject(new Error("Pas connecté"));
       }
 
       adminUid = user.uid;
 
-      db.ref("administrateurs/" + adminUid).once("value")
+      return db.ref("administrateurs/" + adminUid).once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) {
             afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
-            return;
+            throw new Error("Pas admin");
           }
 
           const adminData = snap.val();
@@ -495,11 +587,37 @@
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
           cardAjouterVideo.style.display = "block";
-        })
-        .catch(function(err) {
-          console.error("Erreur vérification admin :", err);
-          afficherErreurAdmin("Erreur lors de la vérification : " + (err.message || "inconnue"));
         });
+    }
+
+    function getSequencesActuelles() {
+      if (!classeSelectionnee || !matiereSelectionnee) return null;
+      const parClasse = SEQUENCES_PAR_CLASSE[classeSelectionnee];
+      if (!parClasse) return null;
+      return parClasse[matiereSelectionnee] || null;
+    }
+
+    function peuplerSelectSequence() {
+      selectSequenceVideo.innerHTML = "<option value=''>Choisir une séquence</option>";
+      const sequences = getSequencesActuelles();
+
+      if (!sequences) {
+        aideSequenceVideo.textContent = "Les séquences ne sont pas encore configurées pour " + classeSelectionnee + " - " + matiereSelectionnee + ".";
+        selectSequenceVideo.disabled = true;
+        return false;
+      }
+
+      aideSequenceVideo.textContent = "";
+      selectSequenceVideo.disabled = false;
+
+      sequences.forEach(function(s) {
+        const option = document.createElement("option");
+        option.value = s.key;
+        option.textContent = s.sa + " — " + s.seq;
+        selectSequenceVideo.appendChild(option);
+      });
+
+      return true;
     }
 
     btnVoirVideos.addEventListener("click", function() {
@@ -516,12 +634,28 @@
       matiereSelectionnee = matiere;
 
       messageAjouter.textContent = "";
+      messageAjouter.classList.remove("error", "success");
       cardListeVideos.style.display = "block";
       titreListeVideos.textContent = "Vidéos - " + classe + " - " + matiere;
       sousTitreListeVideos.textContent = "Gère les vidéos pour cette classe et matière.";
 
       chargerVideos();
     });
+
+    function libelleSequence(cle) {
+      const sequences = getSequencesActuelles();
+      if (!sequences) return null;
+      return sequences.find(function(s) { return s.key === cle; }) || null;
+    }
+
+    function convertirEnLienEmbed(lien) {
+      // Convertit un lien YouTube normal en lien "embed" pour l'affichage
+      const match = lien.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        return "https://www.youtube-nocookie.com/embed/" + match[1];
+      }
+      return lien;
+    }
 
     function chargerVideos() {
       loaderVideos.style.display = "block";
@@ -533,7 +667,6 @@
         return;
       }
 
-      // On lit les vidéos depuis : videos/{classe}/{matiere}
       db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
         .then(function(snap) {
           loaderVideos.style.display = "none";
@@ -558,24 +691,20 @@
             const div = document.createElement("div");
             div.className = "video-item";
 
+            const badge = document.createElement("span");
+            badge.className = "sa-badge";
+            badge.textContent = v.saLabel || "";
+            div.appendChild(badge);
+
             const h3 = document.createElement("h3");
-            h3.textContent = v.titre || "Sans titre";
+            h3.textContent = v.seqLabel || "Séquence";
             div.appendChild(h3);
 
-            if (v.sa) {
-              const saBadge = document.createElement("span");
-              saBadge.className = "sa-badge";
-              saBadge.textContent = v.sa;
-              div.appendChild(saBadge);
+            if (v.lien) {
+              const pLien = document.createElement("p");
+              pLien.innerHTML = "🎥 <a href='" + v.lien + "' target='_blank'>Voir la vidéo</a>";
+              div.appendChild(pLien);
             }
-
-            const pSeq = document.createElement("p");
-            pSeq.textContent = v.sequence || "";
-            div.appendChild(pSeq);
-
-            const pLien = document.createElement("p");
-            pLien.innerHTML = "🔗 <a href='" + v.lien + "' target='_blank'>Voir la vidéo</a>";
-            div.appendChild(pLien);
 
             const actionsDiv = document.createElement("div");
             actionsDiv.className = "actions";
@@ -611,33 +740,10 @@
         });
     }
 
-    function remplirSelectSequences() {
-      selectSequenceVideo.innerHTML = '<option value="">Choisir une séquence</option>';
-      aideSequenceVideo.textContent = "";
-
-      if (!classeSelectionnee || !matiereSelectionnee) return;
-
-      const sequences = SEQUENCES_PAR_CLASSE[classeSelectionnee]?.[matiereSelectionnee] || [];
-
-      if (sequences.length === 0) {
-        aideSequenceVideo.textContent = "Aucune séquence définie pour cette classe et matière.";
-        return;
-      }
-
-      sequences.forEach(function(seq) {
-        const option = document.createElement("option");
-        option.value = seq.key;
-        option.textContent = seq.sa + " - " + seq.seq;
-        selectSequenceVideo.appendChild(option);
-      });
-
-      aideSequenceVideo.textContent = "Choisis la séquence à laquelle associer cette vidéo.";
-    }
-
     function ouvrirModalAjout() {
       titreModalAjout.textContent = "Ajouter une vidéo - " + classeSelectionnee + " - " + matiereSelectionnee;
       formAjoutVideo.reset();
-      remplirSelectSequences();
+      peuplerSelectSequence();
       modalAjout.style.display = "flex";
     }
 
@@ -648,39 +754,37 @@
     formAjoutVideo.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const sequenceKey = selectSequenceVideo.value.trim();
-      const lien = inputLienVideo.value.trim();
+      const sequenceKey = selectSequenceVideo.value;
+      const lienBrut = inputLienVideo.value.trim();
 
-      if (!sequenceKey || !lien) {
-        alert("Séquence et lien de la vidéo sont obligatoires.");
+      if (!sequenceKey) {
+        alert("Choisis une séquence.");
         return;
       }
 
-      const sequences = SEQUENCES_PAR_CLASSE[classeSelectionnee]?.[matiereSelectionnee] || [];
-      const seqTrouvee = sequences.find(s => s.key === sequenceKey);
-
-      if (!seqTrouvee) {
-        alert("Séquence invalide.");
+      if (!lienBrut) {
+        alert("Colle un lien YouTube.");
         return;
       }
 
+      const seqInfo = libelleSequence(sequenceKey);
       const now = Date.now();
-      const cle = "video_" + now;
+      const lienEmbed = convertirEnLienEmbed(lienBrut);
 
       const nouvelleVideo = {
-        titre: seqTrouvee.seq,
-        sequence: seqTrouvee.seq,
-        sa: seqTrouvee.sa,
-        lien: lien,
         sequenceKey: sequenceKey,
+        saLabel: seqInfo ? seqInfo.sa : "",
+        seqLabel: seqInfo ? seqInfo.seq : "",
+        lien: lienEmbed,
         dateCreation: now,
         actif: true
       };
 
-      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).set(nouvelleVideo)
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + sequenceKey).set(nouvelleVideo)
         .then(function() {
           fermerModalAjout();
           messageAjouter.textContent = "Vidéo ajoutée avec succès !";
+          messageAjouter.classList.remove("error");
           messageAjouter.classList.add("success");
           chargerVideos();
         })
@@ -694,7 +798,7 @@
     function ouvrirModalModif(cle, video) {
       videoActuelle = { cle: cle, ...video };
       titreModalModif.textContent = "Modifier la vidéo";
-      texteSequenceModif.textContent = (video.sa || "") + " - " + (video.sequence || "");
+      texteSequenceModif.textContent = (video.saLabel || "") + " — " + (video.seqLabel || "");
       inputLienModif.value = video.lien || "";
       modalModif.style.display = "flex";
     }
@@ -709,15 +813,15 @@
 
       if (!videoActuelle) return;
 
-      const lien = inputLienModif.value.trim();
+      const lienBrut = inputLienModif.value.trim();
 
-      if (!lien) {
-        alert("Le lien de la vidéo est obligatoire.");
+      if (!lienBrut) {
+        alert("Colle un lien YouTube.");
         return;
       }
 
       const videoModifiee = {
-        lien: lien,
+        lien: convertirEnLienEmbed(lienBrut),
         dateModification: Date.now()
       };
 
@@ -725,6 +829,7 @@
         .then(function() {
           fermerModalModif();
           messageAjouter.textContent = "Vidéo modifiée avec succès !";
+          messageAjouter.classList.remove("error");
           messageAjouter.classList.add("success");
           chargerVideos();
         })
@@ -739,6 +844,7 @@
       db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
         .then(function() {
           messageAjouter.textContent = "Vidéo supprimée avec succès !";
+          messageAjouter.classList.remove("error");
           messageAjouter.classList.add("success");
           chargerVideos();
         })
@@ -772,7 +878,6 @@
       });
     });
 
-    // Initialisation
     (function init() {
       if (!auth || !db) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
