@@ -421,8 +421,33 @@
 
         menuMobile.checked = false;
         window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // On mémorise l'onglet choisi dans l'adresse de la page,
+        // pour qu'un rafraîchissement garde le bon onglet ouvert.
+        history.replaceState(null, "", "#" + onglet.getAttribute("data-section"));
       });
     });
+
+    // Au chargement (ou après un rafraîchissement), on regarde si
+    // l'adresse contient déjà #videos pour rouvrir le bon onglet.
+    (function ouvrirOngletDepuisAdresse() {
+      const cibleId = window.location.hash.replace("#", "");
+      if (!cibleId) return;
+
+      const ongletCible = document.querySelector('.onglet[data-section="' + cibleId + '"]');
+      const sectionCible = document.getElementById(cibleId);
+      if (!ongletCible || !sectionCible) return;
+
+      onglets.forEach(function(element) {
+        element.classList.remove("active");
+      });
+      sections.forEach(function(section) {
+        section.classList.remove("active");
+      });
+
+      ongletCible.classList.add("active");
+      sectionCible.classList.add("active");
+    })();
 
     lienDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
@@ -543,4 +568,4 @@
 
 </body>
   </html>
-                                              
+  
