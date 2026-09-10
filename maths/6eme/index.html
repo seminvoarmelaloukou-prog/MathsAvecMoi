@@ -888,9 +888,372 @@
                 video
               );
               return;
+<script>
+  const onglets =
+    document.querySelectorAll(".onglet");
+
+  const sections =
+    document.querySelectorAll(".section-contenu");
+
+  const lienDeconnexion =
+    document.getElementById("lien-deconnexion");
+
+  const menuMobile =
+    document.getElementById("nav-toggle");
+
+  const conteneurVideos =
+    document.getElementById(
+      "conteneur-videos-dynamiques"
+    );
+
+  const messageAucuneVideo =
+    document.getElementById(
+      "message-aucune-video"
+    );
+
+  /*
+   * 1. Gestion des onglets
+   */
+  onglets.forEach(function(onglet) {
+    onglet.addEventListener("click", function(event) {
+      event.preventDefault();
+
+      const nomSection =
+        onglet.getAttribute("data-section");
+
+      onglets.forEach(function(element) {
+        element.classList.remove("active");
+      });
+
+      sections.forEach(function(section) {
+        section.classList.remove("active");
+      });
+
+      onglet.classList.add("active");
+
+      const section =
+        document.getElementById(nomSection);
+
+      if (section) {
+        section.classList.add("active");
+      }
+
+      if (menuMobile) {
+        menuMobile.checked = false;
+      }
+
+      window.location.hash = nomSection;
+      window.scrollTo(0, 0);
+    });
+  });
+
+  /*
+   * 2. Ouvrir automatiquement l'onglet demandé
+   */
+  function ouvrirOngletInitial() {
+    const hash =
+      window.location.hash.replace("#", "");
+
+    const nomSection =
+      hash === "videos" ? "videos" : "cours";
+
+    const onglet =
+      document.querySelector(
+        '.onglet[data-section="' +
+        nomSection +
+        '"]'
+      );
+
+    const section =
+      document.getElementById(nomSection);
+
+    if (!onglet || !section) {
+      return;
+    }
+
+    onglets.forEach(function(element) {
+      element.classList.remove("active");
+    });
+
+    sections.forEach(function(element) {
+      element.classList.remove("active");
+    });
+
+    onglet.classList.add("active");
+    section.classList.add("active");
+  }
+
+  ouvrirOngletInitial();
+
+  /*
+   * 3. Déconnexion
+   */
+  if (lienDeconnexion) {
+    lienDeconnexion.addEventListener(
+      "click",
+      function(event) {
+        event.preventDefault();
+
+        if (
+          typeof auth !== "undefined" &&
+          auth
+        ) {
+          auth.signOut().then(function() {
+            window.location.href =
+              "../../index.html";
+          });
+        } else {
+          window.location.href =
+            "../../index.html";
+        }
+      }
+    );
+  }
+
+  /*
+   * 4. YouTube
+   */
+  function obtenirIdYouTube(lien) {
+    if (!lien) {
+      return null;
+    }
+
+    try {
+      const url = new URL(lien);
+
+      if (
+        url.hostname.includes("youtube.com")
+      ) {
+        if (
+          url.pathname === "/watch"
+        ) {
+          return url.searchParams.get("v");
+        }
+
+        if (
+          url.pathname.indexOf("/embed/") === 0
+        ) {
+          return url.pathname
+            .replace("/embed/", "")
+            .split("?")[0];
+        }
+      }
+
+      if (
+        url.hostname.includes("youtu.be")
+      ) {
+        return url.pathname
+          .replace("/", "")
+          .split("?")[0];
+      }
+    } catch (erreur) {
+      console.error(
+        "Lien vidéo invalide :",
+        lien
+      );
+    }
+
+    return null;
+  }
+
+  /*
+   * 5. Cours
+   */
+  function chargerCours() {
+    if (
+      typeof db === "undefined" ||
+      !db
+    ) {
+      console.error(
+        "La base Firebase db est indisponible."
+      );
+      return;
+    }
+
+    db.ref(
+      "cours/6e/Mathématiques"
+    )
+      .once("value")
+      .then(function(snapshot) {
+        if (
+          !snapshot ||
+          !snapshot.exists()
+        ) {
+          console.log(
+            "Aucun cours trouvé."
+          );
+          return;
+        }
+
+        const cours =
+          snapshot.val();
+
+        Object.keys(cours).forEach(
+          function(cle) {
+            const coursActuel =
+              cours[cle];
+
+            const carte =
+              document.querySelector(
+                '.devoir[data-key="' +
+                cle +
+                '"]'
+              );
+
+            if (!carte) {
+              console.warn(
+                "Carte introuvable pour :",
+                cle
+              );
+              return;
             }
 
-            nombreVideos++;
+            let contenuHTML = "";
+
+            if (
+              coursActuel.saLabel
+            ) {
+              contenuHTML +=
+                "<p><strong>" +
+                coursActuel.saLabel +
+                "</strong></p>";
+            }
+
+            if (
+              coursActuel.seqLabel
+            ) {
+              contenuHTML +=
+                "<p><strong>" +
+                coursActuel.seqLabel +
+                "</strong></p>";
+            }
+
+            if (
+              coursActuel.contenu
+            ) {
+              contenuHTML +=
+                "<p>" +
+                coursActuel.contenu
+                  .replace(/
+/g, "<br>") +
+                "</p>";
+            }
+
+            if (
+              coursActuel.lien
+            ) {
+              contenuHTML +=
+                "<p>" +
+                "<a class='btn' href='" +
+                coursActuel.lien +
+                "' target='_blank'>" +
+                "📄 Ouvrir le cours" +
+                "</a>" +
+                "</p>";
+            }
+
+            if (
+              coursActuel.image
+            ) {
+              contenuHTML +=
+                "<img src='" +
+                coursActuel.image +
+                "' alt='Illustration du cours'>";
+            }
+
+            if (coursActuel.video) {
+              const id =
+                obtenirIdYouTube(
+                  coursActuel.video
+                );
+
+              if (id) {
+                contenuHTML +=
+                  "<div class='video-container'>" +
+                  "<iframe src='" +
+                  "https://www.youtube-nocookie.com/embed/" +
+                  id +
+                  "' allowfullscreen></iframe>" +
+                  "</div>";
+              }
+            }
+
+            if (contenuHTML) {
+              carte.innerHTML =
+                contenuHTML;
+            }
+          }
+        );
+      })
+      .catch(function(erreur) {
+        console.error(
+          "Erreur cours :",
+          erreur
+        );
+      });
+  }
+
+  /*
+   * 6. Vidéos
+   */
+  function chargerVideos() {
+    if (
+      !conteneurVideos ||
+      typeof db === "undefined" ||
+      !db
+    ) {
+      console.error(
+        "Conteneur vidéo ou Firebase introuvable."
+      );
+      return;
+    }
+
+    conteneurVideos.innerHTML = "";
+
+    if (messageAucuneVideo) {
+      messageAucuneVideo.style.display =
+        "none";
+    }
+
+    db.ref(
+      "videos/6e/Mathématiques"
+    )
+      .once("value")
+      .then(function(snapshot) {
+        if (
+          !snapshot ||
+          !snapshot.exists()
+        ) {
+          if (messageAucuneVideo) {
+            messageAucuneVideo.style.display =
+              "block";
+          }
+          return;
+        }
+
+        const videos =
+          snapshot.val();
+
+        let total = 0;
+
+        Object.keys(videos).forEach(
+          function(cle) {
+            const video =
+              videos[cle];
+
+            const lien =
+              video.lien ||
+              video.video ||
+              "";
+
+            const id =
+              obtenirIdYouTube(lien);
+
+            if (!id) {
+              return;
+            }
+
+            total++;
 
             const bloc =
               document.createElement("div");
@@ -905,29 +1268,14 @@
               video.seqLabel ||
               video.sequence ||
               video.titre ||
-              "Vidéo du cours";
+              "Vidéo";
 
             bloc.appendChild(titre);
 
-            const sa =
-              video.saLabel ||
-              video.sa ||
-              "";
-
-            if (sa) {
-              const texteSA =
-                document.createElement("h4");
-
-              texteSA.textContent =
-                sa;
-
-              bloc.appendChild(texteSA);
-            }
-
-            const conteneur =
+            const lecteur =
               document.createElement("div");
 
-            conteneur.className =
+            lecteur.className =
               "video-container";
 
             const iframe =
@@ -935,13 +1283,10 @@
 
             iframe.src =
               "https://www.youtube-nocookie.com/embed/" +
-              encodeURIComponent(idVideo);
+              id;
 
             iframe.title =
               titre.textContent;
-
-            iframe.loading =
-              "lazy";
 
             iframe.allow =
               "accelerometer; autoplay; " +
@@ -951,22 +1296,14 @@
             iframe.allowFullscreen =
               true;
 
-            conteneur.appendChild(
-              iframe
-            );
-
-            bloc.appendChild(
-              conteneur
-            );
-
-            conteneurVideosDynamiques.appendChild(
-              bloc
-            );
+            lecteur.appendChild(iframe);
+            bloc.appendChild(lecteur);
+            conteneurVideos.appendChild(bloc);
           }
         );
 
         if (
-          nombreVideos === 0 &&
+          total === 0 &&
           messageAucuneVideo
         ) {
           messageAucuneVideo.style.display =
@@ -975,7 +1312,7 @@
       })
       .catch(function(erreur) {
         console.error(
-          "Erreur chargement vidéos :",
+          "Erreur vidéos :",
           erreur
         );
 
@@ -987,30 +1324,28 @@
   }
 
   /*
-   * Initialisation Firebase.
+   * 7. Initialisation
    */
-  function lancerPageEleve() {
-    chargerCoursDynamiques();
-    chargerVideosDynamiques();
+  function demarrer() {
+    chargerCours();
+    chargerVideos();
   }
 
   if (
     typeof auth !== "undefined" &&
     auth
   ) {
-    auth.onAuthStateChanged(
-      function(user) {
-        if (!user) {
-          window.location.href =
-            "../../connexion.html";
-          return;
-        }
-
-        lancerPageEleve();
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href =
+          "../../connexion.html";
+        return;
       }
-    );
+
+      demarrer();
+    });
   } else {
-    lancerPageEleve();
+    demarrer();
   }
 </script>
 
