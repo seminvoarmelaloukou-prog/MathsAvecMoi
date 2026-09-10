@@ -120,6 +120,7 @@
     }
 
     button:hover { background: var(--indigo-dark); }
+    button:disabled { background: var(--gris); cursor: not-allowed; }
 
     button.secondaire {
       background: #e3e7f6;
@@ -160,6 +161,17 @@
     .cours-item h3 {
       font-size: 16px;
       color: var(--indigo);
+      margin-bottom: 4px;
+    }
+
+    .cours-item .sa-badge {
+      display: inline-block;
+      background: #e3e7f6;
+      color: var(--indigo);
+      font-size: 11px;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 10px;
       margin-bottom: 8px;
     }
 
@@ -213,6 +225,15 @@
     }
 
     .modal-content .form-row > * { flex: 1; min-width: 200px; }
+    .modal-content select { width: 100%; }
+
+    .modal-content .aide {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -8px;
+      margin-bottom: 10px;
+      display: block;
+    }
 
     .modal-buttons {
       display: flex;
@@ -226,7 +247,7 @@
       nav ul { justify-content: center; }
       main { margin: 20px auto; padding: 0 14px; }
       .row { flex-direction: column; align-items: stretch; }
-      input[type="text"], input[type="url"] { min-width: 0; width: 100%; }
+      input[type="text"], input[type="url"], select { min-width: 0; width: 100%; }
       .modal-buttons { flex-direction: column; }
     }
   </style>
@@ -238,6 +259,7 @@
     <h1>Admin - Gestion des cours</h1>
     <ul>
       <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="admin-videos.html">Vidéos</a></li>
       <li><a href="admin-eleves.html">Élèves</a></li>
       <li><a href="admin-resultats.html">Résultats</a></li>
       <li><a href="index.html">Accueil</a></li>
@@ -257,7 +279,7 @@
 
     <section class="card" id="card-ajouter-cours" style="display: none;">
       <h2>Ajouter un cours</h2>
-      <p>Ajoute un nouveau cours pour une classe et une matière.</p>
+      <p>Choisis une classe et une matière pour voir les séquences à remplir.</p>
 
       <div class="row">
         <label for="select-classe-cours">Classe :</label>
@@ -317,7 +339,6 @@
 
   </main>
 
-  <!-- Modal ajout cours -->
   <div class="modal" id="modal-ajout-cours">
     <div class="modal-content">
       <h3 id="titre-modal-ajout">Ajouter un cours</h3>
@@ -325,29 +346,27 @@
       <form id="form-ajout-cours">
         <div class="form-row">
           <div>
-            <label for="input-titre-cours">Titre du cours *</label>
-            <input type="text" id="input-titre-cours" required />
+            <label for="select-sequence-cours">Séquence *</label>
+            <select id="select-sequence-cours" required>
+              <option value="">Choisir une séquence</option>
+            </select>
+            <span class="aide" id="aide-sequence-cours"></span>
           </div>
         </div>
 
         <div class="form-row">
           <div>
-            <label for="input-contenu-cours">Contenu (texte) *</label>
-            <textarea id="input-contenu-cours" required></textarea>
+            <label for="input-lien-cours">Lien du cours (optionnel)</label>
+            <input type="url" id="input-lien-cours" placeholder="https://... (PDF, Google Doc, vidéo...)" />
+            <span class="aide">Colle ici le lien vers ton cours déjà préparé, si tu en as un.</span>
           </div>
         </div>
 
         <div class="form-row">
           <div>
-            <label for="input-fichier-cours">Lien vers le fichier (PDF/Word, optionnel)</label>
-            <input type="url" id="input-fichier-cours" placeholder="https://ton-site.com/cours/6e/chap1.pdf" />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div>
-            <label for="input-video-cours">Lien vidéo (YouTube, optionnel)</label>
-            <input type="url" id="input-video-cours" placeholder="https://www.youtube.com/watch?v=..." />
+            <label for="input-contenu-cours">Contenu (texte, HTML autorisé)</label>
+            <textarea id="input-contenu-cours" style="min-height:200px;"></textarea>
+            <span class="aide">Facultatif si tu as déjà mis un lien ci-dessus. Sinon, remplis ce champ.</span>
           </div>
         </div>
 
@@ -366,7 +385,6 @@
     </div>
   </div>
 
-  <!-- Modal modification cours -->
   <div class="modal" id="modal-modif-cours">
     <div class="modal-content">
       <h3 id="titre-modal-modif">Modifier le cours</h3>
@@ -374,29 +392,24 @@
       <form id="form-modif-cours">
         <div class="form-row">
           <div>
-            <label for="input-titre-modif">Titre du cours *</label>
-            <input type="text" id="input-titre-modif" required />
+            <label>Séquence</label>
+            <p id="texte-sequence-modif" style="font-weight:bold; color: var(--indigo);"></p>
           </div>
         </div>
 
         <div class="form-row">
           <div>
-            <label for="input-contenu-modif">Contenu (texte) *</label>
-            <textarea id="input-contenu-modif" required></textarea>
+            <label for="input-lien-modif">Lien du cours (optionnel)</label>
+            <input type="url" id="input-lien-modif" placeholder="https://... (PDF, Google Doc, vidéo...)" />
+            <span class="aide">Colle ici le lien vers ton cours déjà préparé, si tu en as un.</span>
           </div>
         </div>
 
         <div class="form-row">
           <div>
-            <label for="input-fichier-modif">Lien vers le fichier (PDF/Word, optionnel)</label>
-            <input type="url" id="input-fichier-modif" placeholder="https://ton-site.com/cours/6e/chap1.pdf" />
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div>
-            <label for="input-video-modif">Lien vidéo (YouTube, optionnel)</label>
-            <input type="url" id="input-video-modif" placeholder="https://www.youtube.com/watch?v=..." />
+            <label for="input-contenu-modif">Contenu (texte, HTML autorisé)</label>
+            <textarea id="input-contenu-modif" style="min-height:200px;"></textarea>
+            <span class="aide">Facultatif si tu as déjà mis un lien ci-dessus.</span>
           </div>
         </div>
 
@@ -416,6 +429,128 @@
   </div>
 
   <script>
+    // ===================================================================
+    // Séquences officielles par classe (Mathématiques), reprises exactement
+    // des pages de cours existantes. Chaque cours ajouté ici remplit une
+    // séquence précise (clé = sequenceKey utilisée aussi côté page élève).
+    // ===================================================================
+    const SEQUENCES_PAR_CLASSE = {
+      "6e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 1 - Cube et pavé droit" },
+          { key: "sa1_seq2", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 2 - Cône de révolution" },
+          { key: "sa1_seq3", sa: "SA 1 - Configurations de l’espace", seq: "Séquence 3 - Sphère" },
+          { key: "sa2_seq1", sa: "SA 2 - Configurations du plan", seq: "Séquence 1 - Droites du plan" },
+          { key: "sa2_seq2", sa: "SA 2 - Configurations du plan", seq: "Séquence 2 - Segment de droite" },
+          { key: "sa2_seq3", sa: "SA 2 - Configurations du plan", seq: "Séquence 3 - Cercle" },
+          { key: "sa2_seq4", sa: "SA 2 - Configurations du plan", seq: "Séquence 4 - Angles" },
+          { key: "sa2_seq5", sa: "SA 2 - Configurations du plan", seq: "Séquence 5 - Triangles" },
+          { key: "sa2_seq6", sa: "SA 2 - Configurations du plan", seq: "Séquence 6 - Parallélogramme" },
+          { key: "sa2_seq7", sa: "SA 2 - Configurations du plan", seq: "Séquence 7 - Entiers naturels" },
+          { key: "sa2_seq8", sa: "SA 2 - Configurations du plan", seq: "Séquence 8 - Nombres décimaux" },
+          { key: "sa2_seq9", sa: "SA 2 - Configurations du plan", seq: "Séquence 9 - Fractions" },
+          { key: "sa2_seq11", sa: "SA 2 - Configurations du plan", seq: "Séquence 11 - Calcul littéral" },
+          { key: "sa3_seq1", sa: "SA 3 - Applications du plan", seq: "Séquence 1 - Figures symétriques par rapport à une droite" },
+          { key: "sa3_seq2", sa: "SA 3 - Applications du plan", seq: "Séquence 2 - Figures symétriques par rapport à un point" },
+          { key: "sa3_seq3", sa: "SA 3 - Applications du plan", seq: "Séquence 3 - Glissement" },
+          { key: "sa4_seq1", sa: "SA 4 - Organisation des données", seq: "Séquence 1 - Proportionnalité" },
+          { key: "sa4_seq2", sa: "SA 4 - Organisation des données", seq: "Séquence 2 - Statistiques" }
+        ]
+      },
+      "5e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 1 — Prisme droit" },
+          { key: "sa1_seq2", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 2 — Division dans ℕ – Nombres premiers" },
+          { key: "sa2_seq1", sa: "SA 2 — Configurations du plan", seq: "Séquence 1 — Distance" },
+          { key: "sa2_seq2", sa: "SA 2 — Configurations du plan", seq: "Séquence 2 — Angles" },
+          { key: "sa2_seq3", sa: "SA 2 — Configurations du plan", seq: "Séquence 3 — Triangles" },
+          { key: "sa2_seq4", sa: "SA 2 — Configurations du plan", seq: "Séquence 4 — Cercle" },
+          { key: "sa2_seq5", sa: "SA 2 — Configurations du plan", seq: "Séquence 5 — Parallélogrammes" },
+          { key: "sa2_seq6", sa: "SA 2 — Configurations du plan", seq: "Séquence 6 — Polygones particuliers" },
+          { key: "sa2_seq7", sa: "SA 2 — Configurations du plan", seq: "Séquence 7 — Nombres décimaux relatifs" },
+          { key: "sa2_seq8", sa: "SA 2 — Configurations du plan", seq: "Séquence 8 — Fractions" },
+          { key: "sa2_seq9", sa: "SA 2 — Configurations du plan", seq: "Séquence 9 — Puissance" },
+          { key: "sa3_seq1", sa: "SA 3 — Applications du plan", seq: "Séquence 1 — Figures symétriques par rapport à une droite" },
+          { key: "sa3_seq2", sa: "SA 3 — Applications du plan", seq: "Séquence 2 — Figures symétriques par rapport à un point" },
+          { key: "sa3_seq3", sa: "SA 3 — Applications du plan", seq: "Séquence 3 — Glissement" },
+          { key: "sa4_seq1", sa: "SA 4 — Organisation des données", seq: "Séquence 1 — Équations" },
+          { key: "sa4_seq2", sa: "SA 4 — Organisation des données", seq: "Séquence 2 — Proportionnalité" }
+        ]
+      },
+      "4e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA1 — Configurations du plan", seq: "Séquence 1 : Angle au centre d’un cercle" },
+          { key: "sa1_seq2", sa: "SA1 — Configurations du plan", seq: "Séquence 2 : Distance" },
+          { key: "sa1_seq3", sa: "SA1 — Configurations du plan", seq: "Séquence 3 : Triangles" },
+          { key: "sa1_seq4", sa: "SA1 — Configurations du plan", seq: "Séquence 4 : Polygones réguliers" },
+          { key: "sa1_seq5", sa: "SA1 — Configurations du plan", seq: "Séquence 5 : Nombres décimaux" },
+          { key: "sa1_seq6", sa: "SA1 — Configurations du plan", seq: "Séquence 6 : Nombres rationnels" },
+          { key: "sa1_seq7", sa: "SA1 — Configurations du plan", seq: "Séquence 7 : Puissances" },
+          { key: "sa1_seq8", sa: "SA1 — Configurations du plan", seq: "Séquence 8 : Calculs sur les expressions algébriques" },
+          { key: "sa2_seq1", sa: "SA2 — Configurations de l’espace", seq: "Séquence 1 : Pyramide" },
+          { key: "sa2_seq2", sa: "SA2 — Configurations de l’espace", seq: "Séquence 2 : Cône de révolution" },
+          { key: "sa2_seq3", sa: "SA2 — Configurations de l’espace", seq: "Séquence 3 : Perspective cavalière" },
+          { key: "sa2_seq4", sa: "SA2 — Configurations de l’espace", seq: "Séquence 4 : Boule et Sphère" },
+          { key: "sa2_seq5", sa: "SA2 — Configurations de l’espace", seq: "Séquence 5 : Notion de droites et plans" },
+          { key: "sa2_seq6", sa: "SA2 — Configurations de l’espace", seq: "Séquence 6 : PPCM et PGCD" },
+          { key: "sa3_seq1", sa: "SA3 — Applications du plan", seq: "Séquence 1 : Symétrie centrale" },
+          { key: "sa3_seq2", sa: "SA3 — Applications du plan", seq: "Séquence 2 : Symétrie orthogonale" },
+          { key: "sa3_seq3", sa: "SA3 — Applications du plan", seq: "Séquence 3 : Translation" },
+          { key: "sa3_seq4", sa: "SA3 — Applications du plan", seq: "Séquence 4 : Projection" },
+          { key: "sa4_seq1", sa: "SA4 — Organisation des données", seq: "Séquence 1 : Équations et inéquations" },
+          { key: "sa4_seq2", sa: "SA4 — Organisation des données", seq: "Séquence 2 : Proportionnalité" },
+          { key: "sa4_seq3", sa: "SA4 — Organisation des données", seq: "Séquence 3 : Statistique" }
+        ]
+      },
+      "3e": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Triangles", seq: "Séquence 1 — Nombres réels" },
+          { key: "sa1_seq2", sa: "SA 1 — Triangles", seq: "Séquence 2 — Valeur absolue" },
+          { key: "sa1_seq3", sa: "SA 1 — Triangles", seq: "Séquence 3 — Trigonométrie (déjà rempli)" },
+          { key: "sa1_seq4", sa: "SA 1 — Triangles", seq: "Séquence 4 — Thalès" },
+          { key: "sa1_seq5", sa: "SA 1 — Triangles", seq: "Séquence 5 — Triangles semblables" },
+          { key: "sa1_seq6", sa: "SA 1 — Triangles", seq: "Séquence 6 — Triangle rectangle" },
+          { key: "sa1_seq7", sa: "SA 1 — Triangles", seq: "Séquence 7 — Angles et cercles" },
+          { key: "sa2_seq1", sa: "SA 2 — Configurations de l’espace", seq: "Séquence 1 — Cône de révolution" },
+          { key: "sa2_seq2", sa: "SA 2 — Configurations de l’espace", seq: "Séquence 2 — Sections planes" },
+          { key: "sa3_seq1", sa: "SA 3 — Calcul littéral", seq: "Séquence 1 — Polynômes" },
+          { key: "sa3_seq2", sa: "SA 3 — Calcul littéral", seq: "Séquence 2 — Équations de droite (déjà rempli)" },
+          { key: "sa3_seq3", sa: "SA 3 — Calcul littéral", seq: "Séquence 3 — Équations - Inéquations" },
+          { key: "sa3_seq4", sa: "SA 3 — Calcul littéral", seq: "Séquence 4 — Vecteurs" },
+          { key: "sa3_seq5", sa: "SA 3 — Calcul littéral", seq: "Séquence 5 — Coordonnées de vecteurs (déjà rempli)" },
+          { key: "sa4_seq1", sa: "SA 4 — Organisation des données", seq: "Séquence 1 — Application affine" },
+          { key: "sa4_seq2", sa: "SA 4 — Organisation des données", seq: "Séquence 2 — Application linéaire" },
+          { key: "sa4_seq3", sa: "SA 4 — Organisation des données", seq: "Séquence 3 — Statistique / Probabilités" }
+        ]
+      },
+      "2de D": {
+        "Mathématiques": [
+          { key: "sa1_seq1", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 1 — Représentation dans le plan" },
+          { key: "sa1_seq2", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 2 — Positions relatives droite/plan" },
+          { key: "sa1_seq3", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 3 — Positions relatives de deux plans" },
+          { key: "sa1_seq4", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 4 — Positions relatives de deux droites" },
+          { key: "sa1_seq5", sa: "SA 1 — Configurations de l’espace", seq: "Séquence 5 — Parallélisme" },
+          { key: "sa2_seq1", sa: "SA 2 — Organisation des données", seq: "Séquence 1 — Calcul dans ℝ" },
+          { key: "sa2_seq2", sa: "SA 2 — Organisation des données", seq: "Séquence 2 — Généralités sur les fonctions" },
+          { key: "sa2_seq3", sa: "SA 2 — Organisation des données", seq: "Séquence 3 — Applications" },
+          { key: "sa2_seq4", sa: "SA 2 — Organisation des données", seq: "Séquence 4 — Étude de quelques fonctions" },
+          { key: "sa2_seq5", sa: "SA 2 — Organisation des données", seq: "Séquence 5 — Équations et inéquations dans ℝ" },
+          { key: "sa2_seq6", sa: "SA 2 — Organisation des données", seq: "Séquence 6 — Statistique" },
+          { key: "sa2_seq7", sa: "SA 2 — Organisation des données", seq: "Séquence 7 — Polynômes et fractions rationnelles" },
+          { key: "sa3_seq1", sa: "SA 3 — Lieux géométriques", seq: "Séquence 1 — Vecteurs du plan" },
+          { key: "sa3_seq2", sa: "SA 3 — Lieux géométriques", seq: "Séquence 2 — Droites dans le plan" },
+          { key: "sa3_seq3", sa: "SA 3 — Lieux géométriques", seq: "Séquence 3 — Homothétie" },
+          { key: "sa3_seq4", sa: "SA 3 — Lieux géométriques", seq: "Séquence 4 — Symétries – translation" },
+          { key: "sa3_seq5", sa: "SA 3 — Lieux géométriques", seq: "Séquence 5 — Angles inscrits" },
+          { key: "sa3_seq6", sa: "SA 3 — Lieux géométriques", seq: "Séquence 6 — Angles orientés – Trigonométrie" },
+          { key: "sa3_seq7", sa: "SA 3 — Lieux géométriques", seq: "Séquence 7 — Produit scalaire" },
+          { key: "sa3_seq8", sa: "SA 3 — Lieux géométriques", seq: "Séquence 8 — Rotation" },
+          { key: "sa3_seq9", sa: "SA 3 — Lieux géométriques", seq: "Séquence 9 — Cercles dans le plan" },
+          { key: "sa3_seq10", sa: "SA 3 — Lieux géométriques", seq: "Séquence 10 — Équations et inéquations dans ℝ×ℝ" }
+        ]
+      }
+    };
+
     const cardAdminCheck = document.getElementById("card-admin-check");
     const cardAjouterCours = document.getElementById("card-ajouter-cours");
     const cardListeCours = document.getElementById("card-liste-cours");
@@ -440,20 +575,19 @@
     const modalAjout = document.getElementById("modal-ajout-cours");
     const titreModalAjout = document.getElementById("titre-modal-ajout");
     const formAjoutCours = document.getElementById("form-ajout-cours");
-    const inputTitreCours = document.getElementById("input-titre-cours");
+    const selectSequenceCours = document.getElementById("select-sequence-cours");
+    const aideSequenceCours = document.getElementById("aide-sequence-cours");
+    const inputLienCours = document.getElementById("input-lien-cours");
     const inputContenuCours = document.getElementById("input-contenu-cours");
-    const inputFichierCours = document.getElementById("input-fichier-cours");
-    const inputVideoCours = document.getElementById("input-video-cours");
     const inputImageCours = document.getElementById("input-image-cours");
     const btnAnnulerAjout = document.getElementById("btn-annuler-ajout");
 
     const modalModif = document.getElementById("modal-modif-cours");
     const titreModalModif = document.getElementById("titre-modal-modif");
     const formModifCours = document.getElementById("form-modif-cours");
-    const inputTitreModif = document.getElementById("input-titre-modif");
+    const texteSequenceModif = document.getElementById("texte-sequence-modif");
+    const inputLienModif = document.getElementById("input-lien-modif");
     const inputContenuModif = document.getElementById("input-contenu-modif");
-    const inputFichierModif = document.getElementById("input-fichier-modif");
-    const inputVideoModif = document.getElementById("input-video-modif");
     const inputImageModif = document.getElementById("input-image-modif");
     const btnAnnulerModif = document.getElementById("btn-annuler-modif");
 
@@ -471,23 +605,23 @@
     function verifierAdmin() {
       if (!db || !auth) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
-        return;
+        return Promise.reject(new Error("Firebase non configuré"));
       }
 
       const user = auth.currentUser;
       if (!user) {
         afficherErreurAdmin("Tu dois être connecté en tant qu'administrateur.");
         window.location.href = "connexion.html";
-        return;
+        return Promise.reject(new Error("Pas connecté"));
       }
 
       adminUid = user.uid;
 
-      db.ref("administrateurs/" + adminUid).once("value")
+      return db.ref("administrateurs/" + adminUid).once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) {
             afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
-            return;
+            throw new Error("Pas admin");
           }
 
           const adminData = snap.val();
@@ -495,11 +629,37 @@
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
           cardAjouterCours.style.display = "block";
-        })
-        .catch(function(err) {
-          console.error("Erreur vérification admin :", err);
-          afficherErreurAdmin("Erreur lors de la vérification : " + (err.message || "inconnue"));
         });
+    }
+
+    function getSequencesActuelles() {
+      if (!classeSelectionnee || !matiereSelectionnee) return null;
+      const parClasse = SEQUENCES_PAR_CLASSE[classeSelectionnee];
+      if (!parClasse) return null;
+      return parClasse[matiereSelectionnee] || null;
+    }
+
+    function peuplerSelectSequence() {
+      selectSequenceCours.innerHTML = "<option value=''>Choisir une séquence</option>";
+      const sequences = getSequencesActuelles();
+
+      if (!sequences) {
+        aideSequenceCours.textContent = "Les séquences ne sont pas encore configurées pour " + classeSelectionnee + " - " + matiereSelectionnee + ".";
+        selectSequenceCours.disabled = true;
+        return false;
+      }
+
+      aideSequenceCours.textContent = "";
+      selectSequenceCours.disabled = false;
+
+      sequences.forEach(function(s) {
+        const option = document.createElement("option");
+        option.value = s.key;
+        option.textContent = s.sa + " — " + s.seq;
+        selectSequenceCours.appendChild(option);
+      });
+
+      return true;
     }
 
     btnVoirCours.addEventListener("click", function() {
@@ -516,12 +676,19 @@
       matiereSelectionnee = matiere;
 
       messageAjouter.textContent = "";
+      messageAjouter.classList.remove("error", "success");
       cardListeCours.style.display = "block";
       titreListeCours.textContent = "Cours - " + classe + " - " + matiere;
       sousTitreListeCours.textContent = "Gère les cours pour cette classe et matière.";
 
       chargerCours();
     });
+
+    function libelleSequence(cle) {
+      const sequences = getSequencesActuelles();
+      if (!sequences) return null;
+      return sequences.find(function(s) { return s.key === cle; }) || null;
+    }
 
     function chargerCours() {
       loaderCours.style.display = "block";
@@ -557,24 +724,26 @@
             const div = document.createElement("div");
             div.className = "cours-item";
 
+            const badge = document.createElement("span");
+            badge.className = "sa-badge";
+            badge.textContent = c.saLabel || "";
+            div.appendChild(badge);
+
             const h3 = document.createElement("h3");
-            h3.textContent = c.titre || "Sans titre";
+            h3.textContent = c.seqLabel || c.titre || "Séquence";
             div.appendChild(h3);
 
-            const pContenu = document.createElement("p");
-            pContenu.textContent = (c.contenu || "").substring(0, 150) + ((c.contenu || "").length > 150 ? "..." : "");
-            div.appendChild(pContenu);
-
-            if (c.fichier) {
-              const pFichier = document.createElement("p");
-              pFichier.innerHTML = "📄 <a href='" + c.fichier + "' target='_blank'>Télécharger le cours (PDF/Word)</a>";
-              div.appendChild(pFichier);
+            if (c.lien) {
+              const pLien = document.createElement("p");
+              pLien.innerHTML = "🔗 <a href='" + c.lien + "' target='_blank'>Ouvrir le cours (lien)</a>";
+              div.appendChild(pLien);
             }
 
-            if (c.video) {
-              const pVideo = document.createElement("p");
-              pVideo.innerHTML = "🎥 <a href='" + c.video + "' target='_blank'>Voir la vidéo</a>";
-              div.appendChild(pVideo);
+            if (c.contenu) {
+              const pContenu = document.createElement("p");
+              const texteBrut = c.contenu.replace(/<[^>]*>/g, " ");
+              pContenu.textContent = texteBrut.substring(0, 150) + (texteBrut.length > 150 ? "..." : "");
+              div.appendChild(pContenu);
             }
 
             if (c.image) {
@@ -620,6 +789,7 @@
     function ouvrirModalAjout() {
       titreModalAjout.textContent = "Ajouter un cours - " + classeSelectionnee + " - " + matiereSelectionnee;
       formAjoutCours.reset();
+      peuplerSelectSequence();
       modalAjout.style.display = "flex";
     }
 
@@ -630,40 +800,46 @@
     formAjoutCours.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const titre = inputTitreCours.value.trim();
+      const sequenceKey = selectSequenceCours.value;
+      const lien = inputLienCours.value.trim();
       const contenu = inputContenuCours.value.trim();
-      const fichier = inputFichierCours.value.trim();
-      const video = inputVideoCours.value.trim();
       const image = inputImageCours.value.trim();
 
-      if (!titre || !contenu) {
-        alert("Titre et contenu sont obligatoires.");
+      if (!sequenceKey) {
+        alert("Choisis une séquence.");
         return;
       }
 
+      if (!lien && !contenu) {
+        alert("Ajoute soit un lien vers ton cours, soit un contenu texte (au moins l'un des deux).");
+        return;
+      }
+
+      const seqInfo = libelleSequence(sequenceKey);
       const now = Date.now();
-      const cle = "cours_" + now;
 
       const nouveauCours = {
-        titre: titre,
-        contenu: contenu,
-        fichier: fichier || "",
-        video: video || "",
+        sequenceKey: sequenceKey,
+        saLabel: seqInfo ? seqInfo.sa : "",
+        seqLabel: seqInfo ? seqInfo.seq : "",
+        lien: lien || "",
+        contenu: contenu || "",
         image: image || "",
         dateCreation: now,
         actif: true
       };
 
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).set(nouveauCours)
+      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + sequenceKey).set(nouveauCours)
         .then(function() {
           fermerModalAjout();
           messageAjouter.textContent = "Cours ajouté avec succès !";
+          messageAjouter.classList.remove("error");
           messageAjouter.classList.add("success");
           chargerCours();
         })
         .catch(function(erreur) {
           console.error("Erreur ajout cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de l'ajout.";
+          messageAjouter.textContent = "Erreur lors de l'ajout : " + (erreur.message || "inconnue");
           messageAjouter.classList.add("error");
         });
     });
@@ -671,10 +847,9 @@
     function ouvrirModalModif(cle, cours) {
       coursActuel = { cle: cle, ...cours };
       titreModalModif.textContent = "Modifier le cours";
-      inputTitreModif.value = cours.titre || "";
+      texteSequenceModif.textContent = (cours.saLabel || "") + " — " + (cours.seqLabel || "");
+      inputLienModif.value = cours.lien || "";
       inputContenuModif.value = cours.contenu || "";
-      inputFichierModif.value = cours.fichier || "";
-      inputVideoModif.value = cours.video || "";
       inputImageModif.value = cours.image || "";
       modalModif.style.display = "flex";
     }
@@ -689,22 +864,18 @@
 
       if (!coursActuel) return;
 
-      const titre = inputTitreModif.value.trim();
+      const lien = inputLienModif.value.trim();
       const contenu = inputContenuModif.value.trim();
-      const fichier = inputFichierModif.value.trim();
-      const video = inputVideoModif.value.trim();
       const image = inputImageModif.value.trim();
 
-      if (!titre || !contenu) {
-        alert("Titre et contenu sont obligatoires.");
+      if (!lien && !contenu) {
+        alert("Ajoute soit un lien vers ton cours, soit un contenu texte (au moins l'un des deux).");
         return;
       }
 
       const coursModifie = {
-        titre: titre,
+        lien: lien,
         contenu: contenu,
-        fichier: fichier,
-        video: video,
         image: image,
         dateModification: Date.now()
       };
@@ -713,6 +884,7 @@
         .then(function() {
           fermerModalModif();
           messageAjouter.textContent = "Cours modifié avec succès !";
+          messageAjouter.classList.remove("error");
           messageAjouter.classList.add("success");
           chargerCours();
         })
@@ -727,6 +899,7 @@
       db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
         .then(function() {
           messageAjouter.textContent = "Cours supprimé avec succès !";
+          messageAjouter.classList.remove("error");
           messageAjouter.classList.add("success");
           chargerCours();
         })
@@ -760,7 +933,6 @@
       });
     });
 
-    // Initialisation
     (function init() {
       if (!auth || !db) {
         afficherErreurAdmin("Firebase n'est pas correctement configuré.");
@@ -785,3 +957,4 @@
 
 </body>
 </html>
+  
