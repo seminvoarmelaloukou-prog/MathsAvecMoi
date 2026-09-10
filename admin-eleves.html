@@ -570,4 +570,1342 @@
 
   </main>
 
-  
+    <!-- Modal suppression -->
+  <div class="modal" id="modal-confirmer-suppression">
+    <div class="modal-content">
+      <h3>Confirmer la suppression</h3>
+
+      <p id="texte-modal-suppression">
+        Veux-tu vraiment supprimer cet élève ?
+      </p>
+
+      <div class="modal-buttons">
+        <button
+          type="button"
+          class="secondaire"
+          id="btn-annuler-suppression">
+          Annuler
+        </button>
+
+        <button
+          type="button"
+          class="danger"
+          id="btn-confirmer-suppression">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal modification -->
+  <div class="modal" id="modal-modifier-eleve">
+    <div class="modal-content">
+      <h3>Modifier l'élève</h3>
+
+      <p>
+        Modifie les informations de l'élève.
+        Le mot de passe reste inchangé s'il est vide.
+      </p>
+
+      <form id="form-modifier-eleve">
+
+        <div class="row">
+          <label for="modif-nom">Nom :</label>
+          <input type="text" id="modif-nom" required>
+
+          <label for="modif-prenom">Prénom :</label>
+          <input type="text" id="modif-prenom" required>
+        </div>
+
+        <div class="row">
+          <label for="modif-email">Email :</label>
+          <input type="email" id="modif-email" required>
+
+          <label for="modif-identifiant">Identifiant :</label>
+          <input type="text" id="modif-identifiant" required>
+        </div>
+
+        <div class="row">
+          <label for="modif-classe">Classe :</label>
+
+          <select id="modif-classe" required>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="modif-pays">Pays :</label>
+          <input type="text" id="modif-pays" placeholder="Bénin">
+
+          <label for="modif-indicatif-pays">Indicatif :</label>
+          <input
+            type="tel"
+            id="modif-indicatif-pays"
+            placeholder="229"
+            inputmode="numeric"
+          >
+
+          <label for="modif-telephone-local">
+            Téléphone :
+          </label>
+
+          <input
+            type="tel"
+            id="modif-telephone-local"
+            placeholder="07000000"
+            inputmode="tel"
+          >
+        </div>
+
+        <div class="row">
+          <label for="modif-telephone-international">
+            Téléphone international :
+          </label>
+
+          <input
+            type="tel"
+            id="modif-telephone-international"
+            readonly
+          >
+        </div>
+
+        <div class="row">
+          <label for="modif-mot-de-passe">
+            Nouveau mot de passe :
+          </label>
+
+          <input
+            type="password"
+            id="modif-mot-de-passe"
+            placeholder="Laisser vide pour ne pas changer"
+          >
+        </div>
+
+        <div class="modal-buttons">
+          <button
+            type="button"
+            class="secondaire"
+            id="btn-annuler-modification">
+            Annuler
+          </button>
+
+          <button
+            type="submit"
+            class="warning">
+            Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal WhatsApp -->
+  <div class="modal" id="modal-whatsapp">
+    <div class="modal-content">
+      <h3>Envoyer un message WhatsApp</h3>
+
+      <p id="whatsapp-destinataire"></p>
+
+      <label for="whatsapp-message">Message :</label>
+
+      <textarea
+        id="whatsapp-message"
+        placeholder="Écris ton message ici...">
+      </textarea>
+
+      <div class="modal-buttons">
+        <button
+          type="button"
+          class="secondaire"
+          id="btn-annuler-whatsapp">
+          Annuler
+        </button>
+
+        <button
+          type="button"
+          class="btn-whatsapp"
+          id="btn-ouvrir-whatsapp">
+          Ouvrir WhatsApp
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CLASSES = [
+      "6e",
+      "5e",
+      "4e",
+      "3e",
+      "2de AB",
+      "2de C",
+      "2de D",
+      "2de E",
+      "1re AB",
+      "1re C",
+      "1re D",
+      "1re E",
+      "Tle AB",
+      "Tle C",
+      "Tle D",
+      "Tle E"
+    ];
+
+    function obtenir(id) {
+      return document.getElementById(id);
+    }
+
+    function remplirListeClasses() {
+      const inputClasse = obtenir("input-classe");
+      const filtreClasse = obtenir("select-classe");
+      const modifClasse = obtenir("modif-classe");
+      const actionClasse = obtenir("action-masse-classe");
+
+      inputClasse.innerHTML =
+        '<option value="">Choisir une classe</option>';
+
+      filtreClasse.innerHTML =
+        '<option value="">Toutes les classes</option>';
+
+      modifClasse.innerHTML = "";
+
+      actionClasse.innerHTML = "";
+
+      CLASSES.forEach(function(classe) {
+        const optionCreation = document.createElement("option");
+        optionCreation.value = classe;
+        optionCreation.textContent = classe;
+        inputClasse.appendChild(optionCreation);
+
+        const optionFiltre = document.createElement("option");
+        optionFiltre.value = classe;
+        optionFiltre.textContent = classe;
+        filtreClasse.appendChild(optionFiltre);
+
+        const optionModification = document.createElement("option");
+        optionModification.value = classe;
+        optionModification.textContent = classe;
+        modifClasse.appendChild(optionModification);
+
+        const optionAction = document.createElement("option");
+        optionAction.value = classe;
+        optionAction.textContent = classe;
+        actionClasse.appendChild(optionAction);
+      });
+    }
+
+    remplirListeClasses();
+
+    const cardCreerEleve =
+      obtenir("card-creer-eleve");
+
+    const cardListeEleves =
+      obtenir("card-liste-eleves");
+
+    const loaderAdmin =
+      obtenir("loader-admin");
+
+    const messageAdminCheck =
+      obtenir("message-admin-check");
+
+    const formCreerEleve =
+      obtenir("form-creer-eleve");
+
+    const messageCreer =
+      obtenir("message-creer");
+
+    const loaderTable =
+      obtenir("loader-table");
+
+    const corpsTable =
+      obtenir("corps-table-eleves");
+
+    const messageAucunEleve =
+      obtenir("message-aucun-eleve");
+
+    const selectClasse =
+      obtenir("select-classe");
+
+    const inputRecherche =
+      obtenir("input-recherche");
+
+    const btnAppliquerFiltres =
+      obtenir("btn-appliquer-filtres");
+
+    const lienDeconnexion =
+      obtenir("lien-deconnexion");
+
+    const modalConfirmer =
+      obtenir("modal-confirmer-suppression");
+
+    const texteModalSuppression =
+      obtenir("texte-modal-suppression");
+
+    const btnAnnulerSuppression =
+      obtenir("btn-annuler-suppression");
+
+    const btnConfirmerSuppression =
+      obtenir("btn-confirmer-suppression");
+
+    const modalModifier =
+      obtenir("modal-modifier-eleve");
+
+    const formModifierEleve =
+      obtenir("form-modifier-eleve");
+
+    const btnAnnulerModification =
+      obtenir("btn-annuler-modification");
+
+    const checkTous =
+      obtenir("check-tous");
+
+    const actionMasse =
+      obtenir("action-masse");
+
+    const actionMasseType =
+      obtenir("action-masse-type");
+
+    const actionMasseClasse =
+      obtenir("action-masse-classe");
+
+    const labelActionMasseClasse =
+      obtenir("label-action-masse-classe");
+
+    const btnAppliquerActionMasse =
+      obtenir("btn-appliquer-action-masse");
+
+    const messageActionMasse =
+      obtenir("message-action-masse");
+
+    const modalWhatsapp =
+      obtenir("modal-whatsapp");
+
+    const whatsappDestinataire =
+      obtenir("whatsapp-destinataire");
+
+    const whatsappMessage =
+      obtenir("whatsapp-message");
+
+    const btnAnnulerWhatsapp =
+      obtenir("btn-annuler-whatsapp");
+
+    const btnOuvrirWhatsapp =
+      obtenir("btn-ouvrir-whatsapp");
+
+    const inputIndicatifPays =
+      obtenir("input-indicatif-pays");
+
+    const inputTelephoneLocal =
+      obtenir("input-telephone-local");
+
+    const inputTelephoneInternational =
+      obtenir("input-telephone-international");
+
+    const modifIndicatifPays =
+      obtenir("modif-indicatif-pays");
+
+    const modifTelephoneLocal =
+      obtenir("modif-telephone-local");
+
+    const modifTelephoneInternational =
+      obtenir("modif-telephone-international");
+
+    let mapEleves = {};
+    let eleveASupprimer = null;
+    let eleveAModifier = null;
+    let telephoneWhatsappActuel = "";
+
+    function garderChiffres(valeur) {
+      return String(valeur || "").replace(/D/g, "");
+    }
+
+    function construireTelephoneInternational(
+      indicatif,
+      telephoneLocal
+    ) {
+      const indicatifPropre =
+        garderChiffres(indicatif);
+
+      const localPropre =
+        garderChiffres(telephoneLocal);
+
+      if (!indicatifPropre || !localPropre) {
+        return "";
+      }
+
+      return "+" + indicatifPropre + localPropre;
+    }
+
+    function telephoneLocalDepuisEleve(eleve) {
+      if (eleve.telephoneLocal) {
+        return eleve.telephoneLocal;
+      }
+
+      const indicatif =
+        garderChiffres(eleve.indicatifPays);
+
+      const telephone =
+        garderChiffres(
+          eleve.telephoneInternational ||
+          eleve.telephone
+        );
+
+      if (
+        indicatif &&
+        telephone.indexOf(indicatif) === 0
+      ) {
+        return telephone.substring(
+          indicatif.length
+        );
+      }
+
+      return "";
+    }
+
+    function mettreAJourTelephoneCreation() {
+      inputTelephoneInternational.value =
+        construireTelephoneInternational(
+          inputIndicatifPays.value,
+          inputTelephoneLocal.value
+        );
+    }
+
+    function mettreAJourTelephoneModification() {
+      modifTelephoneInternational.value =
+        construireTelephoneInternational(
+          modifIndicatifPays.value,
+          modifTelephoneLocal.value
+        );
+    }
+
+    inputIndicatifPays.addEventListener(
+      "input",
+      mettreAJourTelephoneCreation
+    );
+
+    inputTelephoneLocal.addEventListener(
+      "input",
+      mettreAJourTelephoneCreation
+    );
+
+    modifIndicatifPays.addEventListener(
+      "input",
+      mettreAJourTelephoneModification
+    );
+
+    modifTelephoneLocal.addEventListener(
+      "input",
+      mettreAJourTelephoneModification
+    );
+
+    function afficherErreurAdmin(message) {
+      loaderAdmin.style.display = "none";
+      messageAdminCheck.textContent = message;
+      messageAdminCheck.classList.add("error");
+    }
+
+    function chargerEleves() {
+      loaderTable.style.display = "block";
+      corpsTable.innerHTML = "";
+      messageAucunEleve.style.display = "none";
+
+      db.ref("eleves").once("value")
+        .then(function(snapshot) {
+          mapEleves = {};
+
+          if (snapshot.exists()) {
+            snapshot.forEach(function(childSnapshot) {
+              const uid = childSnapshot.key;
+              const eleve = childSnapshot.val();
+
+              mapEleves[uid] = {
+                uid: uid,
+                nom: eleve.nom || "",
+                prenom: eleve.prenom || "",
+                email: eleve.email || "",
+                identifiant: eleve.identifiant || "",
+                classe: eleve.classe || "",
+                pays: eleve.pays || "",
+                indicatifPays:
+                  eleve.indicatifPays || "",
+                telephoneLocal:
+                  eleve.telephoneLocal || "",
+                telephone:
+                  eleve.telephone || "",
+                telephoneInternational:
+                  eleve.telephoneInternational || "",
+                points: Number(eleve.points) || 0,
+                streak: Number(eleve.streak) || 0,
+                bestStreak:
+                  Number(eleve.bestStreak) || 0,
+                dateInscription:
+                  eleve.dateInscription || null
+              };
+            });
+          }
+
+          loaderTable.style.display = "none";
+          afficherTableau(mapEleves);
+        })
+        .catch(function(erreur) {
+          console.error(erreur);
+
+          loaderTable.style.display = "none";
+          messageAucunEleve.textContent =
+            "Impossible de charger la liste des élèves.";
+          messageAucunEleve.classList.add("error");
+          messageAucunEleve.style.display = "block";
+        });
+    }
+
+    function afficherTableau(elevesObjet) {
+      corpsTable.innerHTML = "";
+
+      const eleves =
+        Object.values(elevesObjet);
+
+      eleves.sort(function(a, b) {
+        return (a.nom || "").localeCompare(
+          b.nom || ""
+        );
+      });
+
+      if (eleves.length === 0) {
+        messageAucunEleve.style.display = "block";
+        actionMasse.classList.add("hidden");
+        return;
+      }
+
+      messageAucunEleve.style.display = "none";
+
+      eleves.forEach(function(eleve) {
+        const tr = document.createElement("tr");
+
+        const tdCheck = document.createElement("td");
+        tdCheck.className = "checkbox-col";
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "check-eleve";
+        check.dataset.uid = eleve.uid;
+        check.addEventListener(
+          "change",
+          gererAffichageActionMasse
+        );
+
+        tdCheck.appendChild(check);
+        tr.appendChild(tdCheck);
+
+        ajouterCellule(tr, eleve.nom || "-");
+        ajouterCellule(tr, eleve.prenom || "-");
+        ajouterCellule(tr, eleve.email || "-");
+
+        const tdTelephone =
+          document.createElement("td");
+
+        tdTelephone.className =
+          "telephone-cell";
+
+        tdTelephone.textContent =
+          eleve.telephoneInternational ||
+          eleve.telephone ||
+          "-";
+
+        tr.appendChild(tdTelephone);
+
+        ajouterCellule(
+          tr,
+          eleve.identifiant || "-"
+        );
+
+        ajouterCellule(
+          tr,
+          eleve.classe || "-"
+        );
+
+        ajouterCellule(
+          tr,
+          (eleve.points || 0) + " pts"
+        );
+
+        ajouterCellule(
+          tr,
+          (eleve.streak || 0) + " 🔥"
+        );
+
+        ajouterCellule(
+          tr,
+          eleve.dateInscription
+            ? new Date(
+                eleve.dateInscription
+              ).toLocaleDateString("fr-FR")
+            : "-"
+        );
+
+        const tdActions =
+          document.createElement("td");
+
+        const btnWhatsapp =
+          document.createElement("button");
+
+        btnWhatsapp.textContent = "WhatsApp";
+        btnWhatsapp.className = "btn-whatsapp";
+        btnWhatsapp.addEventListener(
+          "click",
+          function() {
+            ouvrirModalWhatsapp(eleve);
+          }
+        );
+
+        tdActions.appendChild(btnWhatsapp);
+
+        const btnModifier =
+          document.createElement("button");
+
+        btnModifier.textContent = "Modifier";
+        btnModifier.style.marginRight = "6px";
+        btnModifier.addEventListener(
+          "click",
+          function() {
+            ouvrirModalModification(eleve.uid);
+          }
+        );
+
+        tdActions.appendChild(btnModifier);
+
+        const btnSupprimer =
+          document.createElement("button");
+
+        btnSupprimer.textContent = "Supprimer";
+        btnSupprimer.className = "danger";
+        btnSupprimer.addEventListener(
+          "click",
+          function() {
+            ouvrirModalSuppression(
+              eleve.uid,
+              eleve.nom,
+              eleve.prenom
+            );
+          }
+        );
+
+        tdActions.appendChild(btnSupprimer);
+        tr.appendChild(tdActions);
+        corpsTable.appendChild(tr);
+      });
+
+      gererAffichageActionMasse();
+    }
+
+    function ajouterCellule(ligne, texte) {
+      const cellule =
+        document.createElement("td");
+
+      cellule.textContent = texte;
+      ligne.appendChild(cellule);
+    }
+
+    function filtrerEleves() {
+      const classe = selectClasse.value;
+      const texte =
+        inputRecherche.value
+          .trim()
+          .toLowerCase();
+
+      const resultat = {};
+
+      Object.keys(mapEleves).forEach(
+        function(uid) {
+          const eleve = mapEleves[uid];
+
+          if (
+            classe &&
+            eleve.classe !== classe
+          ) {
+            return;
+          }
+
+          const contenuRecherche = [
+            eleve.nom,
+            eleve.prenom,
+            eleve.email,
+            eleve.identifiant,
+            eleve.telephone,
+            eleve.telephoneInternational
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          if (
+            texte &&
+            !contenuRecherche.includes(texte)
+          ) {
+            return;
+          }
+
+          resultat[uid] = eleve;
+        }
+      );
+
+      afficherTableau(resultat);
+    }
+
+    function ouvrirModalModification(uid) {
+      const eleve = mapEleves[uid];
+
+      if (!eleve) {
+        alert("Élève introuvable.");
+        return;
+      }
+
+      eleveAModifier = uid;
+
+      obtenir("modif-nom").value =
+        eleve.nom || "";
+
+      obtenir("modif-prenom").value =
+        eleve.prenom || "";
+
+      obtenir("modif-email").value =
+        eleve.email || "";
+
+      obtenir("modif-identifiant").value =
+        eleve.identifiant || "";
+
+      obtenir("modif-classe").value =
+        eleve.classe || "6e";
+
+      obtenir("modif-pays").value =
+        eleve.pays || "";
+
+      modifIndicatifPays.value =
+        eleve.indicatifPays || "";
+
+      modifTelephoneLocal.value =
+        telephoneLocalDepuisEleve(eleve);
+
+      modifTelephoneInternational.value =
+        eleve.telephoneInternational ||
+        eleve.telephone ||
+        "";
+
+      obtenir("modif-mot-de-passe").value =
+        "";
+
+      mettreAJourTelephoneModification();
+      modalModifier.style.display = "flex";
+    }
+
+    function fermerModalModification() {
+      modalModifier.style.display = "none";
+      eleveAModifier = null;
+    }
+
+    btnAnnulerModification.addEventListener(
+      "click",
+      fermerModalModification
+    );
+
+    formModifierEleve.addEventListener(
+      "submit",
+      function(event) {
+        event.preventDefault();
+
+        if (!eleveAModifier) {
+          return;
+        }
+
+        const nom =
+          obtenir("modif-nom").value.trim();
+
+        const prenom =
+          obtenir("modif-prenom").value.trim();
+
+        const email =
+          obtenir("modif-email").value.trim();
+
+        const identifiant =
+          obtenir("modif-identifiant").value.trim();
+
+        const classe =
+          obtenir("modif-classe").value;
+
+        const pays =
+          obtenir("modif-pays").value.trim();
+
+        const indicatifPays =
+          garderChiffres(
+            modifIndicatifPays.value
+          );
+
+        const telephoneLocal =
+          garderChiffres(
+            modifTelephoneLocal.value
+          );
+
+        const telephoneInternational =
+          construireTelephoneInternational(
+            indicatifPays,
+            telephoneLocal
+          );
+
+        if (
+          !nom ||
+          !prenom ||
+          !email ||
+          !identifiant ||
+          !classe ||
+          !indicatifPays ||
+          !telephoneLocal
+        ) {
+          alert(
+            "Remplis tous les champs obligatoires, y compris le téléphone."
+          );
+          return;
+        }
+
+        const donnees = {
+          nom: nom,
+          prenom: prenom,
+          email: email,
+          identifiant: identifiant,
+          classe: classe,
+          pays: pays,
+          indicatifPays: indicatifPays,
+          telephoneLocal: telephoneLocal,
+          telephone:
+            indicatifPays + telephoneLocal,
+          telephoneInternational:
+            telephoneInternational,
+          dateModification: Date.now()
+        };
+
+        db.ref(
+          "eleves/" + eleveAModifier
+        )
+          .update(donnees)
+          .then(function() {
+            Object.assign(
+              mapEleves[eleveAModifier],
+              donnees
+            );
+
+            fermerModalModification();
+            afficherTableau(mapEleves);
+          })
+          .catch(function(erreur) {
+            console.error(erreur);
+            alert(
+              "Erreur lors de la modification : " +
+              erreur.message
+            );
+          });
+      }
+    );
+
+    function ouvrirModalSuppression(
+      uid,
+      nom,
+      prenom
+    ) {
+      eleveASupprimer = uid;
+
+      texteModalSuppression.textContent =
+        "Veux-tu vraiment supprimer l’élève " +
+        (nom || "") +
+        " " +
+        (prenom || "") +
+        " ? Cette action est irréversible.";
+
+      modalConfirmer.style.display = "flex";
+    }
+
+    function fermerModalSuppression() {
+      modalConfirmer.style.display = "none";
+      eleveASupprimer = null;
+    }
+
+    btnAnnulerSuppression.addEventListener(
+      "click",
+      fermerModalSuppression
+    );
+
+    btnConfirmerSuppression.addEventListener(
+      "click",
+      function() {
+        if (!eleveASupprimer) {
+          return;
+        }
+
+        const uid = eleveASupprimer;
+
+        db.ref("eleves/" + uid)
+          .remove()
+          .then(function() {
+            delete mapEleves[uid];
+            fermerModalSuppression();
+            afficherTableau(mapEleves);
+          })
+          .catch(function(erreur) {
+            alert(
+              "Erreur lors de la suppression : " +
+              erreur.message
+            );
+          });
+      }
+    );
+
+    function ouvrirModalWhatsapp(eleve) {
+      const telephone =
+        eleve.telephoneInternational ||
+        eleve.telephone ||
+        "";
+
+      const numero =
+        garderChiffres(telephone);
+
+      if (!numero) {
+        alert(
+          "Cet élève n’a pas encore de numéro de téléphone."
+        );
+        return;
+      }
+
+      const nom =
+        (
+          (eleve.prenom || "") +
+          " " +
+          (eleve.nom || "")
+        ).trim() || "élève";
+
+      telephoneWhatsappActuel = numero;
+
+      whatsappDestinataire.textContent =
+        "Destinataire : " +
+        nom +
+        " — +" +
+        numero;
+
+      whatsappMessage.value =
+        "Bonjour " +
+        nom +
+        ", nous vous contactons depuis Campus Flex.";
+
+      modalWhatsapp.style.display = "flex";
+    }
+
+    function fermerModalWhatsapp() {
+      modalWhatsapp.style.display = "none";
+      telephoneWhatsappActuel = "";
+      whatsappMessage.value = "";
+    }
+
+    btnAnnulerWhatsapp.addEventListener(
+      "click",
+      fermerModalWhatsapp
+    );
+
+    btnOuvrirWhatsapp.addEventListener(
+      "click",
+      function() {
+        const message =
+          whatsappMessage.value.trim();
+
+        if (
+          !telephoneWhatsappActuel ||
+          !message
+        ) {
+          alert(
+            "Le numéro et le message sont obligatoires."
+          );
+          return;
+        }
+
+        const lien =
+          "https://wa.me/" +
+          telephoneWhatsappActuel +
+          "?text=" +
+          encodeURIComponent(message);
+
+        window.open(
+          lien,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+        fermerModalWhatsapp();
+      }
+    );
+
+    function gererAffichageActionMasse() {
+      const coches =
+        document.querySelectorAll(
+          ".check-eleve:checked"
+        );
+
+      if (coches.length > 0) {
+        actionMasse.classList.remove("hidden");
+        messageActionMasse.textContent =
+          coches.length +
+          " élève(s) sélectionné(s).";
+      } else {
+        actionMasse.classList.add("hidden");
+        messageActionMasse.textContent = "";
+      }
+    }
+
+    checkTous.addEventListener(
+      "change",
+      function() {
+        const cases =
+          document.querySelectorAll(
+            ".check-eleve"
+          );
+
+        cases.forEach(function(checkbox) {
+          checkbox.checked =
+            checkTous.checked;
+        });
+
+        gererAffichageActionMasse();
+      }
+    );
+
+    actionMasseType.addEventListener(
+      "change",
+      function() {
+        const changerClasse =
+          actionMasseType.value ===
+          "changer-classe";
+
+        labelActionMasseClasse.style.display =
+          changerClasse
+            ? "inline"
+            : "none";
+
+        actionMasseClasse.style.display =
+          changerClasse
+            ? "inline-block"
+            : "none";
+      }
+    );
+
+    btnAppliquerActionMasse.addEventListener(
+      "click",
+      function() {
+        const coches =
+          document.querySelectorAll(
+            ".check-eleve:checked"
+          );
+
+        if (coches.length === 0) {
+          alert(
+            "Aucun élève sélectionné."
+          );
+          return;
+        }
+
+        const action =
+          actionMasseType.value;
+
+        const nouvelleClasse =
+          actionMasseClasse.value;
+
+        if (
+          !confirm(
+            "Confirmer cette action pour " +
+            coches.length +
+            " élève(s) ?"
+          )
+        ) {
+          return;
+        }
+
+        const updates = {};
+
+        coches.forEach(function(checkbox) {
+          const uid =
+            checkbox.dataset.uid;
+
+          if (
+            action === "changer-classe"
+          ) {
+            updates[
+              "eleves/" +
+              uid +
+              "/classe"
+            ] = nouvelleClasse;
+          }
+
+          if (action === "reset-points") {
+            updates[
+              "eleves/" +
+              uid +
+              "/points"
+            ] = 0;
+          }
+
+          if (action === "reset-streak") {
+            updates[
+              "eleves/" +
+              uid +
+              "/streak"
+            ] = 0;
+          }
+        });
+
+        db.ref()
+          .update(updates)
+          .then(function() {
+            chargerEleves();
+
+            messageActionMasse.textContent =
+              "Action appliquée avec succès.";
+
+            messageActionMasse.className =
+              "message success";
+          })
+          .catch(function(erreur) {
+            messageActionMasse.textContent =
+              "Erreur : " +
+              erreur.message;
+
+            messageActionMasse.className =
+              "message error";
+          });
+      }
+    );
+
+    formCreerEleve.addEventListener(
+      "submit",
+      function(event) {
+        event.preventDefault();
+
+        const nom =
+          obtenir("input-nom").value.trim();
+
+        const prenom =
+          obtenir("input-prenom").value.trim();
+
+        const email =
+          obtenir("input-email").value.trim();
+
+        const identifiant =
+          obtenir("input-identifiant").value.trim();
+
+        const classe =
+          obtenir("input-classe").value;
+
+        const motDePasse =
+          obtenir("input-mot-de-passe")
+            .value.trim();
+
+        const pays =
+          obtenir("input-pays")
+            .value.trim();
+
+        const indicatifPays =
+          garderChiffres(
+            inputIndicatifPays.value
+          );
+
+        const telephoneLocal =
+          garderChiffres(
+            inputTelephoneLocal.value
+          );
+
+        const telephoneInternational =
+          construireTelephoneInternational(
+            indicatifPays,
+            telephoneLocal
+          );
+
+        if (
+          !nom ||
+          !prenom ||
+          !email ||
+          !identifiant ||
+          !classe ||
+          !motDePasse ||
+          !indicatifPays ||
+          !telephoneLocal
+        ) {
+          messageCreer.textContent =
+            "Tous les champs, y compris le téléphone, sont obligatoires.";
+
+          messageCreer.className =
+            "message error";
+
+          return;
+        }
+
+        messageCreer.textContent =
+          "Création en cours...";
+
+        messageCreer.className =
+          "message";
+
+        auth.createUserWithEmailAndPassword(
+          email,
+          motDePasse
+        )
+          .then(function(credential) {
+            const uid =
+              credential.user.uid;
+
+            return db.ref(
+              "eleves/" + uid
+            ).set({
+              uid: uid,
+              nom: nom,
+              prenom: prenom,
+              email: email,
+              identifiant: identifiant,
+              classe: classe,
+              pays: pays,
+              indicatifPays: indicatifPays,
+              telephoneLocal: telephoneLocal,
+              telephone:
+                indicatifPays +
+                telephoneLocal,
+              telephoneInternational:
+                telephoneInternational,
+              points: 0,
+              streak: 0,
+              bestStreak: 0,
+              dateInscription: Date.now()
+            });
+          })
+          .then(function() {
+            messageCreer.textContent =
+              "Élève créé avec succès !";
+
+            messageCreer.className =
+              "message success";
+
+            formCreerEleve.reset();
+            inputTelephoneInternational.value = "";
+
+            chargerEleves();
+          })
+          .catch(function(erreur) {
+            console.error(erreur);
+
+            messageCreer.textContent =
+              "Erreur : " +
+              erreur.message;
+
+            messageCreer.className =
+              "message error";
+          });
+      }
+    );
+
+    selectClasse.addEventListener(
+      "change",
+      filtrerEleves
+    );
+
+    inputRecherche.addEventListener(
+      "input",
+      filtrerEleves
+    );
+
+    btnAppliquerFiltres.addEventListener(
+      "click",
+      filtrerEleves
+    );
+
+    lienDeconnexion.addEventListener(
+      "click",
+      function(event) {
+        event.preventDefault();
+
+        if (!auth) {
+          window.location.href =
+            "index.html";
+
+          return;
+        }
+
+        auth.signOut().then(function() {
+          window.location.href =
+            "index.html";
+        });
+      }
+    );
+
+    (function initialiser() {
+      if (
+        typeof auth === "undefined" ||
+        typeof db === "undefined"
+      ) {
+        afficherErreurAdmin(
+          "Firebase n’est pas correctement configuré."
+        );
+
+        return;
+      }
+
+      auth.onAuthStateChanged(
+        function(user) {
+          if (!user) {
+            afficherErreurAdmin(
+              "Tu n’es pas connecté."
+            );
+
+            return;
+          }
+
+          db.ref(
+            "administrateurs/" +
+            user.uid
+          )
+            .once("value")
+            .then(function(snapshot) {
+              if (!snapshot.exists()) {
+                afficherErreurAdmin(
+                  "Ce compte n’est pas administrateur."
+                );
+
+                return;
+              }
+
+              loaderAdmin.style.display =
+                "none";
+
+              const admin =
+                snapshot.val();
+
+              messageAdminCheck.textContent =
+                "Administrateur reconnu : " +
+                (
+                  admin.email ||
+                  admin.nom ||
+                  user.uid
+                );
+
+              cardCreerEleve.style.display =
+                "block";
+
+              cardListeEleves.style.display =
+                "block";
+
+              chargerEleves();
+            })
+            .catch(function(erreur) {
+              afficherErreurAdmin(
+                "Erreur : " +
+                erreur.message
+              );
+            });
+        }
+      );
+    })();
+
+    actionMasseType.dispatchEvent(
+      new Event("change")
+    );
+  </script>
+
+</body>
+</html>
