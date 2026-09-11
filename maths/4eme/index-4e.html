@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4ᵉ – Mathématiques | Campus Flex</title>
+  <meta name="description" content="Cours et vidéos de mathématiques pour la 4ᵉ sur Campus Flex.">
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../../firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7ff;
+      color: #333;
+    }
+
+    nav {
+      background-color: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    }
+
+    nav h1 {
+      color: white;
+      font-size: 20px;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-toggle-label {
+      display: none;
+      color: #fff;
+      font-size: 26px;
+      cursor: pointer;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+      transition: border-color .2s;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      border-color: var(--amber);
+    }
+
+    @media (max-width: 640px) {
+
+      .nav-toggle-label {
+        display: block;
+      }
+
+      nav ul {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--indigo-dark);
+        flex-direction: column;
+        gap: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .3s ease;
+      }
+
+      nav ul li {
+        border-top: 1px solid rgba(255,255,255,.1);
+      }
+
+      nav ul li a {
+        display: block;
+        padding: 14px 20px;
+        border-bottom: none;
+      }
+
+      .nav-toggle:checked ~ ul {
+        max-height: 360px;
+      }
+    }
+
+    header {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    header h2 {
+      font-size: 26px;
+    }
+
+    section {
+      padding: 20px;
+    }
+
+    h3.sa-title {
+      color: white;
+      background-color: #2c3e8c;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 30px 0 15px;
+      font-size: 18px;
+    }
+
+    h4.seq-title {
+      color: #2c3e8c;
+      margin: 18px 0 8px;
+      font-size: 15px;
+      border-bottom: 2px solid #e0e4f7;
+      padding-bottom: 4px;
+    }
+
+    .devoir {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      line-height: 2.2;
+    }
+
+    .devoir a {
+      text-decoration: none;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .a-venir {
+      color: #999;
+      font-size: 13px;
+    }
+
+    .video-bloc {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .video-bloc h3 {
+      color: #2c3e8c;
+      margin-bottom: 15px;
+    }
+
+    .video-bloc iframe {
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      height: 200px;
+    }
+
+    .video-bloc h4 {
+      color: #2c3e8c;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #000;
+      margin-bottom: 20px;
+    }
+
+    .video-container iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .section-contenu {
+      display: none;
+    }
+
+    .section-contenu.active {
+      display: block;
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 25px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 11px 24px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      background: var(--indigo);
+      color: white;
+      transition: .2s;
+    }
+
+    .btn:hover {
+      background: var(--indigo-dark);
+      transform: translateY(-2px);
+    }
+
+    footer {
+      background-color: #2c3e8c;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      margin-top: 30px;
+    }
+
+    /* Repliage / dépliage des séquences (cours + vidéos) au clic sur le titre */
+    .toggle-header {
+      cursor: pointer;
+      position: relative;
+      padding-right: 22px;
+      user-select: none;
+    }
+
+    .toggle-header::after {
+      content: "▸";
+      position: absolute;
+      right: 2px;
+      top: 0;
+      color: var(--amber);
+      font-size: 14px;
+      transition: transform .2s ease;
+    }
+
+    .toggle-header.ouvert::after {
+      transform: rotate(90deg);
+    }
+
+    .toggle-content {
+      display: none;
+    }
+
+    .toggle-content.ouvert {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+  <nav>
+    <h1>🎓 Campus Flex – 4ᵉ</h1>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle">
+    <label for="nav-toggle" class="nav-toggle-label">☰</label>
+
+    <ul>
+      <li>
+        <a href="#" class="onglet active" data-section="cours">
+          Cours
+        </a>
+      </li>
+      <li>
+        <a href="#" class="onglet" data-section="videos">
+          Vidéos
+        </a>
+      </li>
+      <li><a href="../profil.html">Mon profil</a></li>
+      <li>
+        <a href="../../index.html">
+          Accueil
+        </a>
+      </li>
+      <li>
+        <a href="#" id="lien-deconnexion">
+          Déconnexion
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- EN-TÊTE -->
+  <header>
+    <h2>📚 Mathématiques – 4ᵉ</h2>
+  </header>
+
+  <!-- SECTION COURS -->
+  <section id="cours" class="section-contenu active">
+
+    <!-- SA1 — Configurations du plan -->
+    <h3 class="sa-title">SA1 — Configurations du plan</h3>
+
+    <h4 class="seq-title toggle-header">Séquence 1 : Angle au centre d’un cercle</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq1">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 2 : Distance</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq2">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 3 : Triangles</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq3">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 4 : Polygones réguliers</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq4">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 5 : Nombres décimaux</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq5">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 6 : Nombres rationnels</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq6">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 7 : Puissances</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq7">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 8 : Calculs sur les expressions algébriques</h4>
+    <div class="devoir toggle-content" data-key="sa1_seq8">⏳ Bientôt disponible</div>
+
+    <!-- SA2 — Configurations de l'espace -->
+    <h3 class="sa-title">SA2 — Configurations de l’espace</h3>
+
+    <h4 class="seq-title toggle-header">Séquence 1 : Pyramide</h4>
+    <div class="devoir toggle-content" data-key="sa2_seq1">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 2 : Cône de révolution</h4>
+    <div class="devoir toggle-content" data-key="sa2_seq2">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 3 : Représentation en perspective cavalière</h4>
+    <div class="devoir toggle-content" data-key="sa2_seq3">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 4 : Boule et Sphère</h4>
+    <div class="devoir toggle-content" data-key="sa2_seq4">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 5 : Notion de droites et plans</h4>
+    <div class="devoir toggle-content" data-key="sa2_seq5">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 6 : Arithmétique – PPCM et PGCD</h4>
+    <div class="devoir toggle-content" data-key="sa2_seq6">⏳ Bientôt disponible</div>
+
+    <!-- SA3 — Applications du plan -->
+    <h3 class="sa-title">SA3 — Applications du plan</h3>
+
+    <h4 class="seq-title toggle-header">Séquence 1 : Symétrie centrale</h4>
+    <div class="devoir toggle-content" data-key="sa3_seq1">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 2 : Symétrie orthogonale</h4>
+    <div class="devoir toggle-content" data-key="sa3_seq2">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 3 : Translation</h4>
+    <div class="devoir toggle-content" data-key="sa3_seq3">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 4 : Projection</h4>
+    <div class="devoir toggle-content" data-key="sa3_seq4">⏳ Bientôt disponible</div>
+
+    <!-- SA4 — Organisation des données -->
+    <h3 class="sa-title">SA4 — Organisation des données</h3>
+
+    <h4 class="seq-title toggle-header">Séquence 1 : Équations et inéquations</h4>
+    <div class="devoir toggle-content" data-key="sa4_seq1">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 2 : Proportionnalité</h4>
+    <div class="devoir toggle-content" data-key="sa4_seq2">⏳ Bientôt disponible</div>
+
+    <h4 class="seq-title toggle-header">Séquence 3 : Statistique</h4>
+    <div class="devoir toggle-content" data-key="sa4_seq3">⏳ Bientôt disponible</div>
+
+    <div class="back">
+      <a href="../profil.html" class="btn">Retour à mon profil</a>
+    </div>
+
+  </section>
+
+  <!-- SECTION VIDÉOS -->
+  <section id="videos" class="section-contenu">
+
+    <h2 style="text-align:center; color:#2c3e8c; margin-bottom:20px;">
+      🎥 Vidéos de 4ᵉ
+    </h2>
+
+    <div id="conteneur-videos-dynamiques"></div>
+
+    <p id="message-aucune-video" class="video-bloc" style="display:none;">
+      Les vidéos de 4ᵉ seront bientôt disponibles.
+    </p>
+
+    <div class="back">
+      <a href="../profil.html" class="btn">Retour à mon profil</a>
+    </div>
+
+  </section>
+
+  <!-- PIED DE PAGE -->
+  <footer>
+    <p>© 2026 Campus Flex — Mathématiques 4ᵉ — Tous droits réservés</p>
+  </footer>
+
+  <!-- SCRIPT POUR CHANGER D'ONGLET -->
+  <script>
+    const onglets = document.querySelectorAll(".onglet");
+    const sections = document.querySelectorAll(".section-contenu");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+    const menuMobile = document.getElementById("nav-toggle");
+    const conteneurVideosDynamiques = document.getElementById("conteneur-videos-dynamiques");
+    const messageAucuneVideo = document.getElementById("message-aucune-video");
+
+    // ===================================================================
+    // Repliage / dépliage des séquences (cours et vidéos) au clic sur
+    // leur titre. Une séquence est fermée par défaut ; son contenu ne
+    // s'affiche qu'au clic sur le titre (même mécanisme pour les deux
+    // sections, cours et vidéos).
+    // ===================================================================
+    function activerRepliage(racine) {
+      (racine || document).querySelectorAll(".toggle-header").forEach(function(entete) {
+        if (entete.dataset.repliagePret) return;
+        entete.dataset.repliagePret = "1";
+        entete.addEventListener("click", function() {
+          const contenu = entete.nextElementSibling;
+          if (!contenu || !contenu.classList.contains("toggle-content")) return;
+          entete.classList.toggle("ouvert");
+          contenu.classList.toggle("ouvert");
+        });
+      });
+    }
+
+    // Séquences de cours : repliées par défaut, dépliées au clic.
+    activerRepliage(document);
+
+    onglets.forEach(function(onglet) {
+      onglet.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        onglets.forEach(o => o.classList.remove("active"));
+        sections.forEach(s => s.classList.remove("active"));
+
+        onglet.classList.add("active");
+        const sectionId = onglet.getAttribute("data-section");
+        document.getElementById(sectionId).classList.add("active");
+
+        menuMobile.checked = false;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // On mémorise l'onglet choisi dans l'adresse de la page,
+        // pour qu'un rafraîchissement garde le bon onglet ouvert.
+        history.replaceState(null, "", "#" + sectionId);
+      });
+    });
+
+    // Au chargement (ou après un rafraîchissement), on regarde si
+    // l'adresse contient déjà #videos pour rouvrir le bon onglet.
+    (function ouvrirOngletDepuisAdresse() {
+      const cibleId = window.location.hash.replace("#", "");
+      if (!cibleId) return;
+
+      const ongletCible = document.querySelector('.onglet[data-section="' + cibleId + '"]');
+      const sectionCible = document.getElementById(cibleId);
+      if (!ongletCible || !sectionCible) return;
+
+      onglets.forEach(function(element) {
+        element.classList.remove("active");
+      });
+      sections.forEach(function(section) {
+        section.classList.remove("active");
+      });
+
+      ongletCible.classList.add("active");
+      sectionCible.classList.add("active");
+    })();
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (typeof auth !== "undefined") {
+        auth.signOut()
+          .then(function() {
+            window.location.href = "../../index.html";
+          })
+          .catch(function() {
+            window.location.href = "../../index.html";
+          });
+
+        return;
+      }
+
+      window.location.href = "../../index.html";
+    });
+
+    // ===================================================================
+    // Chargement dynamique des cours ajoutés depuis l'admin (Firebase).
+    // ===================================================================
+    function chargerCoursDynamiques() {
+      if (typeof db === "undefined" || !db) return;
+
+      db.ref("cours/4e/Mathématiques").once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) return;
+
+          const cours = snap.val();
+
+          Object.keys(cours).forEach(function(cle) {
+            const c = cours[cle];
+            const devoirDiv = document.querySelector('.devoir[data-key="' + cle + '"]');
+            if (!devoirDiv) return;
+
+            let html = "";
+
+            if (c.contenu) {
+              html += "<p>" + String(c.contenu).replace(/\n/g, "<br>") + "</p>";
+            }
+
+            if (c.lien) {
+              html += "<p><a href='" + c.lien + "' target='_blank'>📄 Ouvrir le cours</a></p>";
+            }
+
+            if (c.image) {
+              html += "<img src='" + c.image + "' alt='" + (c.seqLabel || "Cours") + "'>";
+            }
+
+            if (html) {
+              devoirDiv.innerHTML = html;
+            }
+          });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement des cours :", erreur);
+        });
+    }
+
+    // ===================================================================
+    // Chargement dynamique des vidéos ajoutées depuis l'admin (Firebase).
+    // ===================================================================
+    function chargerVideosDynamiques() {
+      if (typeof db === "undefined" || !db) return;
+
+      db.ref("videos/4e/Mathématiques").once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            messageAucuneVideo.style.display = "block";
+            return;
+          }
+
+          const videos = snap.val();
+          const cles = Object.keys(videos);
+
+          if (cles.length === 0) {
+            messageAucuneVideo.style.display = "block";
+            return;
+          }
+
+          conteneurVideosDynamiques.innerHTML = "";
+
+          // On regroupe les vidéos par SA, comme pour les cours :
+          // un titre de SA, puis en dessous les séquences repliables.
+          const groupesSA = {};
+
+          cles.forEach(function(cle) {
+            const v = videos[cle];
+            if (!v.lien) return;
+
+            const saLabel = v.saLabel || "";
+
+            if (!groupesSA[saLabel]) {
+              const titreSA = document.createElement("h3");
+              titreSA.className = "sa-title";
+              titreSA.textContent = saLabel;
+              conteneurVideosDynamiques.appendChild(titreSA);
+
+              const groupe = document.createElement("div");
+              conteneurVideosDynamiques.appendChild(groupe);
+              groupesSA[saLabel] = groupe;
+            }
+
+            const titreSeq = document.createElement("h4");
+            titreSeq.className = "seq-title toggle-header";
+            titreSeq.textContent = v.seqLabel || "";
+
+            const conteneurVideo = document.createElement("div");
+            conteneurVideo.className = "video-container toggle-content";
+            conteneurVideo.innerHTML =
+              "<iframe src='" + v.lien + "' title='" + (v.seqLabel || "Vidéo") + "' loading='lazy' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>";
+
+            groupesSA[saLabel].appendChild(titreSeq);
+            groupesSA[saLabel].appendChild(conteneurVideo);
+          });
+
+          activerRepliage(conteneurVideosDynamiques);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement des vidéos :", erreur);
+          messageAucuneVideo.style.display = "block";
+        });
+    }
+
+    if (typeof auth !== "undefined") {
+      auth.onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "../../connexion.html";
+          return;
+        }
+
+        chargerCoursDynamiques();
+        chargerVideosDynamiques();
+      });
+    }
+  </script>
+
+</body>
+  </html>
+      
