@@ -78,6 +78,36 @@
       margin-bottom: 14px;
     }
 
+    .epreuve-choix {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #f8f9ff;
+      border: 2px solid #e3e7f6;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .epreuve-choix:hover {
+      border-color: var(--indigo);
+      background: #f0f3ff;
+    }
+
+    .epreuve-choix .titre {
+      font-weight: bold;
+      color: var(--indigo);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .epreuve-choix .meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
     .question {
       margin-bottom: 20px;
       padding: 16px;
@@ -151,6 +181,13 @@
       cursor: not-allowed;
     }
 
+    button.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    button.secondaire:hover { background: #cdd5f6; }
+
     .message {
       font-size: 14px;
       margin-top: 10px;
@@ -195,7 +232,13 @@
     <section class="card" id="card-chargement">
       <h2>Chargement...</h2>
       <div class="loader" id="loader"></div>
-      <p id="message-chargement">Récupération des questions...</p>
+      <p id="message-chargement">Récupération des épreuves...</p>
+    </section>
+
+    <section class="card" id="card-liste-epreuves" style="display: none;">
+      <h2>Évaluation Officielle</h2>
+      <p>Choisis l'épreuve à passer.</p>
+      <div id="liste-epreuves"></div>
     </section>
 
     <section class="card" id="card-questions" style="display: none;">
@@ -206,6 +249,7 @@
         <div id="liste-questions"></div>
 
         <button type="button" id="btn-envoyer">Envoyer mes réponses</button>
+        <button type="button" id="btn-retour-liste" class="secondaire">Retour à la liste des épreuves</button>
       </form>
 
       <p id="message-envoi" class="message"></p>
@@ -230,15 +274,24 @@
   </main>
 
   <script>
+    // Pour le moment, une seule matière est réellement alimentée en contenu.
+    // Ajoute d'autres valeurs ici (ou un sélecteur) le jour où d'autres
+    // matières auront des épreuves dans l'admin.
+    const MATIERE = "Mathématiques";
+    const TYPE_EVAL = "officielle";
+
     const cardChargement = document.getElementById("card-chargement");
+    const cardListeEpreuves = document.getElementById("card-liste-epreuves");
     const cardQuestions = document.getElementById("card-questions");
     const cardResultat = document.getElementById("card-resultat");
 
     const messageChargement = document.getElementById("message-chargement");
     const loader = document.getElementById("loader");
+    const listeEpreuvesDiv = document.getElementById("liste-epreuves");
     const listeQuestions = document.getElementById("liste-questions");
     const titreEval = document.getElementById("titre-eval");
     const btnEnvoyer = document.getElementById("btn-envoyer");
+    const btnRetourListe = document.getElementById("btn-retour-liste");
     const messageEnvoi = document.getElementById("message-envoi");
     const texteResultat = document.getElementById("texte-resultat");
 
@@ -246,16 +299,20 @@
 
     let userUid = null;
     let userClasse = null;
+    let epreuvesDisponibles = {};
+    let epreuveActuelleId = null;
     let questions = {};
-    let nbQuestions = 0;
 
     function afficherErreurChargement(texte) {
+      cardChargement.style.display = "block";
+      cardListeEpreuves.style.display = "none";
+      cardQuestions.style.display = "none";
       messageChargement.textContent = texte;
       messageChargement.classList.add("error");
       loader.style.display = "none";
     }
 
-    function chargerQuestions() {
+    function chargerEpreuves() {
       if (!auth || !auth.currentUser) {
         afficherErreurChargement("Tu dois être connecté.");
         return;
@@ -263,85 +320,151 @@
 
       userUid = auth.currentUser.uid;
 
-      db.ref("eleves/" + userUid).once("value")
+      db.ref("evaluations/config").once("value")
+        .then(function(snapConfig) {
+          const config = (snapConfig && snapConfig.val()) || {};
+          const active = config.officielle_active === true || config.evaluation_officielle_active === true;
+
+          if (!active) {
+            afficherErreurChargement("L'évaluation officielle n'est pas disponible pour le moment.");
+            return Promise.reject("desactivee");
+          }
+
+          return db.ref("eleves/" + userUid).once("value");
+        })
         .then(function(snap) {
           if (!snap || !snap.exists()) {
             afficherErreurChargement("Ton profil n'existe pas.");
-            return;
+            return Promise.reject("pas-de-profil");
           }
 
           const eleve = snap.val();
           userClasse = eleve.classe;
-          titreEval.textContent = "Évaluation Officielle - " + userClasse;
 
-          return db.ref("evaluations/questions/" + userClasse).once("value");
+          return db.ref("evaluations/epreuves/" + userClasse + "/" + MATIERE + "/" + TYPE_EVAL).once("value");
         })
-        .then(function(snapQuestions) {
+        .then(function(snapEpreuves) {
           loader.style.display = "none";
 
-          if (!snapQuestions || !snapQuestions.exists()) {
-            afficherErreurChargement("Aucune question disponible pour ta classe.");
+          if (!snapEpreuves || !snapEpreuves.exists()) {
+            afficherErreurChargement("Aucune épreuve disponible pour ta classe pour le moment.");
             return;
           }
 
-          questions = snapQuestions.val();
-          const cles = Object.keys(questions);
-          nbQuestions = cles.length;
+          epreuvesDisponibles = snapEpreuves.val();
 
-          if (nbQuestions === 0) {
-            afficherErreurChargement("Aucune question disponible.");
+          if (Object.keys(epreuvesDisponibles).length === 0) {
+            afficherErreurChargement("Aucune épreuve disponible pour ta classe pour le moment.");
             return;
           }
 
           cardChargement.style.display = "none";
-          cardQuestions.style.display = "block";
-
-          cles.forEach(function(key, index) {
-            const q = questions[key];
-            if (!q.active) return;
-
-            const div = document.createElement("div");
-            div.className = "question";
-
-            const h3 = document.createElement("h3");
-            h3.textContent = "Question " + (index + 1) + " : " + (q.question || "");
-            div.appendChild(h3);
-
-            if (q.image) {
-              const img = document.createElement("img");
-              img.src = q.image;
-              img.alt = "Image question";
-              div.appendChild(img);
-            }
-
-            const choixDiv = document.createElement("div");
-            choixDiv.className = "choix";
-
-            q.choix.forEach(function(choix, i) {
-              const label = document.createElement("label");
-
-              const input = document.createElement("input");
-              input.type = "radio";
-              input.name = "question_" + key;
-              input.value = i;
-
-              const span = document.createElement("span");
-              span.textContent = choix;
-
-              label.appendChild(input);
-              label.appendChild(span);
-              choixDiv.appendChild(label);
-            });
-
-            div.appendChild(choixDiv);
-            listeQuestions.appendChild(div);
-          });
+          cardListeEpreuves.style.display = "block";
+          afficherListeEpreuves();
         })
         .catch(function(erreur) {
-          console.error("Erreur chargement questions :", erreur);
+          if (erreur === "desactivee" || erreur === "pas-de-profil") return;
+          console.error("Erreur chargement des épreuves :", erreur);
           afficherErreurChargement("Erreur de chargement.");
         });
     }
+
+    function afficherListeEpreuves() {
+      listeEpreuvesDiv.innerHTML = "";
+
+      Object.keys(epreuvesDisponibles).forEach(function(id) {
+        const ep = epreuvesDisponibles[id];
+
+        const bouton = document.createElement("button");
+        bouton.type = "button";
+        bouton.className = "epreuve-choix";
+
+        const nbQuestions = ep.questions ? Object.keys(ep.questions).length : 0;
+
+        bouton.innerHTML =
+          "<div class='titre'>" + (ep.titre || "Épreuve") + "</div>" +
+          "<div class='meta'>" + (ep.sequence || "") + " — " + nbQuestions + " question(s)</div>";
+
+        bouton.addEventListener("click", function() {
+          ouvrirEpreuve(id);
+        });
+
+        listeEpreuvesDiv.appendChild(bouton);
+      });
+    }
+
+    function ouvrirEpreuve(id) {
+      const ep = epreuvesDisponibles[id];
+      if (!ep) return;
+
+      epreuveActuelleId = id;
+      questions = ep.questions || {};
+
+      const cles = Object.keys(questions).filter(function(key) {
+        return questions[key].active !== false;
+      });
+
+      if (cles.length === 0) {
+        messageEnvoi.textContent = "";
+        alert("Cette épreuve ne contient pas de question active pour le moment.");
+        return;
+      }
+
+      titreEval.textContent = "Évaluation Officielle — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+      listeQuestions.innerHTML = "";
+      messageEnvoi.textContent = "";
+      messageEnvoi.classList.remove("success", "error");
+      btnEnvoyer.disabled = false;
+
+      cles.forEach(function(key, index) {
+        const q = questions[key];
+
+        const div = document.createElement("div");
+        div.className = "question";
+
+        const h3 = document.createElement("h3");
+        h3.textContent = "Question " + (index + 1) + " : " + (q.question || "");
+        div.appendChild(h3);
+
+        if (q.image) {
+          const img = document.createElement("img");
+          img.src = q.image;
+          img.alt = "Image question";
+          div.appendChild(img);
+        }
+
+        const choixDiv = document.createElement("div");
+        choixDiv.className = "choix";
+
+        (q.choix || []).forEach(function(choix, i) {
+          const label = document.createElement("label");
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "question_" + key;
+          input.value = i;
+
+          const span = document.createElement("span");
+          span.textContent = choix;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          choixDiv.appendChild(label);
+        });
+
+        div.appendChild(choixDiv);
+        listeQuestions.appendChild(div);
+      });
+
+      cardListeEpreuves.style.display = "none";
+      cardQuestions.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    btnRetourListe.addEventListener("click", function() {
+      cardQuestions.style.display = "none";
+      cardListeEpreuves.style.display = "block";
+    });
 
     btnEnvoyer.addEventListener("click", function() {
       const reponses = {};
@@ -351,7 +474,7 @@
 
       Object.keys(questions).forEach(function(key) {
         const q = questions[key];
-        if (!q.active) return;
+        if (q.active === false) return;
 
         const selected = document.querySelector("input[name='question_" + key + "']:checked");
         const reponseEleve = selected ? parseInt(selected.value, 10) : -1;
@@ -377,9 +500,14 @@
       messageEnvoi.classList.remove("error");
 
       const now = Date.now();
+      const ep = epreuvesDisponibles[epreuveActuelleId] || {};
 
       const resultat = {
         classe: userClasse,
+        matiere: MATIERE,
+        epreuveId: epreuveActuelleId,
+        titre: ep.titre || "",
+        sequence: ep.sequence || "",
         date: now,
         score: score,
         totalPoints: totalPoints,
@@ -430,14 +558,14 @@
             window.location.href = "connexion.html";
             return;
           }
-          chargerQuestions();
+          chargerEpreuves();
         });
         return;
       }
 
-      chargerQuestions();
+      chargerEpreuves();
     })();
   </script>
 
 </body>
-      </html>
+</html>
