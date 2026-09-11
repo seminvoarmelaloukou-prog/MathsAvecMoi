@@ -320,6 +320,18 @@
           <option value="blanche">Évaluation blanche</option>
         </select>
 
+        <label for="select-matiere">Matière :</label>
+        <select id="select-matiere">
+          <option value="Mathématiques">Mathématiques</option>
+          <option value="Français">Français</option>
+          <option value="Anglais">Anglais</option>
+          <option value="PCT">PCT (Physique-Chimie-Technologie)</option>
+          <option value="SVT">SVT</option>
+          <option value="Histoire-Géographie">Histoire-Géographie</option>
+          <option value="Éducation civique">Éducation civique</option>
+          <option value="EPS">EPS</option>
+        </select>
+
         <label for="select-classe">Classe :</label>
         <select id="select-classe">
           <option value="6e">6e</option>
@@ -408,6 +420,7 @@
     const messageConfig = document.getElementById("message-config");
 
     const selectType = document.getElementById("select-type");
+    const selectMatiere = document.getElementById("select-matiere");
     const selectClasse = document.getElementById("select-classe");
     const btnChargerEpreuves = document.getElementById("btn-charger-epreuves");
     const loaderEpreuves = document.getElementById("loader-epreuves");
@@ -528,12 +541,13 @@
     }
 
     // ---------- Liste des épreuves pour un type + une classe ----------
-    function cheminEpreuves(type, classe) {
-      return "evaluations/epreuves/" + classe + "/" + type;
+    function cheminEpreuves(type, classe, matiere) {
+      return "evaluations/epreuves/" + classe + "/" + matiere + "/" + type;
     }
 
     function chargerEpreuves() {
       const type = selectType.value;
+      const matiere = selectMatiere.value;
       const classe = selectClasse.value;
 
       loaderEpreuves.style.display = "block";
@@ -543,7 +557,7 @@
       fermerEditeur();
       btnNouvelleEpreuve.disabled = false;
 
-      db.ref(cheminEpreuves(type, classe)).once("value")
+      db.ref(cheminEpreuves(type, classe, matiere)).once("value")
         .then(function(snap) {
           loaderEpreuves.style.display = "none";
 
@@ -621,9 +635,10 @@
 
     function supprimerEpreuve(id) {
       const type = selectType.value;
+      const matiere = selectMatiere.value;
       const classe = selectClasse.value;
 
-      db.ref(cheminEpreuves(type, classe) + "/" + id).remove()
+      db.ref(cheminEpreuves(type, classe, matiere) + "/" + id).remove()
         .then(function() {
           messageSelection.textContent = "Épreuve supprimée.";
           messageSelection.classList.add("success");
@@ -860,6 +875,7 @@
 
     function enregistrerEpreuve() {
       const type = selectType.value;
+      const matiere = selectMatiere.value;
       const classe = selectClasse.value;
 
       const titre = selectTitre.value === "__autre__" ? inputTitreAutre.value.trim() : selectTitre.value;
@@ -896,6 +912,7 @@
         titre: titre,
         sequence: sequence,
         classe: classe,
+        matiere: matiere,
         type: type,
         questions: questionsObjet,
         misAJour: Date.now()
@@ -905,7 +922,7 @@
 
       messageEditeur.textContent = "Sauvegarde en cours...";
 
-      db.ref(cheminEpreuves(type, classe) + "/" + id).set(epreuveData)
+      db.ref(cheminEpreuves(type, classe, matiere) + "/" + id).set(epreuveData)
         .then(function() {
           messageEditeur.textContent = "Épreuve enregistrée avec succès.";
           messageEditeur.classList.add("success");
