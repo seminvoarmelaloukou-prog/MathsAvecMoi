@@ -280,14 +280,25 @@
       content: "▸";
       position: absolute;
       right: 2px;
-      top: 0;
+      top: 50%;
+      transform: translateY(-50%);
       color: var(--amber);
       font-size: 14px;
       transition: transform .2s ease;
     }
 
     .toggle-header.ouvert::after {
-      transform: rotate(90deg);
+      transform: translateY(-50%) rotate(90deg);
+    }
+
+    /* Regroupement des séquences sous chaque bandeau SA : masquées
+       par défaut, affichées seulement au clic sur le bandeau SA. */
+    .sa-title {
+      cursor: pointer;
+    }
+
+    .sa-content {
+      margin-bottom: 10px;
     }
 
     .toggle-content {
@@ -434,6 +445,32 @@
     // s'affiche qu'au clic sur le titre (même mécanisme pour les deux
     // sections, cours et vidéos).
     // ===================================================================
+    // ===================================================================
+    // Regroupement des séquences sous chaque bandeau SA : les séquences
+    // sont masquées par défaut et ne s'affichent qu'au clic sur le
+    // bandeau SA correspondant (même mécanisme de repli que les
+    // séquences elles-mêmes, réutilisé ici au niveau du SA).
+    // ===================================================================
+    function regrouperSA(racine) {
+      (racine || document).querySelectorAll(".sa-title").forEach(function(titreSA) {
+        if (titreSA.dataset.regroupementPret) return;
+        titreSA.dataset.regroupementPret = "1";
+
+        const groupe = document.createElement("div");
+        groupe.className = "sa-content toggle-content";
+
+        let suivant = titreSA.nextElementSibling;
+        while (suivant && !suivant.classList.contains("sa-title")) {
+          const aDeplacer = suivant;
+          suivant = suivant.nextElementSibling;
+          groupe.appendChild(aDeplacer);
+        }
+
+        titreSA.classList.add("toggle-header");
+        titreSA.after(groupe);
+      });
+    }
+
     function activerRepliage(racine) {
       (racine || document).querySelectorAll(".toggle-header").forEach(function(entete) {
         if (entete.dataset.repliagePret) return;
@@ -446,6 +483,9 @@
         });
       });
     }
+
+    // SA : bandeaux repliés par défaut, séquences affichées au clic.
+    regrouperSA(document);
 
     // Séquences de cours : repliées par défaut, dépliées au clic.
     activerRepliage(document);
