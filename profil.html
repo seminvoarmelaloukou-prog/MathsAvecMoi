@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon profil - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+      --gris: #7f8c8d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 900px;
+      margin: 45px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 28px 22px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .description { margin-bottom: 18px; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+      text-align: left;
+    }
+
+    .info-item {
+      background: #f8f9ff;
+      padding: 14px;
+      border-radius: 10px;
+      border-left: 4px solid var(--indigo);
+    }
+
+    .info-item strong {
+      color: var(--indigo);
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .info-item span { font-size: 15px; }
+
+    .loader {
+      width: 38px;
+      height: 38px;
+      margin: 22px auto 15px;
+      border: 4px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    .error { color: var(--error) !important; margin-top: 15px; }
+
+    .btn {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 11px 22px;
+      border-radius: 24px;
+      background: var(--indigo);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .btn:hover { background: var(--indigo-dark); }
+
+    .btn-secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    .btn-secondaire:hover { background: #cdd5f6; }
+
+    .evaluations-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .btn-eval {
+      display: inline-block;
+      padding: 11px 22px;
+      border-radius: 24px;
+      background: var(--indigo);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .btn-eval.secondaire {
+      background: #e3e7f6;
+      color: var(--indigo);
+    }
+
+    .btn-eval:hover { opacity: 0.9; }
+    .message-eval { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+    .nora-chat-container { display: flex; flex-direction: column; gap: 12px; }
+    .nora-modes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .nora-modes button {
+      padding: 10px 18px;
+      border-radius: 20px;
+      border: 2px solid var(--indigo);
+      background: white;
+      color: var(--indigo);
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .nora-modes button.actif { background: var(--indigo); color: white; }
+
+    .nora-messages {
+      border: 1px solid #cfd8f0;
+      border-radius: 10px;
+      padding: 12px;
+      height: 300px;
+      overflow-y: auto;
+      background: #fafbff;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nora-message {
+      padding: 8px 12px;
+      border-radius: 8px;
+      max-width: 85%;
+      word-wrap: break-word;
+    }
+
+    .nora-message.eleve { background: #e3e7f6; align-self: flex-end; }
+    .nora-message.nora { background: #d4edda; align-self: flex-start; }
+
+    .nora-input-container {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .nora-input-container input {
+      flex: 1 1 250px;
+      padding: 10px 14px;
+      border-radius: 20px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+    }
+
+    .nora-btn-vocal {
+      padding: 10px 20px;
+      border-radius: 50px;
+      background: var(--indigo);
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nora-btn-vocal:disabled { background: var(--gris); cursor: not-allowed; }
+
+    footer {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 14px;
+      font-size: 13px;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    @media (max-width: 600px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 25px auto; padding: 0 14px; }
+      .nora-messages { height: 250px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Campus Flex - Mon profil</h1>
+    <ul>
+      <li><a href="matieres.html">Matières</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <section class="card" id="card-chargement">
+      <h2>Chargement de ton profil</h2>
+      <div id="loader" class="loader"></div>
+      <p id="message-chargement">Récupération de tes informations...</p>
+    </section>
+
+    <section class="card" id="card-profil" style="display: none;">
+      <h2>Mon profil</h2>
+      <p class="description">Voici les informations associées à ton compte.</p>
+      <div class="info-grid" id="info-grid"></div>
+      <a href="index.html" class="btn">Retour aux cours</a>
+    </section>
+
+    <section class="card" id="card-evaluations" style="display: none;">
+      <h2>Évaluations</h2>
+      <p class="description">Retrouve ici tes évaluations blanches et officielles.</p>
+      <div class="evaluations-section">
+        <a href="evaluation-blanche.html" class="btn-eval secondaire">Évaluation blanche</a>
+        <a href="evaluation.html" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">Évaluation</a>
+        <p id="message-evaluation" class="message-eval"></p>
+      </div>
+    </section>
+
+    <section class="card" id="card-nora" style="display: none;">
+      <h2>🤖 Tuteur Nora - Ton assistant IA</h2>
+      <p class="description">Pose tes questions en mathématiques !</p>
+
+      <div class="nora-chat-container">
+        <div class="nora-modes">
+          <button id="btn-mode-ecrit" class="actif">✍️ Mode Écrit</button>
+          <button id="btn-mode-vocal">🎤 Mode Vocal</button>
+        </div>
+
+        <div id="nora-messages" class="nora-messages">
+          <div class="nora-message nora">
+            <strong>Nora :</strong> Bonjour ! Je suis Nora, ton tuteur en mathématiques. Pose-moi tes questions !
+          </div>
+        </div>
+
+        <div class="nora-input-container" id="nora-input-ecrit">
+          <input type="text" id="nora-question-input" placeholder="Pose ta question à Nora..." />
+          <button id="nora-btn-envoyer" class="btn">Envoyer</button>
+        </div>
+
+        <div class="nora-input-container" id="nora-input-vocal" style="display: none;">
+          <button id="nora-btn-parler" class="nora-btn-vocal">🎤 Appuie pour parler</button>
+        </div>
+
+        <p id="nora-message" class="message-eval"></p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>© 2026 Campus Flex - Tous droits réservés</footer>
+
+  <script>
+    const cardChargement = document.getElementById("card-chargement");
+    const cardProfil = document.getElementById("card-profil");
+    const cardEvaluations = document.getElementById("card-evaluations");
+    const cardNora = document.getElementById("card-nora");
+
+    const messageChargement = document.getElementById("message-chargement");
+    const loader = document.getElementById("loader");
+    const infoGrid = document.getElementById("info-grid");
+
+    const messageEvaluation = document.getElementById("message-evaluation");
+    const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    const btnModeEcrit = document.getElementById("btn-mode-ecrit");
+    const btnModeVocal = document.getElementById("btn-mode-vocal");
+    const noraMessages = document.getElementById("nora-messages");
+    const noraQuestionInput = document.getElementById("nora-question-input");
+    const noraBtnEnvoyer = document.getElementById("nora-btn-envoyer");
+    const noraInputEcrit = document.getElementById("nora-input-ecrit");
+    const noraInputVocal = document.getElementById("nora-input-vocal");
+    const noraBtnParler = document.getElementById("nora-btn-parler");
+    const noraMessage = document.getElementById("nora-message");
+
+    let modeActuel = "ecrit";
+    let reconnaissanceVocale = null;
+
+    const GEMINI_API_KEY = "AQ.Ab8RN6ImtMvSH0KTH9Z5frv8uYTOzhXLSkXvHvmyygbfGoABlA";
+
+    function afficherErreurChargement(texte) {
+      messageChargement.textContent = texte;
+      messageChargement.classList.add("error");
+      loader.style.display = "none";
+    }
+
+    function afficherProfil(eleve) {
+      cardChargement.style.display = "none";
+      cardProfil.style.display = "block";
+      cardEvaluations.style.display = "block";
+      cardNora.style.display = "block";
+
+      const champs = [
+        { label: "Prénom", valeur: eleve.prenom },
+        { label: "Nom", valeur: eleve.nom },
+        { label: "Identifiant", valeur: eleve.identifiant },
+        { label: "Email", valeur: eleve.email },
+        { label: "Classe", valeur: eleve.classe },
+        { label: "Téléphone", valeur: eleve.telephoneInternational },
+        { label: "Points", valeur: String(eleve.points || 0) },
+        { label: "Série actuelle", valeur: String(eleve.streak || 0) + " jours" },
+        { label: "Meilleure série", valeur: String(eleve.bestStreak || 0) + " jours" }
+      ];
+
+      infoGrid.innerHTML = "";
+      champs.forEach(function(champ) {
+        const div = document.createElement("div");
+        div.className = "info-item";
+        const strong = document.createElement("strong");
+        strong.textContent = champ.label;
+        const span = document.createElement("span");
+        span.textContent = champ.valeur || "—";
+        div.appendChild(strong);
+        div.appendChild(span);
+        infoGrid.appendChild(div);
+      });
+
+      gererEvaluations();
+    }
+
+    function gererEvaluations() {
+      if (!db || !auth || !auth.currentUser) {
+        messageEvaluation.textContent = "Connexion requise.";
+        btnEvaluationOfficielle.style.display = "none";
+        return;
+      }
+
+      db.ref("evaluations/config/evaluation_officielle_active").once("value")
+        .then(function(snap) {
+          const active = snap && snap.val() === true;
+          if (active) {
+            btnEvaluationOfficielle.style.display = "inline-block";
+            messageEvaluation.textContent = "L'évaluation officielle est activée.";
+          } else {
+            btnEvaluationOfficielle.style.display = "none";
+            messageEvaluation.textContent = "L'évaluation officielle n'est pas activée.";
+          }
+        })
+        .catch(function() {
+          messageEvaluation.textContent = "Impossible de vérifier.";
+        });
+    }
+
+    function ajouterMessageNora(expediteur, texte) {
+      const div = document.createElement("div");
+      div.className = "nora-message " + expediteur;
+      const strong = document.createElement("strong");
+      strong.textContent = expediteur === "eleve" ? "Toi : " : "Nora : ";
+      div.appendChild(strong);
+      div.appendChild(document.createTextNode(texte));
+      noraMessages.appendChild(div);
+      noraMessages.scrollTop = noraMessages.scrollHeight;
+    }
+
+    async function repondreNora(question) {
+      noraMessage.textContent = "Nora réfléchit...";
+      noraMessage.classList.remove("error");
+
+      try {
+        const reponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: "Tu es Nora, un tuteur IA en mathématiques pour collégiens et lycéens (6e à Terminale) au Bénin. Réponds de manière claire, pédagogique et encourageante à : " + question
+                }]
+              }]
+            })
+          }
+        );
+
+        const data = await reponse.json();
+        
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+          ajouterMessageNora("nora", data.candidates[0].content.parts[0].text);
+        } else {
+          ajouterMessageNora("nora", "Je n'arrive pas à répondre. Réessaie !");
+        }
+
+        noraMessage.textContent = "";
+      } catch (erreur) {
+        console.error("Erreur API Gemini :", erreur);
+        ajouterMessageNora("nora", "Oups, problème de connexion !");
+        noraMessage.textContent = "";
+        noraMessage.classList.add("error");
+      }
+    }
+
+    function initialiserReconnaissanceVocale() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        noraMessage.textContent = "Reconnaissance vocale non disponible.";
+        noraMessage.classList.add("error");
+        noraBtnParler.style.display = "none";
+        btnModeVocal.style.display = "none";
+        return;
+      }
+
+      try {
+        reconnaissanceVocale = new SpeechRecognition();
+        reconnaissanceVocale.lang = "fr-FR";
+        reconnaissanceVocale.continuous = false;
+        reconnaissanceVocale.interimResults = false;
+
+        reconnaissanceVocale.onstart = function() {
+          noraMessage.textContent = "🎤 Je t'écoute...";
+          noraBtnParler.textContent = "🔴 Enregistrement...";
+          noraBtnParler.style.background = "#c0392b";
+        };
+
+        reconnaissanceVocale.onresult = function(event) {
+          const question = event.results[0][0].transcript;
+          ajouterMessageNora("eleve", question);
+          repondreNora(question);
+          noraMessage.textContent = "";
+          noraBtnParler.disabled = false;
+          noraBtnParler.textContent = "🎤 Appuie pour parler";
+          noraBtnParler.style.background = "var(--indigo)";
+        };
+
+        reconnaissanceVocale.onerror = function(event) {
+          noraMessage.textContent = "Erreur : " + event.error;
+          noraMessage.classList.add("error");
+          noraBtnParler.disabled = false;
+          noraBtnParler.textContent = "🎤 Appuie pour parler";
+          noraBtnParler.style.background = "var(--indigo)";
+        };
+
+        reconnaissanceVocale.onend = function() {
+          noraBtnParler.disabled = false;
+        };
+
+      } catch (erreur) {
+        noraMessage.textContent = "Vocal non disponible.";
+        noraMessage.classList.add("error");
+        noraBtnParler.style.display = "none";
+        btnModeVocal.style.display = "none";
+      }
+    }
+
+    btnModeEcrit.addEventListener("click", function() {
+      modeActuel = "ecrit";
+      noraInputEcrit.style.display = "flex";
+      noraInputVocal.style.display = "none";
+      btnModeEcrit.classList.add("actif");
+      btnModeVocal.classList.remove("actif");
+    });
+
+    btnModeVocal.addEventListener("click", function() {
+      modeActuel = "vocal";
+      noraInputEcrit.style.display = "none";
+      noraInputVocal.style.display = "flex";
+      btnModeEcrit.classList.remove("actif");
+      btnModeVocal.classList.add("actif");
+      if (!reconnaissanceVocale) initialiserReconnaissanceVocale();
+    });
+
+    noraBtnEnvoyer.addEventListener("click", function() {
+      const question = noraQuestionInput.value.trim();
+      if (!question) {
+        noraMessage.textContent = "Écris ta question.";
+        noraMessage.classList.add("error");
+        return;
+      }
+      ajouterMessageNora("eleve", question);
+      noraQuestionInput.value = "";
+      repondreNora(question);
+    });
+
+    noraQuestionInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") noraBtnEnvoyer.click();
+    });
+
+    noraBtnParler.addEventListener("click", function() {
+      if (!reconnaissanceVocale) initialiserReconnaissanceVocale();
+      if (!reconnaissanceVocale) {
+        noraMessage.textContent = "Vocal non disponible.";
+        noraMessage.classList.add("error");
+        return;
+      }
+      try {
+        noraBtnParler.disabled = true;
+        reconnaissanceVocale.start();
+      } catch (erreur) {
+        noraMessage.textContent = "Erreur micro.";
+        noraMessage.classList.add("error");
+        noraBtnParler.disabled = false;
+      }
+    });
+
+    function chargerProfil() {
+      if (!firebase || !auth || !db) {
+        afficherErreurChargement("Firebase non configuré.");
+        return;
+      }
+
+      const user = auth.currentUser;
+      if (!user) {
+        auth.onAuthStateChanged(function(u) {
+          if (!u) { window.location.href = "connexion.html"; return; }
+          chargerProfilAvecUtilisateur(u);
+        });
+        return;
+      }
+
+      chargerProfilAvecUtilisateur(user);
+    }
+
+    function chargerProfilAvecUtilisateur(user) {
+      db.ref("administrateurs/" + user.uid).once("value")
+        .then(function(snapAdmin) {
+          if (snapAdmin && snapAdmin.exists()) {
+            window.location.href = "admin.html";
+            return Promise.reject(new Error("REDIRECT_ADMIN"));
+          }
+          return db.ref("eleves/" + user.uid).once("value");
+        })
+        .then(function(snapshot) {
+          if (!snapshot || !snapshot.exists()) {
+            afficherErreurChargement("Profil introuvable.");
+            return;
+          }
+          afficherProfil(snapshot.val());
+        })
+        .catch(function(erreur) {
+          if (erreur && erreur.message === "REDIRECT_ADMIN") return;
+          afficherErreurChargement("Erreur : " + (erreur.message || "inconnue"));
+        });
+    }
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) { window.location.href = "index.html"; return; }
+      auth.signOut().then(() => window.location.href = "index.html");
+    });
+
+    chargerProfil();
+  </script>
+
+</body>
+</html>
