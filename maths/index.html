@@ -497,9 +497,14 @@
           return;
         }
 
-        firebase.database()
-          .ref("eleves/" + user.uid)
-          .once("value")
+        firebase.database().ref("administrateurs/" + user.uid).once("value")
+          .then(function(snapAdmin) {
+            if (snapAdmin && snapAdmin.exists()) {
+              window.location.href = "../admin.html";
+              return Promise.reject(new Error("REDIRECT_ADMIN"));
+            }
+            return firebase.database().ref("eleves/" + user.uid).once("value");
+          })
           .then(function(snap) {
             if (!snap || !snap.exists()) {
               niveauxContainer.innerHTML =
@@ -519,6 +524,7 @@
             afficherNiveauxPourClasse(classeEleve);
           })
           .catch(function(err) {
+            if (err && err.message === "REDIRECT_ADMIN") return;
             console.error("Erreur lecture profil élève :", err);
             niveauxContainer.innerHTML =
               "<p>Impossible de charger ta classe pour le moment.</p>";
