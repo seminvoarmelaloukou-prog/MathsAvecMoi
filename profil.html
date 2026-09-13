@@ -271,15 +271,27 @@
       <h2>Mon profil</h2>
       <p class="description">Voici les informations associées à ton compte.</p>
       <div class="info-grid" id="info-grid"></div>
-      <a href="index.html" class="btn">Retour aux cours</a>
+      <a href="matieres.html" class="btn">Retour aux cours</a>
     </section>
 
     <section class="card" id="card-evaluations" style="display: none;">
       <h2>Évaluations</h2>
       <p class="description">Retrouve ici tes évaluations blanches et officielles.</p>
       <div class="evaluations-section">
-        <a href="evaluations.html?type=blanche" class="btn-eval secondaire">Évaluation blanche</a>
-        <a href="evaluations.html?type=officielle" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">Évaluation</a>
+        <label for="selectMatiereEval" style="display:block; margin-bottom:8px; font-weight:bold; color:#333; text-align:left;">Choisir la matière</label>
+        <select id="selectMatiereEval" style="width:100%; padding:10px; margin-bottom:14px; border:1px solid #ccc; border-radius:8px; font-size:15px;">
+          <option value="maths">Mathématiques</option>
+          <option value="francais">Français</option>
+          <option value="anglais">Anglais</option>
+          <option value="pct">PCT</option>
+          <option value="svt">SVT</option>
+          <option value="histoire-geo">Histoire-Géographie</option>
+          <option value="espagnol">Espagnol</option>
+          <option value="allemand">Allemand</option>
+          <option value="eps">EPS</option>
+        </select>
+        <a href="#" id="btn-evaluation-blanche" class="btn-eval secondaire">Évaluation blanche</a>
+        <a href="#" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">Évaluation</a>
         <p id="message-evaluation" class="message-eval"></p>
       </div>
     </section>
@@ -329,7 +341,19 @@
 
     const messageEvaluation = document.getElementById("message-evaluation");
     const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
+    const btnEvaluationBlanche = document.getElementById("btn-evaluation-blanche");
+    const selectMatiereEval = document.getElementById("selectMatiereEval");
     const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    btnEvaluationBlanche.addEventListener("click", function(e) {
+      e.preventDefault();
+      window.location.href = selectMatiereEval.value + "/evaluation-blanche.html";
+    });
+
+    btnEvaluationOfficielle.addEventListener("click", function(e) {
+      e.preventDefault();
+      window.location.href = selectMatiereEval.value + "/evaluation.html";
+    });
 
     const btnModeEcrit = document.getElementById("btn-mode-ecrit");
     const btnModeVocal = document.getElementById("btn-mode-vocal");
