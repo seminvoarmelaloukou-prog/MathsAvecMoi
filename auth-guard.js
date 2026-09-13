@@ -48,6 +48,17 @@ window.addEventListener("load", function() {
       return;
     }
 
+    // Si l'utilisateur vient tout juste de se connecter (moins d'une minute),
+    // on ignore toute ancienne valeur d'activité périmée et on repart à zéro.
+    const derniereConnexion = user.metadata && user.metadata.lastSignInTime
+      ? new Date(user.metadata.lastSignInTime).getTime()
+      : 0;
+
+    if (derniereConnexion && (Date.now() - derniereConnexion) < 60000) {
+      mettreAJourActivite();
+      return;
+    }
+
     // Connecté : on vérifie la durée d'inactivité (verifierSession met à jour l'horodatage si tout est bon)
     verifierSession();
   });
