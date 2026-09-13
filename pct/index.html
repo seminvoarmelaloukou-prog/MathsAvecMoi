@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>6e - PCT - Campus Flex</title>
+  <title>Physique-Chimie-Technologie - Campus Flex</title>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="../../firebase-config.js"></script>
-  <script src="../../auth-guard.js"></script>
+  <script src="../firebase-config.js"></script>
+  <script src="../auth-guard.js"></script>
 
   <style>
     :root { --indigo: #2c3e8c; --indigo-dark: #1e2c66; --amber: #f39c12; --background: #f5f7ff; --text: #333333; --muted: #666666; --disabled: #b7bccb; }
@@ -45,55 +45,223 @@
   <nav>
     <h1>🎓 Campus Flex</h1>
     <ul>
-      <li><a href="../index.html">Retour aux classes</a></li>
-      <li><a href="../../profil.html">Mon profil</a></li>
+      <li><a href="../index.html">Accueil</a></li>
+      <li><a href="../matieres.html">Matières</a></li>
+      <li><a href="../mes-resultats.html">Mes résultats</a></li>
+      <li><a href="../profil.html">Mon profil</a></li>
       <li><a href="#" id="deconnexion">Déconnexion</a></li>
     </ul>
   </nav>
 
   <main>
     <section class="hero">
-      <h2>Physique-Chimie-Technologie – 6e</h2>
-      <p>Aucun cours disponible pour le moment. Reviens bientôt, le programme est en préparation !</p>
+      <h2>Physique-Chimie-Technologie – Du collège au lycée</h2>
+      <p>Choisis ta classe pour accéder aux cours, exercices et évaluations.</p>
       <div>
-        <a href="../index.html" class="btn btn-secondaire">Retour aux classes</a>
+        <a href="../mes-resultats.html" class="btn btn-secondaire">Voir mes résultats</a>
       </div>
     </section>
+
+    <h2 class="section-titre">Cours par classe</h2>
+    <div id="niveauxContainer" class="niveaux-grid"></div>
   </main>
 
   <footer>© 2026 Campus Flex - Tous droits réservés</footer>
 
   <script>
+    const niveauxContainer = document.getElementById("niveauxContainer");
     const btnDeconnexion = document.getElementById("deconnexion");
+
+    const NIVEAUX = [
+      {
+        id: "6e",
+        nom: "6e",
+        desc: "Cours, exercices et évaluations de 6e.",
+        actif: true,
+        lienCours: "6eme/index.html"
+      },
+      {
+        id: "5e",
+        nom: "5e",
+        desc: "Cours, exercices et évaluations de 5e.",
+        actif: true,
+        lienCours: "5eme/index.html"
+      },
+      {
+        id: "4e",
+        nom: "4e",
+        desc: "Cours, exercices et évaluations de 4e.",
+        actif: true,
+        lienCours: "4eme/index.html"
+      },
+      {
+        id: "3e",
+        nom: "3e",
+        desc: "Cours, exercices et évaluations de 3e.",
+        actif: true,
+        lienCours: "3eme/index.html"
+      },
+      {
+        id: "2de AB",
+        nom: "2nde AB",
+        desc: "Cours, exercices et évaluations de 2nde AB.",
+        actif: true,
+        lienCours: "2ndeAB/index.html"
+      },
+      {
+        id: "2de C",
+        nom: "2nde C",
+        desc: "Cours, exercices et évaluations de 2nde C.",
+        actif: true,
+        lienCours: "2ndeC/index.html"
+      },
+      {
+        id: "2de D",
+        nom: "2nde D",
+        desc: "Cours, exercices et évaluations de 2nde D.",
+        actif: true,
+        lienCours: "2ndeD/index.html"
+      },
+      {
+        id: "2de E",
+        nom: "2nde E",
+        desc: "Cours, exercices et évaluations de 2nde E.",
+        actif: true,
+        lienCours: "2ndeE/index.html"
+      },
+      {
+        id: "1re AB",
+        nom: "1ère AB",
+        desc: "Cours, exercices et évaluations de 1ère AB.",
+        actif: true,
+        lienCours: "1reAB/index.html"
+      },
+      {
+        id: "1re C",
+        nom: "1ère C",
+        desc: "Cours, exercices et évaluations de 1ère C.",
+        actif: true,
+        lienCours: "1reC/index.html"
+      },
+      {
+        id: "1re D",
+        nom: "1ère D",
+        desc: "Cours, exercices et évaluations de 1ère D.",
+        actif: true,
+        lienCours: "1reD/index.html"
+      },
+      {
+        id: "1re E",
+        nom: "1ère E",
+        desc: "Cours, exercices et évaluations de 1ère E.",
+        actif: true,
+        lienCours: "1reE/index.html"
+      },
+      {
+        id: "Tle AB",
+        nom: "Tle AB",
+        desc: "Cours, exercices et évaluations de Tle AB.",
+        actif: true,
+        lienCours: "TleAB/index.html"
+      },
+      {
+        id: "Tle C",
+        nom: "Tle C",
+        desc: "Cours, exercices et évaluations de Tle C.",
+        actif: true,
+        lienCours: "TleC/index.html"
+      },
+      {
+        id: "Tle D",
+        nom: "Tle D",
+        desc: "Cours, exercices et évaluations de Tle D.",
+        actif: true,
+        lienCours: "TleD/index.html"
+      },
+      {
+        id: "Tle E",
+        nom: "Tle E",
+        desc: "Cours, exercices et évaluations de Tle E.",
+        actif: true,
+        lienCours: "TleE/index.html"
+      }
+    ];
+
     btnDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
       if (!confirm("Veux-tu vraiment te déconnecter ?")) return;
       firebase.auth().signOut()
-        .then(function() { window.location.href = "../../connexion.html"; })
+        .then(function() { window.location.href = "../connexion.html"; })
         .catch(function(err) {
           console.error("Erreur déconnexion :", err);
           alert("Une erreur est survenue lors de la déconnexion.");
         });
     });
 
+    let classeEleve = null;
+
+    function afficherNiveauxPourClasse(classe) {
+      niveauxContainer.innerHTML = "";
+      const niveau = NIVEAUX.find(function(n) { return n.id === classe; });
+
+      if (!niveau) {
+        niveauxContainer.innerHTML = "<p>Classe non reconnue : " + classe + "</p>";
+        return;
+      }
+
+      const card = document.createElement("div");
+      card.className = "niveau-card" + (niveau.actif ? "" : " indisponible");
+
+      const boutonCours = niveau.actif
+        ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
+        : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
+
+      const statut = niveau.actif
+        ? "<span class='statut'>Cours disponible</span>"
+        : "<span class='statut'>Préparation en cours</span>";
+
+      card.innerHTML = "<h3>" + niveau.nom + "</h3>" + "<p>" + niveau.desc + "</p>" + boutonCours + statut;
+      niveauxContainer.appendChild(card);
+    }
+
     window.addEventListener("load", function() {
-      if (!firebase.auth) return;
+      if (!firebase.auth || !firebase.database) {
+        niveauxContainer.innerHTML = "<p>Service indisponible pour le moment.</p>";
+        return;
+      }
+
       firebase.auth().onAuthStateChanged(function(user) {
         if (!user) {
-          window.location.href = "../../connexion.html";
+          window.location.href = "../connexion.html";
           return;
         }
-        if (firebase.database) {
-          firebase.database().ref("administrateurs/" + user.uid).once("value")
-            .then(function(snapAdmin) {
-              if (snapAdmin && snapAdmin.exists()) {
-                window.location.href = "../../admin.html";
-              }
-            })
-            .catch(function(erreur) {
-              console.error("Erreur verification profil :", erreur);
-            });
-        }
+
+        firebase.database().ref("administrateurs/" + user.uid).once("value")
+          .then(function(snapAdmin) {
+            if (snapAdmin && snapAdmin.exists()) {
+              window.location.href = "../admin.html";
+              return Promise.reject(new Error("REDIRECT_ADMIN"));
+            }
+            return firebase.database().ref("eleves/" + user.uid).once("value");
+          })
+          .then(function(snap) {
+            if (!snap || !snap.exists()) {
+              niveauxContainer.innerHTML = "<p>Ton profil élève n’est pas complet.</p>";
+              return;
+            }
+            const data = snap.val();
+            classeEleve = data.classe || null;
+            if (!classeEleve) {
+              niveauxContainer.innerHTML = "<p>Ta classe n’est pas renseignée.</p>";
+              return;
+            }
+            afficherNiveauxPourClasse(classeEleve);
+          })
+          .catch(function(err) {
+            if (err && err.message === "REDIRECT_ADMIN") return;
+            console.error("Erreur lecture profil élève :", err);
+            niveauxContainer.innerHTML = "<p>Impossible de charger ta classe pour le moment.</p>";
+          });
       });
     });
   </script>
