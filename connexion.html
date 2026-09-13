@@ -219,6 +219,7 @@
 
           return estAdministrateur(user)
             .then(function(admin) {
+              localStorage.setItem("lastActivity", Date.now().toString());
               if (admin) {
                 afficherMessage("✅ Connexion réussie ! Redirection vers l'administration...", "success");
                 setTimeout(function() {
