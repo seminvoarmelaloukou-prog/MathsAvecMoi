@@ -2,7 +2,7 @@
 // Projet : Campus Flex
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCWKJQ_Cj4mdeGLQKDDEsH8M3QtWKWOLeY",
+  apiKey: "AIzaSyBkdLjLOEoVLzAPHWnFMFex8VJsYFr626s",
   authDomain: "campus-flex.firebaseapp.com",
   databaseURL: "https://campus-flex-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "campus-flex",
