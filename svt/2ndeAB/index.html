@@ -1,1 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2nde AB - SVT | Campus Flex</title>
+  <meta name="description" content="Cours et vidéos de SVT pour la 2nde AB sur Campus Flex.">
 
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="../../firebase-config.js"></script>
+
+  <style>
+    :root { --indigo: #2c3e8c; --indigo-dark: #1e2c66; --amber: #f39c12; --background: #f5f7ff; --text: #333333; --muted: #666666; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { min-height: 100vh; font-family: Arial, sans-serif; background: var(--background); color: var(--text); display: flex; flex-direction: column; }
+    nav { background: var(--indigo); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+    nav h1 { color: white; font-size: 18px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 16px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a.active, nav a:hover { text-decoration: underline; }
+    .nav-toggle, .nav-toggle-label { display: none; }
+    header { background: white; padding: 18px 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    header h2 { color: var(--indigo); font-size: 20px; }
+    main { flex: 1; max-width: 800px; margin: 30px auto; padding: 0 18px; width: 100%; }
+    .section-contenu { display: none; }
+    .section-contenu.active { display: block; }
+    .sa-title { background: var(--indigo); color: white; padding: 12px 16px; border-radius: 8px; margin: 14px 0 6px; cursor: pointer; font-size: 15px; }
+    .seq-title { background: #e3e7f6; color: var(--indigo); padding: 10px 14px; border-radius: 6px; margin: 8px 0 0; cursor: pointer; font-size: 14px; }
+    .toggle-content { display: none; padding: 12px 14px; background: white; border: 1px solid #e3e7f6; border-top: none; border-radius: 0 0 6px 6px; }
+    .toggle-content.ouvert { display: block; }
+    .sa-content.toggle-content { border: none; padding: 0; background: transparent; }
+    .video-container iframe { width: 100%; aspect-ratio: 16/9; border: none; border-radius: 8px; }
+    .video-bloc { text-align: center; color: var(--muted); padding: 20px; }
+    .a-venir { color: var(--muted); font-style: italic; }
+    .back { text-align: center; margin: 24px 0; }
+    .btn { display: inline-block; padding: 10px 20px; border-radius: 22px; background: var(--indigo); color: white; text-decoration: none; font-size: 14px; font-weight: bold; }
+    .btn:hover { background: var(--indigo-dark); }
+    footer { background: var(--indigo); color: white; text-align: center; padding: 14px; font-size: 12px; }
+    @media (max-width: 600px) { nav { justify-content: center; text-align: center; } }
+</style>
+</head>
+<body>
+
+  <nav>
+    <h1>Campus Flex - 2nde AB</h1>
+    <ul>
+      <li><a href="#cours" class="onglet active" data-section="cours">Cours</a></li>
+      <li><a href="#videos" class="onglet" data-section="videos">Vidéos</a></li>
+      <li><a href="../../profil.html">Mon profil</a></li>
+      <li><a href="../../index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <header>
+    <h2>SVT - 2nde AB</h2>
+  </header>
+
+  <main>
+
+    <section id="cours" class="section-contenu active">
+      <p class="video-bloc">Le programme de SVT pour la 2nde AB sera bientôt ajouté ici.</p>
+      <div class="back">
+        <a href="../../profil.html" class="btn">Retour à mon profil</a>
+      </div>
+    </section>
+
+    <section id="videos" class="section-contenu">
+      <h2 style="text-align:center; color:#2c3e8c; margin:10px 0 20px;">Vidéos de 2nde AB</h2>
+
+      <div id="conteneur-videos-dynamiques"></div>
+
+      <p id="message-aucune-video" class="video-bloc" style="display:none;">
+        Les vidéos de 2nde AB seront bientôt disponibles.
+      </p>
+
+      <div class="back">
+        <a href="../../profil.html" class="btn">Retour à mon profil</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>© 2026 Campus Flex - SVT 2nde AB - Tous droits réservés</footer>
+
+  <script>
+    const onglets = document.querySelectorAll(".onglet");
+    const sections = document.querySelectorAll(".section-contenu");
+    const lienDeconnexion = document.getElementById("lien-deconnexion");
+    const conteneurVideosDynamiques = document.getElementById("conteneur-videos-dynamiques");
+    const messageAucuneVideo = document.getElementById("message-aucune-video");
+
+    function activerRepliage(racine) {
+      (racine || document).querySelectorAll(".toggle-header").forEach(function(entete) {
+        if (entete.dataset.repliagePret) return;
+        entete.dataset.repliagePret = "1";
+        entete.addEventListener("click", function() {
+          const contenu = entete.nextElementSibling;
+          if (!contenu || !contenu.classList.contains("toggle-content")) return;
+          entete.classList.toggle("ouvert");
+          contenu.classList.toggle("ouvert");
+        });
+      });
+    }
+
+    onglets.forEach(function(onglet) {
+      onglet.addEventListener("click", function(e) {
+        e.preventDefault();
+        onglets.forEach(function(el) { el.classList.remove("active"); });
+        sections.forEach(function(s) { s.classList.remove("active"); });
+        onglet.classList.add("active");
+        const section = document.getElementById(onglet.getAttribute("data-section"));
+        if (section) section.classList.add("active");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        history.replaceState(null, "", "#" + onglet.getAttribute("data-section"));
+      });
+    });
+
+    (function ouvrirOngletDepuisAdresse() {
+      const cibleId = window.location.hash.replace("#", "");
+      if (!cibleId) return;
+      const ongletCible = document.querySelector('.onglet[data-section="' + cibleId + '"]');
+      const sectionCible = document.getElementById(cibleId);
+      if (!ongletCible || !sectionCible) return;
+      onglets.forEach(function(el) { el.classList.remove("active"); });
+      sections.forEach(function(s) { s.classList.remove("active"); });
+      ongletCible.classList.add("active");
+      sectionCible.classList.add("active");
+    })();
+
+    lienDeconnexion.addEventListener("click", function(e) {
+      e.preventDefault();
+      if (typeof firebase !== "undefined" && firebase.auth) {
+        firebase.auth().signOut()
+          .then(function() { window.location.href = "../../index.html"; })
+          .catch(function() { window.location.href = "../../index.html"; });
+        return;
+      }
+      window.location.href = "../../index.html";
+    });
+
+    function chargerVideosDynamiques() {
+      if (typeof firebase === "undefined" || !firebase.database) return;
+      const db = firebase.database();
+
+      db.ref("videos/2de AB/SVT").once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            messageAucuneVideo.style.display = "block";
+            return;
+          }
+
+          const videos = snap.val();
+          const cles = Object.keys(videos);
+
+          if (cles.length === 0) {
+            messageAucuneVideo.style.display = "block";
+            return;
+          }
+
+          conteneurVideosDynamiques.innerHTML = "";
+          const groupesSA = {};
+
+          cles.forEach(function(cle) {
+            const v = videos[cle];
+            if (!v.lien) return;
+
+            const saLabel = v.saLabel || "";
+
+            if (!groupesSA[saLabel]) {
+              const titreSA = document.createElement("h3");
+              titreSA.className = "sa-title toggle-header";
+              titreSA.textContent = saLabel;
+              conteneurVideosDynamiques.appendChild(titreSA);
+
+              const groupe = document.createElement("div");
+              groupe.className = "sa-content toggle-content";
+              conteneurVideosDynamiques.appendChild(groupe);
+              groupesSA[saLabel] = groupe;
+            }
+
+            const titreSeq = document.createElement("h4");
+            titreSeq.className = "seq-title toggle-header";
+            titreSeq.textContent = v.seqLabel || "";
+
+            const conteneurVideo = document.createElement("div");
+            conteneurVideo.className = "video-container toggle-content";
+            conteneurVideo.innerHTML =
+              "<iframe src='" + v.lien + "' title='" + (v.seqLabel || "Vidéo") + "' loading='lazy' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>";
+
+            groupesSA[saLabel].appendChild(titreSeq);
+            groupesSA[saLabel].appendChild(conteneurVideo);
+          });
+
+          activerRepliage(conteneurVideosDynamiques);
+        })
+        .catch(function(erreur) {
+          console.error("Erreur chargement des vidéos :", erreur);
+          messageAucuneVideo.style.display = "block";
+        });
+    }
+
+    window.addEventListener("load", function() {
+      if (typeof firebase === "undefined" || !firebase.auth) return;
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "../../connexion.html";
+          return;
+        }
+
+        if (firebase.database) {
+          firebase.database().ref("administrateurs/" + user.uid).once("value")
+            .then(function(snapAdmin) {
+              if (snapAdmin && snapAdmin.exists()) {
+                window.location.href = "../../admin.html";
+                return;
+              }
+              chargerVideosDynamiques();
+            })
+            .catch(function(erreur) {
+              console.error("Erreur verification profil :", erreur);
+              chargerVideosDynamiques();
+            });
+        } else {
+          chargerVideosDynamiques();
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
