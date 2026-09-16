@@ -154,6 +154,63 @@
       line-height: 1.5;
     }
 
+    .equipe {
+      margin-top: 22px;
+    }
+
+    .equipe h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .equipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .membre-card {
+      background: white;
+      padding: 26px 22px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      text-align: center;
+    }
+
+    .membre-photo {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 16px;
+      display: block;
+      border: 3px solid var(--amber);
+    }
+
+    .membre-card h3 {
+      color: var(--indigo);
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .membre-role {
+      color: var(--amber);
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .membre-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: left;
+    }
+
     footer {
       background: var(--indigo);
       color: white;
@@ -239,6 +296,23 @@
         <p>
           Évalue-toi et suis tes progrès grâce à un tableau de bord personnel.
         </p>
+      </div>
+    </section>
+
+    <section class="equipe">
+      <h2>L’équipe</h2>
+
+      <div class="equipe-grid">
+        <div class="membre-card">
+          <img src="images/armel-aloukou.jpg" alt="ALOUKOU Sèminvo Armel" class="membre-photo">
+          <h3>ALOUKOU Sèminvo Armel</h3>
+          <div class="membre-role">Initiateur du projet Campus Flex</div>
+          <p>
+            Enseignant du secondaire dans la Commune de Karimama, au Bénin, ALOUKOU Sèminvo Armel est à l’origine du projet Campus Flex, une initiative née de sa volonté de rendre un enseignement de qualité accessible à chaque élève francophone, où qu’il se trouve. Porté par un engagement constant pour la réussite scolaire, la plateforme accompagne aussi bien les élèves en difficulté que ceux en rattrapage ou les candidats libres, avec l’ambition de faire de l’excellence académique un droit pour tous.
+          </p>
+        </div>
+
+        <!-- Prochaine carte admin : dupliquer le bloc .membre-card ci-dessus -->
       </div>
     </section>
 
