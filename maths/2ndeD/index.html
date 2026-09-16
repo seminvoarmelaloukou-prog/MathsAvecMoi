@@ -620,7 +620,7 @@
             let html = "";
 
             if (c.contenu) {
-              html += "<p>" + String(c.contenu).replace(/\n/g, "<br>") + "</p>";
+              html += String(c.contenu);
             }
 
             if (c.lien) {
