@@ -9,7 +9,19 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="firebase-config.js"></script>
+
+  <!-- OCR (lecture de la carte d'identité) -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Lecture de PDF (si la pièce est envoyée en PDF plutôt qu'en photo) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    if (window["pdfjsLib"]) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
 
   <style>
     :root {
@@ -224,6 +236,109 @@
       font-size: 13px;
     }
 
+    .bloc-piece {
+      margin-bottom: 20px;
+      padding: 16px;
+      border: 1.5px dashed #cfd4e6;
+      border-radius: 10px;
+      background: #fafbff;
+    }
+
+    .bloc-piece label {
+      margin-bottom: 4px;
+    }
+
+    .bloc-piece .aide {
+      margin-top: 2px;
+      margin-bottom: 10px;
+    }
+
+    .bloc-piece input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cfd4e6;
+      border-radius: 8px;
+      background: white;
+      font-size: 13px;
+    }
+
+    .apercu-piece {
+      display: none;
+      max-width: 100%;
+      max-height: 160px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd4e6;
+    }
+
+    .ocr-statut {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--bleu);
+    }
+
+    .ocr-statut.visible {
+      display: flex;
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #cfd4e6;
+      border-top-color: var(--bleu);
+      border-radius: 50%;
+      animation: tourner 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes tourner {
+      to { transform: rotate(360deg); }
+    }
+
+    .ocr-resultat {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      background: #eefaf1;
+      border-left: 4px solid var(--vert);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1e5c33;
+      line-height: 1.5;
+    }
+
+    .ocr-resultat.visible {
+      display: block;
+    }
+
+    .ocr-brut {
+      margin-top: 8px;
+      cursor: pointer;
+      color: var(--bleu);
+      font-size: 12px;
+      text-decoration: underline;
+    }
+
+    .ocr-texte-brut {
+      display: none;
+      margin-top: 6px;
+      padding: 8px;
+      background: white;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #777;
+      white-space: pre-wrap;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .ocr-texte-brut.visible {
+      display: block;
+    }
+
     @media (max-width: 520px) {
       main {
         margin: 22px auto;
@@ -253,6 +368,31 @@
 
       <form id="form-inscription">
 
+        <div class="bloc-piece">
+          <label for="piece-identite">Carte d'identité (photo ou PDF) — facultatif</label>
+          <span class="aide">
+            Ajoute une photo nette et bien à plat de ta carte d'identité (ou son PDF).
+            Nous lisons automatiquement ton nom, ton/tes prénom(s) et ta date de naissance
+            pour préremplir le formulaire — <strong>vérifie et corrige si besoin</strong>,
+            tous les champs restent modifiables.
+          </span>
+          <input
+            type="file"
+            id="piece-identite"
+            accept="image/*,.pdf"
+          >
+          <img id="apercu-piece" class="apercu-piece" alt="Aperçu de la carte d'identité">
+          <div id="ocr-statut" class="ocr-statut">
+            <span class="spinner"></span>
+            <span id="ocr-statut-texte">Lecture de la carte en cours...</span>
+          </div>
+          <div id="ocr-resultat" class="ocr-resultat">
+            <span id="ocr-resultat-texte"></span>
+            <div class="ocr-brut" id="ocr-brut-toggle">Voir le texte détecté</div>
+            <div class="ocr-texte-brut" id="ocr-texte-brut"></div>
+          </div>
+        </div>
+
         <div class="champ">
           <label for="prenom">Prénom</label>
           <input
@@ -273,6 +413,18 @@
             autocomplete="family-name"
             required
           >
+        </div>
+
+        <div class="champ">
+          <label for="date-naissance">Date de naissance</label>
+          <input
+            type="date"
+            id="date-naissance"
+            autocomplete="bday"
+          >
+          <span class="aide">
+            Préremplie automatiquement si tu ajoutes ta carte d'identité ci-dessus.
+          </span>
         </div>
 
         <div class="champ">
@@ -362,13 +514,30 @@
           <label for="classe">Classe</label>
           <select id="classe" required>
             <option value="">Choisis ta classe</option>
-            <option value="6e">6e</option>
-            <option value="5e">5e</option>
-            <option value="4e">4e</option>
-            <option value="3e">3e</option>
-            <option value="Seconde">Seconde</option>
-            <option value="Première">Première</option>
-            <option value="Terminale">Terminale</option>
+            <optgroup label="Collège">
+              <option value="6e">6e</option>
+              <option value="5e">5e</option>
+              <option value="4e">4e</option>
+              <option value="3e">3e</option>
+            </optgroup>
+            <optgroup label="2nde">
+              <option value="2ndeAB">2nde AB</option>
+              <option value="2ndeC">2nde C</option>
+              <option value="2ndeD">2nde D</option>
+              <option value="2ndeE">2nde E</option>
+            </optgroup>
+            <optgroup label="1re">
+              <option value="1reAB">1re AB</option>
+              <option value="1reC">1re C</option>
+              <option value="1reD">1re D</option>
+              <option value="1reE">1re E</option>
+            </optgroup>
+            <optgroup label="Terminale">
+              <option value="TleAB">Tle AB</option>
+              <option value="TleC">Tle C</option>
+              <option value="TleD">Tle D</option>
+              <option value="TleE">Tle E</option>
+            </optgroup>
           </select>
         </div>
 
@@ -456,9 +625,200 @@
     const texteVerification = document.getElementById("texte-verification");
     const inputCodeSms = document.getElementById("code-sms");
 
+    const inputPieceIdentite = document.getElementById("piece-identite");
+    const apercuPiece = document.getElementById("apercu-piece");
+    const ocrStatut = document.getElementById("ocr-statut");
+    const ocrStatutTexte = document.getElementById("ocr-statut-texte");
+    const ocrResultat = document.getElementById("ocr-resultat");
+    const ocrResultatTexte = document.getElementById("ocr-resultat-texte");
+    const ocrBrutToggle = document.getElementById("ocr-brut-toggle");
+    const ocrTexteBrut = document.getElementById("ocr-texte-brut");
+
     let recaptchaVerifier = null;
     let confirmationResult = null;
     let donneesInscription = null;
+    let pieceIdentiteFichier = null;
+
+    ocrBrutToggle.addEventListener("click", function() {
+      ocrTexteBrut.classList.toggle("visible");
+      ocrBrutToggle.textContent = ocrTexteBrut.classList.contains("visible")
+        ? "Masquer le texte détecté"
+        : "Voir le texte détecté";
+    });
+
+    // Retire les accents pour rendre la recherche de mots-clés plus fiable
+    // face aux imperfections de l'OCR.
+    function sansAccents(texte) {
+      return String(texte || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    // Convertit la première page d'un PDF en image (canvas) pour l'OCR.
+    function pdfVersCanvas(fichier) {
+      return fichier.arrayBuffer().then(function(tampon) {
+        return pdfjsLib.getDocument({ data: tampon }).promise;
+      }).then(function(pdf) {
+        return pdf.getPage(1);
+      }).then(function(page) {
+        const echelle = 2;
+        const vue = page.getViewport({ scale: echelle });
+        const canvas = document.createElement("canvas");
+        canvas.width = vue.width;
+        canvas.height = vue.height;
+        const contexte = canvas.getContext("2d");
+        return page.render({ canvasContext: contexte, viewport: vue }).promise
+          .then(function() {
+            return canvas;
+          });
+      });
+    }
+
+    // Cherche, après un mot-clé, le texte utile sur la même ligne (ou la
+    // ligne suivante si la ligne du mot-clé ne contient que le mot-clé).
+    function extraireApres(lignes, motsCles) {
+      for (let i = 0; i < lignes.length; i++) {
+        const ligneSansAccent = sansAccents(lignes[i]).toUpperCase();
+
+        for (const motCle of motsCles) {
+          const position = ligneSansAccent.indexOf(motCle);
+
+          if (position === -1) continue;
+
+          let reste = lignes[i].slice(position + motCle.length)
+            .replace(/^[\s:.\/-]+/, "")
+            .trim();
+
+          if (!reste && lignes[i + 1]) {
+            reste = lignes[i + 1].trim();
+          }
+
+          reste = reste.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ '-]+$/, "").trim();
+
+          if (reste.length >= 2) {
+            return reste;
+          }
+        }
+      }
+      return "";
+    }
+
+    function extraireDate(texte) {
+      const correspondance = texte.match(
+        /(\d{1,2})[\s.\/-](\d{1,2})[\s.\/-](\d{2,4})/
+      );
+
+      if (!correspondance) return "";
+
+      let [, jour, mois, annee] = correspondance;
+
+      if (annee.length === 2) {
+        annee = (Number(annee) > 30 ? "19" : "20") + annee;
+      }
+
+      jour = jour.padStart(2, "0");
+      mois = mois.padStart(2, "0");
+
+      const anneeNum = Number(annee);
+      const anneeActuelle = new Date().getFullYear();
+      if (anneeNum < 1920 || anneeNum > anneeActuelle) return "";
+
+      return annee + "-" + mois + "-" + jour;
+    }
+
+    function analyserTextePiece(texteOcr) {
+      const lignes = texteOcr.split("\n").map(function(l) {
+        return l.trim();
+      }).filter(Boolean);
+
+      const nomTrouve = extraireApres(lignes, ["NOM", "SURNAME"]);
+      const prenomTrouve = extraireApres(lignes, [
+        "PRENOM", "PRÉNOM", "GIVEN NAME", "PRENOMS", "PRÉNOMS"
+      ]);
+      const dateTrouvee = extraireDate(texteOcr);
+
+      let champsRemplis = [];
+
+      if (nomTrouve) {
+        document.getElementById("nom").value = nomTrouve;
+        champsRemplis.push("nom");
+      }
+
+      if (prenomTrouve) {
+        document.getElementById("prenom").value = prenomTrouve;
+        champsRemplis.push("prénom");
+      }
+
+      if (dateTrouvee) {
+        document.getElementById("date-naissance").value = dateTrouvee;
+        champsRemplis.push("date de naissance");
+      }
+
+      ocrTexteBrut.textContent = texteOcr;
+      ocrResultat.classList.add("visible");
+
+      if (champsRemplis.length > 0) {
+        ocrResultatTexte.textContent =
+          "Champs préremplis automatiquement : " + champsRemplis.join(", ") +
+          ". Vérifie qu'ils sont exacts avant de continuer.";
+      } else {
+        ocrResultatTexte.textContent =
+          "La lecture automatique n'a pas identifié les champs avec certitude. " +
+          "Remplis-les manuellement ci-dessous (le texte détecté est visible plus bas).";
+      }
+    }
+
+    inputPieceIdentite.addEventListener("change", function() {
+      const fichier = inputPieceIdentite.files[0];
+      ocrResultat.classList.remove("visible");
+      apercuPiece.style.display = "none";
+
+      if (!fichier) {
+        pieceIdentiteFichier = null;
+        return;
+      }
+
+      pieceIdentiteFichier = fichier;
+
+      if (fichier.type.startsWith("image/")) {
+        apercuPiece.src = URL.createObjectURL(fichier);
+        apercuPiece.style.display = "block";
+      }
+
+      ocrStatutTexte.textContent = "Lecture de la carte en cours...";
+      ocrStatut.classList.add("visible");
+
+      let etapePreparation;
+
+      if (fichier.type === "application/pdf") {
+        etapePreparation = pdfVersCanvas(fichier);
+      } else {
+        etapePreparation = Promise.resolve(fichier);
+      }
+
+      etapePreparation
+        .then(function(source) {
+          return Tesseract.recognize(source, "fra", {
+            logger: function(m) {
+              if (m.status === "recognizing text") {
+                ocrStatutTexte.textContent =
+                  "Lecture en cours... " + Math.round(m.progress * 100) + "%";
+              }
+            }
+          });
+        })
+        .then(function(resultat) {
+          ocrStatut.classList.remove("visible");
+          analyserTextePiece(resultat.data.text || "");
+        })
+        .catch(function(erreur) {
+          console.error("Erreur OCR :", erreur);
+          ocrStatut.classList.remove("visible");
+          ocrResultat.classList.add("visible");
+          ocrResultatTexte.textContent =
+            "La lecture automatique a échoué. Remplis les champs manuellement.";
+        });
+    });
 
     function afficherMessage(texte, couleur) {
       message.textContent = texte;
@@ -535,6 +895,7 @@
       const telephoneInternational = "+" + telephone;
 
       const classe = document.getElementById("classe").value;
+      const dateNaissance = document.getElementById("date-naissance").value;
       const motDePasse = document.getElementById("mot-de-passe").value;
       const confirmation = document.getElementById(
         "confirmation-mot-de-passe"
@@ -597,6 +958,7 @@
         telephone: telephone,
         telephoneInternational: telephoneInternational,
         classe: classe,
+        dateNaissance: dateNaissance,
         motDePasse: motDePasse
       };
     }
@@ -771,6 +1133,7 @@
               telephoneVerifie: true,
 
               classe: donneesInscription.classe,
+              dateNaissance: donneesInscription.dateNaissance || "",
 
               points: 0,
               streak: 0,
@@ -778,8 +1141,48 @@
               lastCheckin: "",
               inscriptionFinalisee: true,
               dateInscription: Date.now()
+            }).then(function() {
+              return user.uid;
             });
           });
+        })
+        .then(function(uid) {
+          // Si une pièce d'identité a été ajoutée, on l'envoie à Firebase
+          // Storage puis on rattache son lien au profil de l'élève.
+          // Cette étape ne bloque jamais la création du compte : si elle
+          // échoue (pas de Storage configuré, etc.), l'inscription reste
+          // valide et l'admin pourra redemander la pièce plus tard.
+          if (!pieceIdentiteFichier || typeof firebase.storage !== "function") {
+            return uid;
+          }
+
+          const extension = pieceIdentiteFichier.type === "application/pdf"
+            ? "pdf"
+            : (pieceIdentiteFichier.name.split(".").pop() || "jpg");
+
+          const reference = firebase.storage()
+            .ref()
+            .child("pieces-identite/" + uid + "/carte." + extension);
+
+          return reference.put(pieceIdentiteFichier)
+            .then(function() {
+              return reference.getDownloadURL();
+            })
+            .then(function(urlPiece) {
+              return db.ref("eleves/" + uid).update({
+                carteIdentiteUrl: urlPiece
+              });
+            })
+            .then(function() {
+              return uid;
+            })
+            .catch(function(erreurStockage) {
+              console.error(
+                "Envoi de la pièce d'identité échoué (compte créé quand même) :",
+                erreurStockage
+              );
+              return uid;
+            });
         })
         .then(function() {
           localStorage.setItem(
