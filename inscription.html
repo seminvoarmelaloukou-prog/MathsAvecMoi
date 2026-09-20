@@ -703,9 +703,15 @@
       return "";
     }
 
-    function extraireDate(texte) {
-      const correspondance = texte.match(
-        /(\d{1,2})[\s.\/-](\d{1,2})[\s.\/-](\d{2,4})/
+    // L'OCR confond souvent le chiffre 0 et la lettre O (et parfois I/l et 1).
+    function corrigerChiffresOcr(texte) {
+      return texte.replace(/[oO]/g, "0").replace(/[Il]/g, "1");
+    }
+
+    function trouverDateDans(texte) {
+      const nettoye = corrigerChiffresOcr(texte);
+      const correspondance = nettoye.match(
+        /(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{2,4})/
       );
 
       if (!correspondance) return "";
@@ -722,8 +728,31 @@
       const anneeNum = Number(annee);
       const anneeActuelle = new Date().getFullYear();
       if (anneeNum < 1920 || anneeNum > anneeActuelle) return "";
+      if (Number(jour) > 31 || Number(mois) > 12) return "";
 
       return annee + "-" + mois + "-" + jour;
+    }
+
+    // Une carte d'identité comporte plusieurs dates (naissance, délivrance,
+    // expiration). On cherche d'abord tout près d'un mot-clé de naissance ;
+    // si rien n'est trouvé ainsi, on retombe sur la première date du texte.
+    function extraireDate(texte) {
+      const motsClesNaissance = ["NE(E) LE", "NEE LE", "NE LE", "NAISSANCE", "DATE DE NAISSANCE", "BIRTH"];
+      const texteSansAccent = sansAccents(texte).toUpperCase();
+
+      for (const motCle of motsClesNaissance) {
+        const position = texteSansAccent.indexOf(motCle);
+        if (position === -1) continue;
+
+        // On regarde seulement dans une fenêtre de texte juste après le
+        // mot-clé (au cas où il y aurait plusieurs dates plus loin).
+        const fenetre = texte.slice(position, position + motCle.length + 40);
+        const date = trouverDateDans(fenetre);
+        if (date) return date;
+      }
+
+      // Repli : la première date trouvée dans tout le texte.
+      return trouverDateDans(texte);
     }
 
     function analyserTextePiece(texteOcr) {
