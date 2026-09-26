@@ -156,6 +156,27 @@
       background: var(--amber);
     }
 
+    .barre-progression {
+      width: 100%;
+      height: 8px;
+      background: #e3e7f6;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 8px;
+      display: none;
+    }
+    .barre-progression .remplissage {
+      height: 100%;
+      width: 0%;
+      background: var(--amber);
+    }
+
+    .separateur-ou {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 4px 0 10px;
+    }
+
     @media (max-width: 700px) {
       nav { justify-content: center; text-align: center; }
       nav ul { justify-content: center; }
@@ -251,25 +272,39 @@
         <select id="select-sequence"></select>
       </div>
 
+      <p style="font-size: 13px; color: var(--muted); margin-top: -6px;">
+        Deux façons d'ajouter chaque PDF : soit tu l'uploades directement (ne fonctionne qu'une fois le projet passé en Blaze), soit tu déposes le fichier sur GitHub et tu colles son lien "Raw" ci-dessous. Utilise l'une ou l'autre, pas besoin des deux.
+      </p>
+
       <div class="row">
-        <label for="fichier-devoir">Fichier du devoir (PDF) :</label>
+        <label for="fichier-devoir">Devoir — fichier PDF à uploader :</label>
         <input type="file" id="fichier-devoir" accept="application/pdf">
+      </div>
+      <p class="separateur-ou">— OU —</p>
+      <div class="row">
+        <label for="url-devoir">Devoir — lien du PDF (GitHub) :</label>
+        <input type="text" id="url-devoir" placeholder="https://...github.io/.../devoir1.pdf" style="flex: 1 1 280px;">
       </div>
       <p class="message" id="devoir-actuel"></p>
 
       <div class="row">
-        <label for="fichier-corrige">Fichier du corrigé type (PDF) :</label>
+        <label for="fichier-corrige">Corrigé — fichier PDF à uploader :</label>
         <input type="file" id="fichier-corrige" accept="application/pdf">
       </div>
+      <p class="separateur-ou">— OU —</p>
+      <div class="row">
+        <label for="url-corrige">Corrigé — lien du PDF (GitHub) :</label>
+        <input type="text" id="url-corrige" placeholder="https://...github.io/.../corrige1.pdf" style="flex: 1 1 280px;">
+      </div>
       <p class="message" id="corrige-actuel"></p>
+
+      <div class="barre-progression" id="barre-progression">
+        <div class="remplissage" id="remplissage-progression"></div>
+      </div>
 
       <div class="row">
         <label for="input-date-corrige">Corrigé visible à partir du :</label>
         <input type="date" id="input-date-corrige">
-      </div>
-
-      <div class="barre-progression" id="barre-progression">
-        <div class="remplissage" id="remplissage-progression"></div>
       </div>
 
       <div class="row">
@@ -305,9 +340,11 @@
     const devoirActuel = document.getElementById("devoir-actuel");
     const fichierCorrige = document.getElementById("fichier-corrige");
     const corrigeActuel = document.getElementById("corrige-actuel");
-    const inputDateCorrige = document.getElementById("input-date-corrige");
+    const urlDevoirInput = document.getElementById("url-devoir");
+    const urlCorrigeInput = document.getElementById("url-corrige");
     const barreProgression = document.getElementById("barre-progression");
     const remplissageProgression = document.getElementById("remplissage-progression");
+    const inputDateCorrige = document.getElementById("input-date-corrige");
     const btnEnregistrerDevoir = document.getElementById("btn-enregistrer-devoir");
     const btnAnnulerEditeur = document.getElementById("btn-annuler-editeur");
     const messageEditeur = document.getElementById("message-editeur");
@@ -317,8 +354,6 @@
     let adminUid = null;
     let devoirsCharges = {};
     let devoirEnEdition = null;
-    let urlDevoirExistant = "";
-    let urlCorrigeExistant = "";
 
     (function remplirSequences() {
       selectSequence.innerHTML = '<option value="">-- Aucune / non précisé --</option>';
@@ -490,11 +525,11 @@
       selectSequence.value = "";
       fichierDevoir.value = "";
       fichierCorrige.value = "";
-      inputDateCorrige.value = "";
+      urlDevoirInput.value = "";
+      urlCorrigeInput.value = "";
       devoirActuel.textContent = "";
       corrigeActuel.textContent = "";
-      urlDevoirExistant = "";
-      urlCorrigeExistant = "";
+      inputDateCorrige.value = "";
       barreProgression.style.display = "none";
       remplissageProgression.style.width = "0%";
       messageEditeur.textContent = "";
@@ -516,11 +551,10 @@
 
       inputTitre.value = dv.titre || "";
       if (dv.sequence) selectSequence.value = dv.sequence;
-
-      urlDevoirExistant = dv.devoirUrl || "";
-      urlCorrigeExistant = dv.corrigeUrl || "";
-      devoirActuel.textContent = urlDevoirExistant ? "Devoir actuel déjà en ligne (laisse le champ vide pour le garder)." : "";
-      corrigeActuel.textContent = urlCorrigeExistant ? "Corrigé actuel déjà en ligne (laisse le champ vide pour le garder)." : "";
+      urlDevoirInput.value = dv.devoirUrl || "";
+      urlCorrigeInput.value = dv.corrigeUrl || "";
+      devoirActuel.textContent = dv.devoirUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
+      corrigeActuel.textContent = dv.corrigeUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
 
       if (dv.dateCorrige) {
         const d = new Date(dv.dateCorrige);
@@ -572,14 +606,13 @@
         return;
       }
 
-      const id = devoirEnEdition || ("dv_" + Date.now());
-      const cheminBase = "devoirs_fichiers/" + classe + "/" + matiere + "/" + id;
-
       const fichierDevoirChoisi = fichierDevoir.files[0] || null;
       const fichierCorrigeChoisi = fichierCorrige.files[0] || null;
+      let urlDevoirFinale = urlDevoirInput.value.trim();
+      let urlCorrigeFinale = urlCorrigeInput.value.trim();
 
-      if (!fichierDevoirChoisi && !urlDevoirExistant) {
-        messageEditeur.textContent = "Ajoute le fichier PDF du devoir.";
+      if (!fichierDevoirChoisi && !urlDevoirFinale) {
+        messageEditeur.textContent = "Ajoute le PDF du devoir : soit en l'uploadant, soit en collant son lien.";
         messageEditeur.classList.add("error");
         return;
       }
@@ -589,6 +622,9 @@
         dateCorrigeTimestamp = new Date(inputDateCorrige.value + "T00:00:00").getTime();
       }
 
+      const id = devoirEnEdition || ("dv_" + Date.now());
+      const cheminBase = "devoirs_fichiers/" + classe + "/" + matiere + "/" + id;
+
       btnEnregistrerDevoir.disabled = true;
       messageEditeur.textContent = "Sauvegarde en cours...";
 
@@ -597,7 +633,7 @@
       if (fichierDevoirChoisi) {
         televersements.push(
           televerserFichier(fichierDevoirChoisi, cheminBase + "/devoir.pdf").then(function(url) {
-            urlDevoirExistant = url;
+            urlDevoirFinale = url;
           })
         );
       }
@@ -605,7 +641,7 @@
       if (fichierCorrigeChoisi) {
         televersements.push(
           televerserFichier(fichierCorrigeChoisi, cheminBase + "/corrige.pdf").then(function(url) {
-            urlCorrigeExistant = url;
+            urlCorrigeFinale = url;
           })
         );
       }
@@ -617,8 +653,8 @@
             sequence: sequence || "",
             classe: classe,
             matiere: matiere,
-            devoirUrl: urlDevoirExistant,
-            corrigeUrl: urlCorrigeExistant || "",
+            devoirUrl: urlDevoirFinale,
+            corrigeUrl: urlCorrigeFinale || "",
             dateCorrige: dateCorrigeTimestamp,
             misAJour: Date.now()
           };
@@ -634,7 +670,11 @@
         })
         .catch(function(erreur) {
           console.error("Erreur sauvegarde devoir :", erreur);
-          messageEditeur.textContent = "Erreur lors de la sauvegarde (fichier ou base de données).";
+          if (erreur && erreur.code && erreur.code.indexOf("storage/") === 0) {
+            messageEditeur.textContent = "L'upload direct a échoué (Storage nécessite le forfait Blaze). Utilise plutôt le lien GitHub en attendant.";
+          } else {
+            messageEditeur.textContent = "Erreur lors de la sauvegarde.";
+          }
           messageEditeur.classList.add("error");
           btnEnregistrerDevoir.disabled = false;
         });
