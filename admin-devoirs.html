@@ -208,6 +208,22 @@
       </div>
     </section>
 
+    <!-- Activer/désactiver les devoirs pour tous les élèves -->
+    <section class="card" id="card-config-devoirs" style="display: none;">
+      <h2>Configuration</h2>
+      <p>Active ou désactive les devoirs pour tous les élèves, toutes classes et matières confondues. Un devoir ne s'affiche côté élève que si c'est activé ici.</p>
+
+      <div class="row">
+        <label for="select-devoirs-actifs">Devoirs :</label>
+        <select id="select-devoirs-actifs">
+          <option value="false">Désactivés</option>
+          <option value="true">Activés</option>
+        </select>
+        <button id="btn-sauver-config-devoirs">Sauvegarder</button>
+      </div>
+      <p id="message-config-devoirs" class="message"></p>
+    </section>
+
     <!-- Sélection classe + matière, liste des devoirs existants -->
     <section class="card" id="card-selection" style="display: none;">
       <h2>Devoirs et corrigés</h2>
@@ -327,6 +343,10 @@
 
   <script>
     const cardAdminCheck = document.getElementById("card-admin-check");
+    const cardConfigDevoirs = document.getElementById("card-config-devoirs");
+    const selectDevoirsActifs = document.getElementById("select-devoirs-actifs");
+    const btnSauverConfigDevoirs = document.getElementById("btn-sauver-config-devoirs");
+    const messageConfigDevoirs = document.getElementById("message-config-devoirs");
     const cardSelection = document.getElementById("card-selection");
     const cardEditeur = document.getElementById("card-editeur");
 
@@ -405,9 +425,41 @@
           const adminData = snap.val();
           loaderAdmin.style.display = "none";
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
+          cardConfigDevoirs.style.display = "block";
           cardSelection.style.display = "block";
+          chargerConfigDevoirs();
         });
     }
+
+    function chargerConfigDevoirs() {
+      db.ref("devoirs_config").once("value")
+        .then(function(snap) {
+          const data = (snap && snap.exists()) ? snap.val() : {};
+          selectDevoirsActifs.value = data.active === true ? "true" : "false";
+        })
+        .catch(function(erreur) {
+          console.error("Erreur lecture config devoirs :", erreur);
+          messageConfigDevoirs.textContent = "Impossible de lire la configuration.";
+          messageConfigDevoirs.classList.add("error");
+        });
+    }
+
+    btnSauverConfigDevoirs.addEventListener("click", function() {
+      const active = selectDevoirsActifs.value === "true";
+      messageConfigDevoirs.textContent = "";
+      messageConfigDevoirs.classList.remove("success", "error");
+
+      db.ref("devoirs_config").update({ active: active })
+        .then(function() {
+          messageConfigDevoirs.textContent = "Configuration enregistrée.";
+          messageConfigDevoirs.classList.add("success");
+        })
+        .catch(function(erreur) {
+          console.error("Erreur sauvegarde config devoirs :", erreur);
+          messageConfigDevoirs.textContent = "Erreur lors de la sauvegarde.";
+          messageConfigDevoirs.classList.add("error");
+        });
+    });
 
     function cheminDevoirs(classe, matiere) {
       return "devoirs/" + classe + "/" + matiere;

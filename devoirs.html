@@ -162,20 +162,29 @@
           return;
         }
 
-        firebase.database().ref("eleves/" + user.uid).once("value")
-          .then(function(snap) {
-            if (!snap || !snap.exists()) {
-              infoStatut.textContent = "Ton profil élève n'est pas complet.";
+        firebase.database().ref("devoirs_config").once("value")
+          .then(function(snapConfig) {
+            const configData = (snapConfig && snapConfig.exists()) ? snapConfig.val() : {};
+            if (configData.active !== true) {
+              infoStatut.textContent = "Les devoirs ne sont pas disponibles pour le moment.";
               return;
             }
 
-            const classe = snap.val().classe;
-            if (!classe) {
-              infoStatut.textContent = "Ta classe n'est pas renseignée.";
-              return;
-            }
+            return firebase.database().ref("eleves/" + user.uid).once("value")
+              .then(function(snap) {
+                if (!snap || !snap.exists()) {
+                  infoStatut.textContent = "Ton profil élève n'est pas complet.";
+                  return;
+                }
 
-            chargerDevoirs(classe, matiere);
+                const classe = snap.val().classe;
+                if (!classe) {
+                  infoStatut.textContent = "Ta classe n'est pas renseignée.";
+                  return;
+                }
+
+                chargerDevoirs(classe, matiere);
+              });
           })
           .catch(function(err) {
             console.error("Erreur lecture profil élève :", err);
