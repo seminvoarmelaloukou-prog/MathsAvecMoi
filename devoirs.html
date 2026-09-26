@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devoirs - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --success: #27ae60;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 800px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .hero {
+      background: white;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+    .hero h2 { color: var(--indigo); font-size: 22px; margin-bottom: 6px; }
+    .hero p { color: var(--muted); font-size: 14px; }
+
+    .devoir-card {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+      margin-bottom: 14px;
+    }
+    .devoir-card h3 { color: var(--indigo); font-size: 17px; margin-bottom: 4px; }
+    .devoir-card .meta { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+
+    .liens { display: flex; flex-wrap: wrap; gap: 10px; }
+
+    .btn {
+      display: inline-block;
+      padding: 9px 16px;
+      border-radius: 20px;
+      background: var(--indigo);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .btn:hover { background: var(--indigo-dark); }
+
+    .btn.corrige { background: var(--success); }
+    .btn.corrige:hover { background: #1e874a; }
+
+    .btn.verrouille {
+      background: #d9dce8;
+      color: #6b6f85;
+      cursor: not-allowed;
+    }
+
+    footer {
+      background: var(--indigo);
+      color: white;
+      text-align: center;
+      padding: 14px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>🎓 Campus Flex</h1>
+    <ul>
+      <li><a href="profil.html">Mon profil</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <h2 id="titreMatiere">Devoirs</h2>
+      <p id="infoStatut">Chargement...</p>
+    </section>
+
+    <div id="listeDevoirs"></div>
+  </main>
+
+  <footer>© 2026 Campus Flex - Tous droits réservés</footer>
+
+  <script>
+    const titreMatiere = document.getElementById("titreMatiere");
+    const infoStatut = document.getElementById("infoStatut");
+    const listeDevoirs = document.getElementById("listeDevoirs");
+
+    function getMatiereFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("matiere");
+    }
+
+    function formaterDate(timestamp) {
+      const d = new Date(timestamp);
+      return d.toLocaleDateString("fr-FR");
+    }
+
+    window.addEventListener("load", function() {
+      if (!firebase.auth || !firebase.database) {
+        infoStatut.textContent = "Service non disponible pour le moment.";
+        return;
+      }
+
+      const matiere = getMatiereFromURL();
+      if (!matiere) {
+        infoStatut.textContent = "Matière non précisée.";
+        return;
+      }
+
+      titreMatiere.textContent = "Devoirs — " + matiere;
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+          window.location.href = "connexion.html";
+          return;
+        }
+
+        firebase.database().ref("eleves/" + user.uid).once("value")
+          .then(function(snap) {
+            if (!snap || !snap.exists()) {
+              infoStatut.textContent = "Ton profil élève n'est pas complet.";
+              return;
+            }
+
+            const classe = snap.val().classe;
+            if (!classe) {
+              infoStatut.textContent = "Ta classe n'est pas renseignée.";
+              return;
+            }
+
+            chargerDevoirs(classe, matiere);
+          })
+          .catch(function(err) {
+            console.error("Erreur lecture profil élève :", err);
+            infoStatut.textContent = "Impossible de charger ton profil.";
+          });
+      });
+    });
+
+    function chargerDevoirs(classe, matiere) {
+      firebase.database().ref("devoirs/" + classe + "/" + matiere).once("value")
+        .then(function(snap) {
+          if (!snap || !snap.exists()) {
+            infoStatut.textContent = "Aucun devoir disponible pour le moment pour ta classe (" + classe + ").";
+            return;
+          }
+
+          const devoirs = snap.val();
+          const maintenant = Date.now();
+          infoStatut.textContent = "Devoirs disponibles pour ta classe (" + classe + ") :";
+
+          Object.keys(devoirs).forEach(function(id) {
+            const dv = devoirs[id];
+            const card = document.createElement("div");
+            card.className = "devoir-card";
+
+            const corrigeDisponible = dv.corrigeUrl && dv.dateCorrige && maintenant >= dv.dateCorrige;
+
+            let html = "<h3>" + (dv.titre || "Devoir") + "</h3>";
+            html += "<p class='meta'>" + (dv.sequence || "") + "</p>";
+            html += "<div class='liens'>";
+
+            if (dv.devoirUrl) {
+              html += "<a class='btn' href='" + dv.devoirUrl + "' target='_blank'>Télécharger le devoir</a>";
+            }
+
+            if (dv.corrigeUrl) {
+              if (corrigeDisponible) {
+                html += "<a class='btn corrige' href='" + dv.corrigeUrl + "' target='_blank'>Voir le corrigé</a>";
+              } else {
+                const texteAttente = dv.dateCorrige
+                  ? "Corrigé disponible le " + formaterDate(dv.dateCorrige)
+                  : "Corrigé pas encore disponible";
+                html += "<span class='btn verrouille'>" + texteAttente + "</span>";
+              }
+            }
+
+            html += "</div>";
+            card.innerHTML = html;
+            listeDevoirs.appendChild(card);
+          });
+        })
+        .catch(function(err) {
+          console.error("Erreur chargement devoirs :", err);
+          infoStatut.textContent = "Impossible de charger les devoirs pour le moment.";
+        });
+    }
+  </script>
+
+</body>
+</html>

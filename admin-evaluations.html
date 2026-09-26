@@ -389,6 +389,11 @@
         <select id="select-sequence"></select>
       </div>
 
+      <div class="row" id="row-duree" style="display: none;">
+        <label for="input-duree">Durée de composition (minutes) :</label>
+        <input type="number" id="input-duree" min="1" placeholder="ex : 120" style="width: 100px;">
+      </div>
+
       <div class="section-title">Questions</div>
       <div id="liste-questions-editeur"></div>
 
@@ -434,6 +439,8 @@
     const selectTitre = document.getElementById("select-titre");
     const inputTitreAutre = document.getElementById("input-titre-autre");
     const selectSequence = document.getElementById("select-sequence");
+    const rowDuree = document.getElementById("row-duree");
+    const inputDuree = document.getElementById("input-duree");
     const listeQuestionsEditeur = document.getElementById("liste-questions-editeur");
     const btnAjouterQuestionCarte = document.getElementById("btn-ajouter-question-carte");
     const btnEnregistrerEpreuve = document.getElementById("btn-enregistrer-epreuve");
@@ -604,7 +611,8 @@
 
         const meta = document.createElement("p");
         meta.className = "meta";
-        meta.textContent = (ep.sequence || "Séquence non précisée") + " — " + nbQuestions + " question(s)";
+        meta.textContent = (ep.sequence || "Séquence non précisée") + " — " + nbQuestions + " question(s)" +
+          (ep.duree ? " — " + ep.duree + " min" : "");
         infos.appendChild(meta);
 
         const actions = document.createElement("div");
@@ -823,13 +831,20 @@
       inputTitreAutre.value = "";
       inputTitreAutre.style.display = "none";
       selectSequence.value = "";
+      inputDuree.value = "";
       listeQuestionsEditeur.innerHTML = "";
       messageEditeur.textContent = "";
       messageEditeur.classList.remove("success", "error");
     }
 
+    // La durée de composition ne concerne que l'évaluation officielle
+    function mettreAJourVisibiliteDuree() {
+      rowDuree.style.display = selectType.value === "officielle" ? "flex" : "none";
+    }
+
     function ouvrirEditeurNouvelleEpreuve() {
       reinitialiserEditeur();
+      mettreAJourVisibiliteDuree();
       epreuveEnEdition = null;
       titreEditeur.textContent = "Nouvelle épreuve";
       ajouterCarteVide();
@@ -839,8 +854,13 @@
 
     function ouvrirEditeurModification(id, ep) {
       reinitialiserEditeur();
+      mettreAJourVisibiliteDuree();
       epreuveEnEdition = id;
       titreEditeur.textContent = "Modifier l'épreuve";
+
+      if (ep.duree) {
+        inputDuree.value = ep.duree;
+      }
 
       const optionsExistantes = Array.from(selectTitre.options).map(function(o) { return o.value; });
       if (ep.titre && optionsExistantes.indexOf(ep.titre) !== -1) {
@@ -897,6 +917,17 @@
         return;
       }
 
+      let duree = null;
+      if (type === "officielle") {
+        const dureeSaisie = parseInt(inputDuree.value, 10);
+        if (!dureeSaisie || dureeSaisie <= 0) {
+          messageEditeur.textContent = "Indique la durée de composition (en minutes) pour l'évaluation officielle.";
+          messageEditeur.classList.add("error");
+          return;
+        }
+        duree = dureeSaisie;
+      }
+
       const resultat = collecterQuestionsDepuisCartes();
       if (resultat.erreur) {
         messageEditeur.textContent = resultat.erreur;
@@ -919,6 +950,10 @@
         questions: questionsObjet,
         misAJour: Date.now()
       };
+
+      if (duree !== null) {
+        epreuveData.duree = duree;
+      }
 
       const id = epreuveEnEdition || ("ep_" + Date.now());
 
