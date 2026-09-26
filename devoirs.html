@@ -184,6 +184,55 @@
       });
     });
 
+    function formaterChronoDevoir(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return (m < 10 ? "0" : "") + m + ":" + (sec < 10 ? "0" : "") + sec;
+    }
+
+    function demarrerChronoDevoir(zoneId, dv) {
+      const zone = document.getElementById(zoneId);
+      if (!zone) return;
+
+      const btnCommencer = zone.querySelector("button[data-action='commencer']");
+      if (btnCommencer) btnCommencer.remove();
+
+      const lienDevoir = document.createElement("a");
+      lienDevoir.className = "btn";
+      lienDevoir.href = dv.devoirUrl;
+      lienDevoir.target = "_blank";
+      lienDevoir.textContent = "Télécharger le devoir";
+      zone.insertBefore(lienDevoir, zone.firstChild);
+
+      const chronoSpan = document.createElement("span");
+      chronoSpan.className = "chrono-devoir";
+      chronoSpan.style.fontWeight = "bold";
+      chronoSpan.style.color = "var(--indigo)";
+      chronoSpan.style.alignSelf = "center";
+      zone.insertBefore(chronoSpan, lienDevoir);
+
+      let secondesRestantes = dv.duree * 60;
+      chronoSpan.textContent = "Temps restant : " + formaterChronoDevoir(secondesRestantes);
+
+      const intervalId = setInterval(function() {
+        secondesRestantes--;
+
+        if (secondesRestantes <= 0) {
+          clearInterval(intervalId);
+          chronoSpan.textContent = "Temps écoulé";
+          chronoSpan.style.color = "var(--error, #c0392b)";
+          lienDevoir.remove();
+          return;
+        }
+
+        if (secondesRestantes <= 60) {
+          chronoSpan.style.color = "#c0392b";
+        }
+
+        chronoSpan.textContent = "Temps restant : " + formaterChronoDevoir(secondesRestantes);
+      }, 1000);
+    }
+
     function chargerDevoirs(classe, matiere) {
       firebase.database().ref("devoirs/" + classe + "/" + matiere).once("value")
         .then(function(snap) {
@@ -202,13 +251,18 @@
             card.className = "devoir-card";
 
             const corrigeDisponible = dv.corrigeUrl && dv.dateCorrige && maintenant >= dv.dateCorrige;
+            const zoneDevoirId = "zone-devoir-" + id;
 
             let html = "<h3>" + (dv.titre || "Devoir") + "</h3>";
-            html += "<p class='meta'>" + (dv.sequence || "") + "</p>";
-            html += "<div class='liens'>";
+            html += "<p class='meta'>" + (dv.sequence || "") + (dv.duree ? " — chronométré (" + dv.duree + " min)" : "") + "</p>";
+            html += "<div class='liens' id='" + zoneDevoirId + "'>";
 
             if (dv.devoirUrl) {
-              html += "<a class='btn' href='" + dv.devoirUrl + "' target='_blank'>Télécharger le devoir</a>";
+              if (dv.duree) {
+                html += "<button class='btn' data-action='commencer' data-id='" + id + "'>Commencer (" + dv.duree + " min)</button>";
+              } else {
+                html += "<a class='btn' href='" + dv.devoirUrl + "' target='_blank'>Télécharger le devoir</a>";
+              }
             }
 
             if (dv.corrigeUrl) {
@@ -225,6 +279,13 @@
             html += "</div>";
             card.innerHTML = html;
             listeDevoirs.appendChild(card);
+
+            if (dv.devoirUrl && dv.duree) {
+              const btnCommencer = card.querySelector("button[data-action='commencer']");
+              btnCommencer.addEventListener("click", function() {
+                demarrerChronoDevoir(zoneDevoirId, dv);
+              });
+            }
           });
         })
         .catch(function(err) {

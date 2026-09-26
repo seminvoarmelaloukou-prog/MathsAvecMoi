@@ -308,6 +308,14 @@
       </div>
 
       <div class="row">
+        <label for="input-duree-devoir">Chronomètre (minutes, optionnel) :</label>
+        <input type="number" id="input-duree-devoir" min="1" placeholder="ex : 45" style="width: 100px;">
+      </div>
+      <p style="font-size: 13px; color: var(--muted); margin-top: -8px;">
+        Si tu remplis ce champ, l'élève devra cliquer sur "Commencer" pour accéder au devoir, et un compte à rebours démarrera à ce moment-là. Laisse vide pour un devoir sans chronomètre (accès libre).
+      </p>
+
+      <div class="row">
         <button id="btn-enregistrer-devoir">Enregistrer</button>
         <button id="btn-annuler-editeur" class="secondaire">Annuler</button>
       </div>
@@ -345,6 +353,7 @@
     const barreProgression = document.getElementById("barre-progression");
     const remplissageProgression = document.getElementById("remplissage-progression");
     const inputDateCorrige = document.getElementById("input-date-corrige");
+    const inputDureeDevoir = document.getElementById("input-duree-devoir");
     const btnEnregistrerDevoir = document.getElementById("btn-enregistrer-devoir");
     const btnAnnulerEditeur = document.getElementById("btn-annuler-editeur");
     const messageEditeur = document.getElementById("message-editeur");
@@ -465,6 +474,7 @@
         meta.className = "meta";
         let metaTexte = dv.sequence || "Séquence non précisée";
         metaTexte += dv.dateCorrige ? " — Corrigé visible dès le " + formaterDate(dv.dateCorrige) : " — Aucune date de corrigé";
+        metaTexte += dv.duree ? " — Chronomètre : " + dv.duree + " min" : "";
         meta.textContent = metaTexte;
         infos.appendChild(meta);
 
@@ -530,6 +540,7 @@
       devoirActuel.textContent = "";
       corrigeActuel.textContent = "";
       inputDateCorrige.value = "";
+      inputDureeDevoir.value = "";
       barreProgression.style.display = "none";
       remplissageProgression.style.width = "0%";
       messageEditeur.textContent = "";
@@ -559,6 +570,10 @@
       if (dv.dateCorrige) {
         const d = new Date(dv.dateCorrige);
         inputDateCorrige.value = d.toISOString().slice(0, 10);
+      }
+
+      if (dv.duree) {
+        inputDureeDevoir.value = dv.duree;
       }
 
       cardEditeur.style.display = "block";
@@ -622,6 +637,12 @@
         dateCorrigeTimestamp = new Date(inputDateCorrige.value + "T00:00:00").getTime();
       }
 
+      let dureeDevoir = null;
+      const dureeSaisie = parseInt(inputDureeDevoir.value, 10);
+      if (dureeSaisie && dureeSaisie > 0) {
+        dureeDevoir = dureeSaisie;
+      }
+
       const id = devoirEnEdition || ("dv_" + Date.now());
       const cheminBase = "devoirs_fichiers/" + classe + "/" + matiere + "/" + id;
 
@@ -656,6 +677,7 @@
             devoirUrl: urlDevoirFinale,
             corrigeUrl: urlCorrigeFinale || "",
             dateCorrige: dateCorrigeTimestamp,
+            duree: dureeDevoir,
             misAJour: Date.now()
           };
 
