@@ -292,6 +292,7 @@
         </select>
         <a href="#" id="btn-evaluation-blanche" class="btn-eval secondaire">Évaluation blanche</a>
         <a href="#" class="btn-eval" id="btn-evaluation-officielle" style="display: none;">Évaluation</a>
+        <a href="#" id="btn-devoirs" class="btn-eval secondaire">Devoirs</a>
         <p id="message-evaluation" class="message-eval"></p>
       </div>
     </section>
@@ -342,6 +343,7 @@
     const messageEvaluation = document.getElementById("message-evaluation");
     const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
     const btnEvaluationBlanche = document.getElementById("btn-evaluation-blanche");
+    const btnDevoirs = document.getElementById("btn-devoirs");
     const selectMatiereEval = document.getElementById("selectMatiereEval");
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
@@ -353,6 +355,14 @@
     btnEvaluationOfficielle.addEventListener("click", function(e) {
       e.preventDefault();
       window.location.href = selectMatiereEval.value + "/evaluation.html";
+    });
+
+    btnDevoirs.addEventListener("click", function(e) {
+      e.preventDefault();
+      // devoirs.html attend le nom "affiché" de la matière (ex: Mathématiques),
+      // qui est aussi la clé utilisée dans la base par admin-devoirs.html
+      const nomMatiere = selectMatiereEval.options[selectMatiereEval.selectedIndex].text;
+      window.location.href = "devoirs.html?matiere=" + encodeURIComponent(nomMatiere);
     });
 
     const btnModeEcrit = document.getElementById("btn-mode-ecrit");
