@@ -1,1 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <title>Connexion - Campus Flex</title>
+
+  <!-- Firebase : ordre obligatoire -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7ff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      background: white;
+      padding: 35px 25px;
+      border-radius: 18px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.12);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e8c;
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 13px;
+      margin-bottom: 17px;
+      border: 1px solid #ccc;
+      border-radius: 9px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2c3e8c;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #2c3e8c;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .inscription {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .inscription a {
+      color: #f39c12;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .mot-de-passe-oublie {
+      display: block;
+      text-align: right;
+      margin: -10px 0 17px;
+      font-size: 13px;
+      color: #2c3e8c;
+      text-decoration: none;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      width: auto;
+    }
+
+    .mot-de-passe-oublie:hover {
+      text-decoration: underline;
+    }
+
+    .retour {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>🎓 Campus Flex</h1>
+
+    <p class="intro">
+      Connecte-toi pour accéder à la plateforme.
+    </p>
+
+    <form id="connexionForm">
+
+      <label for="email">Adresse e-mail</label>
+
+      <input
+        type="email"
+        id="email"
+        placeholder="Exemple : vous@email.com"
+        required
+      >
+
+      <label for="motDePasse">Mot de passe</label>
+
+      <input
+        type="password"
+        id="motDePasse"
+        placeholder="Ton mot de passe"
+        required
+      >
+
+      <button type="button" class="mot-de-passe-oublie" id="btnMotDePasseOublie">
+        Mot de passe oublié ?
+      </button>
+
+      <button type="submit" id="btnConnexion">
+        Se connecter
+      </button>
+
+    </form>
+
+    <div id="message"></div>
+
+    <p class="inscription">
+      Tu n'as pas encore de compte ?
+      <a href="inscription.html">Créer un compte</a>
+    </p>
+
+    <a href="index.html" class="retour">
+      ← Retour à l'accueil
+    </a>
+
+  </div>
+
+  <script>
+    const formulaire = document.getElementById("connexionForm");
+    const message = document.getElementById("message");
+    const bouton = document.getElementById("btnConnexion");
+
+    let enCoursDeConnexion = false;
+
+    function afficherMessage(texte, type) {
+      message.textContent = texte;
+      message.style.color = type === "success" ? "#27ae60" : "#c0392b";
+    }
+
+    function estAdministrateur(user) {
+      if (!firebase.database) {
+        throw new Error("Realtime Database non disponible");
+      }
+
+      return firebase.database()
+        .ref("administrateurs/" + user.uid)
+        .once("value")
+        .then(function(snap) {
+          return !!(snap && snap.exists());
+        });
+    }
+
+    function refuserConnexion(texte) {
+      return firebase.auth().signOut().then(function() {
+        enCoursDeConnexion = false;
+        bouton.disabled = false;
+        bouton.textContent = "Se connecter";
+        afficherMessage(texte, "error");
+      });
+    }
+
+    function orienterNonAdmin(user) {
+      const d = firebase.database();
+      return Promise.all([
+        d.ref("enseignants/" + user.uid).once("value"),
+        d.ref("suspensions/" + user.uid).once("value")
+      ]).then(function(r) {
+        const prof = r[0].val();
+
+        if (prof) {
+          if (prof.statut === "actif") {
+            afficherMessage("✅ Connexion réussie ! Redirection vers ton espace enseignant...", "success");
+            setTimeout(function() { window.location.href = "enseignant.html"; }, 800);
+            return;
+          }
+          if (prof.statut === "en_attente") {
+            return refuserConnexion("⏳ Ton inscription est en attente de validation par l'administrateur.");
+          }
+          if (prof.statut === "suspendu") {
+            return refuserConnexion("⛔ Ton compte enseignant est suspendu. Contacte l'administrateur.");
+          }
+          return refuserConnexion("❌ Ta demande d'inscription n'a pas été acceptée.");
+        }
+
+        if (r[1].exists()) {
+          return refuserConnexion("⛔ Ton compte est suspendu. Contacte l'administration.");
+        }
+
+        afficherMessage("✅ Connexion réussie ! Redirection vers tes cours...", "success");
+        setTimeout(function() { window.location.href = "maths/index.html"; }, 800);
+      });
+    }
+
+    if (window.location.search.indexOf("suspendu=1") >= 0) {
+      afficherMessage("⛔ Ton compte est suspendu. Contacte l'administration.", "error");
+    }
+
+    const btnMotDePasseOublie = document.getElementById("btnMotDePasseOublie");
+    let enCoursDeReinitialisation = false;
+
+    btnMotDePasseOublie.addEventListener("click", function() {
+      if (enCoursDeReinitialisation) {
+        return;
+      }
+
+      const email = document.getElementById("email").value.trim();
+
+      if (!email) {
+        afficherMessage(
+          "✏️ Écris d'abord ton adresse e-mail ci-dessus, puis clique à nouveau sur « Mot de passe oublié ? ».",
+          "error"
+        );
+        document.getElementById("email").focus();
+        return;
+      }
+
+      enCoursDeReinitialisation = true;
+      const texteOriginal = btnMotDePasseOublie.textContent;
+      btnMotDePasseOublie.textContent = "Envoi en cours...";
+      afficherMessage("", "success");
+
+      firebase.auth()
+        .sendPasswordResetEmail(email)
+        .then(function() {
+          afficherMessage(
+            "📩 Un lien de réinitialisation a été envoyé à " + email +
+            ". Ouvre ta boîte mail (et les spams) pour choisir un nouveau mot de passe.",
+            "success"
+          );
+        })
+        .catch(function(erreur) {
+          console.error("Erreur réinitialisation :", erreur);
+
+          let texte = "❌ Impossible d'envoyer l'e-mail de réinitialisation.";
+
+          if (erreur.code === "auth/user-not-found") {
+            texte = "❌ Aucun compte ne correspond à cette adresse e-mail.";
+          } else if (erreur.code === "auth/invalid-email") {
+            texte = "❌ Adresse e-mail invalide.";
+          } else if (erreur.code === "auth/too-many-requests") {
+            texte = "❌ Trop de demandes. Attends quelques minutes puis réessaie.";
+          }
+
+          afficherMessage(texte, "error");
+        })
+        .finally(function() {
+          enCoursDeReinitialisation = false;
+          btnMotDePasseOublie.textContent = texteOriginal;
+        });
+    });
+
+    formulaire.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (enCoursDeConnexion) {
+        return;
+      }
+      enCoursDeConnexion = true;
+
+      const email = document.getElementById("email").value.trim();
+      const motDePasse = document.getElementById("motDePasse").value;
+
+      bouton.disabled = true;
+      bouton.textContent = "Connexion...";
+      afficherMessage("", "success");
+
+      firebase.auth()
+        .signInWithEmailAndPassword(email, motDePasse)
+        .then(function(userCredential) {
+          const user = userCredential.user;
+
+          return estAdministrateur(user)
+            .then(function(admin) {
+              localStorage.setItem("lastActivity", Date.now().toString());
+              if (admin) {
+                afficherMessage("✅ Connexion réussie ! Redirection vers l'administration...", "success");
+                setTimeout(function() {
+                  window.location.href = "admin.html";
+                }, 800);
+              } else {
+                return orienterNonAdmin(user);
+              }
+            });
+        })
+        .catch(function(erreur) {
+          console.error("Erreur connexion :", erreur);
+          enCoursDeConnexion = false;
+
+          let texte = "❌ Adresse e-mail ou mot de passe incorrect.";
+
+          if (erreur.code === "auth/user-not-found") {
+            texte = "❌ Aucun compte ne correspond à cette adresse e-mail.";
+          } else if (erreur.code === "auth/wrong-password") {
+            texte = "❌ Mot de passe incorrect.";
+          } else if (erreur.code === "auth/invalid-credential") {
+            texte = "❌ Adresse e-mail ou mot de passe incorrect.";
+          } else if (erreur.code === "auth/invalid-email") {
+            texte = "❌ Adresse e-mail invalide.";
+          }
+
+          afficherMessage(texte, "error");
+          bouton.disabled = false;
+          bouton.textContent = "Se connecter";
+        });
+    });
+  </script>
+
+</body>
+</html>
