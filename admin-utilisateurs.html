@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utilisateurs - Admin - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--indigo-dark:#1e2c66;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b;--success:#27ae60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+nav h1{color:#fff;font-size:20px}
+nav ul{display:flex;flex-wrap:wrap;gap:18px;list-style:none}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:1150px;margin:30px auto;padding:0 16px}
+.card{background:#fff;padding:22px 18px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:20px;margin-bottom:12px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat-box{background:#f8f9ff;padding:14px;border-radius:10px;border-left:4px solid var(--indigo)}
+.stat-box h3{font-size:13px;color:var(--muted);margin-bottom:6px}
+.valeur{font-size:26px;font-weight:bold;color:var(--indigo)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab{background:#e3e7f6;color:var(--indigo)}
+.tab.actif{background:var(--indigo);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+input[type=text],input[type=email],input[type=password],select{padding:8px 10px;border-radius:8px;border:1px solid #cfd8f0;font-size:14px;background:#fff;font-family:inherit}
+button{padding:8px 12px;border-radius:8px;border:none;background:var(--indigo);color:#fff;font-size:13px;font-weight:bold;cursor:pointer}
+button.secondaire{background:#e3e7f6;color:var(--indigo)}
+button.danger{background:var(--error)}
+button.warning{background:var(--amber)}
+button:disabled{opacity:.6}
+table{width:100%;border-collapse:collapse;font-size:14px;display:block;overflow-x:auto}
+th,td{padding:9px 8px;border-bottom:1px solid #e3e7f6;text-align:left;white-space:nowrap}
+thead{background:#f2f5ff}th{color:var(--indigo)}
+td button{margin-right:4px}
+.pill{padding:3px 9px;border-radius:12px;font-size:12px;font-weight:bold;color:#fff}
+.pill.vert{background:var(--success)}.pill.rouge{background:var(--error)}.pill.gris{background:#7f8c8d}
+.message{font-size:14px;margin-top:10px}.success{color:var(--success)}.error{color:var(--error)}
+.cache{display:none!important}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);justify-content:center;align-items:center;z-index:1000}
+.modal-content{background:#fff;padding:22px 18px;border-radius:14px;width:92%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-content h3{color:var(--indigo);margin-bottom:12px}
+.modal-content .row input{flex:1 1 200px}
+.grp{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 14px}
+.chk{font-size:14px;display:flex;align-items:center;gap:5px}
+.fin{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Admin - Utilisateurs</h1>
+  <ul>
+    <li><a href="admin.html">Tableau de bord</a></li>
+    <li><a href="admin-eleves.html">Créer / modifier un élève</a></li>
+    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+  </ul>
+</nav>
+
+<main>
+  <section class="card" id="card-check">
+    <div class="row"><div class="loader" id="loader"></div><p id="check-msg">Vérification de tes droits administrateur...</p></div>
+  </section>
+
+  <div id="contenu" class="cache">
+    <section class="card">
+      <h2>Vue d'ensemble</h2>
+      <div class="stat-grid" id="stats"></div>
+    </section>
+
+    <section class="card">
+      <div class="tabs">
+        <button class="tab actif" data-tab="eleves">Élèves</button>
+        <button class="tab" data-tab="profs">Enseignants</button>
+        <button class="tab" data-tab="attente">En attente <span id="badge"></span></button>
+      </div>
+
+      <div id="tab-eleves">
+        <div class="row">
+          <select id="f-classe"><option value="">Toutes les classes</option></select>
+          <input type="text" id="f-q" placeholder="Nom, prénom, e-mail, téléphone...">
+        </div>
+        <table>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="t-eleves"></tbody>
+        </table>
+      </div>
+
+      <div id="tab-profs" class="cache">
+        <div class="row"><button data-act="creer">+ Nouvel enseignant</button></div>
+        <table>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="t-profs"></tbody>
+        </table>
+      </div>
+
+      <div id="tab-attente" class="cache">
+        <table>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Téléphone</th><th>Matières souhaitées</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="t-attente"></tbody>
+        </table>
+      </div>
+
+      <p id="msg" class="message"></p>
+    </section>
+  </div>
+</main>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3 id="m-titre"></h3>
+    <p id="m-info" class="message"></p>
+    <form id="form-modal">
+      <div id="bloc-creation">
+        <div class="row"><input type="text" id="m-nom" placeholder="Nom"><input type="text" id="m-prenom" placeholder="Prénom"></div>
+        <div class="row"><input type="email" id="m-email" placeholder="E-mail"><input type="text" id="m-mdp" placeholder="Mot de passe provisoire (6 car. min.)"></div>
+      </div>
+      <strong>Matières</strong>
+      <div class="grp" id="g-matieres"></div>
+      <strong>Classes</strong>
+      <div class="grp" id="g-classes"></div>
+      <p id="m-msg" class="message error"></p>
+      <div class="fin">
+        <button type="button" class="secondaire" id="m-annuler">Annuler</button>
+        <button type="submit" id="m-ok">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Éducation civique","EPS","Espagnol","Allemand","Philosophie"];
+const CLASSES=["6e","5e","4e","3e","2ndeAB","2ndeC","2ndeD","2ndeE","1reAB","1reC","1reD","1reE","TleAB","TleC","TleD","TleE"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const cles=o=>Object.keys(o||{});
+let eleves={},profs={},susp={},mode="",idModal="";
+
+// Second app Firebase : sert uniquement à créer des comptes sans déconnecter l'admin
+const authSec=firebase.initializeApp(firebaseConfig,"Secondaire").auth();
+
+function msg(t,ok){const m=$("msg");m.textContent=t;m.className="message "+(ok?"success":"error");}
+
+function charger(){
+  return Promise.all([db.ref("eleves").once("value"),db.ref("enseignants").once("value"),db.ref("suspensions").once("value")])
+  .then(r=>{eleves=r[0].val()||{};profs=r[1].val()||{};susp=r[2].val()||{};afficher();})
+  .catch(e=>msg("Chargement impossible : "+e.message,false));
+}
+
+function afficher(){
+  const lp=cles(profs).map(u=>Object.assign({uid:u},profs[u]));
+  const att=lp.filter(p=>p.statut==="en_attente");
+  const stats=[["Élèves",cles(eleves).length],["Élèves suspendus",cles(eleves).filter(u=>susp[u]).length],
+    ["Enseignants actifs",lp.filter(p=>p.statut==="actif").length],["En attente",att.length]];
+  $("stats").innerHTML=stats.map(x=>`<div class="stat-box"><h3>${x[0]}</h3><div class="valeur">${x[1]}</div></div>`).join("");
+  $("badge").textContent=att.length?"("+att.length+")":"";
+  tableEleves();tableProfs(lp.filter(p=>p.statut!=="en_attente"));tableAttente(att);
+}
+
+function optClasses(cur){
+  const l=CLASSES.slice();if(cur&&l.indexOf(cur)<0)l.unshift(cur);
+  return (cur?"":'<option value="">—</option>')+l.map(x=>`<option${x===cur?" selected":""}>${esc(x)}</option>`).join("");
+}
+
+function tableEleves(){
+  const c=$("f-classe").value,q=$("f-q").value.trim().toLowerCase();
+  const l=cles(eleves).map(u=>Object.assign({uid:u},eleves[u]))
+    .filter(e=>(!c||e.classe===c)&&(!q||[e.nom,e.prenom,e.email,e.identifiant,e.telephoneInternational,e.telephone].join(" ").toLowerCase().includes(q)))
+    .sort((a,b)=>(a.nom||"").localeCompare(b.nom||""));
+  $("t-eleves").innerHTML=l.length?l.map(e=>{const s=!!susp[e.uid];
+    return `<tr><td>${esc(e.nom)}</td><td>${esc(e.prenom)}</td><td>${esc(e.email)}</td>
+    <td><select data-act="classe" data-id="${e.uid}">${optClasses(e.classe)}</select></td>
+    <td><span class="pill ${s?"rouge":"vert"}">${s?"Suspendu":"Actif"}</span></td>
+    <td><button class="warning" data-act="susp" data-id="${e.uid}">${s?"Réactiver":"Suspendre"}</button>
+    <button class="danger" data-act="del-eleve" data-id="${e.uid}">Supprimer</button></td></tr>`;}).join("")
+    :'<tr><td colspan="6">Aucun élève trouvé.</td></tr>';
+}
+
+function tableProfs(l){
+  const pill={actif:["vert","Actif"],suspendu:["rouge","Suspendu"],refuse:["gris","Refusé"]};
+  $("t-profs").innerHTML=l.length?l.map(p=>{const s=pill[p.statut]||["gris",p.statut||"?"];
+    return `<tr><td>${esc(p.nom)}</td><td>${esc(p.prenom)}</td><td>${esc(p.email)}</td>
+    <td>${cles(p.matieres).map(esc).join(", ")||"—"}</td><td>${cles(p.classes).map(esc).join(", ")||"—"}</td>
+    <td><span class="pill ${s[0]}">${s[1]}</span></td>
+    <td><button data-act="edit-prof" data-id="${p.uid}">Modifier</button>
+    <button class="warning" data-act="toggle-prof" data-id="${p.uid}">${p.statut==="actif"?"Suspendre":"Activer"}</button>
+    <button class="danger" data-act="del-prof" data-id="${p.uid}">Supprimer</button></td></tr>`;}).join("")
+    :'<tr><td colspan="7">Aucun enseignant.</td></tr>';
+}
+
+function tableAttente(l){
+  $("t-attente").innerHTML=l.length?l.map(p=>`<tr><td>${esc(p.nom)}</td><td>${esc(p.prenom)}</td><td>${esc(p.email)}</td>
+    <td>${esc(p.telephone)}</td><td>${esc(p.matieresSouhaitees)}</td>
+    <td>${p.dateInscription?new Date(p.dateInscription).toLocaleDateString("fr-FR"):"-"}</td>
+    <td><button data-act="valider" data-id="${p.uid}">Valider</button>
+    <button class="danger" data-act="refuser" data-id="${p.uid}">Refuser</button></td></tr>`).join("")
+    :'<tr><td colspan="7">Aucune demande en attente.</td></tr>';
+}
+
+function groupe(id,liste,actuel){
+  $(id).innerHTML=liste.map(x=>`<label class="chk"><input type="checkbox" value="${esc(x)}"${actuel&&actuel[x]?" checked":""}> ${esc(x)}</label>`).join("");
+}
+function coches(id){const o={};document.querySelectorAll("#"+id+" input:checked").forEach(i=>o[i.value]=true);return o;}
+
+function ouvrirModal(m,uid){
+  mode=m;idModal=uid||"";const p=uid?profs[uid]:{};
+  $("m-titre").textContent={creer:"Nouvel enseignant",modifier:"Modifier l'enseignant",valider:"Valider l'inscription"}[m];
+  $("m-info").textContent=m==="valider"?"Matières souhaitées : "+(p.matieresSouhaitees||"—"):"";
+  $("bloc-creation").classList.toggle("cache",m!=="creer");
+  ["m-nom","m-prenom","m-email","m-mdp"].forEach(i=>$(i).value="");
+  $("m-msg").textContent="";
+  groupe("g-matieres",MATIERES,p.matieres);groupe("g-classes",CLASSES,p.classes);
+  $("modal").style.display="flex";
+}
+function fermerModal(){$("modal").style.display="none";}
+
+function agir(promesse,texte){
+  return promesse.then(()=>charger()).then(()=>msg(texte,true)).catch(e=>msg("Erreur : "+e.message,false));
+}
+
+$("form-modal").addEventListener("submit",function(e){
+  e.preventDefault();
+  const m=coches("g-matieres"),c=coches("g-classes"),ok=$("m-ok"),err=$("m-msg");
+  if(!cles(m).length||!cles(c).length){err.textContent="Choisis au moins une matière et une classe.";return;}
+  if(mode!=="creer"){
+    const d={matieres:m,classes:c};if(mode==="valider")d.statut="actif";
+    db.ref("enseignants/"+idModal).update(d).then(()=>{fermerModal();return agir(Promise.resolve(),mode==="valider"?"Enseignant validé.":"Enseignant modifié.");})
+      .catch(x=>{err.textContent=x.message;});
+    return;
+  }
+  const nom=$("m-nom").value.trim(),prenom=$("m-prenom").value.trim(),email=$("m-email").value.trim(),mdp=$("m-mdp").value;
+  if(!nom||!prenom||!email||mdp.length<6){err.textContent="Nom, prénom, e-mail et mot de passe (6 caractères min.) sont obligatoires.";return;}
+  ok.disabled=true;err.textContent="Création en cours...";
+  let uid;
+  authSec.createUserWithEmailAndPassword(email,mdp)
+    .then(cr=>{uid=cr.user.uid;return authSec.signOut();})
+    .then(()=>db.ref("enseignants/"+uid).set({uid:uid,nom:nom,prenom:prenom,email:email,matieres:m,classes:c,statut:"actif",dateInscription:Date.now()}))
+    .then(()=>{fermerModal();return agir(Promise.resolve(),"Compte créé. Transmets à l'enseignant son e-mail et son mot de passe provisoire.");})
+    .catch(x=>{err.textContent=x.code==="auth/email-already-in-use"?"Cet e-mail a déjà un compte.":x.message;})
+    .then(()=>{ok.disabled=false;});
+});
+$("m-annuler").addEventListener("click",fermerModal);
+
+document.addEventListener("click",function(e){
+  const b=e.target.closest("button[data-act]");if(!b)return;
+  const a=b.dataset.act,id=b.dataset.id;
+  if(a==="creer")ouvrirModal("creer");
+  else if(a==="edit-prof")ouvrirModal("modifier",id);
+  else if(a==="valider")ouvrirModal("valider",id);
+  else if(a==="susp")agir(susp[id]?db.ref("suspensions/"+id).remove():db.ref("suspensions/"+id).set(Date.now()),susp[id]?"Élève réactivé.":"Élève suspendu.");
+  else if(a==="toggle-prof")agir(db.ref("enseignants/"+id+"/statut").set(profs[id].statut==="actif"?"suspendu":"actif"),"Statut modifié.");
+  else if(a==="refuser"){if(confirm("Refuser cette demande ?"))agir(db.ref("enseignants/"+id+"/statut").set("refuse"),"Demande refusée.");}
+  else if(a==="del-eleve"){if(confirm("Supprimer cet élève ? Ses données seront effacées (son compte de connexion reste dans Firebase Authentication)."))agir(db.ref("eleves/"+id).remove(),"Élève supprimé.");}
+  else if(a==="del-prof"){if(confirm("Supprimer cet enseignant ? Il n'aura plus aucun accès."))agir(db.ref("enseignants/"+id).remove(),"Enseignant supprimé.");}
+});
+
+document.addEventListener("change",function(e){
+  const s=e.target;if(!s.dataset||s.dataset.act!=="classe")return;
+  db.ref("eleves/"+s.dataset.id+"/classe").set(s.value)
+    .then(()=>{eleves[s.dataset.id].classe=s.value;msg("Classe modifiée.",true);})
+    .catch(x=>msg("Erreur : "+x.message,false));
+});
+
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",function(){
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("actif",x===t));
+  ["eleves","profs","attente"].forEach(n=>$("tab-"+n).classList.toggle("cache",n!==t.dataset.tab));
+}));
+
+$("f-classe").innerHTML='<option value="">Toutes les classes</option>'+CLASSES.map(c=>`<option>${c}</option>`).join("");
+$("f-classe").addEventListener("change",tableEleves);
+$("f-q").addEventListener("input",tableEleves);
+
+$("lien-deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
+
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  db.ref("administrateurs/"+u.uid).once("value").then(function(s){
+    $("loader").style.display="none";
+    if(!s.exists()){$("check-msg").textContent="Ce compte n'est pas administrateur.";$("check-msg").className="error";return;}
+    $("card-check").classList.add("cache");$("contenu").classList.remove("cache");charger();
+  }).catch(e=>{$("loader").style.display="none";$("check-msg").textContent="Erreur : "+e.message;});
+});
+</script>
+</body>
+</html>
