@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace enseignant - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--muted:#666}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:#333}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+nav h1{color:#fff;font-size:20px}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:900px;margin:30px auto;padding:0 16px}
+.card{background:#fff;padding:22px 18px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:20px;margin-bottom:10px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pill{background:#e3e7f6;color:var(--indigo);padding:6px 12px;border-radius:14px;font-size:14px;font-weight:bold}
+p{color:var(--muted);line-height:1.5;font-size:15px}
+.erreur{color:#c0392b}
+.loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+.cache{display:none}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Espace enseignant</h1>
+  <a href="#" id="deconnexion">Déconnexion</a>
+</nav>
+<main>
+  <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
+  <div id="contenu" class="cache">
+    <section class="card">
+      <h2 id="bonjour"></h2>
+      <p>Tu peux intervenir uniquement dans les matières et les classes que l'administrateur t'a attribuées.</p>
+    </section>
+    <section class="card">
+      <h2>Mes matières</h2>
+      <div class="pills" id="matieres"></div>
+    </section>
+    <section class="card">
+      <h2>Mes classes</h2>
+      <div class="pills" id="classes"></div>
+    </section>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pills=o=>Object.keys(o||{}).map(x=>'<span class="pill">'+esc(x)+'</span>').join("")||"<p>Aucune pour le moment.</p>";
+$("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  db.ref("enseignants/"+u.uid).once("value").then(function(s){
+    const p=s.val();
+    if(!p||p.statut!=="actif"){
+      $("verif-msg").textContent=p?"Ton compte enseignant n'est pas actif.":"Ce compte n'est pas un compte enseignant.";
+      $("verif-msg").className="erreur";return;
+    }
+    $("verif").classList.add("cache");$("contenu").classList.remove("cache");
+    $("bonjour").textContent="Bonjour "+(p.prenom||"")+" "+(p.nom||"");
+    $("matieres").innerHTML=pills(p.matieres);$("classes").innerHTML=pills(p.classes);
+  }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
+});
+</script>
+</body>
+</html>
