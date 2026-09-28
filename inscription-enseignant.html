@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscription enseignant - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:#f5f7ff;color:#333;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;padding:26px 22px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);width:100%;max-width:460px}
+h1{color:#2c3e8c;font-size:22px;margin-bottom:8px}
+p{color:#666;font-size:14px;line-height:1.5;margin-bottom:14px}
+label{display:block;font-size:14px;margin:10px 0 4px}
+input{width:100%;padding:10px;border:1px solid #cfd8f0;border-radius:8px;font-size:15px}
+button{width:100%;margin-top:18px;padding:12px;border:none;border-radius:8px;background:#2c3e8c;color:#fff;font-size:15px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.6}
+#message{font-size:14px;margin-top:12px}.ok{color:#27ae60}.ko{color:#c0392b}
+a{color:#2c3e8c;font-size:14px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Inscription enseignant</h1>
+  <p>Remplis ce formulaire. Ton compte sera activé après validation par l'administrateur, qui t'attribuera tes matières et tes classes.</p>
+  <form id="form">
+    <label for="prenom">Prénom</label><input id="prenom" required>
+    <label for="nom">Nom</label><input id="nom" required>
+    <label for="email">E-mail</label><input id="email" type="email" required>
+    <label for="tel">Téléphone (avec l'indicatif, ex. +229...)</label><input id="tel" type="tel">
+    <label for="matieres">Matière(s) que tu enseignes</label><input id="matieres" required>
+    <label for="mdp">Mot de passe (6 caractères min.)</label><input id="mdp" type="password" minlength="6" required>
+    <label for="mdp2">Confirmer le mot de passe</label><input id="mdp2" type="password" required>
+    <button type="submit" id="btn">Envoyer ma demande</button>
+  </form>
+  <p id="message"></p>
+  <p style="margin-top:10px"><a href="connexion.html">Déjà validé ? Se connecter</a></p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+$("form").addEventListener("submit",function(e){
+  e.preventDefault();
+  const m=$("message"),btn=$("btn");
+  if($("mdp").value!==$("mdp2").value){m.textContent="Les mots de passe ne correspondent pas.";m.className="ko";return;}
+  btn.disabled=true;m.textContent="Envoi en cours...";m.className="";
+  let user;
+  auth.createUserWithEmailAndPassword($("email").value.trim(),$("mdp").value)
+    .then(c=>{user=c.user;return db.ref("enseignants/"+user.uid).set({
+      uid:user.uid,prenom:$("prenom").value.trim(),nom:$("nom").value.trim(),email:$("email").value.trim(),
+      telephone:$("tel").value.trim(),matieresSouhaitees:$("matieres").value.trim(),
+      statut:"en_attente",dateInscription:Date.now()});})
+    .then(()=>auth.signOut())
+    .then(()=>{$("form").style.display="none";m.textContent="Demande envoyée. Tu pourras te connecter une fois ton compte validé par l'administrateur.";m.className="ok";})
+    .catch(x=>{btn.disabled=false;m.textContent=x.code==="auth/email-already-in-use"?"Cet e-mail a déjà un compte.":"Erreur : "+x.message;m.className="ko";});
+});
+</script>
+</body>
+</html>
