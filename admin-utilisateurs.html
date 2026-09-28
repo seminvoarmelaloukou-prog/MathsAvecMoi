@@ -176,6 +176,20 @@ td button{margin-right:4px}
 </div>
 
 <script>
+// Diagnostic : affiche à l'écran la cause si la page reste bloquée
+(function(){
+  function afficher(t){var m=document.getElementById("check-msg"),l=document.getElementById("loader");
+    if(l)l.style.display="none";if(m){m.textContent=t;m.className="error";}}
+  window.addEventListener("error",function(e){afficher("Erreur de script : "+e.message);});
+  if(typeof firebase==="undefined"){afficher("Les scripts Firebase ne se sont pas chargés. Vérifie ta connexion internet.");}
+  else if(typeof firebaseConfig==="undefined"||typeof db==="undefined"||typeof auth==="undefined"){
+    afficher("firebase-config.js est introuvable ou vide sur le site. Redépose ce fichier à la racine du dépôt.");}
+  setTimeout(function(){var c=document.getElementById("contenu");
+    if(c&&c.classList.contains("cache")&&document.getElementById("loader").style.display!=="none"){
+      afficher("Toujours en attente de Firebase. Vérifie ta connexion internet, puis recharge la page.");}},12000);
+})();
+</script>
+<script>
 const MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Éducation civique","EPS","Espagnol","Allemand","Philosophie"];
 const CLASSES=["6e","5e","4e","3e","2ndeAB","2ndeC","2ndeD","2ndeE","1reAB","1reC","1reD","1reE","TleAB","TleC","TleD","TleE"];
 const CLASSES_CONTENU=["6e","5e","4e","3e","2de AB","2de C","2de D","2de E","1re AB","1re C","1re D","1re E","Tle AB","Tle C","Tle D","Tle E"];
