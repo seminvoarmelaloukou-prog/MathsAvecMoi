@@ -180,7 +180,7 @@ td button{margin-right:4px}
 (function(){
   function afficher(t){var m=document.getElementById("check-msg"),l=document.getElementById("loader");
     if(l)l.style.display="none";if(m){m.textContent=t;m.className="error";}}
-  window.addEventListener("error",function(e){afficher("Erreur de script : "+e.message);});
+  window.addEventListener("error",function(e){afficher("Erreur de script : "+e.message+" | fichier : "+String(e.filename||"?").split("/").pop()+" | ligne : "+e.lineno+" | version 2");});
   if(typeof firebase==="undefined"){afficher("Les scripts Firebase ne se sont pas chargés. Vérifie ta connexion internet.");}
   else if(typeof firebaseConfig==="undefined"||typeof db==="undefined"||typeof auth==="undefined"){
     afficher("firebase-config.js est introuvable ou vide sur le site. Redépose ce fichier à la racine du dépôt.");}
