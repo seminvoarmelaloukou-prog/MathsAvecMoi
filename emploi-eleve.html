@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emploi du temps - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+nav h1{color:#fff;font-size:20px}nav ul{display:flex;flex-wrap:wrap;gap:18px;list-style:none}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:800px;margin:25px auto;padding:0 14px}
+.card{background:#fff;padding:20px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:18px}
+.card h2{color:var(--indigo);font-size:20px;margin-bottom:8px}
+.aide{color:var(--muted);font-size:14px;line-height:1.5}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-size:15px;background:#fff;margin-bottom:6px}
+.jour{color:var(--indigo);font-weight:bold;margin:16px 0 6px}
+.seance{background:#f8f9ff;border-left:4px solid var(--amber);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px}
+.seance small{display:block;color:var(--muted);margin-top:3px;font-size:13px}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Emploi du temps</h1>
+  <ul>
+    <li><a href="profil.html">Retour</a></li>
+    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+  </ul>
+</nav>
+<main>
+
+  <section class="card"><h2>Emploi du temps de ma classe</h2><p class="aide" id="info">Chargement...</p>
+    <div id="choix" style="display:none;margin-top:10px"><label>Ma classe</label><select id="groupe"></select></div>
+  </section>
+  <section class="card" id="zone" style="display:none"></section>
+</main>
+<script>
+const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mn=h=>{const p=h.split(":");return +p[0]*60+ +p[1];};
+let seances={},profs={},classes={};
+$("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
+function afficher(){
+  const id=$("groupe").value;let h="";
+  const l=Object.keys(seances).map(k=>seances[k]).filter(s=>s.classeId===id);
+  JOURS.forEach(j=>{
+    const lj=l.filter(s=>s.jour===j).sort((a,b)=>mn(a.debut)-mn(b.debut));
+    if(!lj.length)return;
+    h+='<div class="jour">'+j+'</div>'+lj.map(s=>'<div class="seance"><b>'+esc(s.debut)+' - '+esc(s.fin)+'</b> · '+esc((profs[s.code]||{}).matiere||"")+'</div>').join("");
+  });
+  $("zone").innerHTML=h||'<p class="aide">Aucune séance enregistrée pour cette classe.</p>';$("zone").style.display="block";
+}
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  db.ref("eleves/"+u.uid).once("value").then(function(s){
+    if(!s.exists()||!s.val().classe){$("info").textContent="Ta classe n'est pas encore renseignée dans ton profil.";return null;}
+    const niveau=s.val().classe;
+    return Promise.all([db.ref("edt/seances").orderByChild("niveau").equalTo(niveau).once("value"),db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),niveau]);
+  }).then(function(r){
+    if(!r)return;
+    seances=r[0].val()||{};classes=r[1].val()||{};profs=r[2].val()||{};
+    const ids=Object.keys(classes).filter(k=>classes[k].niveau===r[3]);
+    if(!ids.length){$("info").textContent="Aucun emploi du temps n'est encore publié pour "+r[3]+".";return;}
+    $("info").textContent="Niveau : "+r[3];
+    $("groupe").innerHTML=ids.map(k=>'<option value="'+esc(k)+'">'+esc(classes[k].niveau+" "+classes[k].nom)+'</option>').join("");
+    $("groupe").onchange=afficher;$("choix").style.display="block";afficher();
+  }).catch(e=>{$("info").textContent="Erreur : "+e.message;});
+});
+</script>
+</body>
+</html>

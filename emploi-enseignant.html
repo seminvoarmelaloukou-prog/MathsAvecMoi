@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon emploi du temps - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+nav h1{color:#fff;font-size:20px}nav ul{display:flex;flex-wrap:wrap;gap:18px;list-style:none}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:800px;margin:25px auto;padding:0 14px}
+.card{background:#fff;padding:20px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:18px}
+.card h2{color:var(--indigo);font-size:20px;margin-bottom:8px}
+.aide{color:var(--muted);font-size:14px;line-height:1.5}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-size:15px;background:#fff;margin-bottom:6px}
+.jour{color:var(--indigo);font-weight:bold;margin:16px 0 6px}
+.seance{background:#f8f9ff;border-left:4px solid var(--amber);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px}
+.seance small{display:block;color:var(--muted);margin-top:3px;font-size:13px}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Mon emploi du temps</h1>
+  <ul>
+    <li><a href="index.html">Retour</a></li>
+    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+  </ul>
+</nav>
+<main>
+
+  <section class="card"><h2 id="titre">Mon emploi du temps</h2><p class="aide" id="info">Chargement...</p></section>
+  <section class="card" id="zone" style="display:none"></section>
+</main>
+<script>
+const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const mn=h=>{const p=h.split(":");return +p[0]*60+ +p[1];};
+$("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  db.ref("enseignants/"+u.uid).once("value").then(function(s){
+    if(!s.exists()){$("info").textContent="Ce compte n'est pas un compte enseignant.";return null;}
+    if(s.val().statut!=="actif"){$("info").textContent="Ton compte enseignant n'est pas encore actif.";return null;}
+    return Promise.all([db.ref("edt/seances").orderByChild("uid").equalTo(u.uid).once("value"),db.ref("edt/classes").once("value")]);
+  }).then(function(r){
+    if(!r)return;
+    const seances=r[0].val()||{},classes=r[1].val()||{};
+    const l=Object.keys(seances).map(k=>seances[k]);
+    if(!l.length){$("info").textContent="Aucune séance ne t'est encore attribuée.";return;}
+    $("info").textContent=l.length+" séance(s) par semaine.";
+    let h="";
+    JOURS.forEach(j=>{
+      const lj=l.filter(s=>s.jour===j).sort((a,b)=>mn(a.debut)-mn(b.debut));
+      if(!lj.length)return;
+      h+='<div class="jour">'+j+'</div>'+lj.map(s=>{const c=classes[s.classeId];return '<div class="seance"><b>'+esc(s.debut)+' - '+esc(s.fin)+'</b> · '+esc(c?c.niveau+" "+c.nom:"Classe")+'<small>Code '+esc(s.code)+'</small></div>';}).join("");
+    });
+    $("zone").innerHTML=h;$("zone").style.display="block";
+  }).catch(e=>{$("info").textContent="Erreur : "+e.message;});
+});
+</script>
+</body>
+</html>

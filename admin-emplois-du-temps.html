@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emplois du temps - Admin - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--indigo-dark:#1e2c66;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b;--success:#27ae60}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+nav h1{color:#fff;font-size:20px}nav ul{display:flex;flex-wrap:wrap;gap:18px;list-style:none}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:1000px;margin:25px auto;padding:0 14px}
+.card{background:#fff;padding:20px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:20px;margin-bottom:6px}
+.card p.aide{color:var(--muted);font-size:14px;margin-bottom:12px;line-height:1.5}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+select,input{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-size:15px;background:#fff}
+button{background:var(--indigo);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer}
+button:hover{background:var(--indigo-dark)}
+button.suppr{background:#fff;color:var(--error);border:1px solid var(--error);padding:6px 10px;font-size:13px}
+.msg{font-size:14px;margin-top:10px;min-height:18px}.ok{color:var(--success)}.ko{color:var(--error)}
+.puces{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.puce{background:#eef1ff;border-left:4px solid var(--amber);border-radius:8px;padding:6px 10px;font-size:14px;display:flex;align-items:center;gap:8px}
+.puce button{padding:2px 8px;font-size:13px;background:#fff;color:var(--error);border:1px solid var(--error)}
+.seance{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #eef0fa;padding:10px 0;font-size:15px}
+.seance small{color:var(--muted);display:block;margin-top:2px}
+.jour-titre{color:var(--indigo);font-weight:bold;margin:14px 0 4px}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Admin - Emplois du temps</h1>
+  <ul>
+    <li><a href="admin.html">Tableau de bord</a></li>
+    <li><a href="admin-utilisateurs.html">Utilisateurs</a></li>
+    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+  </ul>
+</nav>
+<main>
+  <section class="card" id="verif"><h2>Vérification</h2><p class="aide" id="verif-msg">Vérification de tes droits administrateur...</p></section>
+
+  <div id="contenu" style="display:none">
+
+    <section class="card">
+      <h2>1. Classes</h2>
+      <p class="aide">Ajoute chaque classe du collège : le niveau (comme pour les élèves) et le nom de la classe sur le tableau (M1, M2, A, D...).</p>
+      <div class="row">
+        <div><label>Niveau</label><select id="c-niveau"></select></div>
+        <div><label>Nom de la classe</label><input id="c-nom" placeholder="ex. M1"></div>
+        <div style="align-self:end"><button id="btn-classe">Ajouter la classe</button></div>
+      </div>
+      <div class="puces" id="liste-classes"></div>
+    </section>
+
+    <section class="card">
+      <h2>2. Enseignants du tableau</h2>
+      <p class="aide">Chaque code (M1, H2, Al1...) correspond à un enseignant. Relie-le à son compte pour qu'il retrouve son emploi du temps dans son espace.</p>
+      <div class="row">
+        <div><label>Code</label><input id="p-code" placeholder="ex. M1"></div>
+        <div><label>Matière</label><select id="p-matiere"></select></div>
+        <div><label>Compte enseignant (facultatif)</label><select id="p-uid"></select></div>
+        <div style="align-self:end"><button id="btn-prof">Ajouter</button></div>
+      </div>
+      <div class="puces" id="liste-profs"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. Ajouter une séance</h2>
+      <p class="aide">Les chevauchements sont refusés : une classe ou un enseignant ne peut pas avoir deux séances en même temps.</p>
+      <div class="row">
+        <div><label>Jour</label><select id="s-jour"></select></div>
+        <div><label>Classe</label><select id="s-classe"></select></div>
+        <div><label>Enseignant (code)</label><select id="s-prof"></select></div>
+      </div>
+      <div class="row">
+        <div><label>Début</label><input type="time" id="s-debut" value="07:00"></div>
+        <div><label>Fin</label><input type="time" id="s-fin" value="10:00"></div>
+        <div style="align-self:end"><button id="btn-seance">Enregistrer la séance</button></div>
+      </div>
+      <div class="msg" id="msg"></div>
+    </section>
+
+    <section class="card">
+      <h2>Séances enregistrées</h2>
+      <div class="row">
+        <div><label>Filtrer par classe</label><select id="f-classe"></select></div>
+        <div><label>Filtrer par enseignant</label><select id="f-prof"></select></div>
+      </div>
+      <div id="liste-seances"></div>
+    </section>
+
+  </div>
+</main>
+
+<script>
+const NIVEAUX=["6e","5e","4e","3e","2ndeAB","2ndeC","2ndeD","2ndeE","1reAB","1reC","1reD","1reE","TleAB","TleC","TleD","TleE"];
+const MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Espagnol","Allemand","EPS","Éducation civique","Philosophie"];
+const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let classes={},profs={},seances={},comptes={};
+
+function msg(t,ok){const m=$("msg");m.textContent=t;m.className="msg "+(ok?"ok":"ko");}
+function mn(h){const p=h.split(":");return +p[0]*60+ +p[1];}
+function libClasse(id){const c=classes[id];return c?c.niveau+" "+c.nom:"?";}
+function opts(arr,vide){return (vide?'<option value="">'+vide+'</option>':"")+arr.map(a=>'<option value="'+esc(a[0])+'">'+esc(a[1])+'</option>').join("");}
+
+function charger(){
+  return Promise.all([db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),db.ref("edt/seances").once("value"),db.ref("enseignants").once("value")])
+  .then(r=>{classes=r[0].val()||{};profs=r[1].val()||{};seances=r[2].val()||{};comptes=r[3].val()||{};afficher();})
+  .catch(e=>msg("Chargement impossible : "+e.message,false));
+}
+
+function afficher(){
+  $("liste-classes").innerHTML=Object.keys(classes).sort((a,b)=>libClasse(a).localeCompare(libClasse(b))).map(id=>'<span class="puce">'+esc(libClasse(id))+' <button data-del="classes/'+id+'">×</button></span>').join("")||"Aucune classe.";
+  $("liste-profs").innerHTML=Object.keys(profs).sort().map(c=>{const p=profs[c];return '<span class="puce"><b>'+esc(c)+'</b> '+esc(p.matiere)+(p.nom?" · "+esc(p.nom):"")+' <button data-del="profs/'+esc(c)+'">×</button></span>';}).join("")||"Aucun enseignant.";
+  const lc=Object.keys(classes).map(id=>[id,libClasse(id)]),lp=Object.keys(profs).map(c=>[c,c+" ("+profs[c].matiere+")"]);
+  $("s-classe").innerHTML=opts(lc);$("s-prof").innerHTML=opts(lp);
+  const fc=$("f-classe").value,fp=$("f-prof").value;
+  $("f-classe").innerHTML=opts(lc,"Toutes");$("f-prof").innerHTML=opts(lp,"Tous");$("f-classe").value=fc;$("f-prof").value=fp;
+  $("p-uid").innerHTML=opts(Object.keys(comptes).map(u=>[u,((comptes[u].prenom||"")+" "+(comptes[u].nom||"")).trim()||comptes[u].email||u]),"— aucun —");
+  afficherSeances();
+}
+
+function afficherSeances(){
+  const fc=$("f-classe").value,fp=$("f-prof").value;let h="";
+  JOURS.forEach(j=>{
+    const l=Object.keys(seances).map(id=>Object.assign({id:id},seances[id])).filter(s=>s.jour===j&&(!fc||s.classeId===fc)&&(!fp||s.code===fp)).sort((a,b)=>mn(a.debut)-mn(b.debut));
+    if(!l.length)return;
+    h+='<div class="jour-titre">'+j+'</div>'+l.map(s=>'<div class="seance"><div><b>'+esc(s.debut)+' - '+esc(s.fin)+'</b> · '+esc(libClasse(s.classeId))+'<small>'+esc(s.code)+' · '+esc((profs[s.code]||{}).matiere||"")+'</small></div><button class="suppr" data-del="seances/'+s.id+'">Supprimer</button></div>').join("");
+  });
+  $("liste-seances").innerHTML=h||'<p class="aide">Aucune séance.</p>';
+}
+
+function conflit(n){
+  const d=mn(n.debut),f=mn(n.fin);
+  for(const id in seances){
+    const s=seances[id];
+    if(s.jour!==n.jour)continue;
+    if(!(d<mn(s.fin)&&mn(s.debut)<f))continue;
+    if(s.classeId===n.classeId)return "La classe "+libClasse(n.classeId)+" a déjà une séance le "+s.jour+" de "+s.debut+" à "+s.fin+".";
+    if(s.code===n.code)return "L'enseignant "+n.code+" est déjà occupé le "+s.jour+" de "+s.debut+" à "+s.fin+" (classe "+libClasse(s.classeId)+").";
+  }
+  return "";
+}
+
+$("btn-classe").onclick=function(){
+  const nom=$("c-nom").value.trim();if(!nom)return;
+  db.ref("edt/classes").push({niveau:$("c-niveau").value,nom:nom}).then(()=>{$("c-nom").value="";charger();});
+};
+$("btn-prof").onclick=function(){
+  const code=$("p-code").value.trim().replace(/[.#$\[\]\/]/g,"");if(!code)return;
+  const uid=$("p-uid").value,c=comptes[uid]||{};
+  db.ref("edt/profs/"+code).set({matiere:$("p-matiere").value,uid:uid||"",nom:uid?((c.prenom||"")+" "+(c.nom||"")).trim():""}).then(()=>{$("p-code").value="";charger();});
+};
+$("btn-seance").onclick=function(){
+  const n={jour:$("s-jour").value,classeId:$("s-classe").value,code:$("s-prof").value,debut:$("s-debut").value,fin:$("s-fin").value};
+  if(!n.classeId||!n.code||!n.debut||!n.fin){msg("Remplis tous les champs (ajoute d'abord des classes et des enseignants).",false);return;}
+  if(mn(n.fin)<=mn(n.debut)){msg("L'heure de fin doit être après l'heure de début.",false);return;}
+  const e=conflit(n);if(e){msg(e,false);return;}
+  n.niveau=classes[n.classeId].niveau;n.uid=(profs[n.code]||{}).uid||"";
+  db.ref("edt/seances").push(n).then(()=>{msg("Séance enregistrée.",true);charger();}).catch(x=>msg("Erreur : "+x.message,false));
+};
+document.addEventListener("click",function(e){
+  const p=e.target.dataset&&e.target.dataset.del;if(!p)return;
+  if(confirm("Supprimer ?"))db.ref("edt/"+p).remove().then(charger);
+});
+$("f-classe").onchange=afficherSeances;$("f-prof").onchange=afficherSeances;
+$("c-niveau").innerHTML=opts(NIVEAUX.map(n=>[n,n]));
+$("p-matiere").innerHTML=opts(MATIERES.map(n=>[n,n]));
+$("s-jour").innerHTML=opts(JOURS.map(n=>[n,n]));
+$("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
+
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  db.ref("administrateurs/"+u.uid).once("value").then(function(s){
+    if(!s.exists()){$("verif-msg").textContent="Ce compte n'est pas enregistré comme administrateur.";return;}
+    $("verif").style.display="none";$("contenu").style.display="block";charger();
+  }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;});
+});
+</script>
+</body>
+</html>
