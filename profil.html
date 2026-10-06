@@ -191,7 +191,7 @@
       gap: 8px;
     }
 
-    .nora-message {
+    .nora-message { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%;
       padding: 8px 12px;
       border-radius: 8px;
       max-width: 85%;
@@ -444,13 +444,32 @@
         });
     }
 
+    function nettoyerTexteNora(t) {
+      return String(t)
+        .replace(/\\text\{([^}]*)\}/g, "$1")
+        .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "($1)/($2)")
+        .replace(/\\sqrt\{([^}]*)\}/g, "√($1)")
+        .replace(/\\(times|cdot)/g, "×")
+        .replace(/\\div/g, "÷")
+        .replace(/\\(left|right)/g, "")
+        .replace(/\^2/g, "²").replace(/\^3/g, "³")
+        .replace(/\$+/g, "")
+        .replace(/#{2,6}\s*/g, "")
+        .replace(/\*\*/g, "")
+        .replace(/^\s*-{3,}\s*$/gm, "")
+        .replace(/^\s*>\s?/gm, "")
+        .replace(/^\s*\*\s+/gm, "- ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    }
+
     function ajouterMessageNora(expediteur, texte) {
       const div = document.createElement("div");
       div.className = "nora-message " + expediteur;
       const strong = document.createElement("strong");
       strong.textContent = expediteur === "eleve" ? "Toi : " : "Nora : ";
       div.appendChild(strong);
-      div.appendChild(document.createTextNode(texte));
+      div.appendChild(document.createTextNode(expediteur === "nora" ? nettoyerTexteNora(texte) : texte));
       noraMessages.appendChild(div);
       noraMessages.scrollTop = noraMessages.scrollHeight;
     }
