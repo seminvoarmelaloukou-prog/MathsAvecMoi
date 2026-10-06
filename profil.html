@@ -379,7 +379,7 @@
     let modeActuel = "ecrit";
     let reconnaissanceVocale = null;
 
-    const GEMINI_API_KEY = "AQ.Ab8RN6ImtMvSH0KTH9Z5frv8uYTOzhXLSkXvHvmyygbfGoABlA";
+    const NORA_URL = "https://nora.seminvoarmelaloukou.workers.dev";
 
     function afficherErreurChargement(texte) {
       messageChargement.textContent = texte;
@@ -460,32 +460,22 @@
       noraMessage.classList.remove("error");
 
       try {
-        const reponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: "Tu es Nora, un tuteur IA en mathématiques pour collégiens et lycéens (6e à Terminale) au Bénin. Réponds de manière claire, pédagogique et encourageante à : " + question
-                }]
-              }]
-            })
-          }
-        );
-
+        const reponse = await fetch(NORA_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question })
+        });
         const data = await reponse.json();
-        
-        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-          ajouterMessageNora("nora", data.candidates[0].content.parts[0].text);
+
+        if (data && data.texte) {
+          ajouterMessageNora("nora", data.texte);
         } else {
           ajouterMessageNora("nora", "Je n'arrive pas à répondre. Réessaie !");
         }
 
         noraMessage.textContent = "";
       } catch (erreur) {
-        console.error("Erreur API Gemini :", erreur);
+        console.error("Erreur Nora :", erreur);
         ajouterMessageNora("nora", "Oups, problème de connexion !");
         noraMessage.textContent = "";
         noraMessage.classList.add("error");
