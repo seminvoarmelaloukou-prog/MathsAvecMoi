@@ -33,22 +33,37 @@ export default {
     try { question = String((await req.json()).question || "").trim().slice(0, 1000); } catch (e) {}
     if (!question) return rep({ erreur: "Question vide" }, 400);
 
-    const modele = env.MODELE || "gemini-2.5-flash";
-    const r = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/" + modele + ":generateContent",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: CONSIGNE }] },
-          contents: [{ parts: [{ text: question }] }],
-          generationConfig: { maxOutputTokens: 1500 }
-        })
+    const modeles = [env.MODELE || "gemini-3.8-flash", env.MODELE_SECOURS].filter(Boolean);
+    const corps = JSON.stringify({
+      systemInstruction: { parts: [{ text: CONSIGNE }] },
+      contents: [{ parts: [{ text: question }] }],
+      generationConfig: { maxOutputTokens: 1500 }
+    });
+    const attendre = ms => new Promise(res => setTimeout(res, ms));
+    let dernier = "";
+
+    for (const modele of modeles) {
+      for (let essai = 0; essai < 3; essai++) {
+        try {
+          const r = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/" + modele + ":generateContent",
+            { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY }, body: corps }
+          );
+          const d = await r.json();
+          const parts = d && d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts;
+          const texte = parts ? parts.map(p => p.text || "").join("") : "";
+          if (texte) return rep({ texte: texte });
+          dernier = r.status + " " + modele + " " + ((d && d.error && d.error.message) || "réponse vide");
+          console.log("Gemini :", dernier);
+          if ([429, 500, 503].includes(r.status)) { await attendre(900 * (essai + 1)); continue; }
+          break;
+        } catch (e) {
+          dernier = String(e && e.message);
+          console.log("Erreur :", dernier);
+          await attendre(900 * (essai + 1));
+        }
       }
-    );
-    const d = await r.json();
-    const parts = d && d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts;
-    const texte = parts ? parts.map(p => p.text || "").join("") : "";
-    return rep({ texte: texte }, texte ? 200 : 502);
+    }
+    return rep({ texte: "Nora est très sollicitée en ce moment. Réessaie dans quelques secondes." });
   }
 };
