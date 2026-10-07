@@ -585,8 +585,10 @@
 
     const fileNora = []; // messages envoyés pendant que Nora répond
 
-    async function repondreNora(question, image) {
-      if (noraEnCours) {
+    async function repondreNora(question, image, essaiNo) {
+      essaiNo = essaiNo || 0;
+      let relancer = false;
+      if (noraEnCours && essaiNo === 0) {
         fileNora.push({ question: question, image: image || null });
         noraMessage.textContent = "Message reçu ✅ Nora te répond à la suite.";
         noraMessage.classList.remove("error");
@@ -602,6 +604,12 @@
 
       const controleur = new AbortController();
       const minuteur = setTimeout(function() { controleur.abort(); }, image ? 60000 : 45000);
+      // Veille : si plus rien n'arrive pendant 20 s, on coupe pour ne jamais rester bloqué
+      let veille = null;
+      const armerVeille = function() {
+        clearTimeout(veille);
+        veille = setTimeout(function() { controleur.abort(); }, 20000);
+      };
 
       try {
         const reponse = await fetch(NORA_URL, {
@@ -615,6 +623,7 @@
           signal: controleur.signal
         });
         clearTimeout(minuteur); // le premier mot est arrivé : la suite s'affiche en direct
+        armerVeille();
 
         const type = reponse.headers.get("Content-Type") || "";
         if (type.indexOf("application/json") !== -1 || !reponse.body || !reponse.body.getReader) {
@@ -623,7 +632,9 @@
             if (type.indexOf("application/json") !== -1) { const data = await reponse.json(); texte = (data && data.texte) || ""; }
             else { texte = await reponse.text(); }
           } catch (e) {}
-          if (texte) ajouterMessageNora("nora", texte, texte.indexOf("(code ") !== -1);
+          if (texte && essaiNo < 2 && /\(code (503|500|429)\)/.test(texte)) {
+            relancer = true; // service surchargé : on réessaie tout seul
+          } else if (texte) ajouterMessageNora("nora", texte, texte.indexOf("(code ") !== -1);
           else ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !", true);
         } else {
           const bulle = ajouterMessageNora("nora", "…", true);
@@ -631,23 +642,27 @@
           const lecteur = reponse.body.getReader();
           const decodeur = new TextDecoder();
           let texte = "";
+          let coupe = false;
           try {
             while (true) {
               const lecture = await lecteur.read();
               if (lecture.done) break;
+              armerVeille();
               texte += decodeur.decode(lecture.value, { stream: true });
               noeud.nodeValue = nettoyerTexteNora(texte);
               noraMessages.scrollTop = noraMessages.scrollHeight;
             }
-          } catch (e) { /* coupure en route : on garde ce qui est déjà affiché */ }
+          } catch (e) { coupe = true; /* coupure en route : on garde ce qui est déjà affiché */ }
           if (texte) {
-            noeud.nodeValue = nettoyerTexteNora(texte);
+            noeud.nodeValue = nettoyerTexteNora(texte) + (coupe ? "\n\n(Réponse interrompue. Renvoie ta question si besoin.)" : "");
             noraHistorique.push({ role: "nora", texte: texte.slice(0, 800) });
           } else {
-            noeud.nodeValue = "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !";
+            noeud.nodeValue = coupe
+              ? "Je mets trop de temps à répondre. Renvoie ta question dans un instant !"
+              : "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !";
           }
         }
-        noraMessage.textContent = "";
+        noraMessage.textContent = relancer ? "Nora est très demandée, elle réessaie..." : "";
       } catch (erreur) {
         console.error("Erreur Nora :", erreur);
         const delai = erreur && erreur.name === "AbortError";
@@ -657,6 +672,12 @@
         noraMessage.textContent = "";
       } finally {
         clearTimeout(minuteur);
+        clearTimeout(veille);
+        if (relancer) {
+          noraHistorique.pop(); // la question sera renvoyée : on évite le doublon
+          setTimeout(function() { repondreNora(question, image, essaiNo + 1); }, 3000 * (essaiNo + 1));
+          return;
+        }
         noraEnCours = false;
         // S'il y a des messages en attente, Nora y répond en une seule fois
         if (fileNora.length) {
