@@ -47,6 +47,8 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mn=h=>{const p=h.split(":");return +p[0]*60+ +p[1];};
 let seances={},profs={},classes={};
+function norm(x){x=String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+  return x.replace(/^(\d)eme/,"$1e").replace(/^(\d)ere/,"$1re").replace(/^(\d)e$/,"$1e");}
 $("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
 function afficher(){
   const id=$("groupe").value;let h="";
@@ -63,11 +65,12 @@ auth.onAuthStateChanged(function(u){
   db.ref("eleves/"+u.uid).once("value").then(function(s){
     if(!s.exists()||!s.val().classe){$("info").textContent="Ta classe n'est pas encore renseignée dans ton profil.";return null;}
     const niveau=s.val().classe;
-    return Promise.all([db.ref("edt/seances").orderByChild("niveau").equalTo(niveau).once("value"),db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),niveau]);
+    return Promise.all([db.ref("edt/seances").once("value"),db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),niveau]);
   }).then(function(r){
     if(!r)return;
     seances=r[0].val()||{};classes=r[1].val()||{};profs=r[2].val()||{};
-    const ids=Object.keys(classes).filter(k=>classes[k].niveau===r[3]);
+    const nv=norm(r[3]);
+    const ids=Object.keys(classes).filter(k=>norm(classes[k].niveau)===nv);
     if(!ids.length){$("info").textContent="Aucun emploi du temps n'est encore publié pour "+r[3]+".";return;}
     $("info").textContent="Niveau : "+r[3];
     $("groupe").innerHTML=ids.map(k=>'<option value="'+esc(k)+'">'+esc(classes[k].niveau+" "+classes[k].nom)+'</option>').join("");
