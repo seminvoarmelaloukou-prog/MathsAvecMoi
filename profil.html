@@ -380,6 +380,8 @@
     let reconnaissanceVocale = null;
 
     const NORA_URL = "https://nora.seminvoarmelaloukou.workers.dev";
+    let noraHistorique = [];
+    let noraEnCours = false;
 
     function afficherErreurChargement(texte) {
       messageChargement.textContent = texte;
@@ -484,7 +486,8 @@
         .trim();
     }
 
-    function ajouterMessageNora(expediteur, texte) {
+    function ajouterMessageNora(expediteur, texte, horsHistorique) {
+      if (!horsHistorique) noraHistorique.push({ role: expediteur, texte: String(texte).slice(0, 800) });
       const div = document.createElement("div");
       div.className = "nora-message " + expediteur;
       div.style.whiteSpace = "pre-wrap";
@@ -497,29 +500,47 @@
     }
 
     async function repondreNora(question) {
+      if (noraEnCours) {
+        noraMessage.textContent = "Nora est en train de répondre, patiente un instant.";
+        noraMessage.classList.add("error");
+        return;
+      }
+      noraEnCours = true;
+      noraBtnEnvoyer.disabled = true;
       noraMessage.textContent = "Nora réfléchit...";
       noraMessage.classList.remove("error");
+
+      const historique = noraHistorique.slice(0, -1).slice(-6);
+      const controleur = new AbortController();
+      const minuteur = setTimeout(function() { controleur.abort(); }, 30000);
 
       try {
         const reponse = await fetch(NORA_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: question })
+          body: JSON.stringify({ question: question, historique: historique }),
+          signal: controleur.signal
         });
-        const data = await reponse.json();
+        let data = null;
+        try { data = await reponse.json(); } catch (e) {}
 
         if (data && data.texte) {
           ajouterMessageNora("nora", data.texte);
         } else {
-          ajouterMessageNora("nora", "Je n'arrive pas à répondre. Réessaie !");
+          ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !", true);
         }
-
         noraMessage.textContent = "";
       } catch (erreur) {
         console.error("Erreur Nora :", erreur);
-        ajouterMessageNora("nora", "Oups, problème de connexion !");
+        const delai = erreur && erreur.name === "AbortError";
+        ajouterMessageNora("nora", delai
+          ? "Je mets trop de temps à répondre. Renvoie ta question dans un instant !"
+          : "Je n'arrive pas à joindre le serveur. Vérifie ta connexion puis réessaie !", true);
         noraMessage.textContent = "";
-        noraMessage.classList.add("error");
+      } finally {
+        clearTimeout(minuteur);
+        noraEnCours = false;
+        noraBtnEnvoyer.disabled = false;
       }
     }
 
@@ -596,6 +617,11 @@
       const question = noraQuestionInput.value.trim();
       if (!question) {
         noraMessage.textContent = "Écris ta question.";
+        noraMessage.classList.add("error");
+        return;
+      }
+      if (noraEnCours) {
+        noraMessage.textContent = "Nora est en train de répondre, patiente un instant.";
         noraMessage.classList.add("error");
         return;
       }
