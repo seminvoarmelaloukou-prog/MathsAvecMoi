@@ -229,6 +229,33 @@
 
     .nora-btn-vocal:disabled { background: var(--gris); cursor: not-allowed; }
 
+    .nora-btn-photo {
+      padding: 10px 14px;
+      border-radius: 50px;
+      background: white;
+      color: var(--indigo);
+      border: 2px solid var(--indigo);
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .nora-btn-photo:disabled { opacity: 0.5; cursor: not-allowed; }
+    .nora-apercu {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #444;
+    }
+    .nora-apercu img { max-height: 90px; max-width: 140px; border-radius: 8px; border: 1px solid #cfd8f0; }
+    .nora-apercu button {
+      border: none; background: #c0392b; color: white;
+      border-radius: 50px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+    }
+    .nora-message img { display: block; max-width: 100%; max-height: 160px; border-radius: 6px; margin-bottom: 6px; }
+
     footer {
       background: var(--indigo);
       color: white;
@@ -314,8 +341,16 @@
           </div>
         </div>
 
+        <div class="nora-apercu" id="nora-apercu">
+          <img id="nora-apercu-img" alt="Photo de l'exercice" />
+          <span>Photo prête à envoyer</span>
+          <button type="button" id="nora-apercu-retirer">✕ Retirer</button>
+        </div>
+
         <div class="nora-input-container" id="nora-input-ecrit">
-          <input type="text" id="nora-question-input" placeholder="Pose ta question à Nora..." />
+          <button type="button" id="nora-btn-photo" class="nora-btn-photo" title="Envoyer la photo d'un exercice">📷</button>
+          <input type="file" id="nora-fichier-image" accept="image/*" style="display:none" />
+          <input type="text" id="nora-question-input" placeholder="Pose ta question ou joins un exercice 📷" />
           <button id="nora-btn-envoyer" class="btn">Envoyer</button>
         </div>
 
@@ -382,6 +417,48 @@
     const NORA_URL = "https://nora.seminvoarmelaloukou.workers.dev";
     let noraHistorique = [];
     let noraEnCours = false;
+    let noraImage = null; // { mime, data (base64), url (aperçu) }
+    const noraBtnPhoto = document.getElementById("nora-btn-photo");
+    const noraFichierImage = document.getElementById("nora-fichier-image");
+    const noraApercu = document.getElementById("nora-apercu");
+    const noraApercuImg = document.getElementById("nora-apercu-img");
+    const noraApercuRetirer = document.getElementById("nora-apercu-retirer");
+
+    // Réduit la photo (économise les données mobiles) et la convertit en JPEG
+    function preparerImage(fichier) {
+      return new Promise(function(resolve, reject) {
+        const urlTemp = URL.createObjectURL(fichier);
+        const img = new Image();
+        img.onload = function() {
+          const MAX = 1280;
+          let w = img.naturalWidth, h = img.naturalHeight;
+          const echelle = Math.min(1, MAX / Math.max(w, h));
+          w = Math.round(w * echelle); h = Math.round(h * echelle);
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(urlTemp);
+          let qualite = 0.8, url = canvas.toDataURL("image/jpeg", qualite);
+          while (url.length > 900000 && qualite > 0.4) {
+            qualite -= 0.1;
+            url = canvas.toDataURL("image/jpeg", qualite);
+          }
+          resolve({ mime: "image/jpeg", data: url.split(",")[1], url: url });
+        };
+        img.onerror = function() { URL.revokeObjectURL(urlTemp); reject(new Error("image")); };
+        img.src = urlTemp;
+      });
+    }
+
+    function retirerImageNora() {
+      noraImage = null;
+      noraFichierImage.value = "";
+      noraApercu.style.display = "none";
+      noraApercuImg.removeAttribute("src");
+    }
 
     function afficherErreurChargement(texte) {
       messageChargement.textContent = texte;
@@ -486,20 +563,26 @@
         .trim();
     }
 
-    function ajouterMessageNora(expediteur, texte, horsHistorique) {
-      if (!horsHistorique) noraHistorique.push({ role: expediteur, texte: String(texte).slice(0, 800) });
+    function ajouterMessageNora(expediteur, texte, horsHistorique, imageUrl) {
+      if (!horsHistorique) noraHistorique.push({ role: expediteur, texte: String(texte).slice(0, 800) + (imageUrl ? " [photo d'un exercice jointe]" : "") });
       const div = document.createElement("div");
       div.className = "nora-message " + expediteur;
       div.style.whiteSpace = "pre-wrap";
       const strong = document.createElement("strong");
       strong.textContent = expediteur === "eleve" ? "Toi : " : "Nora : ";
       div.appendChild(strong);
+      if (imageUrl) {
+        const miniature = document.createElement("img");
+        miniature.src = imageUrl;
+        miniature.alt = "Photo envoyée";
+        div.appendChild(miniature);
+      }
       div.appendChild(document.createTextNode(expediteur === "nora" ? nettoyerTexteNora(texte) : texte));
       noraMessages.appendChild(div);
       noraMessages.scrollTop = noraMessages.scrollHeight;
     }
 
-    async function repondreNora(question) {
+    async function repondreNora(question, image) {
       if (noraEnCours) {
         noraMessage.textContent = "Nora est en train de répondre, patiente un instant.";
         noraMessage.classList.add("error");
@@ -507,18 +590,23 @@
       }
       noraEnCours = true;
       noraBtnEnvoyer.disabled = true;
-      noraMessage.textContent = "Nora réfléchit...";
+      noraBtnPhoto.disabled = true;
+      noraMessage.textContent = image ? "Nora regarde ta photo..." : "Nora réfléchit...";
       noraMessage.classList.remove("error");
 
       const historique = noraHistorique.slice(0, -1).slice(-6);
       const controleur = new AbortController();
-      const minuteur = setTimeout(function() { controleur.abort(); }, 30000);
+      const minuteur = setTimeout(function() { controleur.abort(); }, image ? 45000 : 30000);
 
       try {
         const reponse = await fetch(NORA_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: question, historique: historique }),
+          body: JSON.stringify({
+            question: question,
+            historique: historique,
+            image: image ? { mime: image.mime, data: image.data } : undefined
+          }),
           signal: controleur.signal
         });
         let data = null;
@@ -541,6 +629,7 @@
         clearTimeout(minuteur);
         noraEnCours = false;
         noraBtnEnvoyer.disabled = false;
+        noraBtnPhoto.disabled = false;
       }
     }
 
@@ -613,10 +702,39 @@
       if (!reconnaissanceVocale) initialiserReconnaissanceVocale();
     });
 
+    noraBtnPhoto.addEventListener("click", function() {
+      if (noraEnCours) return;
+      noraFichierImage.click();
+    });
+
+    noraFichierImage.addEventListener("change", async function() {
+      const fichier = noraFichierImage.files && noraFichierImage.files[0];
+      if (!fichier) return;
+      if (!/^image\//.test(fichier.type)) {
+        noraMessage.textContent = "Choisis une photo (image).";
+        noraMessage.classList.add("error");
+        return;
+      }
+      noraMessage.textContent = "Préparation de la photo...";
+      noraMessage.classList.remove("error");
+      try {
+        noraImage = await preparerImage(fichier);
+        noraApercuImg.src = noraImage.url;
+        noraApercu.style.display = "flex";
+        noraMessage.textContent = "";
+      } catch (e) {
+        retirerImageNora();
+        noraMessage.textContent = "Impossible de lire cette photo. Essaie-en une autre.";
+        noraMessage.classList.add("error");
+      }
+    });
+
+    noraApercuRetirer.addEventListener("click", retirerImageNora);
+
     noraBtnEnvoyer.addEventListener("click", function() {
-      const question = noraQuestionInput.value.trim();
-      if (!question) {
-        noraMessage.textContent = "Écris ta question.";
+      let question = noraQuestionInput.value.trim();
+      if (!question && !noraImage) {
+        noraMessage.textContent = "Écris ta question ou joins la photo d'un exercice.";
         noraMessage.classList.add("error");
         return;
       }
@@ -625,9 +743,12 @@
         noraMessage.classList.add("error");
         return;
       }
-      ajouterMessageNora("eleve", question);
+      if (!question) question = "Aide-moi à comprendre et à résoudre cet exercice.";
+      const image = noraImage;
+      ajouterMessageNora("eleve", question, false, image ? image.url : null);
       noraQuestionInput.value = "";
-      repondreNora(question);
+      retirerImageNora();
+      repondreNora(question, image);
     });
 
     noraQuestionInput.addEventListener("keypress", function(e) {
