@@ -580,23 +580,28 @@
       div.appendChild(document.createTextNode(expediteur === "nora" ? nettoyerTexteNora(texte) : texte));
       noraMessages.appendChild(div);
       noraMessages.scrollTop = noraMessages.scrollHeight;
+      return div;
     }
+
+    const fileNora = []; // messages envoyés pendant que Nora répond
 
     async function repondreNora(question, image) {
       if (noraEnCours) {
-        noraMessage.textContent = "Nora est en train de répondre, patiente un instant.";
-        noraMessage.classList.add("error");
+        fileNora.push({ question: question, image: image || null });
+        noraMessage.textContent = "Message reçu ✅ Nora te répond à la suite.";
+        noraMessage.classList.remove("error");
         return;
       }
       noraEnCours = true;
-      noraBtnEnvoyer.disabled = true;
-      noraBtnPhoto.disabled = true;
       noraMessage.textContent = image ? "Nora regarde ta photo..." : "Nora réfléchit...";
       noraMessage.classList.remove("error");
 
-      const historique = noraHistorique.slice(0, -1).slice(-6);
+      // Historique = ce qui précède cette question
+      const historique = noraHistorique.slice(-6);
+      noraHistorique.push({ role: "eleve", texte: String(question).slice(0, 800) + (image ? " [photo d'un exercice jointe]" : "") });
+
       const controleur = new AbortController();
-      const minuteur = setTimeout(function() { controleur.abort(); }, image ? 45000 : 30000);
+      const minuteur = setTimeout(function() { controleur.abort(); }, image ? 60000 : 45000);
 
       try {
         const reponse = await fetch(NORA_URL, {
@@ -609,13 +614,38 @@
           }),
           signal: controleur.signal
         });
-        let data = null;
-        try { data = await reponse.json(); } catch (e) {}
+        clearTimeout(minuteur); // le premier mot est arrivé : la suite s'affiche en direct
 
-        if (data && data.texte) {
-          ajouterMessageNora("nora", data.texte);
+        const type = reponse.headers.get("Content-Type") || "";
+        if (type.indexOf("application/json") !== -1 || !reponse.body || !reponse.body.getReader) {
+          let texte = "";
+          try {
+            if (type.indexOf("application/json") !== -1) { const data = await reponse.json(); texte = (data && data.texte) || ""; }
+            else { texte = await reponse.text(); }
+          } catch (e) {}
+          if (texte) ajouterMessageNora("nora", texte, texte.indexOf("(code ") !== -1);
+          else ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !", true);
         } else {
-          ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !", true);
+          const bulle = ajouterMessageNora("nora", "…", true);
+          const noeud = bulle.lastChild;
+          const lecteur = reponse.body.getReader();
+          const decodeur = new TextDecoder();
+          let texte = "";
+          try {
+            while (true) {
+              const lecture = await lecteur.read();
+              if (lecture.done) break;
+              texte += decodeur.decode(lecture.value, { stream: true });
+              noeud.nodeValue = nettoyerTexteNora(texte);
+              noraMessages.scrollTop = noraMessages.scrollHeight;
+            }
+          } catch (e) { /* coupure en route : on garde ce qui est déjà affiché */ }
+          if (texte) {
+            noeud.nodeValue = nettoyerTexteNora(texte);
+            noraHistorique.push({ role: "nora", texte: texte.slice(0, 800) });
+          } else {
+            noeud.nodeValue = "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !";
+          }
         }
         noraMessage.textContent = "";
       } catch (erreur) {
@@ -628,8 +658,13 @@
       } finally {
         clearTimeout(minuteur);
         noraEnCours = false;
-        noraBtnEnvoyer.disabled = false;
-        noraBtnPhoto.disabled = false;
+        // S'il y a des messages en attente, Nora y répond en une seule fois
+        if (fileNora.length) {
+          const lot = fileNora.splice(0);
+          const groupe = lot.map(function(x) { return x.question; }).join("\n");
+          const avecImage = lot.filter(function(x) { return x.image; })[0];
+          repondreNora(groupe, avecImage ? avecImage.image : null);
+        }
       }
     }
 
@@ -657,7 +692,7 @@
 
         reconnaissanceVocale.onresult = function(event) {
           const question = event.results[0][0].transcript;
-          ajouterMessageNora("eleve", question);
+          ajouterMessageNora("eleve", question, true);
           repondreNora(question);
           noraMessage.textContent = "";
           noraBtnParler.disabled = false;
@@ -703,7 +738,6 @@
     });
 
     noraBtnPhoto.addEventListener("click", function() {
-      if (noraEnCours) return;
       noraFichierImage.click();
     });
 
@@ -738,14 +772,9 @@
         noraMessage.classList.add("error");
         return;
       }
-      if (noraEnCours) {
-        noraMessage.textContent = "Nora est en train de répondre, patiente un instant.";
-        noraMessage.classList.add("error");
-        return;
-      }
       if (!question) question = "Aide-moi à comprendre et à résoudre cet exercice.";
       const image = noraImage;
-      ajouterMessageNora("eleve", question, false, image ? image.url : null);
+      ajouterMessageNora("eleve", question, true, image ? image.url : null);
       noraQuestionInput.value = "";
       retirerImageNora();
       repondreNora(question, image);
