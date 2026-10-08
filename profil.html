@@ -632,7 +632,7 @@
             if (type.indexOf("application/json") !== -1) { const data = await reponse.json(); texte = (data && data.texte) || ""; }
             else { texte = await reponse.text(); }
           } catch (e) {}
-          if (texte && essaiNo < 2 && /\(code (503|500|429)\)/.test(texte)) {
+          if (texte && essaiNo < 2 && /\(code (503|500)\)/.test(texte)) {
             relancer = true; // service surchargé : on réessaie tout seul
           } else if (texte) ajouterMessageNora("nora", texte, texte.indexOf("(code ") !== -1);
           else ajouterMessageNora("nora", "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant !", true);
