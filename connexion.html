@@ -342,10 +342,17 @@
             .then(function(admin) {
               localStorage.setItem("lastActivity", Date.now().toString());
               if (admin) {
-                afficherMessage("✅ Connexion réussie ! Redirection vers l'administration...", "success");
-                setTimeout(function() {
-                  window.location.href = "admin.html";
-                }, 800);
+                // Un administrateur qui est aussi enseignant actif arrive dans son espace enseignant
+                // (le lien « Administration » y est disponible) ; sinon, direction l'administration.
+                return firebase.database().ref("enseignants/" + user.uid + "/statut").once("value").then(function(st) {
+                  const aussiEnseignant = st.val() === "actif";
+                  afficherMessage(aussiEnseignant ? "✅ Connexion réussie ! Redirection vers ton espace enseignant..." : "✅ Connexion réussie ! Redirection vers l'administration...", "success");
+                  setTimeout(function() {
+                    window.location.href = aussiEnseignant ? "enseignant.html" : "admin.html";
+                  }, 800);
+                }).catch(function() {
+                  setTimeout(function() { window.location.href = "admin.html"; }, 800);
+                });
               } else {
                 return orienterNonAdmin(user);
               }
