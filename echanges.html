@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Échanges - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--muted:#666}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:#333}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:10}
+nav h1{color:#fff;font-size:20px}
+nav .liens{display:flex;gap:16px;flex-wrap:wrap}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:760px;margin:24px auto;padding:0 14px}
+.card{background:#fff;padding:20px 16px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:19px;margin-bottom:10px}
+p{color:var(--muted);line-height:1.5;font-size:15px}
+.erreur{color:#c0392b}
+.cache{display:none}
+.loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+select,textarea{font:inherit;font-size:15px;padding:10px;border:1px solid #cfd6f0;border-radius:10px;background:#fff;color:#333;width:100%}
+textarea{min-height:70px;resize:vertical}
+button{font:inherit;font-size:15px;font-weight:bold;border:0;border-radius:10px;padding:10px 16px;cursor:pointer;background:var(--indigo);color:#fff}
+.tabs{display:flex;gap:8px;margin:14px 0}
+.tabs button{flex:1;background:#e3e7f6;color:var(--indigo)}
+.tabs button.on{background:var(--indigo);color:#fff}
+.fil{background:#f5f7ff;border-radius:12px;padding:10px;max-height:420px;overflow-y:auto;margin:10px 0}
+.msg{max-width:85%;margin:8px 0;padding:8px 12px;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.msg.moi{margin-left:auto;background:#dfe6ff}
+.msg .qui{font-size:12px;font-weight:bold;color:var(--indigo)}
+.msg .badge{font-size:11px;background:var(--amber);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
+.msg .texte{white-space:pre-wrap;word-wrap:break-word;font-size:15px;margin-top:2px}
+.msg .date{font-size:11px;color:#888;margin-top:2px}
+.fil-vide{color:#888;font-size:14px;text-align:center;padding:14px}
+.note{font-size:13px;color:#888;margin-top:8px}
+.pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;padding:2px 8px}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Échanges</h1>
+  <div class="liens"><a href="profil.html">Mon profil</a><a href="index.html">Accueil</a><a href="#" id="deconnexion">Déconnexion</a></div>
+</nav>
+<main>
+  <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Chargement...</p></section>
+  <div id="contenu" class="cache">
+    <section class="card">
+      <h2 id="titre"></h2>
+      <p>Pose tes questions à tes enseignants et échange avec ta classe. Reste poli et respectueux : les enseignants peuvent supprimer un message.</p>
+      <div style="margin-top:12px"><label for="matiere" style="font-weight:bold;color:var(--indigo)">Matière</label>
+      <select id="matiere"></select></div>
+      <div class="tabs">
+        <button id="tab-forum" class="on">Discussion de classe</button>
+        <button id="tab-prive">Écrire à mon enseignant <span id="pastille" class="pastille cache">nouveau</span></button>
+      </div>
+
+      <div id="vue-forum">
+        <div class="fil" id="forum-fil"></div>
+        <form id="forum-form">
+          <textarea id="forum-texte" maxlength="1000" placeholder="Écris un message pour ta classe..."></textarea>
+          <p style="margin-top:8px"><button type="submit">Publier</button></p>
+        </form>
+        <p class="note">Tout le monde dans ta classe peut lire cette discussion.</p>
+      </div>
+
+      <div id="vue-prive" class="cache">
+        <div class="fil" id="mp-fil"></div>
+        <form id="mp-form">
+          <textarea id="mp-texte" maxlength="1000" placeholder="Écris ton message à l'enseignant de cette matière..."></textarea>
+          <p style="margin-top:8px"><button type="submit">Envoyer</button></p>
+        </form>
+        <p class="note">Seuls toi et les enseignants de cette matière pour ta classe pouvez lire ces messages.</p>
+      </div>
+      <p id="msg" class="erreur"></p>
+    </section>
+  </div>
+</main>
+<script>
+const MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Éducation civique","EPS","Espagnol","Allemand","Philosophie"];
+const $=id=>document.getElementById(id);
+const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+let U=null,E=null,NOM="",refF=null,refP=null,refI=null,IDX=null;
+$("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  U=u;
+  db.ref("eleves/"+u.uid).once("value").then(function(s){
+    E=s.val();
+    if(!E||!E.classe){$("verif-msg").textContent="Ce compte n'est pas un compte élève (ou ta classe n'est pas renseignée). Va dans Mon profil.";$("verif-msg").className="erreur";return;}
+    NOM=((E.prenom||"")+" "+((E.nom||"").charAt(0)?(E.nom||"").charAt(0).toUpperCase()+".":"")).trim()||"Élève";
+    $("verif").classList.add("cache");$("contenu").classList.remove("cache");
+    $("titre").textContent="Classe : "+E.classe;
+    $("matiere").innerHTML=MATIERES.map(m=>'<option value="'+m+'">'+m+'</option>').join("");
+    $("matiere").addEventListener("change",ouvrir);
+    $("tab-forum").addEventListener("click",()=>onglet("forum"));$("tab-prive").addEventListener("click",()=>onglet("prive"));
+    $("forum-form").addEventListener("submit",envoyerForum);$("mp-form").addEventListener("submit",envoyerPrive);
+    ouvrir();
+  }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
+});
+function onglet(n){
+  $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
+  $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
+  if(n==="prive"&&IDX&&IDX.luEleve===false){db.ref("mp_index/"+E.classe+"/"+$("matiere").value+"/"+U.uid).update({luEleve:true}).catch(()=>{});$("pastille").classList.add("cache");}
+}
+function rendre(zone,snap){
+  const items=[];snap.forEach(ch=>{items.push(ch.val());});
+  items.sort((a,b)=>(a.date||0)-(b.date||0));zone.innerHTML="";
+  if(!items.length){zone.innerHTML='<div class="fil-vide">Aucun message pour le moment.</div>';return;}
+  items.forEach(function(m){
+    const d=document.createElement("div");d.className="msg"+(m.auteurUid===U.uid?" moi":"");
+    const q=document.createElement("div");q.className="qui";q.textContent=m.auteurNom||"";
+    if(m.role==="enseignant"){const b=document.createElement("span");b.className="badge";b.textContent="Enseignant";q.appendChild(b);}
+    const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
+    const dt=document.createElement("div");dt.className="date";dt.textContent=fmtDate(m.date);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
+  });
+  zone.scrollTop=zone.scrollHeight;
+}
+function ouvrir(){
+  if(refF)refF.off();if(refP)refP.off();if(refI)refI.off();
+  $("msg").textContent="";const c=E.classe,m=$("matiere").value;
+  refF=db.ref("forum/"+c+"/"+m).orderByChild("date").limitToLast(200);
+  refF.on("value",s=>rendre($("forum-fil"),s),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
+  refP=db.ref("messages_prives/"+c+"/"+m+"/"+U.uid).orderByChild("date").limitToLast(200);
+  refP.on("value",s=>rendre($("mp-fil"),s),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
+  IDX=null;
+  refI=db.ref("mp_index/"+c+"/"+m+"/"+U.uid);
+  refI.on("value",function(s){
+    IDX=s.val();const prive=!$("vue-prive").classList.contains("cache");
+    if(IDX&&IDX.luEleve===false&&prive){refI.update({luEleve:true}).catch(()=>{});}
+    $("pastille").classList.toggle("cache",!(IDX&&IDX.luEleve===false&&!prive));
+  },()=>{});
+}
+function envoyerForum(e){
+  e.preventDefault();const t=$("forum-texte").value.trim();if(!t)return;
+  db.ref("forum/"+E.classe+"/"+$("matiere").value).push({auteurUid:U.uid,auteurNom:NOM,role:"eleve",texte:t,date:Date.now()})
+    .then(()=>{$("forum-texte").value="";}).catch(er=>{$("msg").textContent="Envoi impossible : "+er.message;});
+}
+function envoyerPrive(e){
+  e.preventDefault();const t=$("mp-texte").value.trim();if(!t)return;
+  const c=E.classe,m=$("matiere").value,now=Date.now();
+  db.ref("messages_prives/"+c+"/"+m+"/"+U.uid).push({auteurUid:U.uid,auteurNom:NOM,role:"eleve",texte:t,date:now}).then(function(){
+    $("mp-texte").value="";
+    return db.ref("mp_index/"+c+"/"+m+"/"+U.uid).update({nomEleve:((E.prenom||"")+" "+(E.nom||"")).trim(),dernierAuteur:"eleve",dernierTexte:t.slice(0,160),date:now,luEns:false,luEleve:true});
+  }).catch(er=>{$("msg").textContent="Envoi impossible : "+er.message;});
+}
+</script>
+</body>
+</html>
