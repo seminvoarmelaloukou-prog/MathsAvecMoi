@@ -138,6 +138,10 @@
       text-decoration: none;
       font-size: 14px;
     }
+    .champ-mdp { position: relative; }
+    .champ-mdp input { padding-right: 52px; }
+    .oeil { position: absolute; right: 6px; top: 23px; transform: translateY(-50%); width: 42px; height: 38px; margin: 0; padding: 0; border: 0; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; color: #555; }
+    .oeil.actif { color: #2c3e8c; }
   </style>
 </head>
 
@@ -164,12 +168,16 @@
 
       <label for="motDePasse">Mot de passe</label>
 
-      <input
-        type="password"
-        id="motDePasse"
-        placeholder="Ton mot de passe"
-        required
-      >
+      <div class="champ-mdp">
+        <input
+          type="password"
+          id="motDePasse"
+          placeholder="Ton mot de passe"
+          autocomplete="current-password"
+          required
+        >
+        <button type="button" id="btnOeil" class="oeil" aria-label="Afficher le mot de passe" aria-pressed="false">👁</button>
+      </div>
 
       <button type="button" class="mot-de-passe-oublie" id="btnMotDePasseOublie">
         Mot de passe oublié ?
@@ -379,6 +387,20 @@
           bouton.textContent = "Se connecter";
         });
     });
+      (function() {
+      var champ = document.getElementById("motDePasse");
+      var oeil = document.getElementById("btnOeil");
+      if (!champ || !oeil) return;
+      oeil.addEventListener("click", function() {
+        var visible = champ.type === "text";
+        champ.type = visible ? "password" : "text";
+        oeil.textContent = visible ? "👁" : "🙈";
+        oeil.classList.toggle("actif", !visible);
+        oeil.setAttribute("aria-pressed", visible ? "false" : "true");
+        oeil.setAttribute("aria-label", visible ? "Afficher le mot de passe" : "Masquer le mot de passe");
+        champ.focus();
+      });
+    })();
   </script>
 
 </body>
