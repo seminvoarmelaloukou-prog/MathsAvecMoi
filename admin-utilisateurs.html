@@ -87,6 +87,7 @@ td button{margin-right:4px}
           <select id="f-classe"><option value="">Toutes les classes</option></select>
           <input type="text" id="f-q" placeholder="Nom, prénom, e-mail, téléphone...">
           <button class="mail" data-act="mail-groupe-eleves">✉ E-mail à la liste affichée</button>
+          <button id="btn-norm" style="display:none;background:#8e44ad">🔧 Normaliser les classes</button>
         </div>
         <table>
           <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Actions</th></tr></thead>
@@ -191,8 +192,12 @@ td button{margin-right:4px}
 </script>
 <script>
 const MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Éducation civique","EPS","Espagnol","Allemand","Philosophie"];
-const CLASSES=["6e","5e","4e","3e","2ndeAB","2ndeC","2ndeD","2ndeE","1reAB","1reC","1reD","1reE","TleAB","TleC","TleD","TleE"];
 const CLASSES_CONTENU=["6e","5e","4e","3e","2de AB","2de C","2de D","2de E","1re AB","1re C","1re D","1re E","Tle AB","Tle C","Tle D","Tle E"];
+// Les élèves utilisent le MÊME format que les cours et les enseignants (ex. "Tle AB").
+const CLASSES=CLASSES_CONTENU.slice();
+const _cleCl=s=>String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[\s\-_.]/g,"").replace(/^(\d)nde/,"$1de").replace(/^(\d)ere/,"$1re").replace(/^terminale/,"tle").replace(/^(\d)eme$/,"$1e");
+const _MAPCL={};CLASSES_CONTENU.forEach(x=>{_MAPCL[_cleCl(x)]=x;});
+const canon=s=>_MAPCL[_cleCl(s)]||(s||"");
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const cles=o=>Object.keys(o||{});
@@ -217,17 +222,18 @@ function afficher(){
   $("stats").innerHTML=stats.map(x=>`<div class="stat-box"><h3>${x[0]}</h3><div class="valeur">${x[1]}</div></div>`).join("");
   $("badge").textContent=att.length?"("+att.length+")":"";
   tableEleves();tableProfs(lp.filter(p=>p.statut!=="en_attente"));tableAttente(att);
+  majBoutonNormaliser();
 }
 
 function optClasses(cur){
-  const l=CLASSES.slice();if(cur&&l.indexOf(cur)<0)l.unshift(cur);
+  cur=canon(cur);const l=CLASSES.slice();if(cur&&l.indexOf(cur)<0)l.unshift(cur);
   return (cur?"":'<option value="">—</option>')+l.map(x=>`<option${x===cur?" selected":""}>${esc(x)}</option>`).join("");
 }
 
 function tableEleves(){
   const c=$("f-classe").value,q=$("f-q").value.trim().toLowerCase();
   const l=cles(eleves).map(u=>Object.assign({uid:u},eleves[u]))
-    .filter(e=>(!c||e.classe===c)&&(!q||[e.nom,e.prenom,e.email,e.identifiant,e.telephoneInternational,e.telephone].join(" ").toLowerCase().includes(q)))
+    .filter(e=>(!c||canon(e.classe)===c)&&(!q||[e.nom,e.prenom,e.email,e.identifiant,e.telephoneInternational,e.telephone].join(" ").toLowerCase().includes(q)))
     .sort((a,b)=>(a.nom||"").localeCompare(b.nom||""));
   listeElevesAffichee=l;
   $("t-eleves").innerHTML=l.length?l.map(e=>{const s=!!susp[e.uid];
@@ -608,6 +614,19 @@ document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",function
   ["eleves","profs","attente"].forEach(n=>$("tab-"+n).classList.toggle("cache",n!==t.dataset.tab));
 }));
 
+function aNormaliser(){
+  return cles(eleves).filter(u=>{const k=eleves[u].classe;return k&&canon(k)!==k&&CLASSES_CONTENU.indexOf(canon(k))>=0;});
+}
+function majBoutonNormaliser(){
+  const n=aNormaliser().length,b=$("btn-norm");
+  b.style.display=n?"":"none";b.textContent="🔧 Normaliser les classes ("+n+")";
+}
+$("btn-norm").addEventListener("click",function(){
+  const l=aNormaliser();if(!l.length)return;
+  if(!confirm("Réécrire la classe de "+l.length+" élève(s) au format standard (ex. « Tle AB ») ?"))return;
+  const up={};l.forEach(u=>{up[u+"/classe"]=canon(eleves[u].classe);});
+  db.ref("eleves").update(up).then(()=>{msg("Classes normalisées.",true);return charger();}).catch(e=>msg("Erreur : "+e.message,false));
+});
 $("f-classe").innerHTML='<option value="">Toutes les classes</option>'+CLASSES.map(c=>`<option>${c}</option>`).join("");
 $("f-classe").addEventListener("change",tableEleves);
 $("f-q").addEventListener("input",tableEleves);
