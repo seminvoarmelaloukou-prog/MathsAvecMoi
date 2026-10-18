@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulletins - Admin - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="suivi-visite.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * { flex: 0 0 auto; }
+
+    label { font-size: 14px; color: var(--text); }
+
+    select, input[type="number"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--indigo-dark); }
+
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    thead { background: #f2f5ff; }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e3e7f6;
+      text-align: left;
+    }
+    th { color: var(--indigo); font-weight: bold; }
+    tr:hover { background: #fafbff; }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+
+  <style>
+    input[type="text"], input[type="date"], input[type="number"] {
+      padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
+      min-width: 0; max-width: 100%;
+    }
+    .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; margin: 10px 0; }
+    .grille label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .grille input { width: 100%; }
+    h3.sous-titre { margin-top: 20px; color: var(--indigo); font-size: 17px; }
+    .interrupteur { display: flex; align-items: center; gap: 10px; font-weight: bold; margin: 12px 0; }
+    .interrupteur input { width: 22px; height: 22px; }
+    td.coche { text-align: center; }
+    td.coche input { width: 22px; height: 22px; }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Bulletins</h1>
+    <ul>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <section class="card" id="card-admin-check">
+      <h2>Vérification</h2>
+      <div class="row">
+        <div class="loader" id="loader-admin"></div>
+        <p id="message-admin-check">Vérification de tes droits administrateur...</p>
+      </div>
+    </section>
+
+    <section class="card" id="card-params" style="display: none;">
+      <h2>Paramètres du bulletin</h2>
+
+      <div class="grille">
+        <div><label for="p-annee">Année scolaire</label><input type="text" id="p-annee" placeholder="2025-2026"></div>
+        <div><label for="p-etab">Établissement</label><input type="text" id="p-etab"></div>
+        <div><label for="p-coord">Coordonnées (ou site web)</label><input type="text" id="p-coord"></div>
+        <div><label for="p-dir">Nom du directeur</label><input type="text" id="p-dir"></div>
+      </div>
+
+      <h3 class="sous-titre">Semestres</h3>
+      <p class="message">Les dates servent à classer les évaluations QCM dans le bon semestre.</p>
+      <div class="grille">
+        <div><label for="p-s1-debut">Semestre 1 : début</label><input type="date" id="p-s1-debut"></div>
+        <div><label for="p-s1-fin">Semestre 1 : fin</label><input type="date" id="p-s1-fin"></div>
+        <div><label for="p-s2-debut">Semestre 2 : début</label><input type="date" id="p-s2-debut"></div>
+        <div><label for="p-s2-fin">Semestre 2 : fin</label><input type="date" id="p-s2-fin"></div>
+      </div>
+
+      <h3 class="sous-titre">Appréciations par matière (moyenne /20)</h3>
+      <div class="grille">
+        <div><label for="p-passable">Passable à partir de</label><input type="number" id="p-passable" step="0.01" min="0" max="20"></div>
+        <div><label for="p-assezbien">Assez bien à partir de</label><input type="number" id="p-assezbien" step="0.01" min="0" max="20"></div>
+        <div><label for="p-bien">Bien à partir de</label><input type="number" id="p-bien" step="0.01" min="0" max="20"></div>
+        <div><label for="p-tresbien">Très bien à partir de</label><input type="number" id="p-tresbien" step="0.01" min="0" max="20"></div>
+      </div>
+      <p class="message">En dessous du premier seuil : « Faible ».</p>
+
+      <h3 class="sous-titre">Distinctions (moyenne du semestre)</h3>
+      <div class="grille">
+        <div><label for="p-th">Tableau d'honneur à partir de</label><input type="number" id="p-th" step="0.01" min="0" max="20"></div>
+        <div><label for="p-enc">Avec encouragements à partir de</label><input type="number" id="p-enc" step="0.01" min="0" max="20"></div>
+        <div><label for="p-fel">Avec félicitations à partir de</label><input type="number" id="p-fel" step="0.01" min="0" max="20"></div>
+      </div>
+
+      <button id="btn-sauver-params">Enregistrer les paramètres</button>
+      <p id="message-params" class="message"></p>
+    </section>
+
+    <section class="card" id="card-activation" style="display: none;">
+      <h2>Activation pour les élèves</h2>
+      <p>Un élève ne voit son bulletin que si l'interrupteur général et la case de sa classe et de son semestre sont tous deux activés.</p>
+
+      <label class="interrupteur"><input type="checkbox" id="cb-actif"> Bulletins activés (interrupteur général)</label>
+
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table>
+          <thead><tr><th>Classe</th><th>Semestre 1</th><th>Semestre 2</th></tr></thead>
+          <tbody id="corps-activation"></tbody>
+        </table>
+      </div>
+      <p id="message-activation" class="message"></p>
+    </section>
+
+  </main>
+
+  <script>
+    const CLASSES = ["6e", "5e", "4e", "3e", "2de AB", "2de C", "2de D", "2de E",
+                     "1re AB", "1re C", "1re D", "1re E", "Tle AB", "Tle C", "Tle D", "Tle E"];
+    const SEMESTRES = ["s1", "s2"];
+
+    const PAR_DEFAUT = {
+      annee: "2025-2026",
+      etablissement: "Campus Flex",
+      coordonnees: "seminvoarmelaloukou-prog.github.io/MathsAvecMoi",
+      directeur: "",
+      seuils: { passable: 10, assezbien: 12, bien: 14, tresbien: 16, th: 12, enc: 14, fel: 16 }
+    };
+
+    const $ = function(id) { return document.getElementById(id); };
+    let configActuelle = {};
+
+    function afficherErreurAdmin(texte) {
+      $("loader-admin").style.display = "none";
+      $("message-admin-check").textContent = texte;
+      $("message-admin-check").classList.add("error");
+    }
+
+    function message(id, texte, ok) {
+      const el = $(id);
+      el.textContent = texte;
+      el.classList.remove("success", "error");
+      el.classList.add(ok ? "success" : "error");
+    }
+
+    function remplirFormulaire(cfg) {
+      const sem = cfg.semestres || {};
+      const s1 = sem.s1 || {}, s2 = sem.s2 || {};
+      const se = Object.assign({}, PAR_DEFAUT.seuils, cfg.seuils || {});
+
+      $("p-annee").value = cfg.annee || PAR_DEFAUT.annee;
+      $("p-etab").value = cfg.etablissement || PAR_DEFAUT.etablissement;
+      $("p-coord").value = cfg.coordonnees || PAR_DEFAUT.coordonnees;
+      $("p-dir").value = cfg.directeur || PAR_DEFAUT.directeur;
+      $("p-s1-debut").value = s1.debut || "";
+      $("p-s1-fin").value = s1.fin || "";
+      $("p-s2-debut").value = s2.debut || "";
+      $("p-s2-fin").value = s2.fin || "";
+      $("p-passable").value = se.passable;
+      $("p-assezbien").value = se.assezbien;
+      $("p-bien").value = se.bien;
+      $("p-tresbien").value = se.tresbien;
+      $("p-th").value = se.th;
+      $("p-enc").value = se.enc;
+      $("p-fel").value = se.fel;
+    }
+
+    function construireTableauActivation(ouverts) {
+      const corps = $("corps-activation");
+      corps.innerHTML = "";
+      CLASSES.forEach(function(classe) {
+        const tr = document.createElement("tr");
+        const tdNom = document.createElement("td");
+        tdNom.textContent = classe;
+        tdNom.style.fontWeight = "bold";
+        tr.appendChild(tdNom);
+
+        SEMESTRES.forEach(function(s) {
+          const td = document.createElement("td");
+          td.className = "coche";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.checked = !!(ouverts[classe] && ouverts[classe][s] === true);
+          cb.addEventListener("change", function() {
+            cb.disabled = true;
+            db.ref("bulletins_config/ouverts/" + classe + "/" + s).set(cb.checked)
+              .then(function() {
+                message("message-activation", classe + " - semestre " + s.charAt(1) + " : " + (cb.checked ? "activé" : "désactivé") + ".", true);
+              })
+              .catch(function(e) {
+                cb.checked = !cb.checked;
+                message("message-activation", "Erreur : " + e.message, false);
+              })
+              .then(function() { cb.disabled = false; });
+          });
+          td.appendChild(cb);
+          tr.appendChild(td);
+        });
+        corps.appendChild(tr);
+      });
+    }
+
+    function chargerConfig() {
+      db.ref("bulletins_config").once("value").then(function(snap) {
+        configActuelle = (snap && snap.exists()) ? snap.val() : {};
+        remplirFormulaire(configActuelle);
+        $("cb-actif").checked = configActuelle.actif === true;
+        construireTableauActivation(configActuelle.ouverts || {});
+      }).catch(function(e) {
+        message("message-params", "Erreur de chargement : " + e.message, false);
+      });
+    }
+
+    function nombre(id) { return parseFloat($(id).value); }
+
+    function sauverParametres() {
+      const seuils = {
+        passable: nombre("p-passable"), assezbien: nombre("p-assezbien"),
+        bien: nombre("p-bien"), tresbien: nombre("p-tresbien"),
+        th: nombre("p-th"), enc: nombre("p-enc"), fel: nombre("p-fel")
+      };
+      const vals = Object.keys(seuils).map(function(k) { return seuils[k]; });
+      if (vals.some(function(v) { return isNaN(v) || v < 0 || v > 20; })) {
+        return message("message-params", "Tous les seuils doivent être des nombres entre 0 et 20.", false);
+      }
+      if (!(seuils.passable < seuils.assezbien && seuils.assezbien < seuils.bien && seuils.bien < seuils.tresbien)) {
+        return message("message-params", "Les seuils d'appréciation doivent être croissants.", false);
+      }
+      if (!(seuils.th < seuils.enc && seuils.enc < seuils.fel)) {
+        return message("message-params", "Les seuils de distinction doivent être croissants.", false);
+      }
+      const semestres = {
+        s1: { debut: $("p-s1-debut").value, fin: $("p-s1-fin").value },
+        s2: { debut: $("p-s2-debut").value, fin: $("p-s2-fin").value }
+      };
+      for (const s of SEMESTRES) {
+        const d = semestres[s];
+        if (d.debut && d.fin && d.fin < d.debut) {
+          return message("message-params", "Semestre " + s.charAt(1) + " : la date de fin est avant la date de début.", false);
+        }
+      }
+      if (semestres.s1.fin && semestres.s2.debut && semestres.s2.debut <= semestres.s1.fin) {
+        return message("message-params", "Le semestre 2 doit commencer après la fin du semestre 1.", false);
+      }
+
+      message("message-params", "Enregistrement en cours...", true);
+      db.ref("bulletins_config").update({
+        annee: $("p-annee").value.trim(),
+        etablissement: $("p-etab").value.trim(),
+        coordonnees: $("p-coord").value.trim(),
+        directeur: $("p-dir").value.trim(),
+        semestres: semestres,
+        seuils: seuils
+      }).then(function() {
+        message("message-params", "Paramètres enregistrés.", true);
+      }).catch(function(e) {
+        message("message-params", "Erreur : " + e.message, false);
+      });
+    }
+
+    $("btn-sauver-params").addEventListener("click", sauverParametres);
+
+    $("cb-actif").addEventListener("change", function() {
+      const cb = $("cb-actif");
+      cb.disabled = true;
+      db.ref("bulletins_config/actif").set(cb.checked)
+        .then(function() {
+          message("message-activation", "Interrupteur général " + (cb.checked ? "activé" : "désactivé") + ".", true);
+        })
+        .catch(function(e) {
+          cb.checked = !cb.checked;
+          message("message-activation", "Erreur : " + e.message, false);
+        })
+        .then(function() { cb.disabled = false; });
+    });
+
+    $("lien-deconnexion").addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!auth) { window.location.href = "index.html"; return; }
+      auth.signOut().then(function() { window.location.href = "index.html"; });
+    });
+
+    function verifierAdmin() {
+      const user = auth.currentUser;
+      if (!user) { window.location.href = "connexion.html"; return; }
+      db.ref("administrateurs/" + user.uid).once("value").then(function(snap) {
+        if (!snap || !snap.exists()) {
+          afficherErreurAdmin("Ce compte n'est pas enregistré comme administrateur.");
+          return;
+        }
+        const a = snap.val();
+        $("loader-admin").style.display = "none";
+        $("message-admin-check").textContent = "Administrateur reconnu : " + (a.email || a.nom || user.uid);
+        $("card-params").style.display = "block";
+        $("card-activation").style.display = "block";
+        chargerConfig();
+      }).catch(function(e) { afficherErreurAdmin("Erreur : " + e.message); });
+    }
+
+    (function init() {
+      if (!auth || !db) { afficherErreurAdmin("Firebase n'est pas correctement configuré."); return; }
+      if (!auth.currentUser) {
+        $("message-admin-check").textContent = "Vérification de ta connexion...";
+        auth.onAuthStateChanged(function(user) {
+          if (!user) { window.location.href = "connexion.html"; return; }
+          verifierAdmin();
+        });
+        return;
+      }
+      verifierAdmin();
+    })();
+  </script>
+
+</body>
+</html>

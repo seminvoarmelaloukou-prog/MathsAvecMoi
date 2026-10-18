@@ -262,7 +262,9 @@
     // La clé "maths" est conservée telle quelle pour rester compatible avec l'existant.
     const MATIERES = [
       { cle: "maths", nom: "Mathématiques", court: "Maths" },
-      { cle: "francais", nom: "Français", court: "Français" },
+      { cle: "francais", nom: "Français", court: "Français", portee: "lycee" },
+      { cle: "lecture", nom: "Lecture", court: "Lecture", portee: "college" },
+      { cle: "communication-ecrite", nom: "Communication écrite", court: "Comm. écrite", portee: "college" },
       { cle: "anglais", nom: "Anglais", court: "Anglais" },
       { cle: "espagnol", nom: "Espagnol", court: "Espagnol" },
       { cle: "allemand", nom: "Allemand", court: "Allemand" },
@@ -274,12 +276,33 @@
       { cle: "conduite", nom: "Conduite", court: "Conduite" }
     ];
 
-    MATIERES.forEach(function(m) {
-      const opt = document.createElement("option");
-      opt.value = m.cle;
-      opt.textContent = m.nom;
-      selectMatiereCoef.appendChild(opt);
-    });
+    // Collège (6e à 3e) : le français est scindé en Lecture et Communication écrite.
+    // Autres classes : une seule matière « Français ».
+    function estCollege(classe) {
+      return ["6e", "5e", "4e", "3e"].indexOf(classe) !== -1;
+    }
+
+    function matiereApplicable(m, classe) {
+      if (m.portee === "college") return estCollege(classe);
+      if (m.portee === "lycee") return !estCollege(classe);
+      return true;
+    }
+
+    function remplirMatieres() {
+      const precedente = selectMatiereCoef.value;
+      selectMatiereCoef.innerHTML = "";
+      MATIERES.forEach(function(m) {
+        if (!matiereApplicable(m, selectClasseCoef.value)) return;
+        const opt = document.createElement("option");
+        opt.value = m.cle;
+        opt.textContent = m.nom;
+        selectMatiereCoef.appendChild(opt);
+      });
+      if (precedente) selectMatiereCoef.value = precedente;
+    }
+
+    remplirMatieres();
+    selectClasseCoef.addEventListener("change", remplirMatieres);
 
     const enteteClasse = document.createElement("th");
     enteteClasse.textContent = "Classe";
@@ -351,6 +374,13 @@
 
             MATIERES.forEach(function(m) {
               const td = document.createElement("td");
+              if (!matiereApplicable(m, classe)) {
+                td.textContent = "·";
+                td.style.textAlign = "center";
+                td.style.color = "#ccc";
+                tr.appendChild(td);
+                return;
+              }
               const valeur = ligne[m.cle];
               td.textContent = (typeof valeur === "number") ? valeur : "—";
               td.style.cursor = "pointer";
@@ -358,6 +388,7 @@
               if (valeur === 0) td.style.color = "#999";
               td.addEventListener("click", function() {
                 selectClasseCoef.value = classe;
+                remplirMatieres();
                 selectMatiereCoef.value = m.cle;
                 if (typeof valeur === "number") selectCoefficient.value = String(valeur);
               });
