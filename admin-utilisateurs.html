@@ -150,6 +150,10 @@ td button{margin-right:4px}
       <div class="row"><select id="e-classe"></select><select id="e-pays"></select></div>
       <div class="row"><input type="text" id="e-indic" placeholder="Indicatif" readonly style="flex:0 1 90px"><input type="text" id="e-tel" placeholder="Téléphone local" inputmode="tel"></div>
       <div class="row"><input type="text" id="e-inter" placeholder="Téléphone international" readonly></div>
+      <p class="message">Informations du bulletin (facultatives)</p>
+      <div class="row"><input type="text" id="e-matricule" placeholder="Matricule"><label style="flex:1;font-size:13px;color:#666">Date de naissance<input type="date" id="e-naiss" style="width:100%"></label></div>
+      <div class="row"><input type="text" id="e-lieu" placeholder="Lieu de naissance"></div>
+      <div class="row"><select id="e-redoub"><option value="non">Redoublant : Non</option><option value="oui">Redoublant : Oui</option></select><select id="e-eps"><option value="Apte">Aptitude EPS : Apte</option><option value="Inapte">Aptitude EPS : Inapte</option></select></div>
       <p id="e-msg" class="message error"></p>
       <div class="fin"><button type="button" class="secondaire" id="e-annuler">Annuler</button><button type="submit">Enregistrer</button></div>
     </form>
@@ -551,6 +555,8 @@ function ouvrirEleve(id){
   let loc=e.telephoneLocal;
   if(!loc){const ind=chiffres(e.indicatifPays),t=chiffres(e.telephoneInternational||e.telephone);loc=ind&&t.indexOf(ind)===0?t.slice(ind.length):"";}
   $("e-tel").value=loc||"";telEleveInter();
+  $("e-matricule").value=e.matricule||"";$("e-naiss").value=e.dateNaissance||"";$("e-lieu").value=e.lieuNaissance||"";
+  $("e-redoub").value=e.redoublant||"non";$("e-eps").value=e.aptitudeEps||"Apte";
   $("e-msg").textContent="";$("modal-eleve").style.display="flex";
 }
 $("e-annuler").addEventListener("click",()=>{$("modal-eleve").style.display="none";});
@@ -560,7 +566,9 @@ $("form-eleve").addEventListener("submit",function(ev){
   const indic=chiffres($("e-indic").value),loc=chiffres($("e-tel").value);
   if(!nom||!prenom||!ident||!classe||!indic||!loc){$("e-msg").textContent="Nom, prénom, identifiant, classe, pays et téléphone sont obligatoires.";return;}
   const d={nom:nom,prenom:prenom,identifiant:ident,classe:classe,pays:$("e-pays").value,indicatifPays:indic,
-    telephoneLocal:loc,telephone:indic+loc,telephoneInternational:"+"+indic+loc,dateModification:Date.now()};
+    telephoneLocal:loc,telephone:indic+loc,telephoneInternational:"+"+indic+loc,dateModification:Date.now(),
+    matricule:$("e-matricule").value.trim()||null,dateNaissance:$("e-naiss").value||null,lieuNaissance:$("e-lieu").value.trim()||null,
+    redoublant:$("e-redoub").value,aptitudeEps:$("e-eps").value};
   db.ref("eleves/"+eleveEdit).update(d).then(()=>{
     Object.assign(eleves[eleveEdit],d);$("modal-eleve").style.display="none";afficher();msg("Élève modifié.",true);
   }).catch(x=>{$("e-msg").textContent="Erreur : "+x.message;});
