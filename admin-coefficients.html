@@ -173,8 +173,8 @@
     </section>
 
     <section class="card" id="card-coefficients" style="display: none;">
-      <h2>Gestion des coefficients par classe</h2>
-      <p>Définis le coefficient de mathématiques pour chaque classe (1 à 10).</p>
+      <h2>Coefficients par classe et par matière</h2>
+      <p>Définis le coefficient de chaque matière pour chaque classe. Un coefficient « 0 » retire la matière du bulletin de cette classe. Touche une case du tableau pour la sélectionner.</p>
 
       <div class="row">
         <label for="select-classe-coef">Classe :</label>
@@ -197,8 +197,12 @@
           <option value="Tle E">Tle E</option>
         </select>
 
+        <label for="select-matiere-coef">Matière :</label>
+        <select id="select-matiere-coef"></select>
+
         <label for="select-coefficient">Coefficient :</label>
         <select id="select-coefficient">
+          <option value="0">0 (non comptée)</option>
           <option value="1">1</option>
           <option value="2">2</option>
           <option value="3">3</option>
@@ -222,15 +226,14 @@
 
       <div id="loader-coef" class="loader" style="display: none; margin: 12px 0;"></div>
 
-      <table id="table-coefficients">
-        <thead>
-          <tr>
-            <th>Classe</th>
-            <th>Coefficient</th>
-          </tr>
-        </thead>
-        <tbody id="corps-table-coefficients"></tbody>
-      </table>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table id="table-coefficients">
+          <thead>
+            <tr id="entete-coefficients"></tr>
+          </thead>
+          <tbody id="corps-table-coefficients"></tbody>
+        </table>
+      </div>
     </section>
 
   </main>
@@ -251,6 +254,41 @@
     const corpsTableCoefficients = document.getElementById("corps-table-coefficients");
 
     const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    const selectMatiereCoef = document.getElementById("select-matiere-coef");
+    const enteteCoefficients = document.getElementById("entete-coefficients");
+
+    // Clé utilisée dans Firebase, libellé complet, libellé court (en-tête du tableau)
+    // La clé "maths" est conservée telle quelle pour rester compatible avec l'existant.
+    const MATIERES = [
+      { cle: "maths", nom: "Mathématiques", court: "Maths" },
+      { cle: "francais", nom: "Français", court: "Français" },
+      { cle: "anglais", nom: "Anglais", court: "Anglais" },
+      { cle: "espagnol", nom: "Espagnol", court: "Espagnol" },
+      { cle: "allemand", nom: "Allemand", court: "Allemand" },
+      { cle: "pct", nom: "PCT (Physique-Chimie-Technologie)", court: "PCT" },
+      { cle: "svt", nom: "SVT", court: "SVT" },
+      { cle: "histoire-geo", nom: "Histoire-Géographie", court: "Hist-Géo" },
+      { cle: "philosophie", nom: "Philosophie", court: "Philo" },
+      { cle: "eps", nom: "EPS", court: "EPS" },
+      { cle: "conduite", nom: "Conduite", court: "Conduite" }
+    ];
+
+    MATIERES.forEach(function(m) {
+      const opt = document.createElement("option");
+      opt.value = m.cle;
+      opt.textContent = m.nom;
+      selectMatiereCoef.appendChild(opt);
+    });
+
+    const enteteClasse = document.createElement("th");
+    enteteClasse.textContent = "Classe";
+    enteteCoefficients.appendChild(enteteClasse);
+    MATIERES.forEach(function(m) {
+      const th = document.createElement("th");
+      th.textContent = m.court;
+      enteteCoefficients.appendChild(th);
+    });
 
     let adminUid = null;
 
@@ -298,32 +336,33 @@
       db.ref("coefficients").once("value")
         .then(function(snap) {
           loaderCoef.style.display = "none";
+          const data = (snap && snap.exists()) ? snap.val() : {};
 
-          if (!snap || !snap.exists()) {
-            corpsTableCoefficients.innerHTML = "<tr><td colspan='2'>Aucun coefficient défini.</td></tr>";
-            return;
-          }
-
-          const data = snap.val();
-          const classes = Object.keys(data);
-
-          if (classes.length === 0) {
-            corpsTableCoefficients.innerHTML = "<tr><td colspan='2'>Aucun coefficient défini.</td></tr>";
-            return;
-          }
-
-          classes.forEach(function(classe) {
-            const coef = data[classe].maths || 1;
+          Array.prototype.forEach.call(selectClasseCoef.options, function(optClasse) {
+            const classe = optClasse.value;
+            const ligne = data[classe] || {};
 
             const tr = document.createElement("tr");
 
             const tdClasse = document.createElement("td");
             tdClasse.textContent = classe;
+            tdClasse.style.fontWeight = "bold";
             tr.appendChild(tdClasse);
 
-            const tdCoef = document.createElement("td");
-            tdCoef.textContent = coef;
-            tr.appendChild(tdCoef);
+            MATIERES.forEach(function(m) {
+              const td = document.createElement("td");
+              const valeur = ligne[m.cle];
+              td.textContent = (typeof valeur === "number") ? valeur : "—";
+              td.style.cursor = "pointer";
+              td.style.textAlign = "center";
+              if (valeur === 0) td.style.color = "#999";
+              td.addEventListener("click", function() {
+                selectClasseCoef.value = classe;
+                selectMatiereCoef.value = m.cle;
+                if (typeof valeur === "number") selectCoefficient.value = String(valeur);
+              });
+              tr.appendChild(td);
+            });
 
             corpsTableCoefficients.appendChild(tr);
           });
@@ -331,18 +370,19 @@
         .catch(function(erreur) {
           console.error("Erreur chargement coefficients :", erreur);
           loaderCoef.style.display = "none";
-          corpsTableCoefficients.innerHTML = "<tr><td colspan='2'>Erreur de chargement.</td></tr>";
+          corpsTableCoefficients.innerHTML = "<tr><td colspan='12'>Erreur de chargement.</td></tr>";
         });
     }
 
     function sauverCoefficient() {
       const classe = selectClasseCoef.value;
+      const matiere = selectMatiereCoef.value;
       const coef = parseInt(selectCoefficient.value, 10);
 
       messageCoef.textContent = "Enregistrement en cours...";
       messageCoef.classList.remove("success", "error");
 
-      db.ref("coefficients/" + classe + "/maths").set(coef)
+      db.ref("coefficients/" + classe + "/" + matiere).set(coef)
         .then(function() {
           messageCoef.textContent = "Coefficient enregistré avec succès.";
           messageCoef.classList.add("success");
