@@ -175,7 +175,7 @@
     td.moy.partiel { color: #999; font-weight: normal; }
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     button.secondaire { background: var(--amber); }
-    .cache { display: none; }
+    .cache { display: none !important; }
   </style>
 </head>
 
@@ -235,7 +235,7 @@
     const COLONNES_CONDUITE = [["c", "Conduite /20"]];
 
     const $ = function(id) { return document.getElementById(id); };
-    let ROLE = null, PROFIL = null, CONFIG = {}, ELEVES = [], NOTES = {}, CTX = null;
+    let ROLE = null, PROFIL = null, CONFIG = {}, ELEVES = [], NOTES = {}, CTX = null, COEF = null;
 
     function msg(id, texte, ok) {
       const el = $(id);
@@ -256,7 +256,17 @@
       return { n: arrondi(n) };
     }
 
-    function colonnes() { return CTX && CTX.matiere === "Conduite" ? COLONNES_CONDUITE : COLONNES_NORMALES; }
+    // Clé du coefficient (page « Coefficients » de l'admin) pour la matière affichée
+function cleCoef() {
+  const m = CTX.matiere;
+  const table = { "Mathématiques": "maths", "Anglais": "anglais", "Espagnol": "espagnol", "Allemand": "allemand",
+                  "PCT": "pct", "SVT": "svt", "Histoire-Géographie": "histoire-geo", "Philosophie": "philosophie",
+                  "EPS": "eps", "Conduite": "conduite" };
+  if (m === "Français") return COLLEGE.indexOf(CTX.classe) !== -1 ? CTX.sub : "francais";
+  return table[m] || null;
+}
+
+function colonnes() { return CTX && CTX.matiere === "Conduite" ? COLONNES_CONDUITE : COLONNES_NORMALES; }
     function sousMatiere() { return (CTX.matiere === "Français" && COLLEGE.indexOf(CTX.classe) !== -1) ? CTX.sub : "g"; }
 
     function majBlocSub() {
@@ -280,14 +290,20 @@
     }
 
     function moyenneLigne(tr) {
-      const champs = Array.prototype.filter.call(tr.querySelectorAll("input"), function(inp) { return inp.dataset.champ !== "c"; });
-      const valeurs = champs.map(function(inp) { return lire(inp.value); }).filter(function(r) { return r.n !== undefined; });
-      const cellule = tr.querySelector("td.moy");
-      if (!cellule) return;
-      if (!valeurs.length) { cellule.textContent = "—"; cellule.className = "moy partiel"; return; }
-      const m = valeurs.reduce(function(a, r) { return a + r.n; }, 0) / valeurs.length;
-      cellule.textContent = m.toFixed(2);
-      cellule.className = "moy" + (valeurs.length < champs.length ? " partiel" : "");
+      const champs = tr.querySelectorAll("input");
+      const valeurs = Array.prototype.map.call(champs, function(inp) { return lire(inp.value); })
+        .filter(function(r) { return r.n !== undefined; });
+      const cm = tr.querySelector('td[data-role="moy"]'), cc = tr.querySelector('td[data-role="mc"]');
+      const partiel = valeurs.length < champs.length;
+      function ecrire(cellule, texte) {
+        if (!cellule) return;
+        cellule.textContent = texte;
+        cellule.className = "moy" + ((texte === "—" || partiel) ? " partiel" : "");
+      }
+      if (!valeurs.length) { ecrire(cm, "—"); ecrire(cc, "—"); return; }
+      const m = arrondi(valeurs.reduce(function(a, r) { return a + r.n; }, 0) / valeurs.length);
+      ecrire(cm, m.toFixed(2));
+      ecrire(cc, COEF === null ? "—" : arrondi(m * COEF).toFixed(2));
     }
 
     function construireTable() {
@@ -296,7 +312,7 @@
       entete.innerHTML = ""; corps.innerHTML = "";
 
       const trh = document.createElement("tr");
-      ["Élève"].concat(cols.map(function(c) { return c[1]; })).concat(cols.length > 1 ? ["Moy/20"] : []).forEach(function(t) {
+      ["Élève"].concat(cols.map(function(c) { return c[1]; })).concat(cols.length > 1 ? ["Moy/20"] : []).concat(["Moy coef"]).forEach(function(t) {
         const th = document.createElement("th"); th.textContent = t; trh.appendChild(th);
       });
       entete.appendChild(trh);
@@ -330,9 +346,10 @@
         });
 
         if (cols.length > 1) {
-          const tdm = document.createElement("td"); tdm.className = "moy"; tr.appendChild(tdm);
-          moyenneLigne(tr);
+          const tdm = document.createElement("td"); tdm.className = "moy"; tdm.dataset.role = "moy"; tr.appendChild(tdm);
         }
+        const tdc = document.createElement("td"); tdc.className = "moy"; tdc.dataset.role = "mc"; tr.appendChild(tdc);
+        moyenneLigne(tr);
         corps.appendChild(tr);
       });
     }
@@ -347,8 +364,10 @@
 
       Promise.all([
         db.ref("eleves").orderByChild("classe").equalTo(classe).once("value"),
-        db.ref("notes/" + classe + "/" + sem + "/" + matiere).once("value")
+        db.ref("notes/" + classe + "/" + sem + "/" + matiere).once("value"),
+        db.ref("coefficients/" + classe + "/" + (cleCoef() || "_")).once("value")
       ]).then(function(r) {
+        COEF = (typeof r[2].val() === "number") ? r[2].val() : null;
         ELEVES = [];
         r[0].forEach(function(c) { const v = c.val() || {}; ELEVES.push({ uid: c.key, nom: v.nom, prenom: v.prenom }); });
         ELEVES.sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || "") || (a.prenom || "").localeCompare(b.prenom || ""); });
@@ -357,7 +376,10 @@
         const libSub = (CTX.matiere === "Français" && COLLEGE.indexOf(classe) !== -1)
           ? " (" + (CTX.sub === "lecture" ? "Lecture" : "Communication écrite") + ")" : "";
         $("titre-table").textContent = matiere + libSub + " - " + classe + " - Semestre " + sem.charAt(1);
-        $("info-table").textContent = ELEVES.length + " élève(s). Notes sur 20, virgule ou point accepté. Case vide = pas de note.";
+        $("info-table").textContent = ELEVES.length + " élève(s). Notes sur 20, virgule ou point accepté. Case vide = pas de note. " +
+          (COEF === null ? "Coefficient non défini : voir la page Coefficients de l'admin."
+            : COEF === 0 ? "Coefficient 0 : cette matière n'est pas comptée dans le bulletin de cette classe."
+            : "Coefficient : " + COEF + ".");
         construireTable();
         msg("msg-table", "", null);
       }).catch(function(e) {
