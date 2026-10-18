@@ -90,7 +90,7 @@ td button{margin-right:4px}
           <button id="btn-norm" style="display:none;background:#8e44ad">🔧 Normaliser les classes</button>
         </div>
         <table>
-          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
           <tbody id="t-eleves"></tbody>
         </table>
       </div>
@@ -98,7 +98,7 @@ td button{margin-right:4px}
       <div id="tab-profs" class="cache">
         <div class="row"><button data-act="creer">+ Nouvel enseignant</button> <button class="mail" data-act="mail-groupe-profs">✉ E-mail à tous les enseignants actifs</button></div>
         <table>
-          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
           <tbody id="t-profs"></tbody>
         </table>
       </div>
@@ -214,7 +214,7 @@ function charger(){
   .catch(e=>msg("Chargement impossible : "+e.message,false));
 }
 
-// Dernière connexion (lue dans connexions/{uid}, écrite par auth-guard.js)
+// Dernière visite (lue dans connexions/{uid}, écrite par auth-guard.js)
 function derniereConn(uid){
   const c=connexions[uid],t=c&&c.derniereConnexion;
   if(!t)return '<span style="color:#999">Jamais</span>';

@@ -1,7 +1,7 @@
 // auth-guard.js
 // Vérifie que l'utilisateur est connecté, sinon redirige vers connexion.html
 // Déconnecte automatiquement après 5 heures d'inactivité
-// Enregistre la dernière connexion/activité dans connexions/{uid}
+// Enregistre la dernière visite (activité sur le site) dans connexions/{uid}
 
 const DUREE_SESSION_MS = 5 * 60 * 60 * 1000; // 5 heures
 const INTERVALLE_ENREGISTREMENT_MS = 10 * 60 * 1000; // 10 minutes
@@ -10,7 +10,7 @@ function mettreAJourActivite() {
   localStorage.setItem("lastActivity", Date.now().toString());
 }
 
-// Enregistre la dernière connexion dans la base (au plus une fois toutes les 10 minutes)
+// Enregistre la dernière visite dans la base (au plus une fois toutes les 10 minutes)
 function enregistrerConnexion(user) {
   try {
     if (!firebase.database || !user) return;
@@ -97,7 +97,14 @@ window.addEventListener("load", function() {
   });
 });
 
-// Mettre à jour l'activité à chaque interaction utilisateur
-window.addEventListener("click", mettreAJourActivite);
-window.addEventListener("keydown", mettreAJourActivite);
-window.addEventListener("scroll", mettreAJourActivite);
+// À chaque interaction : mise à jour locale + enregistrement de la dernière visite (limité à 1 fois / 10 min)
+function activiteUtilisateur() {
+  mettreAJourActivite();
+  try {
+    const u = firebase.auth && firebase.auth().currentUser;
+    if (u) enregistrerConnexion(u);
+  } catch (e) {}
+}
+window.addEventListener("click", activiteUtilisateur);
+window.addEventListener("keydown", activiteUtilisateur);
+window.addEventListener("scroll", activiteUtilisateur);
