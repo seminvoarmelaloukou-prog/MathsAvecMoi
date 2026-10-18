@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saisie des notes - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="suivi-visite.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * { flex: 0 0 auto; }
+
+    label { font-size: 14px; color: var(--text); }
+
+    select, input[type="number"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--indigo-dark); }
+
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    thead { background: #f2f5ff; }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e3e7f6;
+      text-align: left;
+    }
+    th { color: var(--indigo); font-weight: bold; }
+    tr:hover { background: #fafbff; }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+
+  <style>
+    input[type="text"], input[type="date"], input[type="number"] {
+      padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
+      min-width: 0; max-width: 100%;
+    }
+    .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; margin: 10px 0; }
+    .grille label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .grille input { width: 100%; }
+    h3.sous-titre { margin-top: 20px; color: var(--indigo); font-size: 17px; }
+    .interrupteur { display: flex; align-items: center; gap: 10px; font-weight: bold; margin: 12px 0; }
+    .interrupteur input { width: 22px; height: 22px; }
+    td.coche { text-align: center; }
+    td.coche input { width: 22px; height: 22px; }
+  </style>
+  <style>
+    .barre { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 10px 0; }
+    .barre > div { display: flex; flex-direction: column; gap: 4px; }
+    .barre label { font-size: 13px; color: var(--muted); }
+    td.note input { width: 62px; text-align: center; padding: 6px 4px; }
+    td.note input.invalide { border-color: var(--error); background: #fdecea; }
+    td.note input.qcm { background: #eef6ff; }
+    td.moy { text-align: center; font-weight: bold; color: var(--indigo); }
+    td.moy.partiel { color: #999; font-weight: normal; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    button.secondaire { background: var(--amber); }
+    .cache { display: none; }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Saisie des notes</h1>
+    <ul>
+      <li><a href="enseignant.html" id="lien-retour">Mon espace</a></li>
+      <li><a href="index.html">Accueil</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Notes du semestre</h2>
+      <p id="msg-acces" class="message">Vérification de tes droits...</p>
+
+      <div id="zone-choix" class="cache">
+        <div class="barre">
+          <div><label for="s-classe">Classe</label><select id="s-classe"></select></div>
+          <div><label for="s-sem">Semestre</label>
+            <select id="s-sem"><option value="s1">Semestre 1</option><option value="s2">Semestre 2</option></select></div>
+          <div><label for="s-matiere">Matière</label><select id="s-matiere"></select></div>
+          <div id="bloc-sub" class="cache"><label for="s-sub">Partie du français</label>
+            <select id="s-sub"><option value="lecture">Lecture</option><option value="communication-ecrite">Communication écrite</option></select></div>
+          <button id="btn-afficher">Afficher</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card cache" id="card-table">
+      <h2 id="titre-table"></h2>
+      <p class="message" id="info-table"></p>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table>
+          <thead id="entete"></thead>
+          <tbody id="corps"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button id="btn-enregistrer">Enregistrer les notes</button>
+        <button id="btn-qcm" class="secondaire cache">Importer les notes QCM</button>
+      </div>
+      <p id="msg-table" class="message"></p>
+    </section>
+  </main>
+
+  <script>
+    const CLASSES = ["6e", "5e", "4e", "3e", "2de AB", "2de C", "2de D", "2de E",
+                     "1re AB", "1re C", "1re D", "1re E", "Tle AB", "Tle C", "Tle D", "Tle E"];
+    const COLLEGE = ["6e", "5e", "4e", "3e"];
+    const MATIERES_ADMIN = ["Mathématiques", "Français", "Anglais", "PCT", "SVT", "Histoire-Géographie",
+                            "Philosophie", "EPS", "Espagnol", "Allemand", "Éducation civique", "Conduite"];
+    const COLONNES_NORMALES = [["i", "Interro"], ["d1", "Devoir 1"], ["d2", "Devoir 2"]];
+    const COLONNES_CONDUITE = [["c", "Conduite /20"]];
+
+    const $ = function(id) { return document.getElementById(id); };
+    let ROLE = null, PROFIL = null, CONFIG = {}, ELEVES = [], NOTES = {}, CTX = null;
+
+    function msg(id, texte, ok) {
+      const el = $(id);
+      el.textContent = texte;
+      el.classList.remove("success", "error");
+      if (ok === true) el.classList.add("success");
+      if (ok === false) el.classList.add("error");
+    }
+
+    function cles(o) { return Object.keys(o || {}).filter(function(k) { return o[k] === true; }); }
+    function arrondi(x) { return Math.round(x * 100) / 100; }
+
+    function lire(valeur) {
+      const t = String(valeur).trim().replace(",", ".");
+      if (t === "") return { vide: true };
+      const n = Number(t);
+      if (isNaN(n) || n < 0 || n > 20) return { erreur: true };
+      return { n: arrondi(n) };
+    }
+
+    function colonnes() { return CTX && CTX.matiere === "Conduite" ? COLONNES_CONDUITE : COLONNES_NORMALES; }
+    function sousMatiere() { return (CTX.matiere === "Français" && COLLEGE.indexOf(CTX.classe) !== -1) ? CTX.sub : "g"; }
+
+    function majBlocSub() {
+      const visible = $("s-matiere").value === "Français" && COLLEGE.indexOf($("s-classe").value) !== -1;
+      $("bloc-sub").classList.toggle("cache", !visible);
+    }
+
+    function remplirChoix() {
+      const classes = ROLE === "admin" ? CLASSES : CLASSES.filter(function(c) { return cles(PROFIL.classes).indexOf(c) !== -1; });
+      const matieres = ROLE === "admin" ? MATIERES_ADMIN : cles(PROFIL.matieres);
+      const sc = $("s-classe"), sm = $("s-matiere");
+      classes.forEach(function(c) { sc.appendChild(new Option(c, c)); });
+      matieres.forEach(function(m) { sm.appendChild(new Option(m, m)); });
+      if (!classes.length || !matieres.length) {
+        msg("msg-acces", "Aucune classe ou matière ne t'est attribuée. Contacte l'administrateur.", false);
+        return;
+      }
+      $("msg-acces").classList.add("cache");
+      $("zone-choix").classList.remove("cache");
+      majBlocSub();
+    }
+
+    function moyenneLigne(tr) {
+      const champs = Array.prototype.filter.call(tr.querySelectorAll("input"), function(inp) { return inp.dataset.champ !== "c"; });
+      const valeurs = champs.map(function(inp) { return lire(inp.value); }).filter(function(r) { return r.n !== undefined; });
+      const cellule = tr.querySelector("td.moy");
+      if (!cellule) return;
+      if (!valeurs.length) { cellule.textContent = "—"; cellule.className = "moy partiel"; return; }
+      const m = valeurs.reduce(function(a, r) { return a + r.n; }, 0) / valeurs.length;
+      cellule.textContent = m.toFixed(2);
+      cellule.className = "moy" + (valeurs.length < champs.length ? " partiel" : "");
+    }
+
+    function construireTable() {
+      const cols = colonnes();
+      const entete = $("entete"), corps = $("corps");
+      entete.innerHTML = ""; corps.innerHTML = "";
+
+      const trh = document.createElement("tr");
+      ["Élève"].concat(cols.map(function(c) { return c[1]; })).concat(cols.length > 1 ? ["Moy/20"] : []).forEach(function(t) {
+        const th = document.createElement("th"); th.textContent = t; trh.appendChild(th);
+      });
+      entete.appendChild(trh);
+
+      const sub = sousMatiere();
+      ELEVES.forEach(function(e) {
+        const note = (NOTES[e.uid] && NOTES[e.uid][sub]) || {};
+        const tr = document.createElement("tr");
+        tr.dataset.uid = e.uid;
+
+        const tdNom = document.createElement("td");
+        tdNom.textContent = ((e.nom || "") + " " + (e.prenom || "")).trim() || e.uid;
+        tr.appendChild(tdNom);
+
+        cols.forEach(function(c) {
+          const td = document.createElement("td"); td.className = "note";
+          const inp = document.createElement("input");
+          inp.type = "text"; inp.inputMode = "decimal"; inp.dataset.champ = c[0];
+          inp.value = (note[c[0]] !== undefined && note[c[0]] !== null) ? String(note[c[0]]).replace(".", ",") : "";
+          if (c[0] === "i") {
+            inp.dataset.src = note.srcI || (inp.value ? "manuel" : "");
+            if (inp.dataset.src === "qcm") inp.classList.add("qcm");
+          }
+          inp.addEventListener("input", function() {
+            inp.classList.remove("invalide", "qcm");
+            if (c[0] === "i") inp.dataset.src = "manuel";
+            moyenneLigne(tr);
+          });
+          td.appendChild(inp);
+          tr.appendChild(td);
+        });
+
+        if (cols.length > 1) {
+          const tdm = document.createElement("td"); tdm.className = "moy"; tr.appendChild(tdm);
+          moyenneLigne(tr);
+        }
+        corps.appendChild(tr);
+      });
+    }
+
+    function charger() {
+      const classe = $("s-classe").value, sem = $("s-sem").value, matiere = $("s-matiere").value;
+      if (!classe || !matiere) return;
+      CTX = { classe: classe, sem: sem, matiere: matiere, sub: $("s-sub").value };
+      msg("msg-table", "Chargement...", null);
+      $("card-table").classList.remove("cache");
+      $("btn-qcm").classList.toggle("cache", !(ROLE === "admin" && matiere !== "Conduite"));
+
+      Promise.all([
+        db.ref("eleves").orderByChild("classe").equalTo(classe).once("value"),
+        db.ref("notes/" + classe + "/" + sem + "/" + matiere).once("value")
+      ]).then(function(r) {
+        ELEVES = [];
+        r[0].forEach(function(c) { const v = c.val() || {}; ELEVES.push({ uid: c.key, nom: v.nom, prenom: v.prenom }); });
+        ELEVES.sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || "") || (a.prenom || "").localeCompare(b.prenom || ""); });
+        NOTES = r[1].val() || {};
+
+        const libSub = (CTX.matiere === "Français" && COLLEGE.indexOf(classe) !== -1)
+          ? " (" + (CTX.sub === "lecture" ? "Lecture" : "Communication écrite") + ")" : "";
+        $("titre-table").textContent = matiere + libSub + " - " + classe + " - Semestre " + sem.charAt(1);
+        $("info-table").textContent = ELEVES.length + " élève(s). Notes sur 20, virgule ou point accepté. Case vide = pas de note.";
+        construireTable();
+        msg("msg-table", "", null);
+      }).catch(function(e) {
+        msg("msg-table", "Erreur de chargement : " + e.message, false);
+      });
+    }
+
+    function enregistrer() {
+      if (!CTX) return;
+      const sub = sousMatiere();
+      const updates = {};
+      let erreur = false;
+
+      Array.prototype.forEach.call($("corps").querySelectorAll("tr"), function(tr) {
+        const obj = {};
+        Array.prototype.forEach.call(tr.querySelectorAll("input"), function(inp) {
+          const r = lire(inp.value);
+          if (r.erreur) { inp.classList.add("invalide"); erreur = true; return; }
+          if (r.n === undefined) return;
+          obj[inp.dataset.champ] = r.n;
+          if (inp.dataset.champ === "i") obj.srcI = inp.dataset.src || "manuel";
+        });
+        updates[tr.dataset.uid + "/" + sub] = Object.keys(obj).length ? obj : null;
+      });
+
+      if (erreur) return msg("msg-table", "Certaines notes sont invalides (0 à 20). Corrige les cases en rouge.", false);
+
+      msg("msg-table", "Enregistrement en cours...", null);
+      db.ref("notes/" + CTX.classe + "/" + CTX.sem + "/" + CTX.matiere).update(updates)
+        .then(function() {
+          Object.keys(updates).forEach(function(k) {
+            const p = k.split("/"); NOTES[p[0]] = NOTES[p[0]] || {};
+            NOTES[p[0]][p[1]] = updates[k];
+          });
+          msg("msg-table", "Notes enregistrées.", true);
+        })
+        .catch(function(e) { msg("msg-table", "Erreur : " + e.message, false); });
+    }
+
+    function importerQCM() {
+      const per = (CONFIG.semestres || {})[CTX.sem];
+      if (!per || !per.debut || !per.fin) {
+        return msg("msg-table", "Renseigne d'abord les dates du semestre dans la page Bulletins de l'admin.", false);
+      }
+      const debut = new Date(per.debut + "T00:00:00").getTime();
+      const fin = new Date(per.fin + "T23:59:59").getTime();
+      msg("msg-table", "Lecture des résultats QCM...", null);
+
+      Promise.all(ELEVES.map(function(e) {
+        return db.ref("evaluations/resultats/" + e.uid).once("value").then(function(s) { return [e.uid, s.val() || {}]; });
+      })).then(function(liste) {
+        let nb = 0;
+        liste.forEach(function(paire) {
+          const meilleur = {};
+          Object.keys(paire[1]).forEach(function(k) {
+            const r = paire[1][k];
+            if (!r || typeof r !== "object" || !r.epreuveId) return;
+            if ((r.matiere || "Mathématiques") !== CTX.matiere) return;
+            if (!(r.date >= debut && r.date <= fin) || !(r.totalPoints > 0)) return;
+            const n = (r.score / r.totalPoints) * 20;
+            if (meilleur[r.epreuveId] === undefined || n > meilleur[r.epreuveId]) meilleur[r.epreuveId] = n;
+          });
+          const vals = Object.keys(meilleur).map(function(k) { return meilleur[k]; });
+          if (!vals.length) return;
+          const tr = $("corps").querySelector('tr[data-uid="' + paire[0] + '"]');
+          const inp = tr && tr.querySelector('input[data-champ="i"]');
+          if (!inp || inp.dataset.src === "manuel") return; // une note saisie à la main n'est jamais écrasée
+          inp.value = String(arrondi(vals.reduce(function(a, b) { return a + b; }, 0) / vals.length)).replace(".", ",");
+          inp.dataset.src = "qcm"; inp.classList.add("qcm");
+          moyenneLigne(tr); nb++;
+        });
+        msg("msg-table", nb + " élève(s) mis à jour d'après les QCM. Pense à enregistrer.", true);
+      }).catch(function(e) { msg("msg-table", "Erreur : " + e.message, false); });
+    }
+
+    $("s-classe").addEventListener("change", majBlocSub);
+    $("s-matiere").addEventListener("change", majBlocSub);
+    $("btn-afficher").addEventListener("click", charger);
+    $("btn-enregistrer").addEventListener("click", enregistrer);
+    $("btn-qcm").addEventListener("click", importerQCM);
+    $("lien-deconnexion").addEventListener("click", function(e) {
+      e.preventDefault();
+      auth.signOut().then(function() { window.location.href = "index.html"; });
+    });
+
+    function refuser(texte) { msg("msg-acces", texte, false); }
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) { window.location.href = "connexion.html"; return; }
+      db.ref("administrateurs/" + user.uid).once("value").then(function(a) {
+        if (a.exists()) {
+          ROLE = "admin";
+          $("lien-retour").textContent = "Tableau de bord";
+          $("lien-retour").href = "admin.html";
+          return db.ref("bulletins_config").once("value").then(function(c) { CONFIG = c.val() || {}; remplirChoix(); });
+        }
+        return db.ref("enseignants/" + user.uid).once("value").then(function(p) {
+          const prof = p.val();
+          if (!prof || prof.statut !== "actif") { refuser("Accès réservé aux enseignants actifs et à l'administrateur."); return; }
+          ROLE = "prof"; PROFIL = prof; remplirChoix();
+        });
+      }).catch(function(e) { refuser("Erreur : " + e.message); });
+    });
+  </script>
+
+</body>
+</html>
