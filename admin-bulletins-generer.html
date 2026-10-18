@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Générer les bulletins - Admin - Campus Flex</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="suivi-visite.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--indigo);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    nav h1 { color: white; font-size: 20px; }
+    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
+    nav a { color: white; text-decoration: none; font-size: 14px; }
+    nav a:hover { text-decoration: underline; }
+
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1100px;
+      margin: 35px auto;
+      padding: 0 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 24px 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+      margin-bottom: 22px;
+    }
+
+    .card h2 {
+      color: var(--indigo);
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row > * { flex: 0 0 auto; }
+
+    label { font-size: 14px; color: var(--text); }
+
+    select, input[type="number"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #cfd8f0;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      background: var(--indigo);
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { background: var(--indigo-dark); }
+
+    .message { font-size: 14px; margin-top: 8px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    thead { background: #f2f5ff; }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e3e7f6;
+      text-align: left;
+    }
+    th { color: var(--indigo); font-weight: bold; }
+    tr:hover { background: #fafbff; }
+
+    .loader {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e3e7f6;
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: tourner 0.8s linear infinite;
+    }
+
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      nav { justify-content: center; text-align: center; }
+      nav ul { justify-content: center; }
+      main { margin: 20px auto; padding: 0 14px; }
+      .row { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+
+  <style>
+    input[type="text"], input[type="date"], input[type="number"] {
+      padding: 8px 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
+      min-width: 0; max-width: 100%;
+    }
+    .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 14px; margin: 10px 0; }
+    .grille label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .grille input { width: 100%; }
+    h3.sous-titre { margin-top: 20px; color: var(--indigo); font-size: 17px; }
+    .interrupteur { display: flex; align-items: center; gap: 10px; font-weight: bold; margin: 12px 0; }
+    .interrupteur input { width: 22px; height: 22px; }
+    td.coche { text-align: center; }
+    td.coche input { width: 22px; height: 22px; }
+  </style>
+  <style>
+    .barre { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 10px 0; }
+    .barre > div { display: flex; flex-direction: column; gap: 4px; }
+    .barre label { font-size: 13px; color: var(--muted); }
+    .cache { display: none !important; }
+    .alerte { background: #fff6e5; border-left: 4px solid var(--amber); padding: 8px 12px; margin: 8px 0; font-size: 14px; border-radius: 6px; }
+    tr.cliquable { cursor: pointer; }
+    .bulletin { border: 2px solid var(--indigo); border-radius: 8px; padding: 12px; margin-top: 12px; font-size: 13px; }
+    .bulletin h4 { text-align: center; color: var(--indigo); margin: 4px 0; }
+    .bulletin .entete { text-align: center; font-size: 12px; color: var(--muted); }
+    .bulletin .ident { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2px 12px; margin: 10px 0; }
+    .bulletin td, .bulletin th { padding: 5px 4px; text-align: center; }
+    .bulletin td:first-child, .bulletin th:first-child { text-align: left; }
+    .bilan { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 10px; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+
+  <nav>
+    <h1>Admin - Générer les bulletins</h1>
+    <ul>
+      <li><a href="admin-bulletins.html">Réglages bulletins</a></li>
+      <li><a href="admin.html">Tableau de bord</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <section class="card">
+      <h2>Calcul des bulletins</h2>
+      <p id="msg-acces" class="message">Vérification de tes droits administrateur...</p>
+      <div id="zone-choix" class="cache">
+        <div class="barre">
+          <div><label for="s-classe">Classe</label><select id="s-classe"></select></div>
+          <div><label for="s-sem">Semestre</label>
+            <select id="s-sem"><option value="s1">Semestre 1</option><option value="s2">Semestre 2</option></select></div>
+          <button id="btn-calculer">Calculer</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card cache" id="card-resultat">
+      <h2 id="titre-resultat"></h2>
+      <div id="alertes"></div>
+      <p class="message">Touche un élève pour voir son bulletin.</p>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table>
+          <thead><tr><th>Rang</th><th>Élève</th><th>Moyenne</th><th>Distinction</th></tr></thead>
+          <tbody id="corps-recap"></tbody>
+        </table>
+      </div>
+      <div style="margin-top: 12px;">
+        <button id="btn-publier">Publier les bulletins de cette classe</button>
+      </div>
+      <p id="msg-publier" class="message"></p>
+      <div id="apercu"></div>
+    </section>
+  </main>
+
+  <script>
+    const CLASSES = ["6e", "5e", "4e", "3e", "2de AB", "2de C", "2de D", "2de E",
+                     "1re AB", "1re C", "1re D", "1re E", "Tle AB", "Tle C", "Tle D", "Tle E"];
+    const DISC = [
+      { cle: "francais", lib: "Français", matiere: "Français", portee: "lycee" },
+      { cle: "lecture", lib: "Lecture", matiere: "Français", sub: "lecture", portee: "college" },
+      { cle: "communication-ecrite", lib: "Communication écrite", matiere: "Français", sub: "communication-ecrite", portee: "college" },
+      { cle: "anglais", lib: "Anglais", matiere: "Anglais" },
+      { cle: "allemand", lib: "Allemand", matiere: "Allemand" },
+      { cle: "espagnol", lib: "Espagnol", matiere: "Espagnol" },
+      { cle: "maths", lib: "Mathématiques", matiere: "Mathématiques" },
+      { cle: "pct", lib: "PCT", matiere: "PCT" },
+      { cle: "svt", lib: "SVT", matiere: "SVT" },
+      { cle: "histoire-geo", lib: "Histoire-Géographie", matiere: "Histoire-Géographie" },
+      { cle: "philosophie", lib: "Philosophie", matiere: "Philosophie" },
+      { cle: "eps", lib: "EPS", matiere: "EPS" },
+      { cle: "conduite", lib: "Conduite", matiere: "Conduite", conduite: true }
+    ];
+    const SEUILS_DEFAUT = { passable: 10, assezbien: 12, bien: 14, tresbien: 16, th: 12, enc: 14, fel: 16 };
+    const TEXTES_GENERAUX = ["Résultats insuffisants, doit redoubler d'efforts", "Résultats passables, peut mieux faire",
+                             "Travail assez bon à encourager", "Bon travail, à poursuivre", "Excellent travail, félicitations"];
+
+    const $ = function(id) { return document.getElementById(id); };
+    const esc = function(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+    const arrondi = function(x) { return Math.round(x * 100) / 100; };
+    let CONFIG = {}, BULLETINS = {}, ORDRE = [], CTX = null;
+
+    function msg(id, texte, ok) {
+      const el = $(id); el.textContent = texte;
+      el.classList.remove("success", "error");
+      if (ok === true) el.classList.add("success");
+      if (ok === false) el.classList.add("error");
+    }
+
+    function libRang(n, ex) { return (n === 1 ? "1er" : n + "e") + (ex ? " ex" : ""); }
+
+    function calculerRangs(liste) { // liste : [{uid, v}] -> {uid: "9e ex"}
+      const res = {};
+      liste.forEach(function(a) {
+        const sup = liste.filter(function(b) { return b.v > a.v; }).length;
+        const egal = liste.filter(function(b) { return b.v === a.v; }).length;
+        res[a.uid] = libRang(sup + 1, egal > 1);
+      });
+      return res;
+    }
+
+    function appreciation(v, se) {
+      if (v < se.passable) return 0;
+      if (v < se.assezbien) return 1;
+      if (v < se.bien) return 2;
+      if (v < se.tresbien) return 3;
+      return 4;
+    }
+    const LIBELLES = ["Faible", "Passable", "Assez bien", "Bien", "Très bien"];
+
+    function calculer() {
+      const classe = $("s-classe").value, sem = $("s-sem").value;
+      const college = ["6e", "5e", "4e", "3e"].indexOf(classe) !== -1;
+      const se = Object.assign({}, SEUILS_DEFAUT, CONFIG.seuils || {});
+      msg("msg-publier", "", null);
+      $("apercu").innerHTML = "";
+
+      Promise.all([
+        db.ref("eleves").orderByChild("classe").equalTo(classe).once("value"),
+        db.ref("coefficients/" + classe).once("value"),
+        db.ref("notes/" + classe + "/" + sem).once("value")
+      ]).then(function(r) {
+        const eleves = [];
+        r[0].forEach(function(c) { eleves.push(Object.assign({ uid: c.key }, c.val() || {})); });
+        const coefs = r[1].val() || {}, notes = r[2].val() || {};
+        if (!eleves.length) { return msg("msg-publier", "Aucun élève dans cette classe.", false); }
+
+        const disc = DISC.filter(function(d) {
+          if (d.portee === "college" && !college) return false;
+          if (d.portee === "lycee" && college) return false;
+          return typeof coefs[d.cle] === "number" && coefs[d.cle] > 0;
+        });
+
+        // Moyennes par discipline
+        const parDisc = {}; // cle -> {uid: {i,d1,d2,moy,moyCoef}}
+        disc.forEach(function(d) {
+          parDisc[d.cle] = {};
+          const nm = (notes[d.matiere] || {});
+          eleves.forEach(function(e) {
+            const n = ((nm[e.uid] || {})[d.sub || "g"]) || {};
+            const vals = d.conduite ? [n.c] : [n.i, n.d1, n.d2];
+            const pres = vals.filter(function(v) { return typeof v === "number"; });
+            const ligne = { i: n.i, d1: n.d1, d2: n.d2 };
+            if (pres.length) {
+              ligne.moy = arrondi(pres.reduce(function(a, b) { return a + b; }, 0) / pres.length);
+              ligne.moyCoef = arrondi(ligne.moy * coefs[d.cle]);
+            }
+            if (d.conduite) { ligne.i = null; ligne.d1 = null; ligne.d2 = null; }
+            parDisc[d.cle][e.uid] = ligne;
+          });
+        });
+
+        // Rangs par discipline
+        const rangDisc = {};
+        disc.forEach(function(d) {
+          const liste = eleves.filter(function(e) { return parDisc[d.cle][e.uid].moy !== undefined; })
+            .map(function(e) { return { uid: e.uid, v: parDisc[d.cle][e.uid].moy }; });
+          rangDisc[d.cle] = calculerRangs(liste);
+        });
+
+        // Moyenne du semestre
+        const moySem = {};
+        eleves.forEach(function(e) {
+          let somme = 0, sc = 0;
+          disc.forEach(function(d) {
+            const l = parDisc[d.cle][e.uid];
+            if (l.moy !== undefined) { somme += l.moyCoef; sc += coefs[d.cle]; }
+          });
+          if (sc > 0) moySem[e.uid] = arrondi(somme / sc);
+        });
+        const rangGen = calculerRangs(eleves.filter(function(e) { return moySem[e.uid] !== undefined; })
+          .map(function(e) { return { uid: e.uid, v: moySem[e.uid] }; }));
+
+        // Bulletins
+        BULLETINS = {};
+        eleves.forEach(function(e) {
+          const m = moySem[e.uid];
+          let distinction = "";
+          if (m !== undefined) {
+            if (m >= se.fel) distinction = "Tableau d'honneur avec félicitations";
+            else if (m >= se.enc) distinction = "Tableau d'honneur avec encouragements";
+            else if (m >= se.th) distinction = "Tableau d'honneur (TH)";
+          }
+          BULLETINS[e.uid] = {
+            classe: classe, semestre: sem, annee: CONFIG.annee || "", etablissement: CONFIG.etablissement || "Campus Flex",
+            coordonnees: CONFIG.coordonnees || "", directeur: CONFIG.directeur || "", effectif: eleves.length,
+            eleve: { matricule: e.matricule || "", nom: e.nom || "", prenom: e.prenom || "", dateNaissance: e.dateNaissance || "",
+                     lieuNaissance: e.lieuNaissance || "", redoublant: e.redoublant || "non", aptitudeEps: e.aptitudeEps || "Apte" },
+            lignes: disc.map(function(d) {
+              const l = parDisc[d.cle][e.uid];
+              return { libelle: d.lib, conduite: !!d.conduite, coef: coefs[d.cle], i: l.i, d1: l.d1, d2: l.d2,
+                       moy: l.moy, moyCoef: l.moyCoef, rang: l.moy !== undefined ? rangDisc[d.cle][e.uid] : "",
+                       appreciation: l.moy !== undefined ? LIBELLES[appreciation(l.moy, se)] : "" };
+            }),
+            moySemestre: m, rang: m !== undefined ? rangGen[e.uid] : "", distinction: distinction,
+            appreciation: m !== undefined ? TEXTES_GENERAUX[appreciation(m, se)] : "",
+            dateGeneration: Date.now()
+          };
+        });
+
+        // Ordre : par moyenne décroissante, puis par nom
+        ORDRE = eleves.slice().sort(function(a, b) {
+          const x = moySem[a.uid], y = moySem[b.uid];
+          if (x === undefined && y === undefined) return (a.nom || "").localeCompare(b.nom || "");
+          if (x === undefined) return 1; if (y === undefined) return -1;
+          return y - x;
+        }).map(function(e) { return e.uid; });
+
+        CTX = { classe: classe, sem: sem };
+        afficherResultat(eleves, disc, notes, coefs);
+      }).catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+    }
+
+    function afficherResultat(eleves, disc, notes, coefs) {
+      $("card-resultat").classList.remove("cache");
+      $("titre-resultat").textContent = CTX.classe + " - Semestre " + CTX.sem.charAt(1) + " (" + eleves.length + " élèves)";
+
+      const alertes = [];
+      const sansCoef = DISC.filter(function(d) {
+        const note = notes[d.matiere];
+        return note && !(disc.indexOf(d) !== -1) && !(d.portee === "college" && eleves.length && ["6e","5e","4e","3e"].indexOf(CTX.classe) === -1)
+          && !(d.portee === "lycee" && ["6e","5e","4e","3e"].indexOf(CTX.classe) !== -1);
+      });
+      if (sansCoef.length) alertes.push("Des notes existent mais le coefficient est absent ou nul pour : " + sansCoef.map(function(d) { return d.lib; }).join(", ") + ". Ces matières ne figurent pas au bulletin.");
+      const vides = disc.filter(function(d) { return !notes[d.matiere]; });
+      if (vides.length) alertes.push("Aucune note saisie pour : " + vides.map(function(d) { return d.lib; }).join(", ") + ".");
+      const sansNote = eleves.filter(function(e) { return BULLETINS[e.uid].moySemestre === undefined; });
+      if (sansNote.length) alertes.push(sansNote.length + " élève(s) sans aucune note : " + sansNote.map(function(e) { return ((e.nom || "") + " " + (e.prenom || "")).trim(); }).join(", ") + ".");
+      const sansMat = eleves.filter(function(e) { return !e.matricule; }).length;
+      if (sansMat) alertes.push(sansMat + " élève(s) sans matricule (à compléter dans « Élèves et enseignants »).");
+      $("alertes").innerHTML = alertes.map(function(a) { return '<div class="alerte">' + esc(a) + "</div>"; }).join("");
+
+      const corps = $("corps-recap"); corps.innerHTML = "";
+      ORDRE.forEach(function(uid) {
+        const b = BULLETINS[uid];
+        const tr = document.createElement("tr"); tr.className = "cliquable";
+        [b.rang || "—", ((b.eleve.nom || "") + " " + (b.eleve.prenom || "")).trim(),
+         b.moySemestre !== undefined ? b.moySemestre.toFixed(2) : "—", b.distinction || ""].forEach(function(t) {
+          const td = document.createElement("td"); td.textContent = t; tr.appendChild(td);
+        });
+        tr.addEventListener("click", function() { apercu(uid); $("apercu").scrollIntoView({ behavior: "smooth" }); });
+        corps.appendChild(tr);
+      });
+      if (ORDRE.length) apercu(ORDRE[0]);
+    }
+
+    function fmt(v) { return (typeof v === "number") ? v.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1") : ""; }
+
+    function apercu(uid) {
+      const b = BULLETINS[uid], e = b.eleve;
+      const naiss = (e.dateNaissance ? e.dateNaissance.split("-").reverse().join("/") : "") + (e.lieuNaissance ? " à " + e.lieuNaissance : "");
+      let h = '<div class="bulletin">';
+      h += '<div class="entete">République du Bénin - Ministère des Enseignements Secondaire, Technique et de la Formation Professionnelle<br>' +
+           esc(b.etablissement) + (b.coordonnees ? " - " + esc(b.coordonnees) : "") + "</div>";
+      h += "<h4>BULLETIN DE NOTES</h4>";
+      h += '<div class="ident"><div>Matricule : <b>' + esc(e.matricule) + "</b></div><div>Année scolaire : <b>" + esc(b.annee) + "</b></div>" +
+           "<div>Nom : <b>" + esc(e.nom) + "</b></div><div>Classe : <b>" + esc(b.classe) + "</b> - Effectif : <b>" + b.effectif + "</b></div>" +
+           "<div>Prénoms : <b>" + esc(e.prenom) + "</b></div><div>Semestre : <b>" + b.semestre.charAt(1) + "</b></div>" +
+           "<div>Né(e) le : <b>" + esc(naiss) + "</b></div><div>Aptitude en EPS : <b>" + esc(e.aptitudeEps) + "</b> - Redoublant : <b>" + (e.redoublant === "oui" ? "Oui" : "Non") + "</b></div></div>";
+      h += '<div style="overflow-x:auto"><table><thead><tr><th>Disciplines</th><th>Coef</th><th>Moy. interro.</th><th>Devoir 1</th><th>Devoir 2</th><th>Moy/20</th><th>Moy coef</th><th>Rang</th><th>Appréciation</th></tr></thead><tbody>';
+      b.lignes.forEach(function(l) {
+        h += "<tr><td>" + esc(l.libelle) + "</td><td>" + l.coef + "</td><td>" + fmt(l.i) + "</td><td>" + fmt(l.d1) + "</td><td>" + fmt(l.d2) + "</td><td>" +
+             (l.moy !== undefined ? l.moy.toFixed(2) : "") + "</td><td>" + (l.moyCoef !== undefined ? l.moyCoef.toFixed(2) : "") + "</td><td>" + esc(l.rang) + "</td><td>" + esc(l.appreciation) + "</td></tr>";
+      });
+      h += "</tbody></table></div>";
+      h += '<div class="bilan"><span>Moy. Semestre ' + b.semestre.charAt(1) + " : " + (b.moySemestre !== undefined ? b.moySemestre.toFixed(2) : "—") + "</span><span>Rang : " + esc(b.rang || "—") + "</span><span>Sanction : " + esc(b.distinction || "—") + "</span></div>";
+      h += '<p style="margin-top:8px"><b>Appréciation :</b> ' + esc(b.appreciation) + "</p>";
+      h += '<p style="text-align:right">Le Directeur : <b>' + esc(b.directeur) + "</b></p></div>";
+      $("apercu").innerHTML = h;
+    }
+
+    function publier() {
+      if (!CTX || !ORDRE.length) return;
+      if (!confirm("Publier les " + ORDRE.length + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.")) return;
+      const maj = {};
+      ORDRE.forEach(function(uid) { maj[uid] = JSON.parse(JSON.stringify(BULLETINS[uid])); });
+      msg("msg-publier", "Publication en cours...", null);
+      db.ref("bulletins/" + CTX.sem).update(maj)
+        .then(function() { msg("msg-publier", "Bulletins publiés. Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true); })
+        .catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+    }
+
+    $("btn-calculer").addEventListener("click", calculer);
+    $("btn-publier").addEventListener("click", publier);
+    $("lien-deconnexion").addEventListener("click", function(e) {
+      e.preventDefault(); auth.signOut().then(function() { window.location.href = "index.html"; });
+    });
+
+    auth.onAuthStateChanged(function(user) {
+      if (!user) { window.location.href = "connexion.html"; return; }
+      db.ref("administrateurs/" + user.uid).once("value").then(function(a) {
+        if (!a.exists()) { msg("msg-acces", "Page réservée à l'administrateur.", false); return; }
+        return db.ref("bulletins_config").once("value").then(function(c) {
+          CONFIG = c.val() || {};
+          CLASSES.forEach(function(cl) { $("s-classe").appendChild(new Option(cl, cl)); });
+          $("msg-acces").classList.add("cache");
+          $("zone-choix").classList.remove("cache");
+        });
+      }).catch(function(e) { msg("msg-acces", "Erreur : " + e.message, false); });
+    });
+  </script>
+
+</body>
+</html>
