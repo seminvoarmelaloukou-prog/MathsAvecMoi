@@ -1,3 +1,15 @@
+// Logo dans la barre du haut (chargé depuis logo-nav.js, dans le même dossier)
+(function () {
+  try {
+    var s = document.currentScript;
+    if (!s || !s.src || document.getElementById("cf-logo-script")) return;
+    var l = document.createElement("script");
+    l.id = "cf-logo-script";
+    l.src = s.src.replace(/[^\/]*$/, "") + "logo-nav.js";
+    document.head.appendChild(l);
+  } catch (e) {}
+})();
+
 // auth-guard.js
 // Vérifie que l'utilisateur est connecté, sinon redirige vers connexion.html
 // Déconnecte automatiquement après 5 heures d'inactivité
