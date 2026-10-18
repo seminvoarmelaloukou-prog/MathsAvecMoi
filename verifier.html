@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vérifier un bulletin - Campus Flex</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="logo-nav.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f7ff; color: #333; }
+    nav { background: #2c3e8c; color: #fff; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    nav h1 { font-size: 18px; }
+    nav a { color: #fff; text-decoration: none; font-size: 14px; }
+    main { max-width: 560px; margin: 0 auto; padding: 16px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); padding: 18px; margin-bottom: 16px; }
+    .card h2 { color: #2c3e8c; font-size: 18px; margin-bottom: 8px; }
+    p.aide { color: #666; font-size: 14px; margin-bottom: 10px; }
+    input { width: 100%; padding: 11px; border: 1px solid #cfd8f0; border-radius: 8px; font-size: 16px; letter-spacing: 1px; text-transform: uppercase; }
+    button { width: 100%; margin-top: 10px; padding: 12px; border: none; border-radius: 8px; background: #2c3e8c; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; }
+    .ok { border-left: 6px solid #27ae60; }
+    .ko { border-left: 6px solid #c0392b; }
+    .ok h2 { color: #1e8449; } .ko h2 { color: #c0392b; }
+    dl { display: grid; grid-template-columns: 120px 1fr; gap: 6px 10px; margin-top: 10px; font-size: 14px; }
+    dt { color: #666; } dd { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Vérification d'un bulletin</h1>
+    <a href="index.html">Accueil</a>
+  </nav>
+  <main>
+    <div class="card">
+      <h2>Code de vérification</h2>
+      <p class="aide">Scanne le QR code du bulletin, ou saisis ici le code imprimé sous le QR code.</p>
+      <input id="code" placeholder="XXXX-XXXX-XXXX" maxlength="20" autocomplete="off">
+      <button id="btn">Vérifier</button>
+    </div>
+    <div id="resultat"></div>
+  </main>
+
+  <script>
+    const $ = function (id) { return document.getElementById(id); };
+    const esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+
+    function afficher(html, ok) { $("resultat").innerHTML = '<div class="card ' + (ok ? "ok" : "ko") + '">' + html + "</div>"; }
+
+    function verifier(brut) {
+      const code = String(brut || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (code.length < 8) { afficher("<h2>Code incomplet</h2><p class='aide'>Saisis le code en entier.</p>", false); return; }
+      afficher("<p class='aide'>Vérification en cours...</p>", true);
+      db.ref("verifications/" + code).once("value").then(function (snap) {
+        const v = snap.val();
+        if (!v) { afficher("<h2>Bulletin non reconnu</h2><p class='aide'>Aucun bulletin ne correspond à ce code. Ce document n'est peut-être pas authentique.</p>", false); return; }
+        const date = v.date ? new Date(v.date).toLocaleDateString("fr-FR") : "";
+        afficher("<h2>Bulletin authentique</h2><p class='aide'>Ce bulletin a bien été délivré par " + esc(v.etablissement || "Campus Flex") + ".</p>" +
+          "<dl><dt>Élève</dt><dd>" + esc((v.nom || "") + " " + (v.prenom || "")) + "</dd>" +
+          "<dt>Classe</dt><dd>" + esc(v.classe) + "</dd>" +
+          "<dt>Semestre</dt><dd>" + esc(String(v.semestre || "").charAt(1)) + " - " + esc(v.annee) + "</dd>" +
+          (typeof v.moySemestre === "number" ? "<dt>Moyenne</dt><dd>" + v.moySemestre.toFixed(2) + " / 20</dd>" : "") +
+          (v.rang ? "<dt>Rang</dt><dd>" + esc(v.rang) + (v.effectif ? " sur " + esc(v.effectif) : "") + "</dd>" : "") +
+          (date ? "<dt>Délivré le</dt><dd>" + date + "</dd>" : "") + "</dl>", true);
+      }).catch(function () { afficher("<h2>Vérification impossible</h2><p class='aide'>Réessaie dans un instant.</p>", false); });
+    }
+
+    $("btn").addEventListener("click", function () { verifier($("code").value); });
+    $("code").addEventListener("keydown", function (e) { if (e.key === "Enter") verifier($("code").value); });
+    const param = new URLSearchParams(window.location.search).get("c");
+    if (param) { $("code").value = param; verifier(param); }
+  </script>
+</body>
+</html>

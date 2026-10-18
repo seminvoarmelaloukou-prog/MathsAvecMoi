@@ -177,6 +177,7 @@
     button.secondaire { background: var(--amber); }
     .cache { display: none !important; }
   </style>
+<script src="bulletin-lib.js"></script>
 </head>
 
 <body>
@@ -220,6 +221,7 @@
       <div class="actions">
         <button id="btn-enregistrer">Enregistrer les notes</button>
         <button id="btn-qcm" class="secondaire cache">Importer les notes QCM</button>
+        <button id="btn-excel" class="secondaire">Exporter en Excel</button>
       </div>
       <p id="msg-table" class="message"></p>
     </section>
@@ -460,6 +462,29 @@ function colonnes() { return CTX && CTX.matiere === "Conduite" ? COLONNES_CONDUI
     $("btn-afficher").addEventListener("click", charger);
     $("btn-enregistrer").addEventListener("click", enregistrer);
     $("btn-qcm").addEventListener("click", importerQCM);
+    $("btn-excel").addEventListener("click", function() {
+      if (!CTX) return;
+      const cols = colonnes();
+      const entetes = ["Élève"].concat(cols.map(function(c) { return c[1]; })).concat(cols.length > 1 ? ["Moy/20"] : []).concat(["Moy coef"]);
+      const lignes = Array.prototype.map.call($("corps").querySelectorAll("tr"), function(tr) {
+        const l = [tr.cells[0].textContent];
+        Array.prototype.forEach.call(tr.querySelectorAll("input"), function(inp) { const r = lire(inp.value); l.push(r.n !== undefined ? r.n : ""); });
+        ["moy", "mc"].forEach(function(role) {
+          const td = tr.querySelector('td[data-role="' + role + '"]');
+          if (td) { const v = parseFloat(td.textContent); l.push(isNaN(v) ? "" : v); }
+        });
+        return l;
+      });
+      const sub = (CTX.matiere === "Français" && COLLEGE.indexOf(CTX.classe) !== -1) ? " (" + (CTX.sub === "lecture" ? "Lecture" : "Communication écrite") + ")" : "";
+      msg("msg-table", "Préparation du fichier Excel...", null);
+      CF_BULLETIN.excelNotes({
+        titre: CTX.matiere + sub + " - " + CTX.classe + " - Semestre " + CTX.sem.charAt(1),
+        sousTitre: COEF === null ? "Coefficient non défini" : "Coefficient : " + COEF,
+        entetes: entetes, lignes: lignes,
+        fichier: "Notes_" + CTX.matiere.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "_") + "_" + CTX.classe.replace(/\s+/g, "") + "_S" + CTX.sem.charAt(1) + ".xlsx"
+      }).then(function() { msg("msg-table", "Fichier Excel téléchargé.", true); })
+        .catch(function(e) { msg("msg-table", "Erreur : " + e.message, false); });
+    });
     $("lien-deconnexion").addEventListener("click", function(e) {
       e.preventDefault();
       auth.signOut().then(function() { window.location.href = "index.html"; });

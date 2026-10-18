@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mon bulletin - Campus Flex</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth-guard.js"></script>
+  <script src="bulletin-lib.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f5f7ff; color: #333; }
+    nav { background: #2c3e8c; color: #fff; padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    nav h1 { font-size: 18px; }
+    nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 14px; }
+    nav a { color: #fff; text-decoration: none; font-size: 14px; }
+    main { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); padding: 16px; margin-bottom: 16px; }
+    .card h2 { color: #2c3e8c; font-size: 18px; margin-bottom: 6px; }
+    .resume { color: #555; font-size: 14px; margin-bottom: 10px; }
+    button { background: #2c3e8c; color: #fff; border: none; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 0 8px 8px 0; }
+    button.clair { background: #f39c12; }
+    button:disabled { opacity: .6; }
+    .message { color: #666; font-size: 14px; }
+    .message.error { color: #c0392b; }
+    .vue { margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Mon bulletin</h1>
+    <ul>
+      <li><a href="profil.html">Mon profil</a></li>
+      <li><a href="matieres.html">Matières</a></li>
+      <li><a href="index.html">Accueil</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <p id="msg" class="message">Chargement de tes bulletins...</p>
+    <div id="liste"></div>
+  </main>
+
+  <script>
+    const SEMS = ["s1", "s2"];
+    const $ = function (id) { return document.getElementById(id); };
+
+    function afficher(texte, erreur) {
+      const m = $("msg"); m.textContent = texte; m.className = "message" + (erreur ? " error" : "");
+    }
+
+    function carte(b, sem) {
+      const div = document.createElement("div"); div.className = "card";
+      const titre = document.createElement("h2"); titre.textContent = "Bulletin du semestre " + sem.charAt(1) + " - " + (b.annee || "");
+      const res = document.createElement("p"); res.className = "resume";
+      res.textContent = "Classe : " + b.classe + (typeof b.moySemestre === "number" ? " | Moyenne : " + b.moySemestre.toFixed(2) + "/20" : "") + (b.rang ? " | Rang : " + b.rang : "");
+      const vue = document.createElement("div"); vue.className = "vue"; vue.style.display = "none";
+
+      const bv = document.createElement("button"); bv.textContent = "Voir le bulletin";
+      bv.onclick = function () {
+        const ouvert = vue.style.display !== "none";
+        if (!ouvert) CF_BULLETIN.afficher(vue, b);
+        vue.style.display = ouvert ? "none" : "block";
+        bv.textContent = ouvert ? "Voir le bulletin" : "Masquer le bulletin";
+      };
+      const bp = document.createElement("button"); bp.className = "clair"; bp.textContent = "Télécharger en PDF";
+      bp.onclick = function () {
+        bp.disabled = true; bp.textContent = "Préparation...";
+        CF_BULLETIN.pdf(b).catch(function (e) { afficher("Erreur lors de la création du PDF : " + e.message, true); })
+          .then(function () { bp.disabled = false; bp.textContent = "Télécharger en PDF"; });
+      };
+      div.appendChild(titre); div.appendChild(res); div.appendChild(bv); div.appendChild(bp); div.appendChild(vue);
+      return div;
+    }
+
+    auth.onAuthStateChanged(function (user) {
+      if (!user) { window.location.href = "connexion.html"; return; }
+      Promise.all([db.ref("bulletins_config").once("value"), db.ref("eleves/" + user.uid).once("value")]).then(function (r) {
+        const cfg = r[0].val() || {}, eleve = r[1].val() || {}, classe = eleve.classe;
+        const ouverts = (cfg.ouverts && cfg.ouverts[classe]) || {};
+        const dispo = SEMS.filter(function (s) { return cfg.actif === true && ouverts[s] === true; });
+        if (!dispo.length) { afficher("Aucun bulletin n'est disponible pour le moment. Tu seras informé(e) dès sa publication."); return null; }
+        return Promise.all(dispo.map(function (s) {
+          return db.ref("bulletins/" + s + "/" + user.uid).once("value").then(function (snap) { return [s, snap.val()]; });
+        }));
+      }).then(function (liste) {
+        if (!liste) return;
+        const trouves = liste.filter(function (p) { return p[1]; });
+        if (!trouves.length) { afficher("Ton bulletin n'a pas encore été publié. Reviens bientôt."); return; }
+        $("msg").style.display = "none";
+        trouves.forEach(function (p) { $("liste").appendChild(carte(p[1], p[0])); });
+      }).catch(function (e) { afficher("Impossible de charger ton bulletin : " + e.message, true); });
+    });
+  </script>
+</body>
+</html>

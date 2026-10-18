@@ -179,6 +179,7 @@
     .bulletin td:first-child, .bulletin th:first-child { text-align: left; }
     .bilan { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 10px; font-weight: bold; }
   </style>
+<script src="bulletin-lib.js"></script>
 </head>
 
 <body>
@@ -218,6 +219,8 @@
       </div>
       <div style="margin-top: 12px;">
         <button id="btn-publier">Publier les bulletins de cette classe</button>
+        <button id="btn-excel" style="background: var(--amber);">Exporter en Excel</button>
+        <button id="btn-pdf-classe" style="background: var(--amber);">PDF de la classe</button>
       </div>
       <p id="msg-publier" class="message"></p>
       <div id="apercu"></div>
@@ -419,41 +422,62 @@
     function fmt(v) { return (typeof v === "number") ? v.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1") : ""; }
 
     function apercu(uid) {
-      const b = BULLETINS[uid], e = b.eleve;
-      const naiss = (e.dateNaissance ? e.dateNaissance.split("-").reverse().join("/") : "") + (e.lieuNaissance ? " à " + e.lieuNaissance : "");
-      let h = '<div class="bulletin">';
-      h += '<div class="entete">République du Bénin - Ministère des Enseignements Secondaire, Technique et de la Formation Professionnelle<br>' +
-           esc(b.etablissement) + (b.coordonnees ? " - " + esc(b.coordonnees) : "") + "</div>";
-      h += "<h4>BULLETIN DE NOTES</h4>";
-      h += '<div class="ident"><div>Matricule : <b>' + esc(e.matricule) + "</b></div><div>Année scolaire : <b>" + esc(b.annee) + "</b></div>" +
-           "<div>Nom : <b>" + esc(e.nom) + "</b></div><div>Classe : <b>" + esc(b.classe) + "</b> - Effectif : <b>" + b.effectif + "</b></div>" +
-           "<div>Prénoms : <b>" + esc(e.prenom) + "</b></div><div>Semestre : <b>" + b.semestre.charAt(1) + "</b></div>" +
-           "<div>Né(e) le : <b>" + esc(naiss) + "</b></div><div>Aptitude en EPS : <b>" + esc(e.aptitudeEps) + "</b> - Redoublant : <b>" + (e.redoublant === "oui" ? "Oui" : "Non") + "</b></div></div>";
-      h += '<div style="overflow-x:auto"><table><thead><tr><th>Disciplines</th><th>Coef</th><th>Moy. interro.</th><th>Devoir 1</th><th>Devoir 2</th><th>Moy/20</th><th>Moy coef</th><th>Rang</th><th>Appréciation</th></tr></thead><tbody>';
-      b.lignes.forEach(function(l) {
-        h += "<tr><td>" + esc(l.libelle) + "</td><td>" + l.coef + "</td><td>" + fmt(l.i) + "</td><td>" + fmt(l.d1) + "</td><td>" + fmt(l.d2) + "</td><td>" +
-             (l.moy !== undefined ? l.moy.toFixed(2) : "") + "</td><td>" + (l.moyCoef !== undefined ? l.moyCoef.toFixed(2) : "") + "</td><td>" + esc(l.rang) + "</td><td>" + esc(l.appreciation) + "</td></tr>";
+      const b = BULLETINS[uid];
+      CF_BULLETIN.afficher($("apercu"), b);
+      const p = document.createElement("p"); p.style.textAlign = "center"; p.style.marginTop = "10px";
+      const btn = document.createElement("button"); btn.textContent = "Télécharger ce bulletin en PDF";
+      btn.addEventListener("click", function() {
+        msg("msg-publier", "Préparation du PDF...", null);
+        CF_BULLETIN.pdf(b).then(function() { msg("msg-publier", "PDF téléchargé.", true); })
+          .catch(function(e) { msg("msg-publier", "Erreur PDF : " + e.message, false); });
       });
-      h += "</tbody></table></div>";
-      h += '<div class="bilan"><span>Moy. Semestre ' + b.semestre.charAt(1) + " : " + (b.moySemestre !== undefined ? b.moySemestre.toFixed(2) : "—") + "</span><span>Rang : " + esc(b.rang || "—") + "</span><span>Sanction : " + esc(b.distinction || "—") + "</span></div>";
-      h += '<p style="margin-top:8px"><b>Appréciation :</b> ' + esc(b.appreciation) + "</p>";
-      h += '<p style="text-align:right">Le Directeur : <b>' + esc(b.directeur) + "</b></p></div>";
-      $("apercu").innerHTML = h;
+      p.appendChild(btn); $("apercu").appendChild(p);
+    }
+
+    function exporter(type) {
+      if (!CTX || !ORDRE.length) return;
+      const liste = ORDRE.map(function(u) { return BULLETINS[u]; });
+      msg("msg-publier", "Préparation du fichier...", null);
+      const tache = type === "excel" ? CF_BULLETIN.excelClasse(liste, CTX.classe, CTX.sem) : CF_BULLETIN.pdfClasse(liste);
+      tache.then(function() { msg("msg-publier", "Fichier téléchargé.", true); })
+        .catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+    }
+
+    function genCode() {
+      const al = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", t = new Uint32Array(12);
+      crypto.getRandomValues(t);
+      return Array.prototype.map.call(t, function(x) { return al[x % al.length]; }).join("");
     }
 
     function publier() {
       if (!CTX || !ORDRE.length) return;
       if (!confirm("Publier les " + ORDRE.length + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.")) return;
-      const maj = {};
-      ORDRE.forEach(function(uid) { maj[uid] = JSON.parse(JSON.stringify(BULLETINS[uid])); });
       msg("msg-publier", "Publication en cours...", null);
-      db.ref("bulletins/" + CTX.sem).update(maj)
-        .then(function() { msg("msg-publier", "Bulletins publiés. Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true); })
-        .catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+      // on garde le code de vérification déjà attribué à un élève (le QR code imprimé reste valable)
+      Promise.all(ORDRE.map(function(uid) {
+        return db.ref("bulletins/" + CTX.sem + "/" + uid + "/codeVerif").once("value").then(function(s) { return s.val(); });
+      })).then(function(codes) {
+        const maj = {};
+        ORDRE.forEach(function(uid, i) {
+          const b = BULLETINS[uid], e = b.eleve;
+          b.codeVerif = codes[i] || genCode();
+          maj["bulletins/" + CTX.sem + "/" + uid] = JSON.parse(JSON.stringify(b));
+          maj["verifications/" + b.codeVerif] = {
+            nom: e.nom, prenom: e.prenom, classe: b.classe, semestre: b.semestre, annee: b.annee, etablissement: b.etablissement,
+            moySemestre: (typeof b.moySemestre === "number") ? b.moySemestre : null, rang: b.rang || null, effectif: b.effectif, date: Date.now()
+          };
+        });
+        return db.ref().update(maj);
+      }).then(function() {
+        msg("msg-publier", "Bulletins publiés, avec leurs QR codes. Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true);
+        if (ORDRE.length) apercu(ORDRE[0]);
+      }).catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
     }
 
     $("btn-calculer").addEventListener("click", calculer);
     $("btn-publier").addEventListener("click", publier);
+    $("btn-excel").addEventListener("click", function() { exporter("excel"); });
+    $("btn-pdf-classe").addEventListener("click", function() { exporter("pdf"); });
     $("lien-deconnexion").addEventListener("click", function(e) {
       e.preventDefault(); auth.signOut().then(function() { window.location.href = "index.html"; });
     });
