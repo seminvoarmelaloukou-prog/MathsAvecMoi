@@ -1,11 +1,30 @@
 // auth-guard.js
 // Vérifie que l'utilisateur est connecté, sinon redirige vers connexion.html
 // Déconnecte automatiquement après 5 heures d'inactivité
+// Enregistre la dernière connexion/activité dans connexions/{uid}
 
 const DUREE_SESSION_MS = 5 * 60 * 60 * 1000; // 5 heures
+const INTERVALLE_ENREGISTREMENT_MS = 10 * 60 * 1000; // 10 minutes
 
 function mettreAJourActivite() {
   localStorage.setItem("lastActivity", Date.now().toString());
+}
+
+// Enregistre la dernière connexion dans la base (au plus une fois toutes les 10 minutes)
+function enregistrerConnexion(user) {
+  try {
+    if (!firebase.database || !user) return;
+    const cle = "cf_derniere_ecriture_" + user.uid;
+    const derniere = parseInt(localStorage.getItem(cle) || "0", 10);
+    if (Date.now() - derniere < INTERVALLE_ENREGISTREMENT_MS) return;
+
+    firebase.database().ref("connexions/" + user.uid).update({
+      derniereConnexion: firebase.database.ServerValue.TIMESTAMP,
+      email: user.email || null
+    }).then(function() {
+      localStorage.setItem(cle, Date.now().toString());
+    }).catch(function() {});
+  } catch (e) {}
 }
 
 function verifierSession() {
@@ -67,11 +86,14 @@ window.addEventListener("load", function() {
 
     if (derniereConnexion && (Date.now() - derniereConnexion) < 60000) {
       mettreAJourActivite();
+      enregistrerConnexion(user);
       return;
     }
 
     // Connecté : on vérifie la durée d'inactivité (verifierSession met à jour l'horodatage si tout est bon)
-    verifierSession();
+    if (verifierSession()) {
+      enregistrerConnexion(user);
+    }
   });
 });
 

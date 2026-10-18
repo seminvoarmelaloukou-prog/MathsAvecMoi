@@ -90,7 +90,7 @@ td button{margin-right:4px}
           <button id="btn-norm" style="display:none;background:#8e44ad">🔧 Normaliser les classes</button>
         </div>
         <table>
-          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
           <tbody id="t-eleves"></tbody>
         </table>
       </div>
@@ -98,7 +98,7 @@ td button{margin-right:4px}
       <div id="tab-profs" class="cache">
         <div class="row"><button data-act="creer">+ Nouvel enseignant</button> <button class="mail" data-act="mail-groupe-profs">✉ E-mail à tous les enseignants actifs</button></div>
         <table>
-          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Statut</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
           <tbody id="t-profs"></tbody>
         </table>
       </div>
@@ -201,7 +201,7 @@ const canon=s=>_MAPCL[_cleCl(s)]||(s||"");
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const cles=o=>Object.keys(o||{});
-let eleves={},profs={},susp={},mode="",idModal="",listeElevesAffichee=[];
+let eleves={},profs={},susp={},connexions={},mode="",idModal="",listeElevesAffichee=[];
 
 // Second app Firebase : sert uniquement à créer des comptes sans déconnecter l'admin
 const authSec=firebase.initializeApp(firebaseConfig,"Secondaire").auth();
@@ -209,9 +209,25 @@ const authSec=firebase.initializeApp(firebaseConfig,"Secondaire").auth();
 function msg(t,ok){const m=$("msg");m.textContent=t;m.className="message "+(ok?"success":"error");}
 
 function charger(){
-  return Promise.all([db.ref("eleves").once("value"),db.ref("enseignants").once("value"),db.ref("suspensions").once("value")])
-  .then(r=>{eleves=r[0].val()||{};profs=r[1].val()||{};susp=r[2].val()||{};afficher();})
+  return Promise.all([db.ref("eleves").once("value"),db.ref("enseignants").once("value"),db.ref("suspensions").once("value"),db.ref("connexions").once("value").catch(function(){return {val:function(){return {};}};})])
+  .then(r=>{eleves=r[0].val()||{};profs=r[1].val()||{};susp=r[2].val()||{};connexions=r[3].val()||{};afficher();})
   .catch(e=>msg("Chargement impossible : "+e.message,false));
+}
+
+// Dernière connexion (lue dans connexions/{uid}, écrite par auth-guard.js)
+function derniereConn(uid){
+  const c=connexions[uid],t=c&&c.derniereConnexion;
+  if(!t)return '<span style="color:#999">Jamais</span>';
+  const ms=Date.now()-t,min=Math.floor(ms/60000),h=Math.floor(min/60),j=Math.floor(h/24);
+  let txt;
+  if(min<2)txt="à l'instant";
+  else if(min<60)txt="il y a "+min+" min";
+  else if(h<24)txt="il y a "+h+" h";
+  else if(j===1)txt="hier";
+  else txt="il y a "+j+" jours";
+  const titre=new Date(t).toLocaleString("fr-FR");
+  const couleur=j>=7?"#c0392b":"inherit";
+  return '<span title="'+titre+'" style="color:'+couleur+'">'+txt+'</span>';
 }
 
 function afficher(){
@@ -240,12 +256,13 @@ function tableEleves(){
     return `<tr><td>${esc(e.nom)}</td><td>${esc(e.prenom)}</td><td>${esc(e.email)}</td>
     <td><select data-act="classe" data-id="${e.uid}">${optClasses(e.classe)}</select></td>
     <td><span class="pill ${s?"rouge":"vert"}">${s?"Suspendu":"Actif"}</span></td>
+    <td>${derniereConn(e.uid)}</td>
     <td><button class="wa" data-act="wa-eleve" data-id="${e.uid}">WhatsApp</button>
     <button class="mail" data-act="mail-eleve" data-id="${e.uid}">E-mail</button>
     <button data-act="edit-eleve" data-id="${e.uid}">Modifier</button>
     <button class="warning" data-act="susp" data-id="${e.uid}">${s?"Réactiver":"Suspendre"}</button>
     <button class="danger" data-act="del-eleve" data-id="${e.uid}">Supprimer</button></td></tr>`;}).join("")
-    :'<tr><td colspan="6">Aucun élève trouvé.</td></tr>';
+    :'<tr><td colspan="7">Aucun élève trouvé.</td></tr>';
 }
 
 function tableProfs(l){
@@ -254,12 +271,13 @@ function tableProfs(l){
     return `<tr><td>${esc(p.nom)}</td><td>${esc(p.prenom)}</td><td>${esc(p.email)}</td>
     <td>${cles(p.matieres).map(esc).join(", ")||"—"}</td><td>${cles(p.classes).map(esc).join(", ")||"—"}</td>
     <td><span class="pill ${s[0]}">${s[1]}</span></td>
+    <td>${derniereConn(p.uid)}</td>
     <td><button class="wa" data-act="wa-prof" data-id="${p.uid}">WhatsApp</button>
     <button class="mail" data-act="mail-prof" data-id="${p.uid}">E-mail</button>
     <button data-act="edit-prof" data-id="${p.uid}">Modifier</button>
     <button class="warning" data-act="toggle-prof" data-id="${p.uid}">${p.statut==="actif"?"Suspendre":"Activer"}</button>
     <button class="danger" data-act="del-prof" data-id="${p.uid}">Supprimer</button></td></tr>`;}).join("")
-    :'<tr><td colspan="7">Aucun enseignant.</td></tr>';
+    :'<tr><td colspan="8">Aucun enseignant.</td></tr>';
 }
 
 function tableAttente(l){
