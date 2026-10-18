@@ -210,7 +210,7 @@
     <section class="card cache" id="card-resultat">
       <h2 id="titre-resultat"></h2>
       <div id="alertes"></div>
-      <p class="message">Touche un élève pour voir son bulletin.</p>
+      <p class="message">Touche un élève pour voir son bulletin, le télécharger ou le publier seul.</p>
       <div style="overflow-x: auto; max-width: 100%;">
         <table>
           <thead><tr><th>Rang</th><th>Élève</th><th>Moyenne</th><th>Distinction</th></tr></thead>
@@ -431,7 +431,10 @@
         CF_BULLETIN.pdf(b).then(function() { msg("msg-publier", "PDF téléchargé.", true); })
           .catch(function(e) { msg("msg-publier", "Erreur PDF : " + e.message, false); });
       });
-      p.appendChild(btn); $("apercu").appendChild(p);
+      const btnPub = document.createElement("button"); btnPub.textContent = "Publier ce bulletin seulement";
+      btnPub.style.marginLeft = "8px"; btnPub.style.background = "var(--amber)";
+      btnPub.addEventListener("click", function() { publier([uid]); });
+      p.appendChild(btn); p.appendChild(btnPub); $("apercu").appendChild(p);
     }
 
     function exporter(type) {
@@ -449,16 +452,23 @@
       return Array.prototype.map.call(t, function(x) { return al[x % al.length]; }).join("");
     }
 
-    function publier() {
-      if (!CTX || !ORDRE.length) return;
-      if (!confirm("Publier les " + ORDRE.length + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.")) return;
+    // Sans argument : publie toute la classe. Avec une liste d'identifiants : publie seulement ces élèves.
+    function publier(uids) {
+      uids = Array.isArray(uids) ? uids : ORDRE;
+      if (!CTX || !uids.length) return;
+      const un = uids.length === 1;
+      const nomUn = un ? ((BULLETINS[uids[0]].eleve.nom || "") + " " + (BULLETINS[uids[0]].eleve.prenom || "")).trim() : "";
+      const question = un
+        ? "Publier uniquement le bulletin de " + nomUn + " (semestre " + CTX.sem.charAt(1) + ") ? S'il est déjà publié, il sera remplacé."
+        : "Publier les " + uids.length + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.";
+      if (!confirm(question)) return;
       msg("msg-publier", "Publication en cours...", null);
       // on garde le code de vérification déjà attribué à un élève (le QR code imprimé reste valable)
-      Promise.all(ORDRE.map(function(uid) {
+      Promise.all(uids.map(function(uid) {
         return db.ref("bulletins/" + CTX.sem + "/" + uid + "/codeVerif").once("value").then(function(s) { return s.val(); });
       })).then(function(codes) {
         const maj = {};
-        ORDRE.forEach(function(uid, i) {
+        uids.forEach(function(uid, i) {
           const b = BULLETINS[uid], e = b.eleve;
           b.codeVerif = codes[i] || genCode();
           maj["bulletins/" + CTX.sem + "/" + uid] = JSON.parse(JSON.stringify(b));
@@ -469,13 +479,18 @@
         });
         return db.ref().update(maj);
       }).then(function() {
-        msg("msg-publier", "Bulletins publiés, avec leurs QR codes. Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true);
-        if (ORDRE.length) apercu(ORDRE[0]);
-      }).catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+        msg("msg-publier", (un ? "Bulletin de " + nomUn + " publié, avec son QR code." : "Bulletins publiés, avec leurs QR codes.") + " Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true);
+        apercu(un ? uids[0] : ORDRE[0]);
+      }).catch(function(e) {
+        const refus = /permission/i.test(e.message || "");
+        msg("msg-publier", refus
+          ? "Publication refusée par Firebase : aucun bulletin n'a été enregistré. Vérifie que les règles « bulletins » et « verifications » sont bien publiées dans Firebase."
+          : "Erreur : " + e.message, false);
+      });
     }
 
     $("btn-calculer").addEventListener("click", calculer);
-    $("btn-publier").addEventListener("click", publier);
+    $("btn-publier").addEventListener("click", function() { publier(); });
     $("btn-excel").addEventListener("click", function() { exporter("excel"); });
     $("btn-pdf-classe").addEventListener("click", function() { exporter("pdf"); });
     $("lien-deconnexion").addEventListener("click", function(e) {
