@@ -253,7 +253,7 @@
     const esc = function(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
     const arrondi = function(x) { return Math.round(x * 100) / 100; };
-    let CONFIG = {}, BULLETINS = {}, ORDRE = [], CTX = null;
+    let CONFIG = {}, BULLETINS = {}, ORDRE = [], CTX = null, PUBLIES = {};
 
     function msg(id, texte, ok) {
       const el = $(id); el.textContent = texte;
@@ -347,7 +347,7 @@
           .map(function(e) { return { uid: e.uid, v: moySem[e.uid] }; }));
 
         // Bulletins
-        BULLETINS = {};
+        BULLETINS = {}; PUBLIES = {};
         eleves.forEach(function(e) {
           const m = moySem[e.uid];
           let distinction = "";
@@ -431,10 +431,12 @@
         CF_BULLETIN.pdf(b).then(function() { msg("msg-publier", "PDF téléchargé.", true); })
           .catch(function(e) { msg("msg-publier", "Erreur PDF : " + e.message, false); });
       });
-      const btnPub = document.createElement("button"); btnPub.textContent = "Publier ce bulletin seulement";
+      const btnPub = document.createElement("button"); btnPub.textContent = PUBLIES[uid] ? "Republier ce bulletin" : "Publier ce bulletin seulement";
       btnPub.style.marginLeft = "8px"; btnPub.style.background = "var(--amber)";
       btnPub.addEventListener("click", function() { publier([uid]); });
-      p.appendChild(btn); p.appendChild(btnPub); $("apercu").appendChild(p);
+      p.appendChild(btn); p.appendChild(btnPub);
+      if (PUBLIES[uid]) { const ok = document.createElement("div"); ok.textContent = "✓ Publié"; ok.style.cssText = "color:#1e8449;font-weight:bold;margin-top:8px"; p.appendChild(ok); }
+      $("apercu").appendChild(p);
     }
 
     function exporter(type) {
@@ -461,7 +463,7 @@
       const question = un
         ? "Publier uniquement le bulletin de " + nomUn + " (semestre " + CTX.sem.charAt(1) + ") ? S'il est déjà publié, il sera remplacé."
         : "Publier les " + uids.length + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.";
-      if (!confirm(question)) return;
+      if (!un && !confirm(question)) return;
       msg("msg-publier", "Publication en cours...", null);
       // on garde le code de vérification déjà attribué à un élève (le QR code imprimé reste valable)
       Promise.all(uids.map(function(uid) {
@@ -480,6 +482,7 @@
         return db.ref().update(maj);
       }).then(function() {
         msg("msg-publier", (un ? "Bulletin de " + nomUn + " publié, avec son QR code." : "Bulletins publiés, avec leurs QR codes.") + " Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true);
+        uids.forEach(function(u) { PUBLIES[u] = true; });
         apercu(un ? uids[0] : ORDRE[0]);
       }).catch(function(e) {
         const refus = /permission/i.test(e.message || "");
