@@ -24,7 +24,19 @@
     try {
       if (document.getElementById("cf-logo")) return;
       var nav = document.querySelector("nav") || document.querySelector("header");
-      if (!nav) return;
+      if (!nav) {
+        // Page sans barre du haut (ex. formulaire dans une carte) : logo en couleurs au-dessus du titre
+        var h = document.querySelector("h1");
+        if (!h) return;
+        var st = document.createElement("style");
+        st.textContent = "#cf-logo{display:block;margin:0 0 14px}#cf-logo img{height:38px;width:auto;display:block}";
+        document.head.appendChild(st);
+        var lien = document.createElement("a");
+        lien.id = "cf-logo"; lien.href = base + "index.html"; lien.setAttribute("aria-label", "Campus Flex - Accueil");
+        lien.innerHTML = '<img src="' + base + 'logo-campus-flex.svg" alt="Campus Flex">';
+        h.parentNode.insertBefore(lien, h);
+        return;
+      }
 
       var style = document.createElement("style");
       style.textContent =
@@ -43,7 +55,9 @@
       if (titre) {
         titre.style.display = "flex";
         titre.style.alignItems = "center";
-        titre.insertBefore(a, titre.firstChild);
+        var texte = (titre.textContent || "").replace(/[^A-Za-zÀ-ÿ ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+        if (texte === "campus flex") { titre.textContent = ""; a.style.marginRight = "0"; titre.appendChild(a); }
+        else titre.insertBefore(a, titre.firstChild);
       } else {
         nav.insertBefore(a, nav.firstChild);
       }
