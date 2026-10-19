@@ -283,14 +283,19 @@
     }
     const LIBELLES = ["Faible", "Passable", "Assez bien", "Bien", "Très bien"];
 
+    // Relit toujours les réglages (semestres, seuils, coordonnées) avant de calculer
     function calculer() {
+      return db.ref("bulletins_config").once("value").then(function(c) { CONFIG = c.val() || {}; return calculerAvecConfig(); });
+    }
+
+    function calculerAvecConfig() {
       const classe = $("s-classe").value, sem = $("s-sem").value;
       const college = ["6e", "5e", "4e", "3e"].indexOf(classe) !== -1;
       const se = Object.assign({}, SEUILS_DEFAUT, CONFIG.seuils || {});
       msg("msg-publier", "", null);
       $("apercu").innerHTML = "";
 
-      Promise.all([
+      return Promise.all([
         db.ref("eleves").orderByChild("classe").equalTo(classe).once("value"),
         db.ref("coefficients/" + classe).once("value"),
         db.ref("notes/" + classe + "/" + sem).once("value")
@@ -383,7 +388,7 @@
 
         CTX = { classe: classe, sem: sem };
         afficherResultat(eleves, disc, notes, coefs);
-      }).catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+      });
     }
 
     function afficherResultat(eleves, disc, notes, coefs) {
@@ -455,18 +460,31 @@
     }
 
     // Sans argument : publie toute la classe. Avec une liste d'identifiants : publie seulement ces élèves.
+    // Les notes et les réglages sont toujours relus et recalculés juste avant la publication.
     function publier(uids) {
-      uids = Array.isArray(uids) ? uids : ORDRE;
-      if (!CTX || !uids.length) return;
-      const un = uids.length === 1;
-      const nomUn = un ? ((BULLETINS[uids[0]].eleve.nom || "") + " " + (BULLETINS[uids[0]].eleve.prenom || "")).trim() : "";
-      const question = un
-        ? "Publier uniquement le bulletin de " + nomUn + " (semestre " + CTX.sem.charAt(1) + ") ? S'il est déjà publié, il sera remplacé."
-        : "Publier les " + uids.length + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.";
-      if (!un && !confirm(question)) return;
-      msg("msg-publier", "Publication en cours...", null);
+      const tous = !Array.isArray(uids);
+      if (!CTX || (tous ? !ORDRE.length : !uids.length)) return;
+      const un = !tous && uids.length === 1;
+      const nomUn = un && BULLETINS[uids[0]] ? ((BULLETINS[uids[0]].eleve.nom || "") + " " + (BULLETINS[uids[0]].eleve.prenom || "")).trim() : "";
+      if (!un && !confirm("Publier les " + (tous ? ORDRE.length : uids.length) + " bulletins de " + CTX.classe + " (semestre " + CTX.sem.charAt(1) + ") ? Les bulletins déjà publiés pour cette classe seront remplacés.")) return;
+      $("s-classe").value = CTX.classe; $("s-sem").value = CTX.sem;
+      msg("msg-publier", "Actualisation des notes et des réglages...", null);
+      calculer().then(function() {
+        const liste = tous ? ORDRE : uids.filter(function(u) { return BULLETINS[u]; });
+        if (!liste.length) throw new Error("élève introuvable dans cette classe");
+        msg("msg-publier", "Publication en cours...", null);
+        return ecrirePublication(liste, un, nomUn);
+      }).catch(function(e) {
+        const refus = /permission/i.test(e.message || "");
+        msg("msg-publier", refus
+          ? "Publication refusée par Firebase : aucun bulletin n'a été enregistré. Vérifie que les règles « bulletins » et « verifications » sont bien publiées dans Firebase."
+          : "Erreur : " + e.message, false);
+      });
+    }
+
+    function ecrirePublication(uids, un, nomUn) {
       // on garde le code de vérification déjà attribué à un élève (le QR code imprimé reste valable)
-      Promise.all(uids.map(function(uid) {
+      return Promise.all(uids.map(function(uid) {
         return db.ref("bulletins/" + CTX.sem + "/" + uid + "/codeVerif").once("value").then(function(s) { return s.val(); });
       })).then(function(codes) {
         const maj = {};
@@ -481,18 +499,15 @@
         });
         return db.ref().update(maj);
       }).then(function() {
-        msg("msg-publier", (un ? "Bulletin de " + nomUn + " publié, avec son QR code." : "Bulletins publiés, avec leurs QR codes.") + " Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true);
+        msg("msg-publier", (un ? "Bulletin de " + nomUn + " publié, avec son QR code." : "Bulletins publiés, avec leurs QR codes.") + " Les notes et réglages les plus récents ont été utilisés. Pense à activer la classe dans « Réglages bulletins » pour que les élèves puissent les télécharger.", true);
         uids.forEach(function(u) { PUBLIES[u] = true; });
         apercu(un ? uids[0] : ORDRE[0]);
-      }).catch(function(e) {
-        const refus = /permission/i.test(e.message || "");
-        msg("msg-publier", refus
-          ? "Publication refusée par Firebase : aucun bulletin n'a été enregistré. Vérifie que les règles « bulletins » et « verifications » sont bien publiées dans Firebase."
-          : "Erreur : " + e.message, false);
       });
     }
 
-    $("btn-calculer").addEventListener("click", calculer);
+    $("btn-calculer").addEventListener("click", function() {
+      calculer().catch(function(e) { msg("msg-publier", "Erreur : " + e.message, false); });
+    });
     $("btn-publier").addEventListener("click", function() { publier(); });
     $("btn-excel").addEventListener("click", function() { exporter("excel"); });
     $("btn-pdf-classe").addEventListener("click", function() { exporter("pdf"); });
