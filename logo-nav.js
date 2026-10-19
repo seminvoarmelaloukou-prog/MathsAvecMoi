@@ -64,6 +64,15 @@
     } catch (e) {}
   }
 
+  function etat() {
+    try {
+      if (document.getElementById("cf-etat-script")) return;
+      var e = document.createElement("script"); e.id = "cf-etat-script"; e.src = base + "etat-page.js";
+      document.head.appendChild(e);
+    } catch (x) {}
+  }
+
+  etat();
   favicon();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", logo);
   else logo();

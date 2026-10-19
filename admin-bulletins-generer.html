@@ -202,7 +202,7 @@
           <div><label for="s-classe">Classe</label><select id="s-classe"></select></div>
           <div><label for="s-sem">Semestre</label>
             <select id="s-sem"><option value="s1">Semestre 1</option><option value="s2">Semestre 2</option></select></div>
-          <button id="btn-calculer">Calculer</button>
+          <button id="btn-calculer" data-restaurer>Calculer</button>
         </div>
       </div>
     </section>
@@ -254,6 +254,7 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
     const arrondi = function(x) { return Math.round(x * 100) / 100; };
     let CONFIG = {}, BULLETINS = {}, ORDRE = [], CTX = null, PUBLIES = {};
+    const recharge = ((performance.getEntriesByType("navigation")[0] || {}).type === "reload");
 
     function msg(id, texte, ok) {
       const el = $(id); el.textContent = texte;
@@ -421,13 +422,14 @@
         tr.addEventListener("click", function() { apercu(uid); $("apercu").scrollIntoView({ behavior: "smooth" }); });
         corps.appendChild(tr);
       });
-      if (ORDRE.length) apercu(ORDRE[0]);
+      if (ORDRE.length) { const memo = recharge ? sessionStorage.getItem("cf_apercu_uid") : null; apercu(ORDRE.indexOf(memo) !== -1 ? memo : ORDRE[0]); }
     }
 
     function fmt(v) { return (typeof v === "number") ? v.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1") : ""; }
 
     function apercu(uid) {
       const b = BULLETINS[uid];
+      try { sessionStorage.setItem("cf_apercu_uid", uid); } catch (e) {}
       CF_BULLETIN.afficher($("apercu"), b);
       const p = document.createElement("p"); p.style.textAlign = "center"; p.style.marginTop = "10px";
       const btn = document.createElement("button"); btn.textContent = "Télécharger ce bulletin en PDF";

@@ -48,6 +48,7 @@
 
   <script>
     const SEMS = ["s1", "s2"];
+    const recharge = ((performance.getEntriesByType("navigation")[0] || {}).type === "reload");
     const $ = function (id) { return document.getElementById(id); };
 
     function afficher(texte, erreur) {
@@ -67,6 +68,7 @@
         if (!ouvert) CF_BULLETIN.afficher(vue, b);
         vue.style.display = ouvert ? "none" : "block";
         bv.textContent = ouvert ? "Voir le bulletin" : "Masquer le bulletin";
+        try { sessionStorage.setItem("cf_bulletin_ouvert_" + sem, ouvert ? "" : "1"); } catch (e) {}
       };
       const bp = document.createElement("button"); bp.className = "clair"; bp.textContent = "Télécharger en PDF";
       bp.onclick = function () {
@@ -75,6 +77,8 @@
           .then(function () { bp.disabled = false; bp.textContent = "Télécharger en PDF"; });
       };
       div.appendChild(titre); div.appendChild(res); div.appendChild(bv); div.appendChild(bp); div.appendChild(vue);
+      if (!recharge) { try { sessionStorage.removeItem("cf_bulletin_ouvert_" + sem); } catch (e) {} }
+      if (recharge && sessionStorage.getItem("cf_bulletin_ouvert_" + sem) === "1") bv.onclick();
       return div;
     }
 
