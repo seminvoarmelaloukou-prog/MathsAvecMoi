@@ -98,7 +98,7 @@
     ensureStyle();
     var e = b.eleve || {}, t = totaux(b);
     var h = '<div class="cf-b"><div class="haut"><img src="' + base + 'logo-campus-flex.svg" alt="Campus Flex">' +
-      '<div class="coord">' + esc(b.etablissement) + "<br>" + esc(b.coordonnees) + "</div></div>" +
+      '<div class="coord"><b>' + esc(b.etablissement) + "</b><br>" + String(b.coordonnees || "").split(/\r?\n/).map(esc).join("<br>") + "</div></div>" +
       '<div class="min">République du Bénin - Ministère des Enseignements Secondaire, Technique et de la Formation Professionnelle</div>' +
       '<div class="titre">BULLETIN DE NOTES</div>' +
       '<div class="ident"><div>Matricule : <b>' + esc(e.matricule) + "</b></div><div>Année scolaire : <b>" + esc(b.annee) + "</b></div>" +
@@ -134,8 +134,9 @@
     var W = 210, M = 12, e = b.eleve || {}, t = totaux(b), IND = INDIGO_RGB;
     if (lg) { var hl = 11; doc.addImage(lg.data, "PNG", M, 9, hl * lg.w / lg.h, hl); }
     doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(90);
-    doc.text(String(b.etablissement || ""), W - M, 12, { align: "right" });
-    doc.text(String(b.coordonnees || ""), W - M, 16, { align: "right" });
+    doc.setFont("helvetica", "bold"); doc.text(String(b.etablissement || ""), W - M, 11, { align: "right" });
+    doc.setFont("helvetica", "normal");
+    String(b.coordonnees || "").split(/\r?\n/).filter(Boolean).slice(0, 4).forEach(function (l, i) { doc.text(l, W - M, 14.8 + i * 3.5, { align: "right" }); });
     doc.setFont("helvetica", "italic");
     doc.text("République du Bénin - Ministère des Enseignements Secondaire, Technique et de la Formation Professionnelle", W / 2, 26, { align: "center" });
     doc.setFillColor(IND[0], IND[1], IND[2]); doc.rect(M, 29, W - 2 * M, 8, "F");
@@ -259,8 +260,10 @@
     var pet = { font: { italic: true, size: 9, color: { argb: "FF555555" } }, align: { horizontal: "right", vertical: "middle" } };
     put(ws, 1, 4, 9, "République du Bénin", pet);
     put(ws, 2, 3, 9, "Ministère des Enseignements Secondaire, Technique et de la Formation Professionnelle", pet);
-    put(ws, 3, 3, 9, (b.etablissement || "") + (b.coordonnees ? " - " + b.coordonnees : ""), pet);
-    [1, 2, 3].forEach(function (r) { ws.getRow(r).height = 17; });
+    put(ws, 3, 3, 9, (b.etablissement || "") + "\n" + String(b.coordonnees || "").split(/\r?\n/).filter(Boolean).join("  |  "),
+      { font: pet.font, align: { horizontal: "right", vertical: "middle", wrapText: true } });
+    [1, 2].forEach(function (r) { ws.getRow(r).height = 17; });
+    ws.getRow(3).height = 34;
     put(ws, 4, 1, 9, "BULLETIN DE NOTES", { font: { bold: true, size: 14, color: BLANC }, fill: INDIGO_ARGB, align: { horizontal: "center", vertical: "middle" } });
     ws.getRow(4).height = 24;
 

@@ -358,7 +358,7 @@
           }
           BULLETINS[e.uid] = {
             classe: classe, semestre: sem, annee: CONFIG.annee || "", etablissement: CONFIG.etablissement || "Campus Flex",
-            coordonnees: CONFIG.coordonnees || "", directeur: CONFIG.directeur || "", effectif: eleves.length,
+            coordonnees: (!CONFIG.coordonnees || CONFIG.coordonnees === "seminvoarmelaloukou-prog.github.io/MathsAvecMoi") ? "Email : seminvoarmelaloukou@gmail.com\nWhatsApp : +229 01 98 81 69 11\nCommune de Karimama, Bénin" : CONFIG.coordonnees, directeur: CONFIG.directeur || "", effectif: eleves.length,
             eleve: { matricule: e.matricule || "", nom: e.nom || "", prenom: e.prenom || "", dateNaissance: e.dateNaissance || "",
                      lieuNaissance: e.lieuNaissance || "", redoublant: e.redoublant || "non", aptitudeEps: e.aptitudeEps || "Apte" },
             lignes: disc.map(function(d) {

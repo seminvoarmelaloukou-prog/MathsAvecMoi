@@ -194,7 +194,7 @@
       <div class="grille">
         <div><label for="p-annee">Année scolaire</label><input type="text" id="p-annee" placeholder="2025-2026"></div>
         <div><label for="p-etab">Établissement</label><input type="text" id="p-etab"></div>
-        <div><label for="p-coord">Coordonnées (ou site web)</label><input type="text" id="p-coord"></div>
+        <div style="grid-column: 1 / -1;"><label for="p-coord">Coordonnées affichées sur le bulletin (une par ligne)</label><textarea id="p-coord" rows="3" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font:inherit;font-size:14px;"></textarea></div>
         <div><label for="p-dir">Nom du directeur</label><input type="text" id="p-dir"></div>
       </div>
 
@@ -252,7 +252,7 @@
     const PAR_DEFAUT = {
       annee: "2025-2026",
       etablissement: "Campus Flex",
-      coordonnees: "seminvoarmelaloukou-prog.github.io/MathsAvecMoi",
+      coordonnees: "Email : seminvoarmelaloukou@gmail.com\nWhatsApp : +229 01 98 81 69 11\nCommune de Karimama, Bénin",
       directeur: "",
       seuils: { passable: 10, assezbien: 12, bien: 14, tresbien: 16, th: 12, enc: 14, fel: 16 }
     };
@@ -280,7 +280,7 @@
 
       $("p-annee").value = cfg.annee || PAR_DEFAUT.annee;
       $("p-etab").value = cfg.etablissement || PAR_DEFAUT.etablissement;
-      $("p-coord").value = cfg.coordonnees || PAR_DEFAUT.coordonnees;
+      $("p-coord").value = (!cfg.coordonnees || cfg.coordonnees === "seminvoarmelaloukou-prog.github.io/MathsAvecMoi") ? PAR_DEFAUT.coordonnees : cfg.coordonnees;
       $("p-dir").value = cfg.directeur || PAR_DEFAUT.directeur;
       $("p-s1-debut").value = s1.debut || "";
       $("p-s1-fin").value = s1.fin || "";
