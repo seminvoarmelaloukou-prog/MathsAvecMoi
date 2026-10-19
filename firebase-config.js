@@ -32,3 +32,4 @@ const db = firebase.database();
 const storage = (typeof firebase.storage === "function")
   ? firebase.storage()
   : null;
+(function(){try{var s=document.currentScript;if(!s||!s.src||document.getElementById("cf-logo-script"))return;var l=document.createElement("script");l.id="cf-logo-script";l.src=s.src.replace(/[^\/]*$/,"")+"logo-nav.js";document.head.appendChild(l);}catch(e){}})();
