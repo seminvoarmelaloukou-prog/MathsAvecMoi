@@ -1150,6 +1150,7 @@
 
     function ouvrirApercu(cleAOuvrir) {
       if (!classeSelectionnee || !matiereSelectionnee) return;
+      try { sessionStorage.setItem("cf_apercu_cours", JSON.stringify({ classe: classeSelectionnee, matiere: matiereSelectionnee, cle: cleAOuvrir || null })); } catch (e) {}
 
       apercuTitre.textContent = "Aperçu élève — " + classeSelectionnee + " — " + matiereSelectionnee;
       apercuCorps.innerHTML = "<div class='loader' style='margin:20px auto;'></div>";
@@ -1172,12 +1173,32 @@
     }
 
     function fermerApercu() {
+      try { sessionStorage.removeItem("cf_apercu_cours"); } catch (e) {}
       modalApercu.style.display = "none";
       apercuCorps.innerHTML = "";
     }
 
     document.getElementById("btn-apercu").addEventListener("click", function() { ouvrirApercu(null); });
     document.getElementById("btn-fermer-apercu").addEventListener("click", fermerApercu);
+
+    // Après un rechargement : on rouvre l'aperçu qui était ouvert (même séquence) dès que la liste est chargée
+    (function restaurerApercu() {
+      const nav = (performance.getEntriesByType("navigation")[0] || {});
+      if (nav.type !== "reload" && nav.type !== "back_forward") { try { sessionStorage.removeItem("cf_apercu_cours"); } catch (e) {} return; }
+      let mem = null;
+      try { mem = JSON.parse(sessionStorage.getItem("cf_apercu_cours") || "null"); } catch (e) {}
+      if (!mem) return;
+      let essais = 0;
+      const t = setInterval(function() {
+        essais++;
+        if (classeSelectionnee === mem.classe && matiereSelectionnee === mem.matiere && cardListeCours.style.display !== "none") {
+          clearInterval(t);
+          ouvrirApercu(mem.cle);
+        } else if (essais > 120) {
+          clearInterval(t);
+        }
+      }, 250);
+    })();
     modalApercu.addEventListener("click", function(e) { if (e.target === modalApercu) fermerApercu(); });
     document.addEventListener("keydown", function(e) { if (e.key === "Escape" && modalApercu.style.display === "flex") fermerApercu(); });
 
