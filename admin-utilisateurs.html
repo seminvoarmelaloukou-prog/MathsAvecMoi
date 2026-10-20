@@ -52,6 +52,9 @@ td button{margin-right:4px}
 .fin{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
 .loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
 @keyframes t{to{transform:rotate(360deg)}}
+.menu-coches summary{cursor:pointer;color:#2c3e8c;font-weight:bold;font-size:13px;padding:4px 0}
+.menu-coches .liste-coches{display:grid;grid-template-columns:1fr;gap:3px;max-height:190px;overflow:auto;background:#f5f7ff;border:1px solid #dde3f5;border-radius:8px;padding:8px;margin-top:4px;min-width:150px}
+.droits{display:flex;flex-direction:column;gap:3px}
 </style>
 </head>
 <body>
@@ -97,8 +100,9 @@ td button{margin-right:4px}
 
       <div id="tab-profs" class="cache">
         <div class="row"><button data-act="creer">+ Nouvel enseignant</button> <button class="mail" data-act="mail-groupe-profs">✉ E-mail à tous les enseignants actifs</button></div>
+        <p class="message" style="margin:8px 0">Un enseignant peut toujours <b>ajouter</b> des cours, vidéos, devoirs et épreuves dans ses classes et matières. Coche « Modifier » ou « Supprimer » pour l'autoriser à changer ou effacer un contenu déjà publié. Les choix de classes et de matières s'enregistrent dès que tu coches.</p>
         <table>
-          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Droits sur les contenus</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
           <tbody id="t-profs"></tbody>
         </table>
       </div>
@@ -269,11 +273,20 @@ function tableEleves(){
     :'<tr><td colspan="7">Aucun élève trouvé.</td></tr>';
 }
 
+function menuCoches(type,uid,liste,actuel,titre){
+  const n=cles(actuel).filter(k=>actuel[k]===true).length;
+  return `<details class="menu-coches"><summary>${titre} (${n})</summary><div class="liste-coches">${liste.map(x=>`<label class="chk"><input type="checkbox" data-pc="${type}" data-val="${esc(x)}" data-id="${uid}"${actuel&&actuel[x]===true?" checked":""}> ${esc(x)}</label>`).join("")}</div></details>`;
+}
+function droitsProf(p){
+  const d=p.droits||{};
+  return `<label class="chk"><input type="checkbox" data-droit="modifier" data-id="${p.uid}"${d.modifier===true?" checked":""}> Modifier</label><label class="chk"><input type="checkbox" data-droit="supprimer" data-id="${p.uid}"${d.supprimer===true?" checked":""}> Supprimer</label>`;
+}
+
 function tableProfs(l){
   const pill={actif:["vert","Actif"],suspendu:["rouge","Suspendu"],refuse:["gris","Refusé"]};
   $("t-profs").innerHTML=l.length?l.map(p=>{const s=pill[p.statut]||["gris",p.statut||"?"];
     return `<tr><td>${esc(p.nom)}</td><td>${esc(p.prenom)}</td><td>${esc(p.email)}</td>
-    <td>${cles(p.matieres).map(esc).join(", ")||"—"}</td><td>${cles(p.classes).map(esc).join(", ")||"—"}</td>
+    <td>${menuCoches("matieres",p.uid,MATIERES,p.matieres,"Matières")}</td><td>${menuCoches("classes",p.uid,CLASSES_CONTENU,p.classes,"Classes")}</td><td><div class="droits">${droitsProf(p)}</div></td>
     <td><span class="pill ${s[0]}">${s[1]}</span></td>
     <td>${derniereConn(p.uid)}</td>
     <td><button class="wa" data-act="wa-prof" data-id="${p.uid}">WhatsApp</button>
@@ -281,7 +294,7 @@ function tableProfs(l){
     <button data-act="edit-prof" data-id="${p.uid}">Modifier</button>
     <button class="warning" data-act="toggle-prof" data-id="${p.uid}">${p.statut==="actif"?"Suspendre":"Activer"}</button>
     <button class="danger" data-act="del-prof" data-id="${p.uid}">Supprimer</button></td></tr>`;}).join("")
-    :'<tr><td colspan="8">Aucun enseignant.</td></tr>';
+    :'<tr><td colspan="9">Aucun enseignant.</td></tr>';
 }
 
 function tableAttente(l){
@@ -626,6 +639,27 @@ document.addEventListener("click",function(e){
   else if(a==="refuser"){if(confirm("Refuser cette demande ?"))agir(db.ref("enseignants/"+id+"/statut").set("refuse"),"Demande refusée.");}
   else if(a==="del-eleve"){if(confirm("Supprimer cet élève ? Ses données seront effacées (son compte de connexion reste dans Firebase Authentication)."))agir(db.ref("eleves/"+id).remove(),"Élève supprimé.");}
   else if(a==="del-prof"){if(confirm("Supprimer cet enseignant ? Il n'aura plus aucun accès."))agir(db.ref("enseignants/"+id).remove(),"Enseignant supprimé.");}
+});
+
+document.addEventListener("change",function(e){
+  const t=e.target;if(!t.dataset)return;
+  if(t.dataset.pc){
+    const uid=t.dataset.id,type=t.dataset.pc,val=t.dataset.val,titre=type==="classes"?"Classes":"Matières";
+    db.ref("enseignants/"+uid+"/"+type+"/"+val).set(t.checked?true:null).then(()=>{
+      const p=profs[uid]=profs[uid]||{};p[type]=p[type]||{};if(t.checked)p[type][val]=true;else delete p[type][val];
+      t.closest("details").querySelector("summary").textContent=titre+" ("+cles(p[type]).length+")";
+      msg(titre+" de l'enseignant mises à jour.",true);
+    }).catch(x=>{t.checked=!t.checked;msg("Erreur : "+x.message,false);});
+    return;
+  }
+  if(t.dataset.droit){
+    const uid=t.dataset.id,d=t.dataset.droit;
+    db.ref("enseignants/"+uid+"/droits/"+d).set(t.checked).then(()=>{
+      profs[uid].droits=profs[uid].droits||{};profs[uid].droits[d]=t.checked;
+      msg("Droit « "+(d==="modifier"?"Modifier":"Supprimer")+" » "+(t.checked?"activé":"retiré")+" pour cet enseignant.",true);
+    }).catch(x=>{t.checked=!t.checked;msg("Erreur : "+x.message,false);});
+    return;
+  }
 });
 
 document.addEventListener("change",function(e){

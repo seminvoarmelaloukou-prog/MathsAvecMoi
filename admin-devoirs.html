@@ -383,6 +383,8 @@
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
     let adminUid = null;
+    let droitModifier = false;
+    let droitSupprimer = false;
     let devoirsCharges = {};
     let devoirEnEdition = null;
 
@@ -425,6 +427,17 @@
           }
 
           const adminData = snap.val();
+          if (RoleAcces.role === "admin") {
+            droitModifier = true;
+            droitSupprimer = true;
+          } else {
+            db.ref("enseignants/" + adminUid + "/droits").once("value").then(function(d) {
+              const v = d.val() || {};
+              droitModifier = v.modifier === true;
+              droitSupprimer = v.supprimer === true;
+              messageAdminCheck.textContent += " | Modifier : " + (droitModifier ? "autorisé" : "verrouillé") + " - Supprimer : " + (droitSupprimer ? "autorisé" : "verrouillé") + (droitModifier && droitSupprimer ? "" : " (à débloquer par l'administrateur)");
+            }).catch(function() {});
+          }
           loaderAdmin.style.display = "none";
           messageAdminCheck.textContent = (RoleAcces.role === "admin" ? "Administrateur reconnu : " : "Enseignant reconnu : ") + (adminData.email || adminData.nom || adminUid);
           restreindreSelecteurs("select-matiere", "select-classe", ["card-config-devoirs"]);
@@ -547,6 +560,7 @@
         const btnModifier = document.createElement("button");
         btnModifier.className = "secondaire";
         btnModifier.textContent = "Modifier";
+        if (!droitModifier) { btnModifier.disabled = true; btnModifier.title = "Autorisation de l'administrateur requise"; btnModifier.style.opacity = "0.5"; }
         btnModifier.addEventListener("click", function() {
           ouvrirEditeurModification(id, dv);
         });
@@ -554,6 +568,7 @@
         const btnSupprimer = document.createElement("button");
         btnSupprimer.className = "danger";
         btnSupprimer.textContent = "Supprimer";
+        if (!droitSupprimer) { btnSupprimer.disabled = true; btnSupprimer.title = "Autorisation de l'administrateur requise"; btnSupprimer.style.opacity = "0.5"; }
         btnSupprimer.addEventListener("click", function() {
           if (confirm("Supprimer le devoir « " + (dv.titre || "sans titre") + " » ?")) {
             supprimerDevoir(id);
@@ -570,6 +585,7 @@
     }
 
     function supprimerDevoir(id) {
+      if (!droitSupprimer) { return; }
       const matiere = selectMatiere.value;
       const classe = selectClasse.value;
 

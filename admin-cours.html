@@ -696,6 +696,8 @@
     const btnAnnulerModif = document.getElementById("btn-annuler-modif");
 
     let adminUid = null;
+    let droitModifier = false;
+    let droitSupprimer = false;
     let classeSelectionnee = null;
     let matiereSelectionnee = null;
     let coursActuel = null;
@@ -729,6 +731,17 @@
           }
 
           const adminData = snap.val();
+          if (RoleAcces.role === "admin") {
+            droitModifier = true;
+            droitSupprimer = true;
+          } else {
+            db.ref("enseignants/" + adminUid + "/droits").once("value").then(function(d) {
+              const v = d.val() || {};
+              droitModifier = v.modifier === true;
+              droitSupprimer = v.supprimer === true;
+              messageAdminCheck.textContent += " | Modifier : " + (droitModifier ? "autorisé" : "verrouillé") + " - Supprimer : " + (droitSupprimer ? "autorisé" : "verrouillé") + (droitModifier && droitSupprimer ? "" : " (à débloquer par l'administrateur)");
+            }).catch(function() {});
+          }
           loaderAdmin.style.display = "none";
           messageAdminCheck.textContent = (RoleAcces.role === "admin" ? "Administrateur reconnu : " : "Enseignant reconnu : ") + (adminData.email || adminData.nom || adminUid);
           restreindreSelecteurs("select-matiere-cours", "select-classe-cours", []);
@@ -870,6 +883,7 @@
 
             const btnModifier = document.createElement("button");
             btnModifier.textContent = "Modifier";
+        if (!droitModifier) { btnModifier.disabled = true; btnModifier.title = "Autorisation de l'administrateur requise"; btnModifier.style.opacity = "0.5"; }
             btnModifier.classList.add("secondaire");
             btnModifier.addEventListener("click", function() {
               ouvrirModalModif(cle, c);
@@ -878,6 +892,7 @@
 
             const btnSupprimer = document.createElement("button");
             btnSupprimer.textContent = "Supprimer";
+        if (!droitSupprimer) { btnSupprimer.disabled = true; btnSupprimer.title = "Autorisation de l'administrateur requise"; btnSupprimer.style.opacity = "0.5"; }
             btnSupprimer.classList.add("danger");
             btnSupprimer.addEventListener("click", function() {
               if (confirm("Supprimer ce cours ?")) {
@@ -1009,6 +1024,7 @@
     });
 
     function supprimerCours(cle) {
+      if (!droitSupprimer) { return; }
       db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + cle).remove()
         .then(function() {
           messageAjouter.textContent = "Cours supprimé avec succès !";

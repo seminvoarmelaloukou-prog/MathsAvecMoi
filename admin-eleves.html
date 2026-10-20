@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-<script src="logo-nav.js"></script>
+<script src="suivi-visite.js"></script>
 
   <style>
     :root {
@@ -628,6 +628,14 @@
           <label for="modif-identifiant">Identifiant :</label>
           <input type="text" id="modif-identifiant" required>
         </div>
+
+        <div class="row">
+          <label for="modif-email-connexion">E-mail de connexion actuel :</label>
+          <input type="email" id="modif-email-connexion">
+        </div>
+        <p style="font-size:13px;color:#666;margin:4px 0 10px;">
+          C'est l'e-mail avec lequel l'élève se connecte aujourd'hui. Ne le change pas : si tu modifies l'e-mail ci-dessus, l'élève pourra se connecter avec le nouvel e-mail.
+        </p>
 
         <div class="row">
           <label for="modif-classe">Classe :</label>
@@ -1284,6 +1292,7 @@
                 nom: eleve.nom || "",
                 prenom: eleve.prenom || "",
                 email: eleve.email || "",
+                emailConnexion: eleve.emailConnexion || "",
                 identifiant: eleve.identifiant || "",
                 classe: eleve.classe || "",
                 pays: eleve.pays || "",
@@ -1530,6 +1539,9 @@
       obtenir("modif-email").value =
         eleve.email || "";
 
+      obtenir("modif-email-connexion").value =
+        eleve.emailConnexion || eleve.email || "";
+
       obtenir("modif-identifiant").value =
         eleve.identifiant || "";
 
@@ -1625,10 +1637,17 @@
           return;
         }
 
+        const ancienEmail = (mapEleves[eleveAModifier].email || "").trim();
+        let emailConnexion = obtenir("modif-email-connexion").value.trim() || ancienEmail || email;
+        const meme = function(x, y) { return String(x).toLowerCase() === String(y).toLowerCase(); };
+        // un e-mail de connexion identique au nouvel e-mail n'a pas besoin d'alias
+        const aliasNecessaire = !meme(emailConnexion, email);
+
         const donnees = {
           nom: nom,
           prenom: prenom,
           email: email,
+          emailConnexion: aliasNecessaire ? emailConnexion : null,
           identifiant: identifiant,
           classe: classe,
           pays: pays,
@@ -1641,10 +1660,21 @@
           dateModification: Date.now()
         };
 
-        db.ref(
-          "eleves/" + eleveAModifier
-        )
-          .update(donnees)
+        // clé sûre pour Firebase (pas de point, ni de caractère interdit)
+        const cleAlias = function(x) {
+          return encodeURIComponent(String(x).trim().toLowerCase()).replace(/\./g, "%2E");
+        };
+        const maj = {};
+        Object.keys(donnees).forEach(function(k) { maj["eleves/" + eleveAModifier + "/" + k] = donnees[k]; });
+        // alias : nouvel e-mail -> e-mail réellement utilisé pour la connexion
+        maj["alias_email/" + cleAlias(email)] = aliasNecessaire ? emailConnexion : null;
+        // ancien e-mail affiché : son alias n'a plus lieu d'être
+        if (ancienEmail && !meme(ancienEmail, email)) {
+          maj["alias_email/" + cleAlias(ancienEmail)] = null;
+        }
+
+        db.ref()
+          .update(maj)
           .then(function() {
             Object.assign(
               mapEleves[eleveAModifier],
@@ -1653,6 +1683,12 @@
 
             fermerModalModification();
             afficherTableau(mapEleves);
+
+            if (aliasNecessaire) {
+              alert(
+                "Enregistré. L'élève pourra se connecter avec le nouvel e-mail (" + email + ") et son mot de passe actuel."
+              );
+            }
           })
           .catch(function(erreur) {
             console.error(erreur);

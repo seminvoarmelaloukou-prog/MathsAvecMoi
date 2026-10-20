@@ -3,6 +3,7 @@
 //  - onglets (éléments dans un bloc class="tabs" ou role="tab"),
 //  - champs de recherche marqués data-garder,
 //  - boutons de chargement marqués data-restaurer (rejoués automatiquement),
+//  - sections repliables (séquences et SA des cours : éléments class="toggle-header" ouverts avec la classe "ouvert"),
 //  - position de défilement.
 // Ne s'active QUE lors d'un rechargement de la page, pas quand on arrive depuis un lien.
 (function () {
@@ -10,7 +11,7 @@
     var nav = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0]) || {};
     var recharge = nav.type === "reload" || nav.type === "back_forward";
     var cle = "cf_etat:" + location.pathname;
-    var etat = { sel: {}, tabs: {}, txt: {}, act: [], y: 0 };
+    var etat = { sel: {}, tabs: {}, txt: {}, act: [], repli: [], y: 0 };
     try { etat = Object.assign(etat, JSON.parse(sessionStorage.getItem(cle) || "{}")); } catch (e) {}
     function sauver() { try { sessionStorage.setItem(cle, JSON.stringify(etat)); } catch (e) {} }
 
@@ -18,6 +19,14 @@
     function boites() { return Array.prototype.slice.call(document.querySelectorAll(".tabs")); }
     function boutons(box) { return Array.prototype.slice.call(box.querySelectorAll("button, [role=tab]")); }
     function horsFormulaire(el) { return !el.closest("form, .modal, [id*=modal], [class*=modal]"); }
+
+    function entetes() { return Array.prototype.slice.call(document.querySelectorAll(".toggle-header")); }
+    function cleEntete(h, i) { return i + "|" + (h.textContent || "").trim().slice(0, 40); }
+    function memoriserRepli() {
+      var ouverts = [];
+      entetes().forEach(function (h, i) { if (h.classList.contains("ouvert")) ouverts.push(cleEntete(h, i)); });
+      etat.repli = ouverts; sauver();
+    }
 
     // ----- mémorisation (toujours) -----
     document.addEventListener("change", function (e) {
@@ -30,6 +39,7 @@
     });
     document.addEventListener("click", function (e) {
       var c = e.target && e.target.closest ? e.target : null; if (!c) return;
+      if (c.closest(".toggle-header")) memoriserRepli(); // le clic a déjà ouvert ou fermé la section
       var b = c.closest("[data-restaurer]");
       if (b && b.id && etat.act.indexOf(b.id) === -1) { etat.act.push(b.id); sauver(); }
       var tab = c.closest(TAB);
@@ -44,7 +54,7 @@
       t0 = setTimeout(function () { t0 = null; etat.y = window.scrollY || 0; sauver(); }, 300);
     }, { passive: true });
 
-    if (!recharge) { etat = { sel: {}, tabs: {}, txt: {}, act: [], y: 0 }; sauver(); return; } // arrivée normale : on repart de zéro
+    if (!recharge) { etat = { sel: {}, tabs: {}, txt: {}, act: [], repli: [], y: 0 }; sauver(); return; } // arrivée normale : on repart de zéro
 
     // ----- restauration (rechargement uniquement) -----
     function demarrer() {
@@ -72,6 +82,27 @@
         var el = document.getElementById(id);
         if (el && etat.txt[id]) { el.value = etat.txt[id]; el.dispatchEvent(new Event("input", { bubbles: true })); }
       });
+
+      // sections repliables (cours, vidéos) : on rouvre celles qui étaient ouvertes
+      if (etat.repli && etat.repli.length) {
+        var restantes = etat.repli.slice();
+        var rouvrir = function () {
+          restantes = restantes.filter(function (k) {
+            var i = parseInt(k, 10), h = entetes()[i];
+            if (!h || cleEntete(h, i) !== k) return true; // pas encore affichée : on réessaiera
+            var contenu = h.nextElementSibling;
+            h.classList.add("ouvert");
+            if (contenu && contenu.classList.contains("toggle-content")) contenu.classList.add("ouvert");
+            return false;
+          });
+          return !restantes.length;
+        };
+        if (!rouvrir()) {
+          var obs2 = new MutationObserver(function () { if (rouvrir()) obs2.disconnect(); });
+          obs2.observe(document.body, { childList: true, subtree: true });
+          setTimeout(function () { obs2.disconnect(); }, 15000);
+        }
+      }
 
       // tâches à rejouer : d'abord les onglets, puis les boutons de chargement
       var taches = [];

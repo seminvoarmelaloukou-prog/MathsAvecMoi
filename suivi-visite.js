@@ -1,3 +1,5 @@
+if (!window.__cfSuivi) {
+window.__cfSuivi = true;
 // Logo dans la barre du haut (chargé depuis logo-nav.js, dans le même dossier)
 (function () {
   try {
@@ -52,3 +54,4 @@
   window.addEventListener("keydown", activite);
   window.addEventListener("scroll", activite);
 })();
+}
