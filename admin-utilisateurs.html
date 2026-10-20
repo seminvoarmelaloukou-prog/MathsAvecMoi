@@ -99,7 +99,13 @@ td button{margin-right:4px}
       </div>
 
       <div id="tab-profs" class="cache">
-        <div class="row"><button data-act="creer">+ Nouvel enseignant</button> <button class="mail" data-act="mail-groupe-profs">✉ E-mail à tous les enseignants actifs</button></div>
+        <div class="row">
+          <select id="fp-classe"><option value="">Toutes les classes</option></select>
+          <select id="fp-matiere"><option value="">Toutes les matières</option></select>
+          <input type="text" id="fp-q" data-garder placeholder="Nom, prénom, e-mail, téléphone...">
+          <button class="mail" data-act="mail-groupe-profs">✉ E-mail à la liste affichée</button>
+        </div>
+        <div class="row"><button data-act="creer">+ Nouvel enseignant</button></div>
         <p class="message" style="margin:8px 0">Un enseignant peut toujours <b>ajouter</b> des cours, vidéos, devoirs et épreuves dans ses classes et matières. Coche « Modifier » ou « Supprimer » pour l'autoriser à changer ou effacer un contenu déjà publié. Les choix de classes et de matières s'enregistrent dès que tu coches.</p>
         <table>
           <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Droits sur les contenus</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
@@ -245,7 +251,7 @@ function afficher(){
     ["Enseignants actifs",lp.filter(p=>p.statut==="actif").length],["En attente",att.length]];
   $("stats").innerHTML=stats.map(x=>`<div class="stat-box"><h3>${x[0]}</h3><div class="valeur">${x[1]}</div></div>`).join("");
   $("badge").textContent=att.length?"("+att.length+")":"";
-  tableEleves();tableProfs(lp.filter(p=>p.statut!=="en_attente"));tableAttente(att);
+  tableEleves();tableProfs();tableAttente(att);
   majBoutonNormaliser();
 }
 
@@ -282,7 +288,14 @@ function droitsProf(p){
   return `<label class="chk"><input type="checkbox" data-droit="modifier" data-id="${p.uid}"${d.modifier===true?" checked":""}> Modifier</label><label class="chk"><input type="checkbox" data-droit="supprimer" data-id="${p.uid}"${d.supprimer===true?" checked":""}> Supprimer</label>`;
 }
 
-function tableProfs(l){
+let listeProfsAffichee=[];
+function tableProfs(){
+  const c=$("fp-classe").value,m=$("fp-matiere").value,q=$("fp-q").value.trim().toLowerCase();
+  const l=cles(profs).map(u=>Object.assign({uid:u},profs[u])).filter(p=>p.statut!=="en_attente")
+    .filter(p=>(!c||(p.classes&&p.classes[c]===true))&&(!m||(p.matieres&&p.matieres[m]===true))
+      &&(!q||[p.nom,p.prenom,p.email,p.telephoneInternational,p.telephone].join(" ").toLowerCase().includes(q)))
+    .sort((a,b)=>(a.nom||"").localeCompare(b.nom||""));
+  listeProfsAffichee=l;
   const pill={actif:["vert","Actif"],suspendu:["rouge","Suspendu"],refuse:["gris","Refusé"]};
   $("t-profs").innerHTML=l.length?l.map(p=>{const s=pill[p.statut]||["gris",p.statut||"?"];
     return `<tr><td>${esc(p.nom)}</td><td>${esc(p.prenom)}</td><td>${esc(p.email)}</td>
@@ -631,7 +644,7 @@ document.addEventListener("click",function(e){
   else if(a==="mail-eleve")ouvrirMail([eleves[id].email],nomComplet(eleves[id]),false,eleves[id].prenom);
   else if(a==="mail-prof")ouvrirMail([profs[id].email],nomComplet(profs[id]),false,profs[id].prenom);
   else if(a==="mail-groupe-eleves")ouvrirMail(listeElevesAffichee.map(x=>x.email),"élèves affichés",true);
-  else if(a==="mail-groupe-profs")ouvrirMail(cles(profs).filter(u=>profs[u].statut==="actif").map(u=>profs[u].email),"enseignants actifs",true);
+  else if(a==="mail-groupe-profs")ouvrirMail(listeProfsAffichee.map(x=>x.email),"enseignants affichés",true);
   else if(a==="edit-prof")ouvrirModal("modifier",id);
   else if(a==="valider")ouvrirModal("valider",id);
   else if(a==="susp")agir(susp[id]?db.ref("suspensions/"+id).remove():db.ref("suspensions/"+id).set(Date.now()),susp[id]?"Élève réactivé.":"Élève suspendu.");
@@ -690,6 +703,9 @@ $("btn-norm").addEventListener("click",function(){
 $("f-classe").innerHTML='<option value="">Toutes les classes</option>'+CLASSES.map(c=>`<option>${c}</option>`).join("");
 $("f-classe").addEventListener("change",tableEleves);
 $("f-q").addEventListener("input",tableEleves);
+$("fp-classe").innerHTML='<option value="">Toutes les classes</option>'+CLASSES_CONTENU.map(c=>`<option>${esc(c)}</option>`).join("");
+$("fp-matiere").innerHTML='<option value="">Toutes les matières</option>'+MATIERES.map(m=>`<option>${esc(m)}</option>`).join("");
+$("fp-classe").addEventListener("change",tableProfs);$("fp-matiere").addEventListener("change",tableProfs);$("fp-q").addEventListener("input",tableProfs);
 
 $("lien-deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
 

@@ -99,7 +99,9 @@
       ".cf-b .rep{text-align:center;font-weight:bold;letter-spacing:1px;font-size:13px;color:#222}" +
       ".cf-b .min{text-align:center;font-size:11px;color:#555;font-style:italic;margin:2px 0 8px}" +
       ".cf-b .titre{background:#2c3e8c;color:#fff;text-align:center;font-weight:bold;padding:5px;margin:6px 0;border-radius:4px}" +
-      ".cf-b .ident{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:2px 12px;margin:8px 0}" +
+      ".cf-b .idt{margin:8px 0}" +
+      ".cf-b .idt th{background:#eef1fc;color:#222;text-align:left;font-size:12px;width:22%;padding:5px 7px;border:1px solid #c5cdea}" +
+      ".cf-b .idt td{text-align:left;font-weight:normal;font-size:12px;padding:5px 7px;border:1px solid #c5cdea;color:#222}" +
       ".cf-b .tab{overflow-x:auto}.cf-b table{width:100%;border-collapse:collapse}" +
       ".cf-b th{background:#2c3e8c;color:#fff;padding:5px 4px;font-size:12px}.cf-b td{padding:5px 4px;text-align:center;border-bottom:1px solid #dde3f5}" +
       ".cf-b td:first-child,.cf-b th:first-child{text-align:left;font-weight:bold}.cf-b tfoot td{background:#eef1fc;font-weight:bold}" +
@@ -114,10 +116,13 @@
       '<div class="haut"><img src="' + base + 'logo-campus-flex.svg" alt="Campus Flex">' +
       '<div class="coord"><b>' + esc(b.etablissement) + "</b><br>" + String(b.coordonnees || "").split(/\r?\n/).map(esc).join("<br>") + "</div></div>" +
       '<div class="titre">BULLETIN DE NOTES</div>' +
-      '<div class="ident"><div>Matricule : <b>' + esc(e.matricule) + "</b></div><div>Année scolaire : <b>" + esc(b.annee) + "</b></div>" +
-      "<div>Nom : <b>" + esc(e.nom) + "</b></div><div>Classe : <b>" + esc(b.classe) + "</b> - Effectif : <b>" + esc(b.effectif) + "</b></div>" +
-      "<div>Prénoms : <b>" + esc(e.prenom) + "</b></div><div>Semestre : <b>" + esc(String(b.semestre).charAt(1)) + "</b></div>" +
-      "<div>Né(e) le : <b>" + esc(naissance(e)) + "</b></div><div>Aptitude en EPS : <b>" + esc(e.aptitudeEps) + "</b> - Redoublant : <b>" + (e.redoublant === "oui" ? "Oui" : "Non") + "</b></div></div>" +
+      '<div class="tab"><table class="idt"><tbody>' +
+      "<tr><th>Matricule</th><td>" + esc(e.matricule) + "</td><th>Année scolaire</th><td>" + esc(b.annee) + "</td></tr>" +
+      "<tr><th>Nom</th><td>" + esc(e.nom) + "</td><th>Classe</th><td>" + esc(b.classe) + "</td></tr>" +
+      "<tr><th>Prénoms</th><td>" + esc(e.prenom) + "</td><th>Effectif</th><td>" + esc(b.effectif) + "</td></tr>" +
+      "<tr><th>Date de naissance</th><td>" + esc(naissance(e)) + "</td><th>Semestre</th><td>" + esc(String(b.semestre).charAt(1)) + "</td></tr>" +
+      "<tr><th>Redoublant</th><td>" + (e.redoublant === "oui" ? "Oui" : "Non") + "</td><th>Aptitude en EPS</th><td>" + esc(e.aptitudeEps) + "</td></tr>" +
+      "</tbody></table></div>" +
       '<div class="tab"><table><thead><tr><th>Disciplines</th><th>Coef</th><th>Moy. interro.</th><th>Devoir 1</th><th>Devoir 2</th><th>Moy/20</th><th>Moy coef</th><th>Rang</th><th>Appréciation</th></tr></thead><tbody>';
     (b.lignes || []).forEach(function (l) {
       h += "<tr><td>" + esc(l.libelle) + "</td><td>" + esc(l.coef) + "</td><td>" + fmt(l.i) + "</td><td>" + fmt(l.d1) + "</td><td>" + fmt(l.d2) + "</td><td>" + f2(l.moy) + "</td><td>" + f2(l.moyCoef) + "</td><td>" + esc(l.rang) + "</td><td>" + esc(l.appreciation) + "</td></tr>";
@@ -161,12 +166,13 @@
     var grille = { fontSize: 9, cellPadding: 1.6, lineColor: [170, 180, 215], lineWidth: 0.2, textColor: 30 };
     doc.autoTable({
       startY: 44, margin: { left: M, right: M }, theme: "grid", styles: grille,
-      columnStyles: { 0: { fontStyle: "bold", cellWidth: 28, fillColor: [238, 241, 252] }, 2: { fontStyle: "bold", cellWidth: 34, fillColor: [238, 241, 252] } },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 36, fillColor: [238, 241, 252] }, 2: { fontStyle: "bold", cellWidth: 36, fillColor: [238, 241, 252] } },
       body: [
         ["Matricule", String(e.matricule || ""), "Année scolaire", String(b.annee || "")],
-        ["Nom", String(e.nom || ""), "Classe / Effectif", b.classe + " / " + b.effectif],
-        ["Prénoms", String(e.prenom || ""), "Semestre", String(b.semestre).charAt(1)],
-        ["Né(e) le", naissance(e), "EPS / Redoublant", String(e.aptitudeEps || "") + " / " + (e.redoublant === "oui" ? "Oui" : "Non")]
+        ["Nom", String(e.nom || ""), "Classe", String(b.classe || "")],
+        ["Prénoms", String(e.prenom || ""), "Effectif", String(b.effectif || "")],
+        ["Date de naissance", naissance(e), "Semestre", String(b.semestre).charAt(1)],
+        ["Redoublant", e.redoublant === "oui" ? "Oui" : "Non", "Aptitude en EPS", String(e.aptitudeEps || "")]
       ]
     });
 
@@ -290,9 +296,10 @@
 
     var id = [
       ["Matricule", e.matricule || "", "Année scolaire", b.annee || ""],
-      ["Nom", e.nom || "", "Classe / Effectif", b.classe + " / " + b.effectif],
-      ["Prénoms", e.prenom || "", "Semestre", String(b.semestre).charAt(1)],
-      ["Né(e) le", naissance(e), "Aptitude EPS / Redoublant", (e.aptitudeEps || "") + " / " + (e.redoublant === "oui" ? "Oui" : "Non")]
+      ["Nom", e.nom || "", "Classe", b.classe || ""],
+      ["Prénoms", e.prenom || "", "Effectif", b.effectif || ""],
+      ["Date de naissance", naissance(e), "Semestre", String(b.semestre).charAt(1)],
+      ["Redoublant", e.redoublant === "oui" ? "Oui" : "Non", "Aptitude en EPS", e.aptitudeEps || ""]
     ];
     id.forEach(function (l, i) {
       var r = 6 + i;
@@ -300,17 +307,17 @@
       ws.getRow(r).height = 18;
     });
 
-    ["Disciplines", "Coef", "Moy. interro.", "Devoir 1", "Devoir 2", "Moy/20", "Moy coef", "Rang", "Appréciation"].forEach(function (h, i) { put(ws, 11, i + 1, i + 1, h, ENTETE); });
-    ws.getRow(11).height = 22;
+    ["Disciplines", "Coef", "Moy. interro.", "Devoir 1", "Devoir 2", "Moy/20", "Moy coef", "Rang", "Appréciation"].forEach(function (h, i) { put(ws, 12, i + 1, i + 1, h, ENTETE); });
+    ws.getRow(12).height = 22;
     (b.lignes || []).forEach(function (l, i) {
-      var r = 12 + i, N = { border: true, align: { horizontal: "center", vertical: "middle" }, fmt: "0.00" };
+      var r = 13 + i, N = { border: true, align: { horizontal: "center", vertical: "middle" }, fmt: "0.00" };
       put(ws, r, 1, 1, l.libelle, { border: true, font: { bold: true }, align: { vertical: "middle" } });
       put(ws, r, 2, 2, l.coef, CENTRE);
       [l.i, l.d1, l.d2, l.moy, l.moyCoef].forEach(function (v, k) { put(ws, r, 3 + k, 3 + k, num(v) ? v : "", N); });
       put(ws, r, 8, 8, l.rang || "", CENTRE); put(ws, r, 9, 9, l.appreciation || "", CENTRE);
       ws.getRow(r).height = 19;
     });
-    var rt = 12 + n, T = { border: true, fill: CLAIR_ARGB, font: { bold: true }, align: { horizontal: "center", vertical: "middle" } };
+    var rt = 13 + n, T = { border: true, fill: CLAIR_ARGB, font: { bold: true }, align: { horizontal: "center", vertical: "middle" } };
     put(ws, rt, 1, 1, "TOTAL", { border: true, fill: CLAIR_ARGB, font: { bold: true } });
     put(ws, rt, 2, 2, t.coef, T);
     [3, 4, 5, 6].forEach(function (c) { put(ws, rt, c, c, "", T); });

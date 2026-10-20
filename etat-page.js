@@ -3,7 +3,7 @@
 //  - onglets (éléments dans un bloc class="tabs" ou role="tab"),
 //  - champs de recherche marqués data-garder,
 //  - boutons de chargement marqués data-restaurer (rejoués automatiquement),
-//  - sections repliables (séquences et SA des cours : éléments class="toggle-header" ouverts avec la classe "ouvert"),
+//  - sections repliables (séquences et SA des cours : class="toggle-header" ouverts avec la classe "ouvert"),
 //  - position de défilement.
 // Ne s'active QUE lors d'un rechargement de la page, pas quand on arrive depuis un lien.
 (function () {
@@ -16,10 +16,10 @@
     function sauver() { try { sessionStorage.setItem(cle, JSON.stringify(etat)); } catch (e) {} }
 
     var TAB = ".tabs button, .tabs [role=tab], [role=tab]";
+    var libre = {}; // listes modifiées à la main par l'utilisateur : on arrête de les restaurer
     function boites() { return Array.prototype.slice.call(document.querySelectorAll(".tabs")); }
     function boutons(box) { return Array.prototype.slice.call(box.querySelectorAll("button, [role=tab]")); }
     function horsFormulaire(el) { return !el.closest("form, .modal, [id*=modal], [class*=modal]"); }
-
     function entetes() { return Array.prototype.slice.call(document.querySelectorAll(".toggle-header")); }
     function cleEntete(h, i) { return i + "|" + (h.textContent || "").trim().slice(0, 40); }
     function memoriserRepli() {
@@ -31,7 +31,10 @@
     // ----- mémorisation (toujours) -----
     document.addEventListener("change", function (e) {
       var t = e.target;
-      if (t && t.tagName === "SELECT" && t.id && !t.hasAttribute("data-no-restore") && horsFormulaire(t)) { etat.sel[t.id] = t.value; sauver(); }
+      if (t && t.tagName === "SELECT" && t.id && !t.hasAttribute("data-no-restore") && horsFormulaire(t)) {
+        if (e.isTrusted) libre[t.id] = true;
+        etat.sel[t.id] = t.value; sauver();
+      }
     });
     document.addEventListener("input", function (e) {
       var t = e.target;
@@ -59,23 +62,22 @@
     // ----- restauration (rechargement uniquement) -----
     function demarrer() {
       if (document.querySelector("input[type=password]")) return; // pas sur les pages de connexion
-      var attente = 0;
 
+      // listes déroulantes : on réapplique la valeur tant que la page remplit ou reconstruit la liste
       Object.keys(etat.sel).forEach(function (id) {
         var el = document.getElementById(id);
         if (!el) return;
         var val = etat.sel[id];
         function appliquer() {
+          if (el.value === val) return true;
           var ok = Array.prototype.some.call(el.options, function (o) { return o.value === val; });
           if (!ok) return false;
           el.value = val; el.dispatchEvent(new Event("change", { bubbles: true })); return true;
         }
-        if (!appliquer()) {
-          attente++;
-          var obs = new MutationObserver(function () { if (appliquer()) { obs.disconnect(); attente--; } });
-          obs.observe(el, { childList: true });
-          setTimeout(function () { obs.disconnect(); }, 15000);
-        }
+        appliquer();
+        var obs = new MutationObserver(function () { if (libre[id]) { obs.disconnect(); return; } appliquer(); });
+        obs.observe(el, { childList: true });
+        setTimeout(function () { obs.disconnect(); }, 20000);
       });
 
       Object.keys(etat.txt).forEach(function (id) {
@@ -107,21 +109,26 @@
       // tâches à rejouer : d'abord les onglets, puis les boutons de chargement
       var taches = [];
       Object.keys(etat.tabs).forEach(function (ci) {
-        taches.push(function () {
-          var box = boites()[+ci], btn = box && boutons(box)[etat.tabs[ci]];
-          return btn;
-        });
+        taches.push(function () { var box = boites()[+ci]; return box && boutons(box)[etat.tabs[ci]]; });
       });
       etat.act.forEach(function (id) { taches.push(function () { return document.getElementById(id); }); });
 
-      var essais = 0;
+      function selectsPrets() {
+        return Object.keys(etat.sel).every(function (id) {
+          var el = document.getElementById(id);
+          return !el || libre[id] || el.value === etat.sel[id];
+        });
+      }
+
+      var essais = 0, stable = 0;
       var timer = setInterval(function () {
         essais++;
-        if (!attente && document.readyState === "complete" && taches.length) {
+        stable = selectsPrets() ? stable + 1 : 0; // les listes doivent être stables 2 passages de suite
+        if (stable >= 2 && document.readyState === "complete" && taches.length) {
           var el = taches[0]();
           if (el && el.offsetParent !== null && !el.disabled) { taches.shift(); el.click(); }
         }
-        if ((!taches.length && !attente) || essais > 60) {
+        if (!taches.length || essais > 80) {
           clearInterval(timer);
           var n = 0, y = etat.y || 0;
           if (y > 0) { var t = setInterval(function () { window.scrollTo(0, y); if (++n > 10) clearInterval(t); }, 300); }
