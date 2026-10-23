@@ -1,115 +1,417 @@
-```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campus Flex - Espace Enseignant</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      background-color: #f3f4f6;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    .btn-tool {
-      background-color: #1e3a8a;
-      color: white;
-      font-weight: 600;
-      padding: 0.6rem 1rem;
-      border-radius: 0.5rem;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 0.875rem;
-    }
-    .btn-tool:hover {
-      background-color: #1d4ed8;
-      transform: translateY(-1px);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace enseignant - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="suivi-visite.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--muted:#666;--ok:#1e8449}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:#333}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:10}
+nav h1{color:#fff;font-size:20px}
+nav .liens{display:flex;gap:16px;flex-wrap:wrap}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:900px;margin:24px auto;padding:0 14px}
+.card{background:#fff;padding:20px 16px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:19px;margin-bottom:10px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pill{background:#e3e7f6;color:var(--indigo);padding:6px 12px;border-radius:14px;font-size:14px;font-weight:bold}
+p{color:var(--muted);line-height:1.5;font-size:15px}
+.erreur{color:#c0392b}
+.loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+.cache{display:none}
+.outils{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px}
+.outils a{display:block;padding:14px;background:var(--indigo);color:#fff;text-align:center;text-decoration:none;border-radius:10px;font-weight:bold;font-size:15px}
+.ligne{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+select,input[type=text],textarea{font:inherit;font-size:15px;padding:10px;border:1px solid #cfd6f0;border-radius:10px;background:#fff;color:#333}
+select,input[type=text]{flex:1;min-width:140px}
+textarea{width:100%;min-height:70px;resize:vertical}
+button{font:inherit;font-size:15px;font-weight:bold;border:0;border-radius:10px;padding:10px 16px;cursor:pointer;background:var(--indigo);color:#fff}
+button.sec{background:#e3e7f6;color:var(--indigo)}
+.eleve{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef0fa}
+.eleve small{color:var(--muted)}
+.eleve a.wa{background:#25a244;color:#fff;text-decoration:none;font-size:13px;font-weight:bold;padding:8px 12px;border-radius:10px;white-space:nowrap}
+.tabs{display:flex;gap:8px;margin:12px 0}
+.tabs button{flex:1;background:#e3e7f6;color:var(--indigo)}
+.tabs button.on{background:var(--indigo);color:#fff}
+.fil{background:#f5f7ff;border-radius:12px;padding:10px;max-height:420px;overflow-y:auto;margin:10px 0}
+.msg{max-width:85%;margin:8px 0;padding:8px 12px;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.msg.moi{margin-left:auto;background:#dfe6ff}
+.msg .qui{font-size:12px;font-weight:bold;color:var(--indigo)}
+.msg .badge{font-size:11px;background:var(--amber);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
+.msg .texte{white-space:pre-wrap;word-wrap:break-word;font-size:15px;margin-top:2px}
+.msg .date{font-size:11px;color:#888;margin-top:2px}
+.msg .sup{float:right;background:none;color:#c0392b;padding:0 4px;font-size:14px}
+.fil-vide{color:#888;font-size:14px;text-align:center;padding:14px}
+.thread{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid #e3e7f6;border-radius:10px;margin-bottom:8px;cursor:pointer;background:#fff}
+.thread.nonlu{border-color:var(--amber);background:#fff8ea}
+.thread small{color:var(--muted);display:block}
+.pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
+.note{font-size:13px;color:#888;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
+.stat{background:#f5f7ff;border-left:4px solid var(--indigo,#2c3e8c);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:18px;color:var(--indigo,#2c3e8c)}
+.stat small{color:#666}
+.coefl{border:1px solid #dde3f5;border-radius:10px;padding:10px 12px;margin-top:10px}
+.coefl .champs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:6px}
+.coefl label{font-size:13px;color:#555;display:flex;flex-direction:column;gap:3px}
+.coefl input{width:90px;padding:7px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+.coefl small{color:#666}
+.outils a.actif{outline:3px solid var(--amber)}
+.outils a .pastille{margin-left:6px}
+</style>
 </head>
-<body class="min-h-screen text-gray-800">
-
-  <!-- En-tête -->
-  <header class="bg-indigo-950 text-white px-4 py-3 flex justify-between items-center shadow-md">
-    <div class="flex items-center space-x-2">
-      <div class="bg-amber-500 text-indigo-950 font-bold px-2 py-1 rounded text-xs">CF</div>
-      <h1 class="font-bold text-base sm:text-lg">Campus <span class="text-amber-400">Flex</span> <span class="font-normal text-xs sm:text-sm text-gray-300 ml-2">Espace enseignant</span></h1>
-    </div>
-    <nav class="flex items-center space-x-4 text-xs sm:text-sm">
-      <a href="index.html" class="hover:underline">Accueil</a>
-      <a href="logout.html" class="hover:underline">Déconnexion</a>
-    </nav>
-  </header>
-
-  <!-- Contenu Principal -->
-  <main class="max-w-5xl mx-auto p-4 space-y-6">
-
-    <!-- Bloc : Mon Espace -->
-    <section class="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
-      <h2 class="text-lg font-bold text-indigo-950 mb-4">Mon espace</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-          <div class="text-xl font-extrabold text-indigo-900">1</div>
-          <div class="text-xs text-gray-600">matière(s)</div>
-        </div>
-        <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-          <div class="text-xl font-extrabold text-indigo-900">2</div>
-          <div class="text-xs text-gray-600">classe(s)</div>
-        </div>
-        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 opacity-75">
-          <div class="text-xs font-semibold text-gray-500">Verrouillée</div>
-          <div class="text-xs text-gray-400">Modifier un contenu</div>
-        </div>
-        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 opacity-75">
-          <div class="text-xs font-semibold text-gray-500">Verrouillée</div>
-          <div class="text-xs text-gray-400">Supprimer un contenu</div>
-        </div>
-      </div>
-      <p class="text-xs text-gray-500 leading-relaxed">
-        Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.
-      </p>
+<body>
+<nav>
+  <h1>Espace enseignant</h1>
+  <div class="liens"><a href="index.html">Accueil</a><a href="#" id="lien-admin" class="cache">Administration</a><a href="#" id="deconnexion">Déconnexion</a></div>
+</nav>
+<main>
+  <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
+  <div id="contenu" class="cache">
+    <section class="card">
+      <h2>Mon espace</h2>
+      <div class="stats" id="stats-prof"></div>
+      <p class="note" id="droits-prof"></p>
     </section>
 
-    <!-- Bloc : Mes outils (Tous les boutons redirigent vers une nouvelle page) -->
-    <section class="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
-      <h2 class="text-lg font-bold text-indigo-950 mb-4">Mes outils</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        <a href="cours.html" class="btn-tool">Cours</a>
-        <a href="videos.html" class="btn-tool">Vidéos</a>
-        <a href="devoirs.html" class="btn-tool">Devoirs</a>
-        <a href="evaluations.html" class="btn-tool">Évaluations</a>
-        <a href="notes.html" class="btn-tool">Notes</a>
-        <a href="emploi-du-temps.html" class="btn-tool">Mon emploi du temps</a>
-        <!-- Nouveaux ajouts intégrés dans le bloc avec redirection -->
-        <a href="eleves.html" class="btn-tool border-2 border-amber-400">Mes élèves</a>
-        <a href="echanges.html" class="btn-tool border-2 border-amber-400">Échanges</a>
-        <a href="coefficients.html" class="btn-tool border-2 border-amber-400">Coefficients</a>
+    <section class="card">
+      <h2>Mes outils</h2>
+      <div class="outils">
+        <a href="admin-cours.html">Cours</a>
+        <a href="admin-videos.html">Vidéos</a>
+        <a href="admin-devoirs.html">Devoirs</a>
+        <a href="admin-evaluations.html">Évaluations</a>
+        <a href="saisie-notes.html">Notes</a>
+        <a href="emploi-enseignant.html">Mon emploi du temps</a>
+        <a href="#" id="outil-echanges" data-panneau="panneau-echanges">Échanges <span id="outil-pastille" class="pastille cache">0</span></a>
+        <a href="#" id="outil-coefficients" data-panneau="panneau-coefficients">Coefficients</a>
       </div>
     </section>
 
-    <!-- Bloc : Mes matières -->
-    <section class="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
-      <h2 class="text-lg font-bold text-indigo-950 mb-3">Mes matières</h2>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-indigo-100 text-indigo-900 text-xs font-semibold px-3 py-1.5 rounded-full">Mathématiques</span>
-      </div>
+    <section class="card cache" id="panneau-coefficients">
+      <h2>Mes coefficients</h2>
+      <p>Indique le coefficient de ta matière pour chacune de tes classes. L'administrateur voit ta proposition et l'applique aux bulletins.</p>
+      <div id="coef-liste"></div>
+      <p id="coef-msg" class="note"></p>
     </section>
 
-    <!-- Bloc : Mes classes -->
-    <section class="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-100">
-      <h2 class="text-lg font-bold text-indigo-950 mb-3">Mes classes</h2>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-indigo-100 text-indigo-900 text-xs font-semibold px-3 py-1.5 rounded-full">1re AB</span>
-        <span class="bg-indigo-100 text-indigo-900 text-xs font-semibold px-3 py-1.5 rounded-full">Tle AB</span>
+    <section class="card cache" id="panneau-echanges">
+      <h2>Échanges avec mes élèves</h2>
+      <p>Choisis une classe et une matière. Les élèves de cette classe voient la discussion et peuvent t'écrire en privé.</p>
+      <div class="ligne">
+        <select id="ex-classe"></select>
+        <select id="ex-matiere"></select>
       </div>
+      <div class="tabs">
+        <button id="tab-forum" class="on">Discussion de classe</button>
+        <button id="tab-prive">Messages privés <span id="pastille-nonlus" class="pastille cache">0</span></button>
+      </div>
+
+      <div id="vue-forum">
+        <div class="fil" id="forum-fil"></div>
+        <form id="forum-form">
+          <textarea id="forum-texte" maxlength="1000" placeholder="Écris un message à toute la classe (annonce, consigne, réponse à une question)..."></textarea>
+          <div class="ligne"><button type="submit">Publier</button></div>
+        </form>
+        <p class="note">Tu peux supprimer un message avec la croix ✕.</p>
+      </div>
+
+      <div id="vue-prive" class="cache">
+        <div id="mp-liste"></div>
+        <div id="mp-zone" class="cache">
+          <button class="sec" id="mp-retour">← Retour aux conversations</button>
+          <h3 id="mp-titre" style="margin-top:10px;color:var(--indigo);font-size:17px"></h3>
+          <div class="fil" id="mp-fil"></div>
+          <form id="mp-form">
+            <textarea id="mp-texte" maxlength="1000" placeholder="Ta réponse à l'élève..."></textarea>
+            <div class="ligne"><button type="submit">Envoyer</button></div>
+          </form>
+        </div>
+      </div>
+      <p id="ex-msg" class="erreur"></p>
     </section>
 
-  </main>
+    <section class="card">
+      <h2>Mes élèves</h2>
+      <p>Les élèves inscrits dans les classes qui t'ont été attribuées.</p>
+      <div class="ligne">
+        <select id="ev-classe"></select>
+        <input type="text" id="ev-recherche" data-garder placeholder="Rechercher un élève">
+      </div>
+      <p id="ev-compte"></p>
+      <div id="ev-liste"></div>
+    </section>
 
+    <section class="card">
+      <h2>Mes matières</h2>
+      <div class="pills" id="matieres"></div>
+    </section>
+    <section class="card">
+      <h2>Mes classes</h2>
+      <div class="pills" id="classes"></div>
+    </section>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pills=o=>Object.keys(o||{}).filter(k=>o[k]===true).map(x=>'<span class="pill">'+esc(x)+'</span>').join("")||"<p>Aucune pour le moment.</p>";
+const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+const fmtJour=t=>t?new Date(t).toLocaleDateString("fr-FR"):"-";
+let U=null,PROFIL=null,NOM="",ELEVES=[];
+let refForum=null,refMp=null,refIdx=null,mpEleve=null;
+// après un rechargement : conversation privée qui était ouverte
+let MEM=null;
+try{
+  const typeNav=((performance.getEntriesByType("navigation")[0])||{}).type;
+  if(typeNav==="reload"||typeNav==="back_forward")MEM=JSON.parse(sessionStorage.getItem("cf_mp_ouvert")||"null");
+}catch(e){}
+
+$("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
+
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  U=u;
+  // Un administrateur qui est aussi enseignant garde l'accès à cet espace (aucune redirection automatique).
+  db.ref("administrateurs/"+u.uid).once("value").then(function(a){
+    if(a.exists()){$("lien-admin").classList.remove("cache");$("lien-admin").href="admin.html";}
+  }).catch(()=>{});
+  db.ref("enseignants/"+u.uid).once("value").then(function(s){
+    const p=s.val();
+    if(!p||p.statut!=="actif"){
+      $("verif-msg").innerHTML=p?"Ton compte enseignant n'est pas actif.":"Ce compte n'est pas un compte enseignant. Si tu es administrateur, utilise le lien « Administration » en haut.";
+      $("verif-msg").className="erreur";
+      $("lien-admin").classList.remove("cache");
+      db.ref("administrateurs/"+u.uid).once("value").then(a=>{if(a.exists())$("lien-admin").href="admin.html";else $("lien-admin").classList.add("cache");}).catch(()=>{});
+      return;
+    }
+    PROFIL=p;NOM=((p.prenom||"")+" "+(p.nom||"")).trim()||"Enseignant";
+    $("verif").classList.add("cache");$("contenu").classList.remove("cache");
+    const dr=p.droits||{};
+    const tuile=(g,pt)=>'<div class="stat"><b>'+g+'</b><small>'+pt+'</small></div>';
+    $("stats-prof").innerHTML=tuile(mesMatieres().length,"matière(s)")+tuile(mesClasses().length,"classe(s)")+tuile(dr.modifier===true?"Autorisée":"Verrouillée","Modifier un contenu")+tuile(dr.supprimer===true?"Autorisée":"Verrouillée","Supprimer un contenu");
+    $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.";
+    $("matieres").innerHTML=pills(p.matieres);$("classes").innerHTML=pills(p.classes);
+    initEleves();initEchanges();initCoefficients();restaurerPanneau();
+  }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
+});
+
+const mesClasses=()=>Object.keys((PROFIL&&PROFIL.classes)||{}).filter(k=>PROFIL.classes[k]===true);
+const mesMatieres=()=>Object.keys((PROFIL&&PROFIL.matieres)||{}).filter(k=>PROFIL.matieres[k]===true);
+const options=(arr)=>arr.length?arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(""):'<option value="">(aucune)</option>';
+
+/* ------------------------------ Mes élèves ------------------------------ */
+function initEleves(){
+  $("ev-classe").innerHTML=options(mesClasses());
+  $("ev-classe").addEventListener("change",chargerEleves);
+  $("ev-recherche").addEventListener("input",afficherEleves);
+  chargerEleves();
+}
+function chargerEleves(){
+  const c=$("ev-classe").value;ELEVES=[];$("ev-liste").innerHTML="";
+  if(!c){$("ev-compte").textContent="Aucune classe ne t'est attribuée.";return;}
+  $("ev-compte").textContent="Chargement...";
+  db.ref("eleves").orderByChild("classe").equalTo(c).once("value").then(function(snap){
+    snap.forEach(function(ch){const e=ch.val()||{};e.uid=ch.key;ELEVES.push(e);});
+    ELEVES.sort((a,b)=>((a.nom||"")+(a.prenom||"")).localeCompare((b.nom||"")+(b.prenom||""),"fr"));
+    afficherEleves();
+  }).catch(function(e){
+    $("ev-compte").innerHTML='<span class="erreur">Impossible de charger les élèves ('+esc(e.message)+'). Vérifie que les nouvelles règles Firebase sont publiées.</span>';
+  });
+}
+function afficherEleves(){
+  const q=($("ev-recherche").value||"").trim().toLowerCase();
+  const l=ELEVES.filter(e=>!q||((e.nom||"")+" "+(e.prenom||"")).toLowerCase().includes(q));
+  $("ev-compte").textContent=ELEVES.length+" élève(s) inscrit(s) en "+$("ev-classe").value+(q?" — "+l.length+" résultat(s)":"");
+  $("ev-liste").innerHTML=l.map(function(e){
+    const tel=String(e.telephoneInternational||e.telephone||"").replace(/\D/g,"");
+    const wa=tel?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+tel+'?text='+encodeURIComponent("Bonjour "+(e.prenom||"")+", c'est "+NOM+" de Campus Flex.")+'">WhatsApp</a>':"";
+    return '<div class="eleve"><div><b>'+esc((e.nom||"").toUpperCase())+" "+esc(e.prenom||"")+'</b><small>'+esc(e.telephoneInternational||e.telephone||"pas de téléphone")+" · inscrit le "+fmtJour(e.dateInscription)+" · "+(Number(e.points)||0)+' pts</small></div>'+wa+'</div>';
+  }).join("")||'<p>Aucun élève à afficher.</p>';
+}
+
+/* ------------------------------ Panneaux ouverts par les outils ------------------------------ */
+const PANNEAUX=["panneau-echanges","panneau-coefficients"];
+function basculer(id,forcer,sansDefilement){
+  const ouvert=!$(id).classList.contains("cache");
+  const afficher=forcer!==undefined?forcer:!ouvert;
+  PANNEAUX.forEach(p=>$(p).classList.toggle("cache",p!==id||!afficher));
+  document.querySelectorAll("[data-panneau]").forEach(b=>b.classList.toggle("actif",afficher&&b.dataset.panneau===id));
+  try{sessionStorage.setItem("cf_panneau_prof",afficher?id:"");}catch(e){}
+  if(afficher&&!sansDefilement)$(id).scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelectorAll("[data-panneau]").forEach(b=>b.addEventListener("click",function(e){e.preventDefault();basculer(b.dataset.panneau);}));
+function restaurerPanneau(){
+  try{
+    const typeNav=((performance.getEntriesByType("navigation")[0])||{}).type;
+    if(typeNav!=="reload"&&typeNav!=="back_forward")return;
+    const id=MEM?"panneau-echanges":sessionStorage.getItem("cf_panneau_prof");
+    if(id&&PANNEAUX.indexOf(id)!==-1)basculer(id,true,true);
+  }catch(e){}
+}
+
+/* ------------------------------ Coefficients proposés ------------------------------ */
+const COLLEGE=["6e","5e","4e","3e"];
+const CLE_PAR_MATIERE={"Mathématiques":"maths","Français":"francais","Anglais":"anglais","Espagnol":"espagnol","Allemand":"allemand","PCT":"pct","SVT":"svt","Histoire-Géographie":"histoire-geo","Philosophie":"philosophie","EPS":"eps"};
+function initCoefficients(){
+  const zone=$("coef-liste");zone.innerHTML="";
+  const combos=[];
+  mesClasses().forEach(c=>mesMatieres().forEach(m=>{
+    if(!CLE_PAR_MATIERE[m])return;
+    combos.push({c:c,m:m,parties:(m==="Français"&&COLLEGE.indexOf(c)!==-1)?["lecture","communication-ecrite"]:["g"]});
+  }));
+  if(!combos.length){zone.innerHTML="<p>Aucune classe ou matière attribuée.</p>";return;}
+  Promise.all([db.ref("coefficients").once("value")].concat(combos.map(k=>db.ref("coefficients_propositions/"+k.c+"/"+k.m+"/"+U.uid).once("value")))).then(function(r){
+    const off=r[0].val()||{};
+    combos.forEach((k,i)=>{k.prop=r[i+1].val()||{};zone.appendChild(blocCoef(k,off));});
+  }).catch(e=>{$("coef-msg").textContent="Lecture impossible : "+e.message;});
+}
+function blocCoef(k,off){
+  const div=document.createElement("div");div.className="coefl";
+  const t=document.createElement("b");t.textContent=k.c+" - "+k.m;div.appendChild(t);
+  const champs=document.createElement("div");champs.className="champs";div.appendChild(champs);
+  const inputs={};
+  k.parties.forEach(p=>{
+    const cle=p==="g"?CLE_PAR_MATIERE[k.m]:p;
+    const lab=document.createElement("label");
+    lab.appendChild(document.createTextNode(p==="lecture"?"Lecture":p==="communication-ecrite"?"Communication écrite":"Coefficient"));
+    const inp=document.createElement("input");inp.type="number";inp.min="0";inp.max="10";inp.step="0.5";inp.inputMode="decimal";
+    if(typeof k.prop[p]==="number")inp.value=String(k.prop[p]);
+    inputs[p]=inp;lab.appendChild(inp);
+    const o=off[k.c]&&off[k.c][cle];
+    const pt=document.createElement("small");pt.textContent="Officiel : "+(typeof o==="number"?o:"non défini");lab.appendChild(pt);
+    champs.appendChild(lab);
+  });
+  const btn=document.createElement("button");btn.textContent="Envoyer";champs.appendChild(btn);
+  const etat=document.createElement("small");div.appendChild(etat);
+  if(Object.keys(k.prop).some(x=>typeof k.prop[x]==="number"))etat.textContent="Proposition déjà envoyée"+(k.prop.date?" le "+fmtJour(k.prop.date):"")+".";
+  btn.addEventListener("click",function(){
+    const vals={};let erreur=false;
+    k.parties.forEach(p=>{
+      const t=inputs[p].value.trim().replace(",",".");
+      if(t==="")return;
+      const n=Number(t);
+      if(isNaN(n)||n<0||n>10){erreur=true;return;}
+      vals[p]=n;
+    });
+    if(erreur){etat.textContent="Le coefficient doit être un nombre entre 0 et 10.";return;}
+    const ref=db.ref("coefficients_propositions/"+k.c+"/"+k.m+"/"+U.uid);
+    const action=Object.keys(vals).length?ref.set(Object.assign(vals,{nom:NOM,date:Date.now()})):ref.remove();
+    etat.textContent="Envoi...";
+    action.then(()=>{etat.textContent=Object.keys(vals).length?"Proposition envoyée à l'administrateur.":"Proposition retirée.";}).catch(e=>{etat.textContent="Envoi impossible : "+e.message;});
+  });
+  return div;
+}
+
+/* ------------------------------ Échanges ------------------------------ */
+function initEchanges(){
+  $("ex-classe").innerHTML=options(mesClasses());$("ex-matiere").innerHTML=options(mesMatieres());
+  $("ex-classe").addEventListener("change",ouvrirEchanges);$("ex-matiere").addEventListener("change",ouvrirEchanges);
+  $("tab-forum").addEventListener("click",()=>onglet("forum"));$("tab-prive").addEventListener("click",()=>onglet("prive"));
+  $("forum-form").addEventListener("submit",envoyerForum);
+  $("mp-form").addEventListener("submit",envoyerPrive);
+  $("mp-retour").addEventListener("click",fermerFil);
+  ouvrirEchanges();
+}
+function onglet(n){
+  $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
+  $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
+}
+const cm=()=>({c:$("ex-classe").value,m:$("ex-matiere").value});
+function detacher(){
+  if(refForum){refForum.off();refForum=null;}
+  if(refIdx){refIdx.off();refIdx=null;}
+  fermerFil();
+}
+function ouvrirEchanges(){
+  detacher();$("ex-msg").textContent="";
+  const x=cm();
+  if(!x.c||!x.m){$("forum-fil").innerHTML='<div class="fil-vide">Choisis une classe et une matière.</div>';$("mp-liste").innerHTML="";return;}
+  refForum=db.ref("forum/"+x.c+"/"+x.m).orderByChild("date").limitToLast(200);
+  refForum.on("value",function(s){rendreFil($("forum-fil"),s,"forum");},function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  refIdx=db.ref("mp_index/"+x.c+"/"+x.m);
+  refIdx.on("value",rendreThreads,function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+}
+function rendreFil(zone,snap,type){
+  const items=[];snap.forEach(ch=>{items.push({id:ch.key,v:ch.val()});});
+  items.sort((a,b)=>(a.v.date||0)-(b.v.date||0));
+  zone.innerHTML="";
+  if(!items.length){zone.innerHTML='<div class="fil-vide">Aucun message pour le moment.</div>';return;}
+  items.forEach(function(it){
+    const m=it.v,moi=m.auteurUid===U.uid;
+    const d=document.createElement("div");d.className="msg"+(moi?" moi":"");
+    const q=document.createElement("div");q.className="qui";q.textContent=m.auteurNom||"";
+    if(m.role==="enseignant"){const b=document.createElement("span");b.className="badge";b.textContent="Enseignant";q.appendChild(b);}
+    const sup=document.createElement("button");sup.className="sup";sup.title="Supprimer";sup.textContent="✕";
+    sup.addEventListener("click",function(){
+      if(!confirm("Supprimer ce message ?"))return;
+      const x=cm();
+      const ref=type==="forum"?db.ref("forum/"+x.c+"/"+x.m+"/"+it.id):db.ref("messages_prives/"+x.c+"/"+x.m+"/"+mpEleve+"/"+it.id);
+      ref.remove().catch(e=>{$("ex-msg").textContent="Suppression impossible : "+e.message;});
+    });
+    q.appendChild(sup);
+    const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
+    const dt=document.createElement("div");dt.className="date";dt.textContent=fmtDate(m.date);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
+  });
+  zone.scrollTop=zone.scrollHeight;
+}
+function envoyerForum(e){
+  e.preventDefault();const x=cm(),t=$("forum-texte").value.trim();
+  if(!t||!x.c||!x.m)return;
+  db.ref("forum/"+x.c+"/"+x.m).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:Date.now()})
+    .then(()=>{$("forum-texte").value="";}).catch(er=>{$("ex-msg").textContent="Envoi impossible : "+er.message;});
+}
+function rendreThreads(snap){
+  const l=[];let nonlus=0;
+  snap.forEach(ch=>{const v=ch.val();l.push({uid:ch.key,v:v});if(v.luEns===false)nonlus++;});
+  l.sort((a,b)=>(b.v.date||0)-(a.v.date||0));
+  const p=$("pastille-nonlus");p.textContent=nonlus;p.classList.toggle("cache",!nonlus);
+  const po=$("outil-pastille");if(po){po.textContent=nonlus;po.classList.toggle("cache",!nonlus);}
+  $("mp-liste").innerHTML=l.length?"":'<p>Aucun élève ne t\'a encore écrit en privé dans cette matière.</p>';
+  l.forEach(function(it){
+    const d=document.createElement("div");d.className="thread"+(it.v.luEns===false?" nonlu":"");
+    const g=document.createElement("div");
+    const n=document.createElement("b");n.textContent=it.v.nomEleve||"Élève";
+    const s=document.createElement("small");s.textContent=(it.v.dernierAuteur==="enseignant"?"Toi : ":"")+(it.v.dernierTexte||"")+" · "+fmtDate(it.v.date);
+    g.appendChild(n);g.appendChild(s);d.appendChild(g);
+    if(it.v.luEns===false){const b=document.createElement("span");b.className="pastille";b.textContent="Nouveau";d.appendChild(b);}
+    d.addEventListener("click",()=>ouvrirFil(it.uid,it.v.nomEleve));
+    $("mp-liste").appendChild(d);
+  });
+  if(MEM){const x=cm();if(x.c===MEM.c&&x.m===MEM.m){const t=MEM;MEM=null;onglet("prive");ouvrirFil(t.uid,t.nom);}}
+}
+function ouvrirFil(uid,nom){
+  const x=cm();mpEleve=uid;
+  try{sessionStorage.setItem("cf_mp_ouvert",JSON.stringify({c:x.c,m:x.m,uid:uid,nom:nom||""}));}catch(e){}
+  $("mp-liste").classList.add("cache");$("mp-zone").classList.remove("cache");$("mp-titre").textContent="Conversation avec "+(nom||"l'élève");
+  if(refMp)refMp.off();
+  refMp=db.ref("messages_prives/"+x.c+"/"+x.m+"/"+uid).orderByChild("date").limitToLast(200);
+  refMp.on("value",s=>rendreFil($("mp-fil"),s,"prive"),e=>{$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  db.ref("mp_index/"+x.c+"/"+x.m+"/"+uid).update({luEns:true}).catch(()=>{});
+}
+function fermerFil(){
+  if(refMp){refMp.off();refMp=null;}mpEleve=null;
+  try{sessionStorage.removeItem("cf_mp_ouvert");}catch(e){}
+  $("mp-zone").classList.add("cache");$("mp-liste").classList.remove("cache");
+}
+function envoyerPrive(e){
+  e.preventDefault();const x=cm(),t=$("mp-texte").value.trim();
+  if(!t||!mpEleve)return;
+  const now=Date.now();
+  db.ref("messages_prives/"+x.c+"/"+x.m+"/"+mpEleve).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:now}).then(function(){
+    $("mp-texte").value="";
+    return db.ref("mp_index/"+x.c+"/"+x.m+"/"+mpEleve).update({dernierAuteur:"enseignant",dernierTexte:t.slice(0,160),date:now,luEns:true,luEleve:false});
+  }).catch(er=>{$("ex-msg").textContent="Envoi impossible : "+er.message;});
+}
+</script>
 </body>
 </html>
-```
