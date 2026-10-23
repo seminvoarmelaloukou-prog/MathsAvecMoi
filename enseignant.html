@@ -64,6 +64,8 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .coefl label{font-size:13px;color:#555;display:flex;flex-direction:column;gap:3px}
 .coefl input{width:90px;padding:7px;border:1px solid #ccc;border-radius:8px;font-size:15px}
 .coefl small{color:#666}
+.outils a.actif{outline:3px solid var(--amber)}
+.outils a .pastille{margin-left:6px}
 </style>
 </head>
 <body>
@@ -89,28 +91,19 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         <a href="admin-evaluations.html">Évaluations</a>
         <a href="saisie-notes.html">Notes</a>
         <a href="emploi-enseignant.html">Mon emploi du temps</a>
+        <a href="#" id="outil-echanges" data-panneau="panneau-echanges">Échanges <span id="outil-pastille" class="pastille cache">0</span></a>
+        <a href="#" id="outil-coefficients" data-panneau="panneau-coefficients">Coefficients</a>
       </div>
     </section>
 
-    <section class="card">
+    <section class="card cache" id="panneau-coefficients">
       <h2>Mes coefficients</h2>
       <p>Indique le coefficient de ta matière pour chacune de tes classes. L'administrateur voit ta proposition et l'applique aux bulletins.</p>
       <div id="coef-liste"></div>
       <p id="coef-msg" class="note"></p>
     </section>
 
-    <section class="card">
-      <h2>Mes élèves</h2>
-      <p>Les élèves inscrits dans les classes qui t'ont été attribuées.</p>
-      <div class="ligne">
-        <select id="ev-classe"></select>
-        <input type="text" id="ev-recherche" data-garder placeholder="Rechercher un élève">
-      </div>
-      <p id="ev-compte"></p>
-      <div id="ev-liste"></div>
-    </section>
-
-    <section class="card">
+    <section class="card cache" id="panneau-echanges">
       <h2>Échanges avec mes élèves</h2>
       <p>Choisis une classe et une matière. Les élèves de cette classe voient la discussion et peuvent t'écrire en privé.</p>
       <div class="ligne">
@@ -144,6 +137,17 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         </div>
       </div>
       <p id="ex-msg" class="erreur"></p>
+    </section>
+
+    <section class="card">
+      <h2>Mes élèves</h2>
+      <p>Les élèves inscrits dans les classes qui t'ont été attribuées.</p>
+      <div class="ligne">
+        <select id="ev-classe"></select>
+        <input type="text" id="ev-recherche" data-garder placeholder="Rechercher un élève">
+      </div>
+      <p id="ev-compte"></p>
+      <div id="ev-liste"></div>
     </section>
 
     <section class="card">
@@ -196,7 +200,7 @@ auth.onAuthStateChanged(function(u){
     $("stats-prof").innerHTML=tuile(mesMatieres().length,"matière(s)")+tuile(mesClasses().length,"classe(s)")+tuile(dr.modifier===true?"Autorisée":"Verrouillée","Modifier un contenu")+tuile(dr.supprimer===true?"Autorisée":"Verrouillée","Supprimer un contenu");
     $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.";
     $("matieres").innerHTML=pills(p.matieres);$("classes").innerHTML=pills(p.classes);
-    initEleves();initEchanges();initCoefficients();
+    initEleves();initEchanges();initCoefficients();restaurerPanneau();
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
 
@@ -232,6 +236,26 @@ function afficherEleves(){
     const wa=tel?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+tel+'?text='+encodeURIComponent("Bonjour "+(e.prenom||"")+", c'est "+NOM+" de Campus Flex.")+'">WhatsApp</a>':"";
     return '<div class="eleve"><div><b>'+esc((e.nom||"").toUpperCase())+" "+esc(e.prenom||"")+'</b><small>'+esc(e.telephoneInternational||e.telephone||"pas de téléphone")+" · inscrit le "+fmtJour(e.dateInscription)+" · "+(Number(e.points)||0)+' pts</small></div>'+wa+'</div>';
   }).join("")||'<p>Aucun élève à afficher.</p>';
+}
+
+/* ------------------------------ Panneaux ouverts par les outils ------------------------------ */
+const PANNEAUX=["panneau-echanges","panneau-coefficients"];
+function basculer(id,forcer,sansDefilement){
+  const ouvert=!$(id).classList.contains("cache");
+  const afficher=forcer!==undefined?forcer:!ouvert;
+  PANNEAUX.forEach(p=>$(p).classList.toggle("cache",p!==id||!afficher));
+  document.querySelectorAll("[data-panneau]").forEach(b=>b.classList.toggle("actif",afficher&&b.dataset.panneau===id));
+  try{sessionStorage.setItem("cf_panneau_prof",afficher?id:"");}catch(e){}
+  if(afficher&&!sansDefilement)$(id).scrollIntoView({behavior:"smooth",block:"start"});
+}
+document.querySelectorAll("[data-panneau]").forEach(b=>b.addEventListener("click",function(e){e.preventDefault();basculer(b.dataset.panneau);}));
+function restaurerPanneau(){
+  try{
+    const typeNav=((performance.getEntriesByType("navigation")[0])||{}).type;
+    if(typeNav!=="reload"&&typeNav!=="back_forward")return;
+    const id=MEM?"panneau-echanges":sessionStorage.getItem("cf_panneau_prof");
+    if(id&&PANNEAUX.indexOf(id)!==-1)basculer(id,true,true);
+  }catch(e){}
 }
 
 /* ------------------------------ Coefficients proposés ------------------------------ */
@@ -351,6 +375,7 @@ function rendreThreads(snap){
   snap.forEach(ch=>{const v=ch.val();l.push({uid:ch.key,v:v});if(v.luEns===false)nonlus++;});
   l.sort((a,b)=>(b.v.date||0)-(a.v.date||0));
   const p=$("pastille-nonlus");p.textContent=nonlus;p.classList.toggle("cache",!nonlus);
+  const po=$("outil-pastille");if(po){po.textContent=nonlus;po.classList.toggle("cache",!nonlus);}
   $("mp-liste").innerHTML=l.length?"":'<p>Aucun élève ne t\'a encore écrit en privé dans cette matière.</p>';
   l.forEach(function(it){
     const d=document.createElement("div");d.className="thread"+(it.v.luEns===false?" nonlu":"");
