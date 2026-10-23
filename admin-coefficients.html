@@ -236,6 +236,20 @@
       </div>
     </section>
 
+    <section class="card" id="card-propositions" style="display: none;">
+      <h2>Propositions des enseignants</h2>
+      <p>Chaque enseignant peut proposer le coefficient de sa matière pour chacune de ses classes. « Appliquer » le fait passer dans les bulletins. « Ignorer » supprime la proposition.</p>
+      <p id="message-propositions" class="message"></p>
+      <div style="overflow-x: auto; max-width: 100%;">
+        <table>
+          <thead>
+            <tr><th>Classe</th><th>Matière</th><th>Enseignant</th><th>Proposé</th><th>Actuel</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="corps-propositions"></tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 
   <script>
@@ -348,6 +362,8 @@
           messageAdminCheck.textContent = "Administrateur reconnu : " + (adminData.email || adminData.nom || adminUid);
 
           cardCoefficients.style.display = "block";
+          document.getElementById("card-propositions").style.display = "block";
+          chargerPropositions();
           chargerCoefficients();
         });
     }
@@ -424,6 +440,65 @@
           messageCoef.textContent = "Erreur lors de l'enregistrement : " + erreur.message;
           messageCoef.classList.add("error");
         });
+    }
+
+    // ---------- Propositions des enseignants ----------
+    const CLE_PAR_MATIERE = { "Mathématiques": "maths", "Français": "francais", "Anglais": "anglais", "Espagnol": "espagnol", "Allemand": "allemand", "PCT": "pct", "SVT": "svt", "Histoire-Géographie": "histoire-geo", "Philosophie": "philosophie", "EPS": "eps" };
+    const corpsProp = document.getElementById("corps-propositions");
+    const messageProp = document.getElementById("message-propositions");
+
+    function cleDe(matiere, partie) { return partie === "g" ? (CLE_PAR_MATIERE[matiere] || null) : partie; }
+    function libelleDe(matiere, partie) {
+      return partie === "lecture" ? matiere + " - Lecture" : (partie === "communication-ecrite" ? matiere + " - Communication écrite" : matiere);
+    }
+
+    function chargerPropositions() {
+      messageProp.textContent = "Chargement...";
+      Promise.all([db.ref("coefficients_propositions").once("value"), db.ref("coefficients").once("value")]).then(function(r) {
+        const props = r[0].val() || {}, officiel = r[1].val() || {};
+        const lignes = [];
+        Object.keys(props).forEach(function(classe) {
+          Object.keys(props[classe] || {}).forEach(function(matiere) {
+            Object.keys(props[classe][matiere] || {}).forEach(function(uid) {
+              const p = props[classe][matiere][uid] || {};
+              ["g", "lecture", "communication-ecrite"].forEach(function(partie) {
+                if (typeof p[partie] !== "number") return;
+                const cle = cleDe(matiere, partie);
+                lignes.push({ classe: classe, matiere: matiere, uid: uid, partie: partie, cle: cle, valeur: p[partie], nom: p.nom || "",
+                              actuel: (cle && officiel[classe]) ? officiel[classe][cle] : undefined });
+              });
+            });
+          });
+        });
+        lignes.sort(function(a, b) { return a.classe.localeCompare(b.classe) || a.matiere.localeCompare(b.matiere); });
+        corpsProp.innerHTML = "";
+        messageProp.textContent = lignes.length ? lignes.length + " proposition(s) en attente." : "Aucune proposition en attente.";
+        lignes.forEach(function(l) {
+          const tr = document.createElement("tr");
+          [l.classe, libelleDe(l.matiere, l.partie), l.nom || "-", String(l.valeur), typeof l.actuel === "number" ? String(l.actuel) : "non défini"].forEach(function(t) {
+            const td = document.createElement("td"); td.textContent = t; tr.appendChild(td);
+          });
+          const tdA = document.createElement("td");
+          const chemin = "coefficients_propositions/" + l.classe + "/" + l.matiere + "/" + l.uid + "/" + l.partie;
+
+          const bOk = document.createElement("button"); bOk.textContent = "Appliquer"; bOk.style.marginRight = "6px";
+          if (!l.cle) { bOk.disabled = true; bOk.title = "Cette matière n'est pas gérée dans les coefficients"; }
+          bOk.addEventListener("click", function() {
+            bOk.disabled = true;
+            db.ref("coefficients/" + l.classe + "/" + l.cle).set(l.valeur)
+              .then(function() { return db.ref(chemin).remove(); })
+              .then(function() { chargerPropositions(); chargerCoefficients(); })
+              .catch(function(e) { bOk.disabled = false; messageProp.textContent = "Erreur : " + e.message; });
+          });
+          const bNo = document.createElement("button"); bNo.textContent = "Ignorer"; bNo.style.background = "#999";
+          bNo.addEventListener("click", function() {
+            bNo.disabled = true;
+            db.ref(chemin).remove().then(chargerPropositions).catch(function(e) { bNo.disabled = false; messageProp.textContent = "Erreur : " + e.message; });
+          });
+          tdA.appendChild(bOk); tdA.appendChild(bNo); tr.appendChild(tdA);
+          corpsProp.appendChild(tr);
+        });
+      }).catch(function(e) { messageProp.textContent = "Erreur de chargement : " + e.message; });
     }
 
     lienDeconnexion.addEventListener("click", function(e) {

@@ -55,6 +55,15 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .thread small{color:var(--muted);display:block}
 .pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
 .note{font-size:13px;color:#888;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
+.stat{background:#f5f7ff;border-left:4px solid var(--indigo,#2c3e8c);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:18px;color:var(--indigo,#2c3e8c)}
+.stat small{color:#666}
+.coefl{border:1px solid #dde3f5;border-radius:10px;padding:10px 12px;margin-top:10px}
+.coefl .champs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:6px}
+.coefl label{font-size:13px;color:#555;display:flex;flex-direction:column;gap:3px}
+.coefl input{width:90px;padding:7px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+.coefl small{color:#666}
 </style>
 </head>
 <body>
@@ -66,8 +75,9 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
   <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
   <div id="contenu" class="cache">
     <section class="card">
-      <h2 id="bonjour"></h2>
-      <p>Tu peux intervenir uniquement dans les matières et les classes que l'administrateur t'a attribuées.</p>
+      <h2>Mon espace</h2>
+      <div class="stats" id="stats-prof"></div>
+      <p class="note" id="droits-prof"></p>
     </section>
 
     <section class="card">
@@ -80,6 +90,13 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         <a href="saisie-notes.html">Notes</a>
         <a href="emploi-enseignant.html">Mon emploi du temps</a>
       </div>
+    </section>
+
+    <section class="card">
+      <h2>Mes coefficients</h2>
+      <p>Indique le coefficient de ta matière pour chacune de tes classes. L'administrateur voit ta proposition et l'applique aux bulletins.</p>
+      <div id="coef-liste"></div>
+      <p id="coef-msg" class="note"></p>
     </section>
 
     <section class="card">
@@ -147,6 +164,12 @@ const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-di
 const fmtJour=t=>t?new Date(t).toLocaleDateString("fr-FR"):"-";
 let U=null,PROFIL=null,NOM="",ELEVES=[];
 let refForum=null,refMp=null,refIdx=null,mpEleve=null;
+// après un rechargement : conversation privée qui était ouverte
+let MEM=null;
+try{
+  const typeNav=((performance.getEntriesByType("navigation")[0])||{}).type;
+  if(typeNav==="reload"||typeNav==="back_forward")MEM=JSON.parse(sessionStorage.getItem("cf_mp_ouvert")||"null");
+}catch(e){}
 
 $("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
 
@@ -168,9 +191,12 @@ auth.onAuthStateChanged(function(u){
     }
     PROFIL=p;NOM=((p.prenom||"")+" "+(p.nom||"")).trim()||"Enseignant";
     $("verif").classList.add("cache");$("contenu").classList.remove("cache");
-    $("bonjour").textContent="Bonjour "+NOM;
+    const dr=p.droits||{};
+    const tuile=(g,pt)=>'<div class="stat"><b>'+g+'</b><small>'+pt+'</small></div>';
+    $("stats-prof").innerHTML=tuile(mesMatieres().length,"matière(s)")+tuile(mesClasses().length,"classe(s)")+tuile(dr.modifier===true?"Autorisée":"Verrouillée","Modifier un contenu")+tuile(dr.supprimer===true?"Autorisée":"Verrouillée","Supprimer un contenu");
+    $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.";
     $("matieres").innerHTML=pills(p.matieres);$("classes").innerHTML=pills(p.classes);
-    initEleves();initEchanges();
+    initEleves();initEchanges();initCoefficients();
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
 
@@ -206,6 +232,59 @@ function afficherEleves(){
     const wa=tel?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+tel+'?text='+encodeURIComponent("Bonjour "+(e.prenom||"")+", c'est "+NOM+" de Campus Flex.")+'">WhatsApp</a>':"";
     return '<div class="eleve"><div><b>'+esc((e.nom||"").toUpperCase())+" "+esc(e.prenom||"")+'</b><small>'+esc(e.telephoneInternational||e.telephone||"pas de téléphone")+" · inscrit le "+fmtJour(e.dateInscription)+" · "+(Number(e.points)||0)+' pts</small></div>'+wa+'</div>';
   }).join("")||'<p>Aucun élève à afficher.</p>';
+}
+
+/* ------------------------------ Coefficients proposés ------------------------------ */
+const COLLEGE=["6e","5e","4e","3e"];
+const CLE_PAR_MATIERE={"Mathématiques":"maths","Français":"francais","Anglais":"anglais","Espagnol":"espagnol","Allemand":"allemand","PCT":"pct","SVT":"svt","Histoire-Géographie":"histoire-geo","Philosophie":"philosophie","EPS":"eps"};
+function initCoefficients(){
+  const zone=$("coef-liste");zone.innerHTML="";
+  const combos=[];
+  mesClasses().forEach(c=>mesMatieres().forEach(m=>{
+    if(!CLE_PAR_MATIERE[m])return;
+    combos.push({c:c,m:m,parties:(m==="Français"&&COLLEGE.indexOf(c)!==-1)?["lecture","communication-ecrite"]:["g"]});
+  }));
+  if(!combos.length){zone.innerHTML="<p>Aucune classe ou matière attribuée.</p>";return;}
+  Promise.all([db.ref("coefficients").once("value")].concat(combos.map(k=>db.ref("coefficients_propositions/"+k.c+"/"+k.m+"/"+U.uid).once("value")))).then(function(r){
+    const off=r[0].val()||{};
+    combos.forEach((k,i)=>{k.prop=r[i+1].val()||{};zone.appendChild(blocCoef(k,off));});
+  }).catch(e=>{$("coef-msg").textContent="Lecture impossible : "+e.message;});
+}
+function blocCoef(k,off){
+  const div=document.createElement("div");div.className="coefl";
+  const t=document.createElement("b");t.textContent=k.c+" - "+k.m;div.appendChild(t);
+  const champs=document.createElement("div");champs.className="champs";div.appendChild(champs);
+  const inputs={};
+  k.parties.forEach(p=>{
+    const cle=p==="g"?CLE_PAR_MATIERE[k.m]:p;
+    const lab=document.createElement("label");
+    lab.appendChild(document.createTextNode(p==="lecture"?"Lecture":p==="communication-ecrite"?"Communication écrite":"Coefficient"));
+    const inp=document.createElement("input");inp.type="number";inp.min="0";inp.max="10";inp.step="0.5";inp.inputMode="decimal";
+    if(typeof k.prop[p]==="number")inp.value=String(k.prop[p]);
+    inputs[p]=inp;lab.appendChild(inp);
+    const o=off[k.c]&&off[k.c][cle];
+    const pt=document.createElement("small");pt.textContent="Officiel : "+(typeof o==="number"?o:"non défini");lab.appendChild(pt);
+    champs.appendChild(lab);
+  });
+  const btn=document.createElement("button");btn.textContent="Envoyer";champs.appendChild(btn);
+  const etat=document.createElement("small");div.appendChild(etat);
+  if(Object.keys(k.prop).some(x=>typeof k.prop[x]==="number"))etat.textContent="Proposition déjà envoyée"+(k.prop.date?" le "+fmtJour(k.prop.date):"")+".";
+  btn.addEventListener("click",function(){
+    const vals={};let erreur=false;
+    k.parties.forEach(p=>{
+      const t=inputs[p].value.trim().replace(",",".");
+      if(t==="")return;
+      const n=Number(t);
+      if(isNaN(n)||n<0||n>10){erreur=true;return;}
+      vals[p]=n;
+    });
+    if(erreur){etat.textContent="Le coefficient doit être un nombre entre 0 et 10.";return;}
+    const ref=db.ref("coefficients_propositions/"+k.c+"/"+k.m+"/"+U.uid);
+    const action=Object.keys(vals).length?ref.set(Object.assign(vals,{nom:NOM,date:Date.now()})):ref.remove();
+    etat.textContent="Envoi...";
+    action.then(()=>{etat.textContent=Object.keys(vals).length?"Proposition envoyée à l'administrateur.":"Proposition retirée.";}).catch(e=>{etat.textContent="Envoi impossible : "+e.message;});
+  });
+  return div;
 }
 
 /* ------------------------------ Échanges ------------------------------ */
@@ -283,9 +362,11 @@ function rendreThreads(snap){
     d.addEventListener("click",()=>ouvrirFil(it.uid,it.v.nomEleve));
     $("mp-liste").appendChild(d);
   });
+  if(MEM){const x=cm();if(x.c===MEM.c&&x.m===MEM.m){const t=MEM;MEM=null;onglet("prive");ouvrirFil(t.uid,t.nom);}}
 }
 function ouvrirFil(uid,nom){
   const x=cm();mpEleve=uid;
+  try{sessionStorage.setItem("cf_mp_ouvert",JSON.stringify({c:x.c,m:x.m,uid:uid,nom:nom||""}));}catch(e){}
   $("mp-liste").classList.add("cache");$("mp-zone").classList.remove("cache");$("mp-titre").textContent="Conversation avec "+(nom||"l'élève");
   if(refMp)refMp.off();
   refMp=db.ref("messages_prives/"+x.c+"/"+x.m+"/"+uid).orderByChild("date").limitToLast(200);
@@ -294,6 +375,7 @@ function ouvrirFil(uid,nom){
 }
 function fermerFil(){
   if(refMp){refMp.off();refMp=null;}mpEleve=null;
+  try{sessionStorage.removeItem("cf_mp_ouvert");}catch(e){}
   $("mp-zone").classList.add("cache");$("mp-liste").classList.remove("cache");
 }
 function envoyerPrive(e){
