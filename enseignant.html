@@ -66,6 +66,18 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .coefl small{color:#666}
 .outils a.actif{outline:3px solid var(--amber)}
 .outils a .pastille{margin-left:6px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:14px}
+.stat-box{background:#f8f9ff;padding:16px;border-radius:10px;border-left:4px solid var(--indigo)}
+.stat-box h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.stat-box .valeur{font-size:28px;font-weight:bold;color:var(--indigo)}
+.stat-box .valeur.petit{font-size:20px}
+.stat-box .sous-texte{font-size:13px;color:#888;margin-top:6px}
+.actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:14px}
+.btn-action{display:block;padding:16px;background:var(--indigo);color:#fff;text-align:center;text-decoration:none;border-radius:10px;font-size:15px;font-weight:bold;transition:all .2s}
+.btn-action:hover{background:#1e2c66;transform:translateY(-2px)}
+.btn-action.actif{outline:3px solid var(--amber)}
+.btn-action .pastille{margin-left:6px}
+@media(max-width:600px){.stat-grid,.actions-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -77,22 +89,31 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
   <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
   <div id="contenu" class="cache">
     <section class="card">
-      <h2>Mon espace</h2>
-      <div class="stats" id="stats-prof"></div>
-      <p class="note" id="droits-prof"></p>
+      <h2>Statistiques</h2>
+      <p>Vue d'ensemble de ton espace enseignant.</p>
+      <div class="stat-grid">
+        <div class="stat-box"><h3>Mes matières</h3><div class="valeur" id="stat-matieres">–</div><div class="sous-texte" id="stat-matieres-detail">Chargement...</div></div>
+        <div class="stat-box"><h3>Mes classes</h3><div class="valeur" id="stat-classes">–</div><div class="sous-texte" id="stat-classes-detail">Chargement...</div></div>
+        <div class="stat-box"><h3>Mes élèves</h3><div class="valeur" id="stat-eleves">–</div><div class="sous-texte" id="stat-eleves-detail">Chargement...</div></div>
+        <div class="stat-box"><h3>Modifier un contenu</h3><div class="valeur petit" id="stat-modifier">–</div><div class="sous-texte">Cours, vidéos, devoirs, épreuves</div></div>
+        <div class="stat-box"><h3>Supprimer un contenu</h3><div class="valeur petit" id="stat-supprimer">–</div><div class="sous-texte">Cours, vidéos, devoirs, épreuves</div></div>
+      </div>
+      <p class="note" id="droits-prof" style="margin-top:12px"></p>
     </section>
 
     <section class="card">
-      <h2>Mes outils</h2>
-      <div class="outils">
-        <a href="admin-cours.html">Cours</a>
-        <a href="admin-videos.html">Vidéos</a>
-        <a href="admin-devoirs.html">Devoirs</a>
-        <a href="admin-evaluations.html">Évaluations</a>
-        <a href="saisie-notes.html">Notes</a>
-        <a href="emploi-enseignant.html">Mon emploi du temps</a>
-        <a href="#" id="outil-echanges" data-panneau="panneau-echanges">Échanges <span id="outil-pastille" class="pastille cache">0</span></a>
-        <a href="#" id="outil-coefficients" data-panneau="panneau-coefficients">Coefficients</a>
+      <h2>Actions rapides</h2>
+      <p>Accède rapidement aux différentes sections de ton espace.</p>
+      <div class="actions-grid">
+        <a href="#" class="btn-action" data-panneau="panneau-eleves">Mes élèves</a>
+        <a href="admin-cours.html" class="btn-action">Gestion des cours</a>
+        <a href="admin-videos.html" class="btn-action">Gestion des vidéos</a>
+        <a href="admin-evaluations.html" class="btn-action">Évaluations</a>
+        <a href="admin-devoirs.html" class="btn-action">Devoirs</a>
+        <a href="#" class="btn-action" data-panneau="panneau-coefficients">Coefficients</a>
+        <a href="saisie-notes.html" class="btn-action">Notes</a>
+        <a href="emploi-enseignant.html" class="btn-action">Mon emploi du temps</a>
+        <a href="#" class="btn-action" id="outil-echanges" data-panneau="panneau-echanges">Échanges <span id="outil-pastille" class="pastille cache">0</span></a>
       </div>
     </section>
 
@@ -139,7 +160,7 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
       <p id="ex-msg" class="erreur"></p>
     </section>
 
-    <section class="card">
+    <section class="card cache" id="panneau-eleves">
       <h2>Mes élèves</h2>
       <p>Les élèves inscrits dans les classes qui t'ont été attribuées.</p>
       <div class="ligne">
@@ -150,14 +171,6 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
       <div id="ev-liste"></div>
     </section>
 
-    <section class="card">
-      <h2>Mes matières</h2>
-      <div class="pills" id="matieres"></div>
-    </section>
-    <section class="card">
-      <h2>Mes classes</h2>
-      <div class="pills" id="classes"></div>
-    </section>
   </div>
 </main>
 <script>
@@ -196,10 +209,13 @@ auth.onAuthStateChanged(function(u){
     PROFIL=p;NOM=((p.prenom||"")+" "+(p.nom||"")).trim()||"Enseignant";
     $("verif").classList.add("cache");$("contenu").classList.remove("cache");
     const dr=p.droits||{};
-    const tuile=(g,pt)=>'<div class="stat"><b>'+g+'</b><small>'+pt+'</small></div>';
-    $("stats-prof").innerHTML=tuile(mesMatieres().length,"matière(s)")+tuile(mesClasses().length,"classe(s)")+tuile(dr.modifier===true?"Autorisée":"Verrouillée","Modifier un contenu")+tuile(dr.supprimer===true?"Autorisée":"Verrouillée","Supprimer un contenu");
+    const noms=o=>Object.keys(o||{}).filter(k=>o[k]===true);
+    $("stat-matieres").textContent=noms(p.matieres).length;$("stat-matieres-detail").textContent=noms(p.matieres).join(", ")||"Aucune pour le moment";
+    $("stat-classes").textContent=noms(p.classes).length;$("stat-classes-detail").textContent=noms(p.classes).join(", ")||"Aucune pour le moment";
+    $("stat-modifier").textContent=dr.modifier===true?"Autorisée":"Verrouillée";
+    $("stat-supprimer").textContent=dr.supprimer===true?"Autorisée":"Verrouillée";
+    statsEleves();
     $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.";
-    $("matieres").innerHTML=pills(p.matieres);$("classes").innerHTML=pills(p.classes);
     initEleves();initEchanges();initCoefficients();restaurerPanneau();
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
@@ -207,6 +223,17 @@ auth.onAuthStateChanged(function(u){
 const mesClasses=()=>Object.keys((PROFIL&&PROFIL.classes)||{}).filter(k=>PROFIL.classes[k]===true);
 const mesMatieres=()=>Object.keys((PROFIL&&PROFIL.matieres)||{}).filter(k=>PROFIL.matieres[k]===true);
 const options=(arr)=>arr.length?arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(""):'<option value="">(aucune)</option>';
+
+/* ------------------------------ Statistiques : nombre d'élèves ------------------------------ */
+function statsEleves(){
+  const cl=mesClasses();
+  if(!cl.length){$("stat-eleves").textContent="0";$("stat-eleves-detail").textContent="Aucune classe attribuée";return;}
+  Promise.all(cl.map(c=>db.ref("eleves").orderByChild("classe").equalTo(c).once("value"))).then(function(rs){
+    let n=0;const det=[];
+    rs.forEach((sn,i)=>{const k=sn.numChildren();n+=k;det.push(cl[i]+" : "+k);});
+    $("stat-eleves").textContent=n;$("stat-eleves-detail").textContent=det.join(" · ");
+  }).catch(function(){$("stat-eleves").textContent="–";$("stat-eleves-detail").textContent="Indisponible";});
+}
 
 /* ------------------------------ Mes élèves ------------------------------ */
 function initEleves(){
@@ -239,7 +266,7 @@ function afficherEleves(){
 }
 
 /* ------------------------------ Panneaux ouverts par les outils ------------------------------ */
-const PANNEAUX=["panneau-echanges","panneau-coefficients"];
+const PANNEAUX=["panneau-eleves","panneau-echanges","panneau-coefficients"];
 function basculer(id,forcer,sansDefilement){
   const ouvert=!$(id).classList.contains("cache");
   const afficher=forcer!==undefined?forcer:!ouvert;
