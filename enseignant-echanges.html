@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Échanges avec mes élèves - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="suivi-visite.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--muted:#666;--ok:#1e8449}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:#333}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:10}
+nav h1{color:#fff;font-size:20px}
+nav .liens{display:flex;gap:16px;flex-wrap:wrap}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:900px;margin:24px auto;padding:0 14px}
+.card{background:#fff;padding:20px 16px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:19px;margin-bottom:10px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pill{background:#e3e7f6;color:var(--indigo);padding:6px 12px;border-radius:14px;font-size:14px;font-weight:bold}
+p{color:var(--muted);line-height:1.5;font-size:15px}
+.erreur{color:#c0392b}
+.loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+.cache{display:none}
+.outils{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px}
+.outils a{display:block;padding:14px;background:var(--indigo);color:#fff;text-align:center;text-decoration:none;border-radius:10px;font-weight:bold;font-size:15px}
+.ligne{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+select,input[type=text],textarea{font:inherit;font-size:15px;padding:10px;border:1px solid #cfd6f0;border-radius:10px;background:#fff;color:#333}
+select,input[type=text]{flex:1;min-width:140px}
+textarea{width:100%;min-height:70px;resize:vertical}
+button{font:inherit;font-size:15px;font-weight:bold;border:0;border-radius:10px;padding:10px 16px;cursor:pointer;background:var(--indigo);color:#fff}
+button.sec{background:#e3e7f6;color:var(--indigo)}
+.eleve{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef0fa}
+.eleve small{color:var(--muted)}
+.eleve a.wa{background:#25a244;color:#fff;text-decoration:none;font-size:13px;font-weight:bold;padding:8px 12px;border-radius:10px;white-space:nowrap}
+.tabs{display:flex;gap:8px;margin:12px 0}
+.tabs button{flex:1;background:#e3e7f6;color:var(--indigo)}
+.tabs button.on{background:var(--indigo);color:#fff}
+.fil{background:#f5f7ff;border-radius:12px;padding:10px;max-height:420px;overflow-y:auto;margin:10px 0}
+.msg{max-width:85%;margin:8px 0;padding:8px 12px;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.msg.moi{margin-left:auto;background:#dfe6ff}
+.msg .qui{font-size:12px;font-weight:bold;color:var(--indigo)}
+.msg .badge{font-size:11px;background:var(--amber);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
+.msg .texte{white-space:pre-wrap;word-wrap:break-word;font-size:15px;margin-top:2px}
+.msg .date{font-size:11px;color:#888;margin-top:2px}
+.msg .sup{float:right;background:none;color:#c0392b;padding:0 4px;font-size:14px}
+.fil-vide{color:#888;font-size:14px;text-align:center;padding:14px}
+.thread{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid #e3e7f6;border-radius:10px;margin-bottom:8px;cursor:pointer;background:#fff}
+.thread.nonlu{border-color:var(--amber);background:#fff8ea}
+.thread small{color:var(--muted);display:block}
+.pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
+.note{font-size:13px;color:#888;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
+.stat{background:#f5f7ff;border-left:4px solid var(--indigo,#2c3e8c);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:18px;color:var(--indigo,#2c3e8c)}
+.stat small{color:#666}
+.coefl{border:1px solid #dde3f5;border-radius:10px;padding:10px 12px;margin-top:10px}
+.coefl .champs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:6px}
+.coefl label{font-size:13px;color:#555;display:flex;flex-direction:column;gap:3px}
+.coefl input{width:90px;padding:7px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+.coefl small{color:#666}
+.outils a.actif{outline:3px solid var(--amber)}
+.outils a .pastille{margin-left:6px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:14px}
+.stat-box{background:#f8f9ff;padding:16px;border-radius:10px;border-left:4px solid var(--indigo)}
+.stat-box h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.stat-box .valeur{font-size:28px;font-weight:bold;color:var(--indigo)}
+.stat-box .valeur.petit{font-size:20px}
+.stat-box .sous-texte{font-size:13px;color:#888;margin-top:6px}
+.actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:14px}
+.btn-action{display:block;padding:16px;background:var(--indigo);color:#fff;text-align:center;text-decoration:none;border-radius:10px;font-size:15px;font-weight:bold;transition:all .2s}
+.btn-action:hover{background:#1e2c66;transform:translateY(-2px)}
+.btn-action.actif{outline:3px solid var(--amber)}
+.btn-action .pastille{margin-left:6px}
+@media(max-width:600px){.stat-grid,.actions-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Échanges avec mes élèves</h1>
+  <div class="liens"><a href="enseignant.html">Mon espace</a><a href="index.html">Accueil</a><a href="#" id="lien-admin" class="cache">Administration</a><a href="#" id="deconnexion">Déconnexion</a></div>
+</nav>
+<main>
+  <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
+  <div id="contenu" class="cache">
+    <p style="margin-bottom:14px"><a href="enseignant.html" style="color:var(--indigo);font-weight:bold;text-decoration:none">← Retour à mon espace</a></p>
+    <section class="card" id="page-echanges">
+      <h2>Échanges avec mes élèves</h2>
+      <p>Choisis une classe et une matière. Les élèves de cette classe voient la discussion et peuvent t'écrire en privé.</p>
+      <div class="ligne">
+        <select id="ex-classe"></select>
+        <select id="ex-matiere"></select>
+      </div>
+      <div class="tabs">
+        <button id="tab-forum" class="on">Discussion de classe</button>
+        <button id="tab-prive">Messages privés <span id="pastille-nonlus" class="pastille cache">0</span></button>
+      </div>
+
+      <div id="vue-forum">
+        <div class="fil" id="forum-fil"></div>
+        <form id="forum-form">
+          <textarea id="forum-texte" maxlength="1000" placeholder="Écris un message à toute la classe (annonce, consigne, réponse à une question)..."></textarea>
+          <div class="ligne"><button type="submit">Publier</button></div>
+        </form>
+        <p class="note">Tu peux supprimer un message avec la croix ✕.</p>
+      </div>
+
+      <div id="vue-prive" class="cache">
+        <div id="mp-liste"></div>
+        <div id="mp-zone" class="cache">
+          <button class="sec" id="mp-retour">← Retour aux conversations</button>
+          <h3 id="mp-titre" style="margin-top:10px;color:var(--indigo);font-size:17px"></h3>
+          <div class="fil" id="mp-fil"></div>
+          <form id="mp-form">
+            <textarea id="mp-texte" maxlength="1000" placeholder="Ta réponse à l'élève..."></textarea>
+            <div class="ligne"><button type="submit">Envoyer</button></div>
+          </form>
+        </div>
+      </div>
+      <p id="ex-msg" class="erreur"></p>
+    </section>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+const fmtJour=t=>t?new Date(t).toLocaleDateString("fr-FR"):"-";
+let U=null,PROFIL=null,NOM="";
+let refForum=null,refMp=null,refIdx=null,mpEleve=null;
+// après un rechargement : conversation privée qui était ouverte
+let MEM=null;
+try{
+  const typeNav=((performance.getEntriesByType("navigation")[0])||{}).type;
+  if(typeNav==="reload"||typeNav==="back_forward")MEM=JSON.parse(sessionStorage.getItem("cf_mp_ouvert")||"null");
+}catch(e){}
+
+$("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
+
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  U=u;
+  db.ref("administrateurs/"+u.uid).once("value").then(function(a){
+    if(a.exists()){$("lien-admin").classList.remove("cache");$("lien-admin").href="admin.html";}
+  }).catch(()=>{});
+  db.ref("enseignants/"+u.uid).once("value").then(function(s){
+    const p=s.val();
+    if(!p||p.statut!=="actif"){
+      $("verif-msg").innerHTML=p?"Ton compte enseignant n'est pas actif.":"Ce compte n'est pas un compte enseignant. Si tu es administrateur, utilise le lien « Administration » en haut.";
+      $("verif-msg").className="erreur";
+      return;
+    }
+    PROFIL=p;NOM=((p.prenom||"")+" "+(p.nom||"")).trim()||"Enseignant";
+    $("verif").classList.add("cache");$("contenu").classList.remove("cache");
+    demarrer();
+  }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
+});
+
+const mesClasses=()=>Object.keys((PROFIL&&PROFIL.classes)||{}).filter(k=>PROFIL.classes[k]===true);
+const mesMatieres=()=>Object.keys((PROFIL&&PROFIL.matieres)||{}).filter(k=>PROFIL.matieres[k]===true);
+const options=(arr)=>arr.length?arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(""):'<option value="">(aucune)</option>';
+
+function demarrer(){initEchanges();}
+
+/* ------------------------------ Échanges ------------------------------ */
+function initEchanges(){
+  $("ex-classe").innerHTML=options(mesClasses());$("ex-matiere").innerHTML=options(mesMatieres());
+  $("ex-classe").addEventListener("change",ouvrirEchanges);$("ex-matiere").addEventListener("change",ouvrirEchanges);
+  $("tab-forum").addEventListener("click",()=>onglet("forum"));$("tab-prive").addEventListener("click",()=>onglet("prive"));
+  $("forum-form").addEventListener("submit",envoyerForum);
+  $("mp-form").addEventListener("submit",envoyerPrive);
+  $("mp-retour").addEventListener("click",fermerFil);
+  ouvrirEchanges();
+}
+function onglet(n){
+  $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
+  $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
+}
+const cm=()=>({c:$("ex-classe").value,m:$("ex-matiere").value});
+function detacher(){
+  if(refForum){refForum.off();refForum=null;}
+  if(refIdx){refIdx.off();refIdx=null;}
+  fermerFil();
+}
+function ouvrirEchanges(){
+  detacher();$("ex-msg").textContent="";
+  const x=cm();
+  if(!x.c||!x.m){$("forum-fil").innerHTML='<div class="fil-vide">Choisis une classe et une matière.</div>';$("mp-liste").innerHTML="";return;}
+  refForum=db.ref("forum/"+x.c+"/"+x.m).orderByChild("date").limitToLast(200);
+  refForum.on("value",function(s){rendreFil($("forum-fil"),s,"forum");},function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  refIdx=db.ref("mp_index/"+x.c+"/"+x.m);
+  refIdx.on("value",rendreThreads,function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+}
+function rendreFil(zone,snap,type){
+  const items=[];snap.forEach(ch=>{items.push({id:ch.key,v:ch.val()});});
+  items.sort((a,b)=>(a.v.date||0)-(b.v.date||0));
+  zone.innerHTML="";
+  if(!items.length){zone.innerHTML='<div class="fil-vide">Aucun message pour le moment.</div>';return;}
+  items.forEach(function(it){
+    const m=it.v,moi=m.auteurUid===U.uid;
+    const d=document.createElement("div");d.className="msg"+(moi?" moi":"");
+    const q=document.createElement("div");q.className="qui";q.textContent=m.auteurNom||"";
+    if(m.role==="enseignant"){const b=document.createElement("span");b.className="badge";b.textContent="Enseignant";q.appendChild(b);}
+    const sup=document.createElement("button");sup.className="sup";sup.title="Supprimer";sup.textContent="✕";
+    sup.addEventListener("click",function(){
+      if(!confirm("Supprimer ce message ?"))return;
+      const x=cm();
+      const ref=type==="forum"?db.ref("forum/"+x.c+"/"+x.m+"/"+it.id):db.ref("messages_prives/"+x.c+"/"+x.m+"/"+mpEleve+"/"+it.id);
+      ref.remove().catch(e=>{$("ex-msg").textContent="Suppression impossible : "+e.message;});
+    });
+    q.appendChild(sup);
+    const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
+    const dt=document.createElement("div");dt.className="date";dt.textContent=fmtDate(m.date);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
+  });
+  zone.scrollTop=zone.scrollHeight;
+}
+function envoyerForum(e){
+  e.preventDefault();const x=cm(),t=$("forum-texte").value.trim();
+  if(!t||!x.c||!x.m)return;
+  db.ref("forum/"+x.c+"/"+x.m).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:Date.now()})
+    .then(()=>{$("forum-texte").value="";}).catch(er=>{$("ex-msg").textContent="Envoi impossible : "+er.message;});
+}
+function rendreThreads(snap){
+  const l=[];let nonlus=0;
+  snap.forEach(ch=>{const v=ch.val();l.push({uid:ch.key,v:v});if(v.luEns===false)nonlus++;});
+  l.sort((a,b)=>(b.v.date||0)-(a.v.date||0));
+  const p=$("pastille-nonlus");p.textContent=nonlus;p.classList.toggle("cache",!nonlus);
+  const po=$("outil-pastille");if(po){po.textContent=nonlus;po.classList.toggle("cache",!nonlus);}
+  $("mp-liste").innerHTML=l.length?"":'<p>Aucun élève ne t\'a encore écrit en privé dans cette matière.</p>';
+  l.forEach(function(it){
+    const d=document.createElement("div");d.className="thread"+(it.v.luEns===false?" nonlu":"");
+    const g=document.createElement("div");
+    const n=document.createElement("b");n.textContent=it.v.nomEleve||"Élève";
+    const s=document.createElement("small");s.textContent=(it.v.dernierAuteur==="enseignant"?"Toi : ":"")+(it.v.dernierTexte||"")+" · "+fmtDate(it.v.date);
+    g.appendChild(n);g.appendChild(s);d.appendChild(g);
+    if(it.v.luEns===false){const b=document.createElement("span");b.className="pastille";b.textContent="Nouveau";d.appendChild(b);}
+    d.addEventListener("click",()=>ouvrirFil(it.uid,it.v.nomEleve));
+    $("mp-liste").appendChild(d);
+  });
+  if(MEM){const x=cm();if(x.c===MEM.c&&x.m===MEM.m){const t=MEM;MEM=null;onglet("prive");ouvrirFil(t.uid,t.nom);}}
+}
+function ouvrirFil(uid,nom){
+  const x=cm();mpEleve=uid;
+  try{sessionStorage.setItem("cf_mp_ouvert",JSON.stringify({c:x.c,m:x.m,uid:uid,nom:nom||""}));}catch(e){}
+  $("mp-liste").classList.add("cache");$("mp-zone").classList.remove("cache");$("mp-titre").textContent="Conversation avec "+(nom||"l'élève");
+  if(refMp)refMp.off();
+  refMp=db.ref("messages_prives/"+x.c+"/"+x.m+"/"+uid).orderByChild("date").limitToLast(200);
+  refMp.on("value",s=>rendreFil($("mp-fil"),s,"prive"),e=>{$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  db.ref("mp_index/"+x.c+"/"+x.m+"/"+uid).update({luEns:true}).catch(()=>{});
+}
+function fermerFil(){
+  if(refMp){refMp.off();refMp=null;}mpEleve=null;
+  try{sessionStorage.removeItem("cf_mp_ouvert");}catch(e){}
+  $("mp-zone").classList.add("cache");$("mp-liste").classList.remove("cache");
+}
+function envoyerPrive(e){
+  e.preventDefault();const x=cm(),t=$("mp-texte").value.trim();
+  if(!t||!mpEleve)return;
+  const now=Date.now();
+  db.ref("messages_prives/"+x.c+"/"+x.m+"/"+mpEleve).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:now}).then(function(){
+    $("mp-texte").value="";
+    return db.ref("mp_index/"+x.c+"/"+x.m+"/"+mpEleve).update({dernierAuteur:"enseignant",dernierTexte:t.slice(0,160),date:now,luEns:true,luEleve:false});
+  }).catch(er=>{$("ex-msg").textContent="Envoi impossible : "+er.message;});
+}
+</script>
+</body>
+</html>

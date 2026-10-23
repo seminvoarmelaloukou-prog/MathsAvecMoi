@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes élèves - Campus Flex</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="suivi-visite.js"></script>
+<style>
+:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--muted:#666;--ok:#1e8449}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:#333}
+nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:10}
+nav h1{color:#fff;font-size:20px}
+nav .liens{display:flex;gap:16px;flex-wrap:wrap}
+nav a{color:#fff;text-decoration:none;font-size:14px}
+main{max-width:900px;margin:24px auto;padding:0 14px}
+.card{background:#fff;padding:20px 16px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{color:var(--indigo);font-size:19px;margin-bottom:10px}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.pill{background:#e3e7f6;color:var(--indigo);padding:6px 12px;border-radius:14px;font-size:14px;font-weight:bold}
+p{color:var(--muted);line-height:1.5;font-size:15px}
+.erreur{color:#c0392b}
+.loader{width:30px;height:30px;border:3px solid #e3e7f6;border-top-color:var(--amber);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+.cache{display:none}
+.outils{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px}
+.outils a{display:block;padding:14px;background:var(--indigo);color:#fff;text-align:center;text-decoration:none;border-radius:10px;font-weight:bold;font-size:15px}
+.ligne{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+select,input[type=text],textarea{font:inherit;font-size:15px;padding:10px;border:1px solid #cfd6f0;border-radius:10px;background:#fff;color:#333}
+select,input[type=text]{flex:1;min-width:140px}
+textarea{width:100%;min-height:70px;resize:vertical}
+button{font:inherit;font-size:15px;font-weight:bold;border:0;border-radius:10px;padding:10px 16px;cursor:pointer;background:var(--indigo);color:#fff}
+button.sec{background:#e3e7f6;color:var(--indigo)}
+.eleve{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef0fa}
+.eleve small{color:var(--muted)}
+.eleve a.wa{background:#25a244;color:#fff;text-decoration:none;font-size:13px;font-weight:bold;padding:8px 12px;border-radius:10px;white-space:nowrap}
+.tabs{display:flex;gap:8px;margin:12px 0}
+.tabs button{flex:1;background:#e3e7f6;color:var(--indigo)}
+.tabs button.on{background:var(--indigo);color:#fff}
+.fil{background:#f5f7ff;border-radius:12px;padding:10px;max-height:420px;overflow-y:auto;margin:10px 0}
+.msg{max-width:85%;margin:8px 0;padding:8px 12px;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.msg.moi{margin-left:auto;background:#dfe6ff}
+.msg .qui{font-size:12px;font-weight:bold;color:var(--indigo)}
+.msg .badge{font-size:11px;background:var(--amber);color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px}
+.msg .texte{white-space:pre-wrap;word-wrap:break-word;font-size:15px;margin-top:2px}
+.msg .date{font-size:11px;color:#888;margin-top:2px}
+.msg .sup{float:right;background:none;color:#c0392b;padding:0 4px;font-size:14px}
+.fil-vide{color:#888;font-size:14px;text-align:center;padding:14px}
+.thread{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid #e3e7f6;border-radius:10px;margin-bottom:8px;cursor:pointer;background:#fff}
+.thread.nonlu{border-color:var(--amber);background:#fff8ea}
+.thread small{color:var(--muted);display:block}
+.pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
+.note{font-size:13px;color:#888;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
+.stat{background:#f5f7ff;border-left:4px solid var(--indigo,#2c3e8c);border-radius:8px;padding:10px 12px}
+.stat b{display:block;font-size:18px;color:var(--indigo,#2c3e8c)}
+.stat small{color:#666}
+.coefl{border:1px solid #dde3f5;border-radius:10px;padding:10px 12px;margin-top:10px}
+.coefl .champs{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:6px}
+.coefl label{font-size:13px;color:#555;display:flex;flex-direction:column;gap:3px}
+.coefl input{width:90px;padding:7px;border:1px solid #ccc;border-radius:8px;font-size:15px}
+.coefl small{color:#666}
+.outils a.actif{outline:3px solid var(--amber)}
+.outils a .pastille{margin-left:6px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:14px}
+.stat-box{background:#f8f9ff;padding:16px;border-radius:10px;border-left:4px solid var(--indigo)}
+.stat-box h3{font-size:14px;color:var(--muted);margin-bottom:8px}
+.stat-box .valeur{font-size:28px;font-weight:bold;color:var(--indigo)}
+.stat-box .valeur.petit{font-size:20px}
+.stat-box .sous-texte{font-size:13px;color:#888;margin-top:6px}
+.actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-top:14px}
+.btn-action{display:block;padding:16px;background:var(--indigo);color:#fff;text-align:center;text-decoration:none;border-radius:10px;font-size:15px;font-weight:bold;transition:all .2s}
+.btn-action:hover{background:#1e2c66;transform:translateY(-2px)}
+.btn-action.actif{outline:3px solid var(--amber)}
+.btn-action .pastille{margin-left:6px}
+@media(max-width:600px){.stat-grid,.actions-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <h1>Mes élèves</h1>
+  <div class="liens"><a href="enseignant.html">Mon espace</a><a href="index.html">Accueil</a><a href="#" id="lien-admin" class="cache">Administration</a><a href="#" id="deconnexion">Déconnexion</a></div>
+</nav>
+<main>
+  <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
+  <div id="contenu" class="cache">
+    <p style="margin-bottom:14px"><a href="enseignant.html" style="color:var(--indigo);font-weight:bold;text-decoration:none">← Retour à mon espace</a></p>
+    <section class="card" id="page-eleves">
+      <h2>Mes élèves</h2>
+      <p>Les élèves inscrits dans les classes qui t'ont été attribuées.</p>
+      <div class="ligne">
+        <select id="ev-classe"></select>
+        <input type="text" id="ev-recherche" data-garder placeholder="Rechercher un élève">
+      </div>
+      <p id="ev-compte"></p>
+      <div id="ev-liste"></div>
+    </section>
+  </div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+const fmtJour=t=>t?new Date(t).toLocaleDateString("fr-FR"):"-";
+let U=null,PROFIL=null,NOM="";
+
+$("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
+
+auth.onAuthStateChanged(function(u){
+  if(!u){location.href="connexion.html";return;}
+  U=u;
+  db.ref("administrateurs/"+u.uid).once("value").then(function(a){
+    if(a.exists()){$("lien-admin").classList.remove("cache");$("lien-admin").href="admin.html";}
+  }).catch(()=>{});
+  db.ref("enseignants/"+u.uid).once("value").then(function(s){
+    const p=s.val();
+    if(!p||p.statut!=="actif"){
+      $("verif-msg").innerHTML=p?"Ton compte enseignant n'est pas actif.":"Ce compte n'est pas un compte enseignant. Si tu es administrateur, utilise le lien « Administration » en haut.";
+      $("verif-msg").className="erreur";
+      return;
+    }
+    PROFIL=p;NOM=((p.prenom||"")+" "+(p.nom||"")).trim()||"Enseignant";
+    $("verif").classList.add("cache");$("contenu").classList.remove("cache");
+    demarrer();
+  }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
+});
+
+const mesClasses=()=>Object.keys((PROFIL&&PROFIL.classes)||{}).filter(k=>PROFIL.classes[k]===true);
+const mesMatieres=()=>Object.keys((PROFIL&&PROFIL.matieres)||{}).filter(k=>PROFIL.matieres[k]===true);
+const options=(arr)=>arr.length?arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(""):'<option value="">(aucune)</option>';
+
+let ELEVES=[];
+function demarrer(){initEleves();}
+
+/* ------------------------------ Mes élèves ------------------------------ */
+function initEleves(){
+  $("ev-classe").innerHTML=options(mesClasses());
+  $("ev-classe").addEventListener("change",chargerEleves);
+  $("ev-recherche").addEventListener("input",afficherEleves);
+  chargerEleves();
+}
+function chargerEleves(){
+  const c=$("ev-classe").value;ELEVES=[];$("ev-liste").innerHTML="";
+  if(!c){$("ev-compte").textContent="Aucune classe ne t'est attribuée.";return;}
+  $("ev-compte").textContent="Chargement...";
+  db.ref("eleves").orderByChild("classe").equalTo(c).once("value").then(function(snap){
+    snap.forEach(function(ch){const e=ch.val()||{};e.uid=ch.key;ELEVES.push(e);});
+    ELEVES.sort((a,b)=>((a.nom||"")+(a.prenom||"")).localeCompare((b.nom||"")+(b.prenom||""),"fr"));
+    afficherEleves();
+  }).catch(function(e){
+    $("ev-compte").innerHTML='<span class="erreur">Impossible de charger les élèves ('+esc(e.message)+'). Vérifie que les nouvelles règles Firebase sont publiées.</span>';
+  });
+}
+function afficherEleves(){
+  const q=($("ev-recherche").value||"").trim().toLowerCase();
+  const l=ELEVES.filter(e=>!q||((e.nom||"")+" "+(e.prenom||"")).toLowerCase().includes(q));
+  $("ev-compte").textContent=ELEVES.length+" élève(s) inscrit(s) en "+$("ev-classe").value+(q?" — "+l.length+" résultat(s)":"");
+  $("ev-liste").innerHTML=l.map(function(e){
+    const tel=String(e.telephoneInternational||e.telephone||"").replace(/\D/g,"");
+    const wa=tel?'<a class="wa" target="_blank" rel="noopener" href="https://wa.me/'+tel+'?text='+encodeURIComponent("Bonjour "+(e.prenom||"")+", c'est "+NOM+" de Campus Flex.")+'">WhatsApp</a>':"";
+    return '<div class="eleve"><div><b>'+esc((e.nom||"").toUpperCase())+" "+esc(e.prenom||"")+'</b><small>'+esc(e.telephoneInternational||e.telephone||"pas de téléphone")+" · inscrit le "+fmtJour(e.dateInscription)+" · "+(Number(e.points)||0)+' pts</small></div>'+wa+'</div>';
+  }).join("")||'<p>Aucun élève à afficher.</p>';
+}
+
+</script>
+</body>
+</html>
