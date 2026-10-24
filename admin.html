@@ -204,21 +204,15 @@
         </div>
 
         <div class="stat-box">
-          <h3>Évaluations blanches</h3>
-          <div class="valeur" id="stat-blanches">–</div>
-          <div class="sous-texte" id="stat-blanches-detail">Chargement...</div>
+          <h3>Nombre de classes</h3>
+          <div class="valeur" id="stat-nombre-classes">–</div>
+          <div class="sous-texte" id="stat-nombre-classes-detail">Chargement...</div>
         </div>
 
         <div class="stat-box">
-          <h3>Évaluations officielles</h3>
-          <div class="valeur" id="stat-officielles">–</div>
-          <div class="sous-texte" id="stat-officielles-detail">Chargement...</div>
-        </div>
-
-        <div class="stat-box">
-          <h3>Points totaux</h3>
-          <div class="valeur" id="stat-points-totaux">–</div>
-          <div class="sous-texte" id="stat-points-totaux-detail">Chargement...</div>
+          <h3>Nombre d'enseignants</h3>
+          <div class="valeur" id="stat-nombre-enseignants">–</div>
+          <div class="sous-texte" id="stat-nombre-enseignants-detail">Chargement...</div>
         </div>
       </div>
     </section>
@@ -256,12 +250,10 @@
 
     const statNombreEleves = document.getElementById("stat-nombre-eleves");
     const statNombreElevesDetail = document.getElementById("stat-nombre-eleves-detail");
-    const statBlanches = document.getElementById("stat-blanches");
-    const statBlanchesDetail = document.getElementById("stat-blanches-detail");
-    const statOfficielles = document.getElementById("stat-officielles");
-    const statOfficiellesDetail = document.getElementById("stat-officielles-detail");
-    const statPointsTotaux = document.getElementById("stat-points-totaux");
-    const statPointsTotauxDetail = document.getElementById("stat-points-totaux-detail");
+    const statNombreClasses = document.getElementById("stat-nombre-classes");
+    const statNombreClassesDetail = document.getElementById("stat-nombre-classes-detail");
+    const statNombreEnseignants = document.getElementById("stat-nombre-enseignants");
+    const statNombreEnseignantsDetail = document.getElementById("stat-nombre-enseignants-detail");
 
     const lienDeconnexion = document.getElementById("lien-deconnexion");
 
@@ -306,74 +298,59 @@
         });
     }
 
-    function chargerStatistiques() {
-      statNombreEleves.textContent = "–";
-      statBlanches.textContent = "–";
-      statOfficielles.textContent = "–";
-      statPointsTotaux.textContent = "–";
+    // Nom de classe normalisé : « 2nde D », « Seconde D » et « 2de D » comptent pour une seule classe
+    const CLASSES_STD = ["6e", "5e", "4e", "3e", "2de AB", "2de C", "2de D", "2de E", "1re AB", "1re C", "1re D", "1re E", "Tle AB", "Tle C", "Tle D", "Tle E"];
+    function cleClasse(x) {
+      return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/terminale/g, "tle").replace(/premiere|1ere/g, "1re").replace(/seconde|2nde/g, "2de")
+        .replace(/[^a-z0-9]/g, "");
+    }
+    const CARTE_CLASSES = {};
+    CLASSES_STD.forEach(function(c) { CARTE_CLASSES[cleClasse(c)] = c; });
+    function nomClasse(x) { return CARTE_CLASSES[cleClasse(x)] || String(x || "").trim(); }
 
-      statNombreElevesDetail.textContent = "Chargement...";
-      statBlanchesDetail.textContent = "Chargement...";
-      statOfficiellesDetail.textContent = "Chargement...";
-      statPointsTotauxDetail.textContent = "Chargement...";
+    function chargerStatistiques() {
+      [statNombreEleves, statNombreClasses, statNombreEnseignants].forEach(function(e) { e.textContent = "–"; });
+      [statNombreElevesDetail, statNombreClassesDetail, statNombreEnseignantsDetail].forEach(function(e) { e.textContent = "Chargement..."; });
 
       Promise.all([
         db.ref("eleves").once("value"),
-        db.ref("evaluations_blanches/resultats").once("value"),
-        db.ref("evaluations/resultats").once("value")
+        db.ref("enseignants").once("value"),
+        db.ref("suspensions").once("value")
       ])
-      .then(function([snapEleves, snapBlanches, snapOfficielles]) {
-        let nombreEleves = 0;
-        let nombreClasses = new Set();
-        let pointsTotaux = 0;
+      .then(function(r) {
+        const suspendus = r[2].val() || {};
 
-        if (snapEleves && snapEleves.exists()) {
-          snapEleves.forEach(function(childSnap) {
-            nombreEleves++;
-            const eleve = childSnap.val();
-            if (eleve.classe) {
-              nombreClasses.add(eleve.classe);
-            }
-            pointsTotaux += (eleve.points || 0);
-          });
-        }
+        // élèves et classes (seules les classes qui ont au moins un élève sont comptées)
+        let nbEleves = 0, nbSuspendus = 0;
+        const parClasse = {};
+        r[0].forEach(function(ch) {
+          nbEleves++;
+          if (suspendus[ch.key]) nbSuspendus++;
+          const c = nomClasse((ch.val() || {}).classe);
+          if (c) parClasse[c] = (parClasse[c] || 0) + 1;
+        });
+        const classes = Object.keys(parClasse).sort(function(a, b) { return parClasse[b] - parClasse[a] || a.localeCompare(b); });
 
-        let nbBlanches = 0;
-        if (snapBlanches && snapBlanches.exists()) {
-          snapBlanches.forEach(function(uidSnap) {
-            uidSnap.forEach(function() {
-              nbBlanches++;
-            });
-          });
-        }
+        // enseignants actifs
+        let nbActifs = 0, nbAttente = 0;
+        r[1].forEach(function(ch) {
+          const st = (ch.val() || {}).statut;
+          if (st === "actif") nbActifs++; else if (st === "en_attente") nbAttente++;
+        });
 
-        let nbOfficielles = 0;
-        if (snapOfficielles && snapOfficielles.exists()) {
-          snapOfficielles.forEach(function(uidSnap) {
-            uidSnap.forEach(function() {
-              nbOfficielles++;
-            });
-          });
-        }
+        statNombreEleves.textContent = nbEleves;
+        statNombreElevesDetail.textContent = nbSuspendus ? (nbEleves - nbSuspendus) + " actif(s) · " + nbSuspendus + " suspendu(s)" : "Tous les comptes sont actifs";
 
-        statNombreEleves.textContent = nombreEleves;
-        statNombreElevesDetail.textContent = nombreClasses.size + " classe(s) différente(s)";
+        statNombreClasses.textContent = classes.length;
+        statNombreClassesDetail.textContent = classes.length ? classes.map(function(c) { return c + " (" + parClasse[c] + ")"; }).join(" · ") : "Aucun élève inscrit";
 
-        statBlanches.textContent = nbBlanches;
-        statBlanchesDetail.textContent = "Résultats enregistrés";
-
-        statOfficielles.textContent = nbOfficielles;
-        statOfficiellesDetail.textContent = "Résultats enregistrés";
-
-        statPointsTotaux.textContent = pointsTotaux;
-        statPointsTotauxDetail.textContent = "Points cumulés par tous les élèves";
+        statNombreEnseignants.textContent = nbActifs;
+        statNombreEnseignantsDetail.textContent = nbAttente ? nbAttente + " en attente de validation" : "Aucune demande en attente";
       })
       .catch(function(erreur) {
         console.error("Erreur chargement stats :", erreur);
-        statNombreElevesDetail.textContent = "Erreur de chargement";
-        statBlanchesDetail.textContent = "Erreur";
-        statOfficiellesDetail.textContent = "Erreur";
-        statPointsTotauxDetail.textContent = "Erreur";
+        [statNombreElevesDetail, statNombreClassesDetail, statNombreEnseignantsDetail].forEach(function(e) { e.textContent = "Erreur de chargement"; });
       });
     }
 
