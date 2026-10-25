@@ -177,9 +177,11 @@ function initEchanges(){
   $("mp-retour").addEventListener("click",fermerFil);
   ouvrirEchanges();
 }
+function vuForum(c,m){try{localStorage.setItem("cf_fvu_"+U.uid+"_"+c+"_"+m,String(Date.now()));}catch(e){}}
 function onglet(n){
   $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
   $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
+  if(n==="forum"){const x=cm();if(x.c&&x.m)vuForum(x.c,x.m);}
 }
 const cm=()=>({c:$("ex-classe").value,m:$("ex-matiere").value});
 function detacher(){
@@ -192,7 +194,7 @@ function ouvrirEchanges(){
   const x=cm();
   if(!x.c||!x.m){$("forum-fil").innerHTML='<div class="fil-vide">Choisis une classe et une matière.</div>';$("mp-liste").innerHTML="";return;}
   refForum=db.ref("forum/"+x.c+"/"+x.m).orderByChild("date").limitToLast(200);
-  refForum.on("value",function(s){rendreFil($("forum-fil"),s,"forum");},function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  refForum.on("value",function(s){rendreFil($("forum-fil"),s,"forum");if(!$("vue-forum").classList.contains("cache"))vuForum(x.c,x.m);},function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
   refIdx=db.ref("mp_index/"+x.c+"/"+x.m);
   refIdx.on("value",rendreThreads,function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
 }

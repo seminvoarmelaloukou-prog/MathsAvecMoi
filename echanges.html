@@ -116,8 +116,10 @@ auth.onAuthStateChanged(function(u){
 function onglet(n){
   $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
   $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
+  if(n==="forum")vuForum();
   if(n==="prive"&&IDX&&IDX.luEleve===false){db.ref("mp_index/"+E.classe+"/"+$("matiere").value+"/"+U.uid).update({luEleve:true}).catch(()=>{});$("pastille").classList.add("cache");}
 }
+function vuForum(){try{localStorage.setItem("cf_fvu_"+U.uid+"_"+E.classe+"_"+$("matiere").value,String(Date.now()));}catch(e){}}
 function rendre(zone,snap){
   const items=[];snap.forEach(ch=>{items.push(ch.val());});
   items.sort((a,b)=>(a.date||0)-(b.date||0));zone.innerHTML="";
@@ -131,6 +133,7 @@ function rendre(zone,snap){
     d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
   });
   zone.scrollTop=zone.scrollHeight;
+  if(zone.id==="forum-fil"&&!$("vue-forum").classList.contains("cache"))vuForum();
 }
 function ouvrir(){
   if(refF)refF.off();if(refP)refP.off();if(refI)refI.off();

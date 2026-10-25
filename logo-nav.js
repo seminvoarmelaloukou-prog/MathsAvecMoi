@@ -72,7 +72,16 @@
     } catch (x) {}
   }
 
+  function notif() {
+    try {
+      if (document.getElementById("cf-notif-script")) return;
+      var e = document.createElement("script"); e.id = "cf-notif-script"; e.src = base + "notif-echanges.js";
+      document.head.appendChild(e);
+    } catch (x) {}
+  }
+
   etat();
+  notif();
   favicon();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", logo);
   else logo();

@@ -113,7 +113,7 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         <a href="enseignant-coefficients.html" class="btn-action">Coefficients</a>
         <a href="saisie-notes.html" class="btn-action">Notes</a>
         <a href="emploi-enseignant.html" class="btn-action">Mon emploi du temps</a>
-        <a href="enseignant-echanges.html" class="btn-action" id="outil-echanges">Échanges <span id="outil-pastille" class="pastille cache">0</span></a>
+        <a href="enseignant-echanges.html" class="btn-action" id="outil-echanges">Échanges</a>
       </div>
     </section>
 
@@ -155,7 +155,6 @@ auth.onAuthStateChanged(function(u){
     $("stat-supprimer").textContent=dr.supprimer===true?"Autorisée":"Verrouillée";
     statsEleves();
     $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.";
-    badgeEchanges();
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
 
@@ -172,16 +171,6 @@ function statsEleves(){
     rs.forEach((sn,i)=>{const k=sn.numChildren();n+=k;det.push(cl[i]+" : "+k);});
     $("stat-eleves").textContent=n;$("stat-eleves-detail").textContent=det.join(" · ");
   }).catch(function(){$("stat-eleves").textContent="–";$("stat-eleves-detail").textContent="Indisponible";});
-}
-
-/* ------------------------------ Pastille des messages non lus ------------------------------ */
-function badgeEchanges(){
-  const combos=[];mesClasses().forEach(c=>mesMatieres().forEach(m=>combos.push([c,m])));
-  if(!combos.length)return;
-  Promise.all(combos.map(k=>db.ref("mp_index/"+k[0]+"/"+k[1]).once("value").catch(()=>null))).then(function(rs){
-    let n=0;rs.forEach(sn=>{if(sn)sn.forEach(ch=>{if((ch.val()||{}).luEns===false)n++;});});
-    const po=$("outil-pastille");po.textContent=n;po.classList.toggle("cache",!n);
-  });
 }
 </script>
 </body>
