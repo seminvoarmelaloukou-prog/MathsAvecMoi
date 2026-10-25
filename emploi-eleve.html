@@ -88,7 +88,7 @@ auth.onAuthStateChanged(function(u){
     const ids=Object.keys(classes).filter(k=>norm(classes[k].niveau)===nv);
     if(!ids.length){$("info").textContent="Aucun emploi du temps n'est encore publié pour "+r[3]+".";return;}
     $("info").textContent="Niveau : "+r[3];
-    $("groupe").innerHTML=ids.map(k=>'<option value="'+esc(k)+'">'+esc(classes[k].niveau+" "+classes[k].nom)+'</option>').join("");
+    $("groupe").innerHTML=ids.map(k=>'<option value="'+esc(k)+'">'+esc(CF_EDT.libClasse(classes,k))+'</option>').join("");
     $("groupe").onchange=afficher;$("choix").style.display="block";$("export").style.display="block";afficher();
   }).catch(e=>{$("info").textContent="Erreur : "+e.message;});
 });

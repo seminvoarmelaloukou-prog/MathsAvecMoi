@@ -35,6 +35,7 @@ button.suppr{background:#fff;color:var(--error);border:1px solid var(--error);pa
 .seance small{color:var(--muted);display:block;margin-top:2px}
 .jour-titre{color:var(--indigo);font-weight:bold;margin:14px 0 4px}
 button.sec{background:var(--amber)}
+.hm{display:flex;align-items:center;gap:6px}.hm select{flex:1}
 </style>
 </head>
 <body>
@@ -83,8 +84,8 @@ button.sec{background:var(--amber)}
         <div><label>Enseignant (code)</label><select id="s-prof"></select></div>
       </div>
       <div class="row">
-        <div><label>Début</label><input type="time" id="s-debut" value="07:00"></div>
-        <div><label>Fin</label><input type="time" id="s-fin" value="10:00"></div>
+        <div><label>Début (heure : minutes)</label><div class="hm"><select id="s-debut-h"></select><span>h</span><select id="s-debut-m"></select></div><input type="hidden" id="s-debut" value="07:00"></div>
+        <div><label>Fin (heure : minutes)</label><div class="hm"><select id="s-fin-h"></select><span>h</span><select id="s-fin-m"></select></div><input type="hidden" id="s-fin" value="10:00"></div>
         <div style="align-self:end"><button id="btn-seance">Enregistrer la séance</button></div>
       </div>
       <div class="msg" id="msg"></div>
@@ -123,7 +124,7 @@ let classes={},profs={},seances={},comptes={};
 
 function msg(t,ok){const m=$("msg");m.textContent=t;m.className="msg "+(ok?"ok":"ko");}
 function mn(h){const p=h.split(":");return +p[0]*60+ +p[1];}
-function libClasse(id){const c=classes[id];return c?c.niveau+" "+c.nom:"?";}
+function libClasse(id){return classes[id]?CF_EDT.libClasse(classes,id):"?";}
 function opts(arr,vide){return (vide?'<option value="">'+vide+'</option>':"")+arr.map(a=>'<option value="'+esc(a[0])+'">'+esc(a[1])+'</option>').join("");}
 
 function charger(){
@@ -140,7 +141,7 @@ function afficher(){
   const fc=$("f-classe").value,fp=$("f-prof").value;
   $("f-classe").innerHTML=opts(lc,"Toutes");$("f-prof").innerHTML=opts(lp,"Tous");$("f-classe").value=fc;$("f-prof").value=fp;
   $("p-uid").innerHTML=opts(Object.keys(comptes).map(u=>[u,((comptes[u].prenom||"")+" "+(comptes[u].nom||"")).trim()||comptes[u].email||u]),"— aucun —");
-  $("x-cible").innerHTML='<optgroup label="Classes">'+Object.keys(classes).sort((a,b)=>libClasse(a).localeCompare(libClasse(b))).map(id=>'<option value="classe:'+esc(id)+'">'+esc(libClasse(id))+'</option>').join("")+'</optgroup><optgroup label="Enseignants">'+Object.keys(profs).sort().map(c=>'<option value="code:'+esc(c)+'">'+esc(c)+' ('+esc(profs[c].matiere)+(profs[c].nom?' · '+esc(profs[c].nom):'')+')</option>').join("")+'</optgroup>';
+  $("x-cible").innerHTML='<optgroup label="Classes">'+(function(){const g={};Object.keys(classes).forEach(id=>{const l=libClasse(id);(g[l]=g[l]||[]).push(id);});return Object.keys(g).sort().map(l=>'<option value="classe:'+esc(g[l].join(","))+'">'+esc(l)+'</option>').join("");})()+'</optgroup><optgroup label="Enseignants">'+Object.keys(profs).sort().map(c=>'<option value="code:'+esc(c)+'">'+esc(c)+' ('+esc(profs[c].matiere)+(profs[c].nom?' · '+esc(profs[c].nom):'')+')</option>').join("")+'</optgroup>';
   afficherSeances();
 }
 
@@ -194,6 +195,16 @@ $("btn-x-pdf").onclick=function(){if(!$("x-cible").value)return;msg("Préparatio
 $("c-niveau").innerHTML=opts(NIVEAUX.map(n=>[n,n]));
 $("p-matiere").innerHTML=opts(MATIERES.map(n=>[n,n]));
 $("s-jour").innerHTML=opts(JOURS.map(n=>[n,n]));
+(function(){
+  const H=Array.from({length:24},(_,h)=>String(h).padStart(2,"0")),M=Array.from({length:12},(_,m)=>String(m*5).padStart(2,"0"));
+  ["debut","fin"].forEach(function(k){
+    const h=$("s-"+k+"-h"),m=$("s-"+k+"-m"),v=$("s-"+k);
+    h.innerHTML=H.map(x=>'<option value="'+x+'">'+x+'</option>').join("");
+    m.innerHTML=M.map(x=>'<option value="'+x+'">'+x+'</option>').join("");
+    const ini=v.value.split(":");h.value=ini[0];m.value=ini[1];
+    const maj=function(){v.value=h.value+":"+m.value;};h.onchange=maj;m.onchange=maj;
+  });
+})();
 $("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
 
 auth.onAuthStateChanged(function(u){

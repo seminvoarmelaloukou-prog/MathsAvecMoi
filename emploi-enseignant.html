@@ -34,7 +34,7 @@ button.sec{background:var(--amber)}
 <nav>
   <h1>Mon emploi du temps</h1>
   <ul>
-    <li><a href="index.html">Retour</a></li>
+    <li><a href="enseignant.html">Retour</a></li>
     <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
   </ul>
 </nav>
@@ -67,8 +67,9 @@ function initExport(u,profil){
     const ids={};
     Object.keys(D.seances).forEach(k=>{if(D.seances[k].uid===u.uid)ids[D.seances[k].classeId]=true;});
     Object.keys(D.classes).forEach(id=>{if(mes.indexOf(norm(D.classes[id].niveau))!==-1)ids[id]=true;});
-    const liste=Object.keys(ids).filter(id=>D.classes[id]).sort((a,b)=>CF_EDT.libClasse(D.classes,a).localeCompare(CF_EDT.libClasse(D.classes,b)));
-    $("exp-cible").innerHTML='<option value="uid:'+esc(u.uid)+'">Mon emploi du temps (toutes mes classes)</option>'+liste.map(id=>'<option value="classe:'+esc(id)+'">Classe '+esc(CF_EDT.libClasse(D.classes,id))+'</option>').join("");
+    const groupes={};
+    Object.keys(ids).filter(id=>D.classes[id]).forEach(id=>{const lib=CF_EDT.libClasse(D.classes,id);(groupes[lib]=groupes[lib]||[]).push(id);});
+    $("exp-cible").innerHTML='<option value="uid:'+esc(u.uid)+'">Mon emploi du temps (toutes mes classes)</option>'+Object.keys(groupes).sort().map(lib=>'<option value="classe:'+esc(groupes[lib].join(","))+'">Classe '+esc(lib)+'</option>').join("");
     $("export").style.display="block";
   }).catch(function(e){$("msg-export").textContent="Export indisponible : "+e.message;});
 }
@@ -94,7 +95,7 @@ auth.onAuthStateChanged(function(u){
     JOURS.forEach(j=>{
       const lj=l.filter(s=>s.jour===j).sort((a,b)=>mn(a.debut)-mn(b.debut));
       if(!lj.length)return;
-      h+='<div class="jour">'+j+'</div>'+lj.map(s=>{const c=classes[s.classeId];return '<div class="seance"><b>'+esc(s.debut)+' - '+esc(s.fin)+'</b> · '+esc(c?c.niveau+" "+c.nom:"Classe")+'<small>Code '+esc(s.code)+'</small></div>';}).join("");
+      h+='<div class="jour">'+j+'</div>'+lj.map(s=>{const c=classes[s.classeId];return '<div class="seance"><b>'+esc(s.debut)+' - '+esc(s.fin)+'</b> · '+esc(c?CF_EDT.libClasse(classes,s.classeId):"Classe")+'<small>Code '+esc(s.code)+'</small></div>';}).join("");
     });
     $("zone").innerHTML=h;$("zone").style.display="block";
   }).catch(e=>{$("info").textContent="Erreur : "+e.message;});

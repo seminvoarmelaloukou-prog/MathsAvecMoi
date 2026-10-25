@@ -42,7 +42,14 @@
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function mn(h) { var p = String(h || "0:0").split(":"); return +p[0] * 60 + +p[1]; }
   function nomFichier(s) { return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, ""); }
-  function libClasse(classes, id) { var c = (classes || {})[id]; return c ? (c.niveau + " " + c.nom).trim() : "Classe"; }
+  function cle(x) { return String(x || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  function libClasse(classes, id) {
+    var c = (classes || {})[id]; if (!c) return "Classe";
+    var n = String(c.niveau || "").trim(), m = String(c.nom || "").trim();
+    if (!m) return n;
+    if (cle(m).indexOf(cle(n)) === 0) return m; // le nom contient déjà le niveau
+    return n + " " + m;
+  }
   function couleur(m) { return COULEURS[m] || AUTRE; }
   function rgb(c) { return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")"; }
 
@@ -51,10 +58,14 @@
     var cfg = d.config || {};
     var coord = (!cfg.coordonnees || cfg.coordonnees === ANCIEN) ? COORD_DEFAUT : cfg.coordonnees;
     var profs = d.profs || {}, classes = d.classes || {};
+    var ids = String(cible).split(","); // une même classe peut exister sous plusieurs identifiants
+    var vues = {};
     var liste = Object.keys(d.seances || {}).map(function (id) { return d.seances[id]; }).filter(function (s) {
-      if (mode === "classe") return s.classeId === cible;
-      if (mode === "uid") return s.uid === cible;
-      return s.code === cible;
+      var cle = [s.jour, s.debut, s.fin, s.code, libClasse(classes, s.classeId)].join("|");
+      if (vues[cle]) return false; // séance enregistrée deux fois
+      var ok = mode === "classe" ? ids.indexOf(s.classeId) !== -1 : mode === "uid" ? s.uid === cible : s.code === cible;
+      if (ok) vues[cle] = true;
+      return ok;
     });
     var items = liste.map(function (s) {
       var p = profs[s.code] || {};
@@ -75,7 +86,7 @@
       };
     });
     var sous;
-    if (mode === "classe") sous = "Classe : " + libClasse(classes, cible);
+    if (mode === "classe") sous = "Classe : " + libClasse(classes, ids[0]);
     else if (mode === "uid") sous = "Emploi du temps de l'enseignant (toutes ses classes)";
     else sous = "Enseignant : " + ((profs[cible] || {}).nom || cible) + " (" + ((profs[cible] || {}).matiere || "") + ")";
     return {
