@@ -8,6 +8,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="suivi-visite.js"></script>
+<script src="edt-lib.js"></script>
 <style>
 :root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -24,6 +26,8 @@ select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-s
 .jour{color:var(--indigo);font-weight:bold;margin:16px 0 6px}
 .seance{background:#f8f9ff;border-left:4px solid var(--amber);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px}
 .seance small{display:block;color:var(--muted);margin-top:3px;font-size:13px}
+button{background:var(--indigo);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer;margin:8px 8px 0 0}
+button.sec{background:var(--amber)}
 </style>
 </head>
 <body>
@@ -40,13 +44,20 @@ select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-s
     <div id="choix" style="display:none;margin-top:10px"><label>Ma classe</label><select id="groupe"></select></div>
   </section>
   <section class="card" id="zone" style="display:none"></section>
+  <section class="card" id="export" style="display:none">
+    <h2>Mon emploi du temps en document</h2>
+    <p class="aide">Le document officiel de ma classe, avec toutes les matières. Je peux le voir ici, puis le télécharger en PDF.</p>
+    <button id="btn-apercu">Voir l'aperçu</button><button id="btn-pdf" class="sec">Télécharger en PDF</button>
+    <p class="aide" id="msg-export" style="margin-top:8px"></p>
+    <div id="apercu-edt"></div>
+  </section>
 </main>
 <script>
 const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mn=h=>{const p=h.split(":");return +p[0]*60+ +p[1];};
-let seances={},profs={},classes={};
+let seances={},profs={},classes={},CFG={};
 function norm(x){x=String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
   return x.replace(/^(\d)eme/,"$1e").replace(/^(\d)ere/,"$1re").replace(/^(\d)e$/,"$1e");}
 $("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
@@ -60,8 +71,12 @@ function afficher(){
   });
   $("zone").innerHTML=h||'<p class="aide">Aucune séance enregistrée pour cette classe.</p>';$("zone").style.display="block";
 }
+function modele(){return CF_EDT.preparer({classes:classes,profs:profs,seances:seances,config:CFG},"classe",$("groupe").value);}
+$("btn-apercu").onclick=function(){CF_EDT.afficher($("apercu-edt"),modele());$("apercu-edt").scrollIntoView({behavior:"smooth"});};
+$("btn-pdf").onclick=function(){const m=$("msg-export");m.textContent="Préparation du PDF...";CF_EDT.pdf(modele()).then(function(){m.textContent="PDF téléchargé.";}).catch(function(e){m.textContent="Erreur : "+e.message;});};
 auth.onAuthStateChanged(function(u){
   if(!u){location.href="connexion.html";return;}
+  db.ref("bulletins_config").once("value").then(function(c){CFG=c.val()||{};}).catch(function(){});
   db.ref("eleves/"+u.uid).once("value").then(function(s){
     if(!s.exists()||!s.val().classe){$("info").textContent="Ta classe n'est pas encore renseignée dans ton profil.";return null;}
     const niveau=s.val().classe;
@@ -74,7 +89,7 @@ auth.onAuthStateChanged(function(u){
     if(!ids.length){$("info").textContent="Aucun emploi du temps n'est encore publié pour "+r[3]+".";return;}
     $("info").textContent="Niveau : "+r[3];
     $("groupe").innerHTML=ids.map(k=>'<option value="'+esc(k)+'">'+esc(classes[k].niveau+" "+classes[k].nom)+'</option>').join("");
-    $("groupe").onchange=afficher;$("choix").style.display="block";afficher();
+    $("groupe").onchange=afficher;$("choix").style.display="block";$("export").style.display="block";afficher();
   }).catch(e=>{$("info").textContent="Erreur : "+e.message;});
 });
 </script>

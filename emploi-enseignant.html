@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="suivi-visite.js"></script>
+<script src="edt-lib.js"></script>
 <style>
 :root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -25,6 +26,8 @@ select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-s
 .jour{color:var(--indigo);font-weight:bold;margin:16px 0 6px}
 .seance{background:#f8f9ff;border-left:4px solid var(--amber);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px}
 .seance small{display:block;color:var(--muted);margin-top:3px;font-size:13px}
+button{background:var(--indigo);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer;margin:8px 8px 0 0}
+button.sec{background:var(--amber)}
 </style>
 </head>
 <body>
@@ -39,21 +42,50 @@ select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-s
 
   <section class="card"><h2 id="titre">Mon emploi du temps</h2><p class="aide" id="info">Chargement...</p></section>
   <section class="card" id="zone" style="display:none"></section>
+  <section class="card" id="export" style="display:none">
+    <h2>Emploi du temps en document</h2>
+    <p class="aide">Choisis mon emploi du temps ou celui d'une de mes classes (toutes les matières), puis vois l'aperçu et télécharge le PDF.</p>
+    <label>Document</label><select id="exp-cible"></select>
+    <button id="btn-apercu">Voir l'aperçu</button><button id="btn-pdf" class="sec">Télécharger en PDF</button>
+    <p class="aide" id="msg-export" style="margin-top:8px"></p>
+    <div id="apercu-edt"></div>
+  </section>
 </main>
 <script>
 const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const mn=h=>{const p=h.split(":");return +p[0]*60+ +p[1];};
+function norm(x){x=String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+  return x.replace(/^(\d)eme/,"$1e").replace(/^(\d)ere/,"$1re").replace(/^(\d)e$/,"$1e");}
+let D=null,UID="",PROFIL=null;
+function initExport(u,profil){
+  UID=u.uid;
+  Promise.all([db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),db.ref("edt/seances").once("value"),db.ref("bulletins_config").once("value").catch(function(){return null;})]).then(function(r){
+    D={classes:r[0].val()||{},profs:r[1].val()||{},seances:r[2].val()||{},config:(r[3]&&r[3].val())||{}};
+    const mes=Object.keys((profil&&profil.classes)||{}).filter(k=>profil.classes[k]===true).map(norm);
+    const ids={};
+    Object.keys(D.seances).forEach(k=>{if(D.seances[k].uid===u.uid)ids[D.seances[k].classeId]=true;});
+    Object.keys(D.classes).forEach(id=>{if(mes.indexOf(norm(D.classes[id].niveau))!==-1)ids[id]=true;});
+    const liste=Object.keys(ids).filter(id=>D.classes[id]).sort((a,b)=>CF_EDT.libClasse(D.classes,a).localeCompare(CF_EDT.libClasse(D.classes,b)));
+    $("exp-cible").innerHTML='<option value="uid:'+esc(u.uid)+'">Mon emploi du temps (toutes mes classes)</option>'+liste.map(id=>'<option value="classe:'+esc(id)+'">Classe '+esc(CF_EDT.libClasse(D.classes,id))+'</option>').join("");
+    $("export").style.display="block";
+  }).catch(function(e){$("msg-export").textContent="Export indisponible : "+e.message;});
+}
+function modele(){const v=$("exp-cible").value.split(":");const mode=v.shift()==="uid"?"uid":"classe";return CF_EDT.preparer(D,mode,v.join(":"));}
+$("btn-apercu").onclick=function(){if(!D)return;CF_EDT.afficher($("apercu-edt"),modele());$("apercu-edt").scrollIntoView({behavior:"smooth"});};
+$("btn-pdf").onclick=function(){if(!D)return;const m=$("msg-export");m.textContent="Préparation du PDF...";CF_EDT.pdf(modele()).then(function(){m.textContent="PDF téléchargé.";}).catch(function(e){m.textContent="Erreur : "+e.message;});};
 $("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
 auth.onAuthStateChanged(function(u){
   if(!u){location.href="connexion.html";return;}
   db.ref("enseignants/"+u.uid).once("value").then(function(s){
     if(!s.exists()){$("info").textContent="Ce compte n'est pas un compte enseignant.";return null;}
     if(s.val().statut!=="actif"){$("info").textContent="Ton compte enseignant n'est pas encore actif.";return null;}
+    PROFIL=s.val();
     return Promise.all([db.ref("edt/seances").orderByChild("uid").equalTo(u.uid).once("value"),db.ref("edt/classes").once("value")]);
   }).then(function(r){
     if(!r)return;
+    initExport(auth.currentUser,PROFIL);
     const seances=r[0].val()||{},classes=r[1].val()||{};
     const l=Object.keys(seances).map(k=>seances[k]);
     if(!l.length){$("info").textContent="Aucune séance ne t'est encore attribuée.";return;}

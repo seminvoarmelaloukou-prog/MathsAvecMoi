@@ -8,6 +8,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="suivi-visite.js"></script>
+<script src="edt-lib.js"></script>
 <style>
 :root{--indigo:#2c3e8c;--indigo-dark:#1e2c66;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b;--success:#27ae60}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -32,6 +34,7 @@ button.suppr{background:#fff;color:var(--error);border:1px solid var(--error);pa
 .seance{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid #eef0fa;padding:10px 0;font-size:15px}
 .seance small{color:var(--muted);display:block;margin-top:2px}
 .jour-titre{color:var(--indigo);font-weight:bold;margin:14px 0 4px}
+button.sec{background:var(--amber)}
 </style>
 </head>
 <body>
@@ -96,6 +99,17 @@ button.suppr{background:#fff;color:var(--error);border:1px solid var(--error);pa
       <div id="liste-seances"></div>
     </section>
 
+    <section class="card">
+      <h2>Emploi du temps en document</h2>
+      <p class="aide">Aperçu et téléchargement PDF (avec l'en-tête des bulletins et la signature du directeur) pour une classe ou pour un enseignant.</p>
+      <div class="row">
+        <div><label>Document</label><select id="x-cible"></select></div>
+        <div style="align-self:end"><button id="btn-x-apercu">Voir l'aperçu</button> <button id="btn-x-pdf" class="sec">Télécharger en PDF</button></div>
+      </div>
+      <div class="msg" id="msg-x"></div>
+      <div id="apercu-edt"></div>
+    </section>
+
   </div>
 </main>
 
@@ -126,6 +140,7 @@ function afficher(){
   const fc=$("f-classe").value,fp=$("f-prof").value;
   $("f-classe").innerHTML=opts(lc,"Toutes");$("f-prof").innerHTML=opts(lp,"Tous");$("f-classe").value=fc;$("f-prof").value=fp;
   $("p-uid").innerHTML=opts(Object.keys(comptes).map(u=>[u,((comptes[u].prenom||"")+" "+(comptes[u].nom||"")).trim()||comptes[u].email||u]),"— aucun —");
+  $("x-cible").innerHTML='<optgroup label="Classes">'+Object.keys(classes).sort((a,b)=>libClasse(a).localeCompare(libClasse(b))).map(id=>'<option value="classe:'+esc(id)+'">'+esc(libClasse(id))+'</option>').join("")+'</optgroup><optgroup label="Enseignants">'+Object.keys(profs).sort().map(c=>'<option value="code:'+esc(c)+'">'+esc(c)+' ('+esc(profs[c].matiere)+(profs[c].nom?' · '+esc(profs[c].nom):'')+')</option>').join("")+'</optgroup>';
   afficherSeances();
 }
 
@@ -173,6 +188,9 @@ document.addEventListener("click",function(e){
   if(confirm("Supprimer ?"))db.ref("edt/"+p).remove().then(charger);
 });
 $("f-classe").onchange=afficherSeances;$("f-prof").onchange=afficherSeances;
+function modeleX(){return db.ref("bulletins_config").once("value").catch(function(){return null;}).then(function(c){const v=$("x-cible").value.split(":");const mode=v.shift();return CF_EDT.preparer({classes:classes,profs:profs,seances:seances,config:(c&&c.val())||{}},mode,v.join(":"));});}
+$("btn-x-apercu").onclick=function(){if(!$("x-cible").value)return;modeleX().then(function(m){CF_EDT.afficher($("apercu-edt"),m);$("apercu-edt").scrollIntoView({behavior:"smooth"});});};
+$("btn-x-pdf").onclick=function(){if(!$("x-cible").value)return;msg("Préparation du PDF...",true);modeleX().then(CF_EDT.pdf).then(function(){msg("PDF téléchargé.",true);}).catch(function(e){msg("Erreur : "+e.message,false);});};
 $("c-niveau").innerHTML=opts(NIVEAUX.map(n=>[n,n]));
 $("p-matiere").innerHTML=opts(MATIERES.map(n=>[n,n]));
 $("s-jour").innerHTML=opts(JOURS.map(n=>[n,n]));
