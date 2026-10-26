@@ -431,6 +431,14 @@
           </div>
         </div>
 
+        <div class="form-row" id="bloc-rattacher" style="display:none;">
+          <div>
+            <label for="select-rattacher">Rattacher à la séquence *</label>
+            <select id="select-rattacher"><option value="">Choisir la séquence</option></select>
+            <span class="aide">Cette ancienne fiche n'est reliée à aucune séquence : choisis la séquence pour que les élèves la voient.</span>
+          </div>
+        </div>
+
         <div class="form-row">
           <div>
             <label for="input-lien-modif">Lien du cours (optionnel)</label>
@@ -1265,6 +1273,19 @@
             h3.textContent = c.seqLabel || c.titre || "Séquence";
             div.appendChild(h3);
 
+            const seqsOfficielles = getSequencesActuelles() || [];
+            const cleOfficielle = seqsOfficielles.some(function(sq) { return sq.key === cle; });
+            const pCle = document.createElement("p");
+            pCle.style.cssText = "font-size:11px;color:#999;margin-bottom:4px;";
+            pCle.textContent = "clé : " + cle;
+            div.appendChild(pCle);
+            if (!cleOfficielle && seqsOfficielles.length) {
+              const pAlerte = document.createElement("p");
+              pAlerte.style.cssText = "font-size:12px;color:#b9770e;background:#fef5e7;border-radius:8px;padding:6px 8px;";
+              pAlerte.textContent = "⚠ Ancienne fiche non reliée à une séquence : les élèves ne la voient pas. Clique sur « Modifier » pour la rattacher.";
+              div.appendChild(pAlerte);
+            }
+
             if (c.lien) {
               const pLien = document.createElement("p");
               pLien.innerHTML = "🔗 <a href='" + c.lien + "' target='_blank'>Ouvrir le cours (lien)</a>";
@@ -1273,7 +1294,7 @@
 
             if (c.contenu) {
               const pContenu = document.createElement("p");
-              const texteBrut = c.contenu.replace(/<[^>]*>/g, " ");
+              const texteBrut = c.contenu.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
               pContenu.textContent = texteBrut.substring(0, 150) + (texteBrut.length > 150 ? "..." : "");
               div.appendChild(pContenu);
             }
@@ -1400,7 +1421,29 @@
     function ouvrirModalModif(cle, cours) {
       coursActuel = { cle: cle, ...cours };
       titreModalModif.textContent = "Modifier le cours";
-      texteSequenceModif.textContent = (cours.saLabel || "") + " — " + (cours.seqLabel || "");
+      texteSequenceModif.textContent = (cours.saLabel || cours.seqLabel) ? ((cours.saLabel || "") + " — " + (cours.seqLabel || "")) : (cours.titre || cle);
+
+      const seqsOff = getSequencesActuelles() || [];
+      const blocRatt = document.getElementById("bloc-rattacher");
+      const selRatt = document.getElementById("select-rattacher");
+      selRatt.innerHTML = "<option value=''>Choisir la séquence</option>";
+      if (seqsOff.length && !seqsOff.some(function(sq) { return sq.key === cle; })) {
+        seqsOff.forEach(function(sq) {
+          const o = document.createElement("option");
+          o.value = sq.key;
+          o.textContent = sq.sa + " — " + sq.seq;
+          selRatt.appendChild(o);
+        });
+        const source = (cours.titre || "") + " " + (cours.saLabel || "") + " " + (cours.seqLabel || "");
+        const m = source.match(/SA\s*(\d+)[\s\S]*?S[ée]quence\s*(\d+)/i);
+        if (m) {
+          const kProp = "sa" + m[1] + "_seq" + m[2];
+          if (seqsOff.some(function(sq) { return sq.key === kProp; })) selRatt.value = kProp;
+        }
+        blocRatt.style.display = "flex";
+      } else {
+        blocRatt.style.display = "none";
+      }
       inputLienModif.value = cours.lien || "";
       chargerZones("modif", cours);
       inputImageModif.value = cours.image || "";
@@ -1417,10 +1460,14 @@
 
       if (!coursActuel) return;
 
+      const cleActuelle = coursActuel.cle;
+      const dateCreationActuelle = coursActuel.dateCreation || Date.now();
       const lien = inputLienModif.value.trim();
       const zonesModif = lireZones("modif");
       const contenu = assemblerContenu(zonesModif);
       const image = inputImageModif.value.trim();
+      const doitRattacher = document.getElementById("bloc-rattacher").style.display !== "none";
+      const cible = document.getElementById("select-rattacher").value;
 
       if (!lien && !contenu) {
         alert("Ajoute soit un lien vers ton cours, soit un contenu texte (au moins l'un des deux).");
@@ -1430,8 +1477,13 @@
         alert("Le contenu est trop volumineux (images collées ?). Réduis-le ou héberge les images à part.");
         return;
       }
+      if (doitRattacher && !cible) {
+        alert("Choisis la séquence à laquelle rattacher cette fiche.");
+        return;
+      }
 
-      const coursModifie = {
+      const base = "cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/";
+      const champs = {
         lien: lien,
         contenu: contenu,
         coursHtml: zonesModif.cours,
@@ -1443,19 +1495,54 @@
         dateModification: Date.now()
       };
 
-      db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + coursActuel.cle).update(coursModifie)
-        .then(function() {
-          fermerModalModif();
-          messageAjouter.textContent = "Cours modifié avec succès !";
-          messageAjouter.classList.remove("error");
-          messageAjouter.classList.add("success");
-          chargerCours();
+      function signalerSucces(texte) {
+        fermerModalModif();
+        messageAjouter.textContent = texte;
+        messageAjouter.classList.remove("error");
+        messageAjouter.classList.add("success");
+        chargerCours();
+      }
+
+      function signalerErreur(erreur) {
+        console.error("Erreur modification cours :", erreur);
+        messageAjouter.textContent = "Erreur lors de l'enregistrement : " + ((erreur && erreur.message) || "inconnue");
+        messageAjouter.classList.remove("success");
+        messageAjouter.classList.add("error");
+      }
+
+      if (!doitRattacher) {
+        db.ref(base + cleActuelle).update(champs)
+          .then(function() { signalerSucces("Cours modifié avec succès !"); })
+          .catch(signalerErreur);
+        return;
+      }
+
+      // Ancienne fiche : on l'enregistre sous la clé officielle de la séquence choisie
+      const seqInfo = libelleSequence(cible);
+      const nouvelle = Object.assign({
+        sequenceKey: cible,
+        saLabel: seqInfo ? seqInfo.sa : "",
+        seqLabel: seqInfo ? seqInfo.seq : "",
+        dateCreation: dateCreationActuelle,
+        actif: true
+      }, champs);
+
+      db.ref(base + cible).once("value")
+        .then(function(snap) {
+          if (snap.exists()) {
+            const ex = snap.val() || {};
+            const texteEx = String(ex.contenu || "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]*>/g, "").trim();
+            const reel = (texteEx && texteEx !== "Bientôt disponible") || ex.lien || ex.image;
+            if (reel && !confirm("Cette séquence contient déjà un cours. Le remplacer ?")) return false;
+          }
+          return db.ref(base + cible).set(nouvelle)
+            .then(function() { return cible !== cleActuelle ? db.ref(base + cleActuelle).remove() : null; })
+            .then(function() { return true; });
         })
-        .catch(function(erreur) {
-          console.error("Erreur modification cours :", erreur);
-          messageAjouter.textContent = "Erreur lors de la modification.";
-          messageAjouter.classList.add("error");
-        });
+        .then(function(fait) {
+          if (fait) signalerSucces("Cours rattaché à la séquence et enregistré !");
+        })
+        .catch(signalerErreur);
     });
 
     function supprimerCours(cle) {
@@ -1573,6 +1660,23 @@
           contenu.classList.toggle("ouvert");
         });
       });
+
+      if (cleAOuvrir && !cibleSeq && cours[cleAOuvrir]) {
+        const c0 = cours[cleAOuvrir];
+        const blocAncien = document.createElement("div");
+        blocAncien.className = "devoir";
+        remplirBlocCours(blocAncien, c0);
+        const titreAncien = document.createElement("h4");
+        titreAncien.className = "seq-title";
+        titreAncien.textContent = c0.seqLabel || c0.titre || "Fiche";
+        const noteAncien = document.createElement("p");
+        noteAncien.className = "message error";
+        noteAncien.style.margin = "12px 0 6px";
+        noteAncien.textContent = "⚠ Cette ancienne fiche n'est reliée à aucune séquence : les élèves ne la voient pas encore. Clique sur « Modifier » pour la rattacher.";
+        apercuCorps.insertBefore(blocAncien, apercuCorps.firstChild);
+        apercuCorps.insertBefore(titreAncien, apercuCorps.firstChild);
+        apercuCorps.insertBefore(noteAncien, apercuCorps.firstChild);
+      }
 
       if (cibleSeq) {
         cibleSeq.titreSA.classList.add("ouvert");
