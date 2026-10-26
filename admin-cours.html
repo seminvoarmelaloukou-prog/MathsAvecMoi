@@ -263,6 +263,20 @@
     #apercu-corps .toggle-content { display: none; }
     #apercu-corps .toggle-content.ouvert { display: block; }
 
+    /* ---- Zones de collage Word (cours / corrigé / retenons / propriétés) ---- */
+    #modal-ajout-cours .modal-content, #modal-modif-cours .modal-content { max-width: 760px; }
+    .zone-bloc { margin-bottom: 16px; }
+    .zone-bloc > label { display: block; margin-bottom: 6px; font-size: 15px; }
+    .zone-collage { min-height: 110px; max-height: 320px; overflow: auto; padding: 10px 12px; border: 2px solid #cfd8f0; border-radius: 10px; background: #fff; font-size: 14px; line-height: 1.6; outline: none; }
+    .zone-collage:empty::before { content: attr(data-placeholder); color: #999; }
+    .zone-collage img { max-width: 100%; height: auto; }
+    .zone-collage table { border-collapse: collapse; }
+    .zone-collage td, .zone-collage th { border: 1px solid #999; padding: 3px 6px; }
+    .zone-bloc .zone-note { font-size: 12px; color: var(--error); margin-top: 4px; }
+    .zone-bloc .zone-effacer { margin-top: 6px; padding: 4px 10px; font-size: 12px; }
+    .rendu-final { margin-top: 10px; padding: 12px; border: 1px dashed #cfd8f0; border-radius: 10px; background: #fff; line-height: 1.7; overflow-x: auto; }
+    .rendu-final img { max-width: 100%; height: auto; }
+
     @media (max-width: 700px) {
       nav { justify-content: center; text-align: center; }
       nav ul { justify-content: center; }
@@ -387,13 +401,8 @@
           </div>
         </div>
 
-        <div class="form-row">
-          <div>
-            <label for="input-contenu-cours">Contenu (texte, HTML autorisé)</label>
-            <textarea id="input-contenu-cours" style="min-height:200px;"></textarea>
-            <span class="aide">Facultatif si tu as déjà mis un lien ci-dessus. Sinon, remplis ce champ.</span>
-          </div>
-        </div>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Copie depuis Word, puis colle dans chaque zone. Les zones vides sont ignorées. Ajoute un exercice par énoncé + corrigé. Facultatif si tu as déjà mis un lien ci-dessus.</p>
+        <div id="zones-ajout"></div>
 
         <div class="form-row">
           <div>
@@ -430,13 +439,7 @@
           </div>
         </div>
 
-        <div class="form-row">
-          <div>
-            <label for="input-contenu-modif">Contenu (texte, HTML autorisé)</label>
-            <textarea id="input-contenu-modif" style="min-height:200px;"></textarea>
-            <span class="aide">Facultatif si tu as déjà mis un lien ci-dessus.</span>
-          </div>
-        </div>
+        <div id="zones-modif"></div>
 
         <div class="form-row">
           <div>
@@ -682,7 +685,6 @@
     const selectSequenceCours = document.getElementById("select-sequence-cours");
     const aideSequenceCours = document.getElementById("aide-sequence-cours");
     const inputLienCours = document.getElementById("input-lien-cours");
-    const inputContenuCours = document.getElementById("input-contenu-cours");
     const inputImageCours = document.getElementById("input-image-cours");
     const btnAnnulerAjout = document.getElementById("btn-annuler-ajout");
 
@@ -691,9 +693,421 @@
     const formModifCours = document.getElementById("form-modif-cours");
     const texteSequenceModif = document.getElementById("texte-sequence-modif");
     const inputLienModif = document.getElementById("input-lien-modif");
-    const inputContenuModif = document.getElementById("input-contenu-modif");
     const inputImageModif = document.getElementById("input-image-modif");
     const btnAnnulerModif = document.getElementById("btn-annuler-modif");
+
+    // ===================================================================
+    // Zones de collage Word : Cours, Corrigé, Retenons, Propriétés.
+    // Chaque zone nettoie le HTML de Word au collage ; à l'enregistrement,
+    // les zones sont assemblées en UN seul HTML (champ "contenu") avec des
+    // blocs colorés repliables (<details>) pour corrigé / retenons / propriétés.
+    // Les 4 morceaux sont aussi gardés séparément (coursHtml, corrigeHtml,
+    // retenonsHtml, proprietesHtml) pour pouvoir les modifier plus tard.
+    // ===================================================================
+    const ZONES_DEF = [
+      { id: "cours",      etiquette: "📘 Cours",       couleur: "#2c3e8c", fond: "#f5f7ff", aide: "Colle ici le cours copié depuis Word." },
+      { id: "proprietes", etiquette: "📐 Propriétés",  couleur: "#6c3fa0", fond: "#f6eefa", aide: "Encadré violet foncé, toujours visible, sous le cours." },
+      { id: "retenons",   etiquette: "⭐ Retenons",    couleur: "#1c2245", fond: "#eef0fa", aide: "Encadré bleu nuit avec titre orange, toujours visible (comme l'ancien modèle)." }
+    ];
+
+    function echapperHtml(t) {
+      return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Nettoie le HTML venant de Word : retire styles, classes Mso, balises
+    // parasites ; garde gras, italique, exposants, listes, tableaux, liens, images.
+    function nettoyerHtmlWord(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      let imagesIgnorees = 0;
+
+      // Listes Word (paragraphes MsoListParagraph + puce factice)
+      doc.querySelectorAll("p").forEach(function(p) {
+        if (!/MsoList/i.test(p.getAttribute("class") || "")) return;
+        let marqueur = "";
+        const faux = Array.from(p.querySelectorAll("span")).find(function(sp) {
+          return /mso-list\s*:\s*ignore/i.test(sp.getAttribute("style") || "");
+        });
+        if (faux) { marqueur = faux.textContent || ""; faux.remove(); }
+        p.setAttribute("data-ml", /^\s*(\d+|[a-zA-Z])\s*[.)]/.test(marqueur) ? "ol" : "ul");
+      });
+
+      const sortie = document.createElement("div");
+      const IGNORES = ["STYLE", "SCRIPT", "META", "LINK", "XML", "TITLE", "HEAD", "NOSCRIPT", "OBJECT", "IFRAME"];
+      const GARDES = ["P", "BR", "UL", "OL", "LI", "TABLE", "THEAD", "TBODY", "TR", "TD", "TH", "H1", "H2", "H3", "H4", "H5", "H6", "B", "STRONG", "I", "EM", "U", "SUB", "SUP", "A", "IMG", "BLOCKQUOTE"];
+
+      function copier(src, dest) {
+        src.childNodes.forEach(function(n) {
+          if (n.nodeType === 3) {
+            dest.appendChild(document.createTextNode(n.nodeValue.replace(/[ \t\r\n]+/g, " ")));
+            return;
+          }
+          if (n.nodeType !== 1) return;
+          const tag = n.tagName.toUpperCase();
+          if (IGNORES.indexOf(tag) > -1) return;
+
+          if (GARDES.indexOf(tag) === -1) {
+            // span, font, div, o:p, balises mathématiques Word... : on garde le contenu,
+            // et on traduit le style en gras / italique / souligné / exposant / indice
+            if (tag === "SPAN" || tag === "FONT") {
+              const st = (n.getAttribute("style") || "").toLowerCase();
+              const enveloppes = [];
+              if (/font-weight\s*:\s*(bold|[6-9]00)/.test(st)) enveloppes.push("strong");
+              if (/font-style\s*:\s*italic/.test(st)) enveloppes.push("em");
+              if (/text-decoration[^;]*underline/.test(st)) enveloppes.push("u");
+              if (/vertical-align\s*:\s*super/.test(st)) enveloppes.push("sup");
+              if (/vertical-align\s*:\s*sub/.test(st)) enveloppes.push("sub");
+              if (enveloppes.length) {
+                let haut = null, bas = null;
+                enveloppes.forEach(function(nom) {
+                  const el = document.createElement(nom);
+                  if (!haut) haut = el; else bas.appendChild(el);
+                  bas = el;
+                });
+                dest.appendChild(haut);
+                copier(n, bas);
+                return;
+              }
+            }
+            copier(n, dest);
+            return;
+          }
+
+          let el;
+          if (tag === "P" && n.getAttribute("data-ml")) {
+            el = document.createElement("li");
+            el.setAttribute("data-ml", n.getAttribute("data-ml"));
+          } else if (tag === "IMG") {
+            const src = n.getAttribute("src") || "";
+            if (!/^(https?:|data:image\/)/i.test(src)) { imagesIgnorees++; return; }
+            el = document.createElement("img");
+            el.setAttribute("src", src);
+            if (n.getAttribute("alt")) el.setAttribute("alt", n.getAttribute("alt"));
+          } else if (tag === "A") {
+            const href = n.getAttribute("href") || "";
+            if (!/^(https?:|mailto:)/i.test(href)) { copier(n, dest); return; }
+            el = document.createElement("a");
+            el.setAttribute("href", href);
+            el.setAttribute("target", "_blank");
+            el.setAttribute("rel", "noopener noreferrer");
+          } else {
+            el = document.createElement(tag.toLowerCase());
+            if (tag === "TD" || tag === "TH") {
+              if (n.getAttribute("colspan")) el.setAttribute("colspan", n.getAttribute("colspan"));
+              if (n.getAttribute("rowspan")) el.setAttribute("rowspan", n.getAttribute("rowspan"));
+            }
+          }
+
+          const st2 = (n.getAttribute("style") || "").toLowerCase();
+          const al = (n.getAttribute("align") || "").toLowerCase();
+          const m = st2.match(/text-align\s*:\s*(center|right|justify)/);
+          const aligne = m ? m[1] : (/^(center|right|justify)$/.test(al) ? al : "");
+          if (aligne && /^(P|LI|H[1-6]|TD|TH)$/.test(tag)) el.style.textAlign = aligne;
+
+          dest.appendChild(el);
+          copier(n, el);
+        });
+      }
+      copier(doc.body, sortie);
+
+      // Regrouper les <li> orphelins en <ul>/<ol>
+      Array.from(sortie.querySelectorAll("*")).concat([sortie]).forEach(function(parent) {
+        let enfant = parent.firstChild;
+        while (enfant) {
+          if (enfant.nodeType === 1 && enfant.tagName === "LI" && enfant.hasAttribute("data-ml")) {
+            const liste = document.createElement(enfant.getAttribute("data-ml"));
+            parent.insertBefore(liste, enfant);
+            let courant = enfant;
+            while (courant && courant.nodeType === 1 && courant.tagName === "LI" && courant.hasAttribute("data-ml") && courant.getAttribute("data-ml") === liste.tagName.toLowerCase()) {
+              const suivant = courant.nextSibling;
+              courant.removeAttribute("data-ml");
+              liste.appendChild(courant);
+              courant = suivant;
+            }
+            enfant = courant;
+          } else {
+            enfant = enfant.nextSibling;
+          }
+        }
+      });
+
+      // Retirer les paragraphes vides (Word en met beaucoup)
+      sortie.querySelectorAll("p").forEach(function(p) {
+        const vide = p.textContent.replace(/[\s\u00a0]/g, "") === "";
+        if (vide && !p.querySelector("img, table")) p.remove();
+      });
+
+      // Mise en forme minimale (tableaux, images)
+      sortie.querySelectorAll("table").forEach(function(t) { t.style.borderCollapse = "collapse"; t.style.margin = "8px 0"; t.style.maxWidth = "100%"; });
+      sortie.querySelectorAll("td, th").forEach(function(c) { c.style.border = "1px solid #999"; c.style.padding = "4px 8px"; });
+      sortie.querySelectorAll("img").forEach(function(i) { i.style.maxWidth = "100%"; i.style.height = "auto"; });
+
+      return { html: sortie.innerHTML, imagesIgnorees: imagesIgnorees };
+    }
+
+    function insererDansZone(html) {
+      let ok = false;
+      try { ok = document.execCommand("insertHTML", false, html); } catch (e) {}
+      if (ok) return;
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const frag = range.createContextualFragment(html);
+      const dernier = frag.lastChild;
+      range.insertNode(frag);
+      if (dernier) { range.setStartAfter(dernier); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
+    }
+
+    function zoneEstVide(el) {
+      return el.textContent.replace(/[\s\u00a0]/g, "") === "" && !el.querySelector("img, table");
+    }
+
+    // Crée une zone de collage (étiquette + zone + note + bouton effacer)
+    function creerZoneCollage(o) {
+      const bloc = document.createElement("div");
+      bloc.className = "zone-bloc";
+
+      const label = document.createElement("label");
+      label.textContent = o.etiquette;
+      label.style.color = o.couleur;
+      bloc.appendChild(label);
+
+      const zone = document.createElement("div");
+      zone.className = "zone-collage" + (o.classe ? " " + o.classe : "");
+      if (o.id) zone.id = o.id;
+      zone.contentEditable = "true";
+      zone.setAttribute("data-placeholder", o.placeholder);
+      zone.style.borderColor = o.couleur;
+      zone.style.background = o.fond;
+      bloc.appendChild(zone);
+
+      const note = document.createElement("p");
+      note.className = "zone-note";
+      bloc.appendChild(note);
+
+      const btnEffacer = document.createElement("button");
+      btnEffacer.type = "button";
+      btnEffacer.className = "secondaire zone-effacer";
+      btnEffacer.textContent = "Effacer cette zone";
+      btnEffacer.addEventListener("click", function() { zone.innerHTML = ""; note.textContent = ""; });
+      bloc.appendChild(btnEffacer);
+
+      zone.addEventListener("paste", function(e) {
+        e.preventDefault();
+        const cd = e.clipboardData || window.clipboardData;
+        const htmlBrut = cd ? cd.getData("text/html") : "";
+        let resultat;
+        if (htmlBrut && htmlBrut.trim()) {
+          resultat = nettoyerHtmlWord(htmlBrut);
+        } else {
+          const texte = cd ? (cd.getData("text/plain") || "") : "";
+          resultat = {
+            html: texte.split(/\r?\n+/).filter(function(l) { return l.trim(); }).map(function(l) { return "<p>" + echapperHtml(l) + "</p>"; }).join(""),
+            imagesIgnorees: 0
+          };
+        }
+        insererDansZone(resultat.html);
+        note.textContent = resultat.imagesIgnorees
+          ? "⚠ " + resultat.imagesIgnorees + " image(s) de Word non collée(s) : héberge-les (ex. GitHub) puis ajoute-les avec un lien, ou colle l'image directement depuis la galerie."
+          : "";
+      });
+
+      zone.addEventListener("input", function() {
+        if (zoneEstVide(zone)) zone.innerHTML = "";
+      });
+
+      return { bloc: bloc, zone: zone };
+    }
+
+    function renumeroterExercices(liste) {
+      liste.querySelectorAll(".exo-bloc").forEach(function(exo, i) {
+        exo.querySelector(".exo-num").textContent = "Exercice " + (i + 1);
+      });
+    }
+
+    // Un exercice = titre (facultatif) + énoncé + son propre corrigé
+    function ajouterExercice(liste, d) {
+      d = d || {};
+      const exo = document.createElement("div");
+      exo.className = "exo-bloc";
+      exo.style.cssText = "border:2px dashed #1f5c80;border-radius:12px;padding:12px;margin-bottom:14px;background:#fbfdff;";
+
+      const entete = document.createElement("div");
+      entete.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;";
+      const num = document.createElement("strong");
+      num.className = "exo-num";
+      num.style.color = "#1f5c80";
+      entete.appendChild(num);
+      const btnSuppr = document.createElement("button");
+      btnSuppr.type = "button";
+      btnSuppr.className = "danger";
+      btnSuppr.style.cssText = "padding:4px 10px;font-size:12px;";
+      btnSuppr.textContent = "Supprimer cet exercice";
+      btnSuppr.addEventListener("click", function() {
+        if (!confirm("Supprimer cet exercice (énoncé et corrigé) ?")) return;
+        exo.remove();
+        renumeroterExercices(liste);
+      });
+      entete.appendChild(btnSuppr);
+      exo.appendChild(entete);
+
+      const titre = document.createElement("input");
+      titre.type = "text";
+      titre.className = "exo-titre";
+      titre.placeholder = "Titre (facultatif) : ex. Consigne 1.2 — Application";
+      titre.style.cssText = "width:100%;margin-bottom:12px;";
+      titre.value = d.titre || "";
+      exo.appendChild(titre);
+
+      const enonce = creerZoneCollage({ etiquette: "✏️ Énoncé", couleur: "#2c3e8c", fond: "#f5f7ff", placeholder: "Colle ici l'énoncé de l'exercice", classe: "exo-enonce" });
+      enonce.zone.innerHTML = d.enonce || "";
+      exo.appendChild(enonce.bloc);
+
+      const corrige = creerZoneCollage({ etiquette: "👁 Corrigé de cet exercice", couleur: "#1f5c80", fond: "#eaf3f8", placeholder: "Colle ici le corrigé (caché derrière « Voir les réponses »)", classe: "exo-corrige" });
+      corrige.zone.innerHTML = d.corrige || "";
+      exo.appendChild(corrige.bloc);
+
+      liste.appendChild(exo);
+      renumeroterExercices(liste);
+    }
+
+    function construireZones(prefixe, conteneur) {
+      conteneur.innerHTML = "";
+      ZONES_DEF.forEach(function(def) {
+        const r = creerZoneCollage({
+          etiquette: def.etiquette, couleur: def.couleur, fond: def.fond,
+          placeholder: "Colle ici (" + def.aide.toLowerCase() + ")",
+          id: "zone-" + prefixe + "-" + def.id
+        });
+        conteneur.appendChild(r.bloc);
+      });
+
+      const titreExo = document.createElement("p");
+      titreExo.style.cssText = "font-size:14px;margin:6px 0 10px;color:#1f5c80;";
+      titreExo.innerHTML = "<strong>📝 Exercices avec corrigé</strong><br><span style='font-size:12px;color:#666;'>Chaque exercice a son énoncé et son propre bouton « Voir les réponses ».</span>";
+      conteneur.appendChild(titreExo);
+
+      const liste = document.createElement("div");
+      liste.className = "exo-liste";
+      conteneur.appendChild(liste);
+
+      const btnAjouter = document.createElement("button");
+      btnAjouter.type = "button";
+      btnAjouter.className = "secondaire";
+      btnAjouter.textContent = "+ Ajouter un exercice";
+      btnAjouter.style.marginBottom = "14px";
+      btnAjouter.addEventListener("click", function() { ajouterExercice(liste); });
+      conteneur.appendChild(btnAjouter);
+
+      const rendu = document.createElement("div");
+      rendu.className = "rendu-final";
+      rendu.style.display = "none";
+      const btnRendu = document.createElement("button");
+      btnRendu.type = "button";
+      btnRendu.className = "secondaire";
+      btnRendu.textContent = "👁 Voir le rendu pour les élèves";
+      btnRendu.addEventListener("click", function() {
+        const contenu = assemblerContenu(lireZones(prefixe));
+        rendu.style.display = "block";
+        rendu.innerHTML = contenu || "<p class='a-venir'>Rien à afficher pour l'instant.</p>";
+      });
+      const ligne = document.createElement("div");
+      ligne.appendChild(btnRendu);
+      conteneur.appendChild(ligne);
+      conteneur.appendChild(rendu);
+    }
+
+    function lireZones(prefixe) {
+      const z = {};
+      ZONES_DEF.forEach(function(def) {
+        const el = document.getElementById("zone-" + prefixe + "-" + def.id);
+        z[def.id] = (el && !zoneEstVide(el)) ? el.innerHTML.trim() : "";
+      });
+      z.exercices = [];
+      document.querySelectorAll("#zones-" + prefixe + " .exo-bloc").forEach(function(exo) {
+        const t = exo.querySelector(".exo-titre").value.trim();
+        const en = exo.querySelector(".exo-enonce");
+        const co = exo.querySelector(".exo-corrige");
+        const e = !zoneEstVide(en) ? en.innerHTML.trim() : "";
+        const k = !zoneEstVide(co) ? co.innerHTML.trim() : "";
+        if (t || e || k) z.exercices.push({ titre: t, enonce: e, corrige: k });
+      });
+      return z;
+    }
+
+    function chargerZones(prefixe, c) {
+      const racine = document.getElementById("zones-" + prefixe);
+      const nouveauFormat = !!c && (!!c.exercices || ["coursHtml", "proprietesHtml", "retenonsHtml", "corrigeHtml"].some(function(k) { return typeof c[k] === "string"; }));
+      ZONES_DEF.forEach(function(def) {
+        const el = document.getElementById("zone-" + prefixe + "-" + def.id);
+        if (!el) return;
+        if (nouveauFormat) el.innerHTML = c[def.id + "Html"] || "";
+        else el.innerHTML = (def.id === "cours" && c) ? (c.contenu || "") : "";
+      });
+
+      const liste = racine.querySelector(".exo-liste");
+      liste.innerHTML = "";
+      let exos = [];
+      if (c && c.exercices) {
+        exos = Array.isArray(c.exercices) ? c.exercices.filter(Boolean) : Object.keys(c.exercices).map(function(k) { return c.exercices[k]; });
+      } else if (c && typeof c.corrigeHtml === "string" && c.corrigeHtml) {
+        exos = [{ titre: "", enonce: "", corrige: c.corrigeHtml }];
+      }
+      exos.forEach(function(d) { ajouterExercice(liste, d); });
+
+      racine.querySelectorAll(".zone-note").forEach(function(n) { n.textContent = ""; });
+      const rendu = racine.querySelector(".rendu-final");
+      if (rendu) { rendu.style.display = "none"; rendu.innerHTML = ""; }
+    }
+
+    function viderZones(prefixe) { chargerZones(prefixe, null); }
+
+    // Assemble tout en un seul HTML, dans l'ordre : cours, propriétés,
+    // retenons (encadrés foncés toujours visibles), puis les exercices,
+    // chacun avec son énoncé et son bouton « Voir les réponses » (sans JavaScript).
+    function assemblerContenu(z) {
+      const exos = z.exercices || [];
+      let html = "";
+      const aCorrige = exos.some(function(x) { return x.corrige; });
+      const aDesBlocs = z.proprietes || z.retenons || aCorrige;
+
+      if (aDesBlocs) {
+        html += "<style>"
+          + ".cf-bloc a{color:#9ad1ff;}"
+          + ".cf-bloc ul,.cf-bloc ol{margin:6px 0 6px 20px;}"
+          + "details.cf-corrige{margin:14px 0;}"
+          + "details.cf-corrige>summary{display:inline-block;list-style:none;cursor:pointer;background:#1f5c80;color:#fff;font-weight:bold;font-size:13px;padding:8px 16px;border-radius:20px;user-select:none;}"
+          + "details.cf-corrige>summary::-webkit-details-marker{display:none;}"
+          + "details.cf-corrige[open] .cf-voir{display:none;}"
+          + "details.cf-corrige:not([open]) .cf-cacher{display:none;}"
+          + "details.cf-corrige>.cf-reponses{margin-top:12px;line-height:1.8;}"
+          + "</style>";
+      }
+
+      if (z.cours) html += '<div class="cf-cours">' + z.cours + "</div>";
+
+      function boite(classe, fond, accent, titre, contenu) {
+        return '<div class="cf-bloc ' + classe + '" style="background:' + fond + ';color:#fff;border-radius:10px;padding:14px 16px;margin:14px 0;line-height:1.8;">'
+          + '<p style="margin:0 0 8px;font-weight:bold;color:' + accent + ';text-transform:uppercase;">' + titre + "</p>"
+          + contenu + "</div>";
+      }
+
+      if (z.proprietes) html += boite("cf-proprietes", "#2e1f4d", "#d7b8ff", "📐 Propriétés", z.proprietes);
+      if (z.retenons) html += boite("cf-retenons", "#1c2245", "#f5a623", "⭐ Retenons", z.retenons);
+
+      exos.forEach(function(x) {
+        html += '<div class="cf-exercice" style="margin:16px 0;">';
+        if (x.titre) html += '<p style="font-weight:bold;margin:0 0 6px;">' + echapperHtml(x.titre) + "</p>";
+        if (x.enonce) html += x.enonce;
+        if (x.corrige) {
+          html += '<details class="cf-corrige"><summary>'
+            + '<span class="cf-voir">👁 Voir les réponses</span><span class="cf-cacher">🙈 Cacher les réponses</span>'
+            + '</summary><div class="cf-reponses">' + x.corrige + "</div></details>";
+        }
+        html += "</div>";
+      });
+      return html;
+    }
 
     let adminUid = null;
     let droitModifier = false;
@@ -917,6 +1331,7 @@
     function ouvrirModalAjout() {
       titreModalAjout.textContent = "Ajouter un cours - " + classeSelectionnee + " - " + matiereSelectionnee;
       formAjoutCours.reset();
+      viderZones("ajout");
       peuplerSelectSequence();
       modalAjout.style.display = "flex";
     }
@@ -930,7 +1345,8 @@
 
       const sequenceKey = selectSequenceCours.value;
       const lien = inputLienCours.value.trim();
-      const contenu = inputContenuCours.value.trim();
+      const zonesAjout = lireZones("ajout");
+      const contenu = assemblerContenu(zonesAjout);
       const image = inputImageCours.value.trim();
 
       if (!sequenceKey) {
@@ -940,6 +1356,10 @@
 
       if (!lien && !contenu) {
         alert("Ajoute soit un lien vers ton cours, soit un contenu texte (au moins l'un des deux).");
+        return;
+      }
+      if (contenu.length > 700000) {
+        alert("Le contenu est trop volumineux (images collées ?). Réduis-le ou héberge les images à part.");
         return;
       }
 
@@ -952,6 +1372,11 @@
         seqLabel: seqInfo ? seqInfo.seq : "",
         lien: lien || "",
         contenu: contenu || "",
+        coursHtml: zonesAjout.cours,
+        proprietesHtml: zonesAjout.proprietes,
+        retenonsHtml: zonesAjout.retenons,
+        corrigeHtml: "",
+        exercices: zonesAjout.exercices,
         image: image || "",
         dateCreation: now,
         actif: true
@@ -977,7 +1402,7 @@
       titreModalModif.textContent = "Modifier le cours";
       texteSequenceModif.textContent = (cours.saLabel || "") + " — " + (cours.seqLabel || "");
       inputLienModif.value = cours.lien || "";
-      inputContenuModif.value = cours.contenu || "";
+      chargerZones("modif", cours);
       inputImageModif.value = cours.image || "";
       modalModif.style.display = "flex";
     }
@@ -993,17 +1418,27 @@
       if (!coursActuel) return;
 
       const lien = inputLienModif.value.trim();
-      const contenu = inputContenuModif.value.trim();
+      const zonesModif = lireZones("modif");
+      const contenu = assemblerContenu(zonesModif);
       const image = inputImageModif.value.trim();
 
       if (!lien && !contenu) {
         alert("Ajoute soit un lien vers ton cours, soit un contenu texte (au moins l'un des deux).");
         return;
       }
+      if (contenu.length > 700000) {
+        alert("Le contenu est trop volumineux (images collées ?). Réduis-le ou héberge les images à part.");
+        return;
+      }
 
       const coursModifie = {
         lien: lien,
         contenu: contenu,
+        coursHtml: zonesModif.cours,
+        proprietesHtml: zonesModif.proprietes,
+        retenonsHtml: zonesModif.retenons,
+        corrigeHtml: "",
+        exercices: zonesModif.exercices,
         image: image,
         dateModification: Date.now()
       };
@@ -1212,6 +1647,9 @@
         window.location.href = "index.html";
       });
     });
+
+    construireZones("ajout", document.getElementById("zones-ajout"));
+    construireZones("modif", document.getElementById("zones-modif"));
 
     (function init() {
       if (!auth || !db) {
