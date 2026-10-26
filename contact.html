@@ -189,14 +189,9 @@
         <a href="index.html">Accueil</a>
       </li>
 
-      <!-- Épreuves -->
+      <!-- Retour -->
       <li>
-        <a href="matieres.html">Épreuves</a>
-      </li>
-
-      <!-- Vidéos -->
-      <li>
-        <a href="matieres.html">Vidéos</a>
+        <a href="index.html" id="lien-retour">Retour</a>
       </li>
 
       <!-- Profil -->
@@ -265,5 +260,15 @@
     </p>
   </footer>
 
+<script>
+function deconnexion(){
+  if(window.firebase&&firebase.auth){firebase.auth().signOut().then(function(){location.href="index.html";},function(){location.href="index.html";});}
+  else{location.href="index.html";}
+}
+// « Retour » ramène à la page précédente ; sans historique, il mène à l'accueil
+document.getElementById("lien-retour").addEventListener("click",function(e){
+  if(document.referrer&&history.length>1){e.preventDefault();history.back();}
+});
+</script>
 </body>
         </html>

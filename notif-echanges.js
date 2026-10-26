@@ -1,7 +1,7 @@
 // notif-echanges.js - Pastille rouge sur le lien « Échanges » quand il y a du nouveau, comme sur Facebook.
 //  - élève : réponses d'un enseignant en privé + nouveaux messages de la discussion de classe
 //  - enseignant : messages privés non lus + nouveaux messages dans les discussions de ses classes
-//  - admin : messages privés non lus (toutes classes)
+//  - admin : conversations « sans réponse » (dernier message écrit par un élève), toutes classes
 // Chargé automatiquement par logo-nav.js. Les pages d'échanges marquent la discussion de classe comme « vue ».
 (function () {
   if (window.__cfNotif) return; window.__cfNotif = true;
@@ -54,7 +54,7 @@
   function compterAdmin(db) {
     return db.ref("mp_index").once("value").then(function (s) {
       var n = 0;
-      s.forEach(function (c) { c.forEach(function (m) { m.forEach(function (e) { if ((e.val() || {}).luEns === false) n++; }); }); });
+      s.forEach(function (c) { c.forEach(function (m) { m.forEach(function (e) { if ((e.val() || {}).dernierAuteur === "eleve") n++; }); }); }); // conversations « sans réponse », comme dans la page admin
       return n;
     }).catch(function () { return 0; });
   }
