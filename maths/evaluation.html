@@ -232,6 +232,55 @@
       main { margin: 20px auto; padding: 0 14px; }
       .choix { grid-template-columns: 1fr; }
     }
+
+    /* ---- Épreuve en format « document » ---- */
+    .chrono-doc {
+      display: none;
+      background: #fff3e0;
+      color: var(--indigo);
+      font-weight: bold;
+      font-size: 18px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      border: 2px solid var(--amber);
+    }
+    .chrono-doc.urgent { background: #fdecea; color: var(--error); border-color: var(--error); }
+    .liens-document { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    .liens-document a,
+    .corrige-document > summary {
+      display: inline-block;
+      padding: 10px 18px;
+      border-radius: 22px;
+      background: var(--indigo);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .liens-document a.corrige, .corrige-document > summary { background: var(--success); }
+    .texte-document, .contenu-corrige-doc {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e8f4;
+      line-height: 1.9;
+      font-size: 15px;
+      overflow-x: auto;
+    }
+    .texte-document img, .contenu-corrige-doc img { max-width: 100%; height: auto; }
+    .corrige-document { margin-top: 16px; }
+    .corrige-document > summary { list-style: none; cursor: pointer; }
+    .corrige-document > summary::-webkit-details-marker { display: none; }
+    .corrige-verrouille {
+      display: inline-block;
+      padding: 10px 18px;
+      border-radius: 22px;
+      background: #e3e7f6;
+      color: var(--gris);
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 12px;
+    }
   </style>
 </head>
 
@@ -274,6 +323,16 @@
       </form>
 
       <p id="message-envoi" class="message"></p>
+    </section>
+
+    <section class="card" id="card-document" style="display: none;">
+      <h2 id="titre-document">Évaluation</h2>
+      <div id="chrono-document" class="chrono-doc"></div>
+      <div id="liens-document" class="liens-document"></div>
+      <div id="texte-document" class="texte-document" style="display: none;"></div>
+      <div id="zone-corrige-document"></div>
+      <p id="info-document" class="message"></p>
+      <button type="button" id="btn-retour-liste-document" class="secondaire">Retour à la liste des épreuves</button>
     </section>
 
     <section class="card" id="card-resultat" style="display: none;">
@@ -447,7 +506,7 @@
 
         bouton.innerHTML =
           "<div class='titre'>" + (ep.titre || "Épreuve") + "</div>" +
-          "<div class='meta'>" + (ep.sequence || "") + " — " + nbQuestions + " question(s)</div>";
+          "<div class='meta'>" + (ep.sequence || "") + " — " + (ep.format === "document" ? "document" : nbQuestions + " question(s)") + "</div>";
 
         bouton.addEventListener("click", function() {
           ouvrirEpreuve(id);
@@ -460,6 +519,11 @@
     function ouvrirEpreuve(id) {
       const ep = epreuvesDisponibles[id];
       if (!ep) return;
+
+      if (ep.format === "document") {
+        ouvrirDocument(ep);
+        return;
+      }
 
       epreuveActuelleId = id;
       questions = ep.questions || {};
@@ -530,6 +594,129 @@
       cardQuestions.style.display = "block";
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+
+    // ---- Épreuve en format « document » (texte collé, PDF, Word) : pas de correction automatique ----
+    const cardDocument = document.getElementById("card-document");
+    const titreDocument = document.getElementById("titre-document");
+    const chronoDocument = document.getElementById("chrono-document");
+    const liensDocument = document.getElementById("liens-document");
+    const texteDocument = document.getElementById("texte-document");
+    const zoneCorrigeDocument = document.getElementById("zone-corrige-document");
+    const infoDocument = document.getElementById("info-document");
+    const btnRetourListeDocument = document.getElementById("btn-retour-liste-document");
+    let intervalChronoDocument = null;
+
+    function formaterChronoDocument(s) {
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return (m < 10 ? "0" : "") + m + ":" + (r < 10 ? "0" : "") + r;
+    }
+
+    function arreterChronoDocument() {
+      if (intervalChronoDocument) {
+        clearInterval(intervalChronoDocument);
+        intervalChronoDocument = null;
+      }
+      chronoDocument.style.display = "none";
+    }
+
+    function ajouterLienDocument(conteneur, href, texte, classe) {
+      const a = document.createElement("a");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noopener";
+      if (classe) a.className = classe;
+      a.textContent = texte;
+      conteneur.appendChild(a);
+    }
+
+    function ouvrirDocument(ep) {
+      arreterChronoDocument();
+
+      titreDocument.textContent =
+        (TYPE_EVAL === "blanche" ? "Évaluation Blanche" : "Évaluation Officielle") +
+        " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+      liensDocument.innerHTML = "";
+      texteDocument.innerHTML = "";
+      zoneCorrigeDocument.innerHTML = "";
+      infoDocument.textContent = "";
+
+      if (ep.devoirUrl) ajouterLienDocument(liensDocument, ep.devoirUrl, "📄 Télécharger le sujet (PDF)", "");
+      if (ep.devoirWordUrl) ajouterLienDocument(liensDocument, ep.devoirWordUrl, "📝 Télécharger le sujet (Word)", "");
+      if (ep.enonceHtml) {
+        texteDocument.innerHTML = ep.enonceHtml;
+        texteDocument.style.display = "block";
+      } else {
+        texteDocument.style.display = "none";
+      }
+
+      if (ep.duree) {
+        let secondes = ep.duree * 60;
+        chronoDocument.style.display = "inline-block";
+        chronoDocument.classList.remove("urgent");
+        chronoDocument.textContent = "Temps restant : " + formaterChronoDocument(secondes);
+
+        intervalChronoDocument = setInterval(function() {
+          secondes -= 1;
+          if (secondes <= 0) {
+            clearInterval(intervalChronoDocument);
+            intervalChronoDocument = null;
+            chronoDocument.classList.add("urgent");
+            chronoDocument.textContent = "Temps écoulé";
+            liensDocument.innerHTML = "";
+            texteDocument.innerHTML = "";
+            texteDocument.style.display = "none";
+            infoDocument.textContent = "Le temps est écoulé : le sujet n'est plus affiché.";
+            return;
+          }
+          if (secondes <= 300) chronoDocument.classList.add("urgent");
+          chronoDocument.textContent = "Temps restant : " + formaterChronoDocument(secondes);
+        }, 1000);
+      }
+
+      const aCorrige = ep.corrigeUrl || ep.corrigeWordUrl || ep.corrigeHtml;
+      if (aCorrige) {
+        const disponible = ep.dateCorrige && Date.now() >= ep.dateCorrige;
+        if (disponible) {
+          if (ep.corrigeUrl || ep.corrigeWordUrl) {
+            const liensCorrige = document.createElement("div");
+            liensCorrige.className = "liens-document";
+            if (ep.corrigeUrl) ajouterLienDocument(liensCorrige, ep.corrigeUrl, "Voir le corrigé (PDF)", "corrige");
+            if (ep.corrigeWordUrl) ajouterLienDocument(liensCorrige, ep.corrigeWordUrl, "Télécharger le corrigé (Word)", "corrige");
+            zoneCorrigeDocument.appendChild(liensCorrige);
+          }
+          if (ep.corrigeHtml) {
+            const details = document.createElement("details");
+            details.className = "corrige-document";
+            const resume = document.createElement("summary");
+            resume.textContent = "👁 Voir le corrigé (texte)";
+            const contenu = document.createElement("div");
+            contenu.className = "contenu-corrige-doc";
+            contenu.innerHTML = ep.corrigeHtml;
+            details.appendChild(resume);
+            details.appendChild(contenu);
+            zoneCorrigeDocument.appendChild(details);
+          }
+        } else {
+          const verrou = document.createElement("span");
+          verrou.className = "corrige-verrouille";
+          verrou.textContent = ep.dateCorrige
+            ? "Corrigé disponible le " + new Date(ep.dateCorrige).toLocaleDateString("fr-FR")
+            : "Corrigé pas encore disponible";
+          zoneCorrigeDocument.appendChild(verrou);
+        }
+      }
+
+      cardListeEpreuves.style.display = "none";
+      cardDocument.style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    btnRetourListeDocument.addEventListener("click", function() {
+      arreterChronoDocument();
+      cardDocument.style.display = "none";
+      cardListeEpreuves.style.display = "block";
+    });
 
     btnRetourListe.addEventListener("click", function() {
       arreterChrono();
