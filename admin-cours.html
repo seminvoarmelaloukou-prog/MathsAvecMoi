@@ -1007,6 +1007,23 @@
       btnAjouter.addEventListener("click", function() { ajouterExercice(liste); });
       conteneur.appendChild(btnAjouter);
 
+      const detHtml = document.createElement("details");
+      detHtml.style.cssText = "margin:4px 0 14px;border:1px solid #cfd8f0;border-radius:10px;padding:8px 12px;background:#fafbff;";
+      const sumHtml = document.createElement("summary");
+      sumHtml.style.cssText = "cursor:pointer;font-weight:bold;font-size:14px;color:#2c3e8c;";
+      sumHtml.textContent = "⚙️ HTML complet (ancien mode)";
+      detHtml.appendChild(sumHtml);
+      const aideHtml = document.createElement("p");
+      aideHtml.style.cssText = "font-size:12px;color:#666;margin:8px 0;";
+      aideHtml.textContent = "Colle ici un HTML déjà prêt (par exemple celui que Claude te génère). S'il est rempli, il remplace tout ce qui est au-dessus : les zones sont ignorées à l'affichage.";
+      detHtml.appendChild(aideHtml);
+      const taHtml = document.createElement("textarea");
+      taHtml.id = "html-complet-" + prefixe;
+      taHtml.style.cssText = "width:100%;min-height:160px;font-family:monospace;font-size:12px;";
+      taHtml.placeholder = "<div>...</div>";
+      detHtml.appendChild(taHtml);
+      conteneur.appendChild(detHtml);
+
       const rendu = document.createElement("div");
       rendu.className = "rendu-final";
       rendu.style.display = "none";
@@ -1040,17 +1057,19 @@
         const k = !zoneEstVide(co) ? co.innerHTML.trim() : "";
         if (t || e || k) z.exercices.push({ titre: t, enonce: e, corrige: k });
       });
+      const taH = document.getElementById("html-complet-" + prefixe);
+      z.htmlComplet = taH ? taH.value.trim() : "";
       return z;
     }
 
     function chargerZones(prefixe, c) {
       const racine = document.getElementById("zones-" + prefixe);
-      const nouveauFormat = !!c && (!!c.exercices || ["coursHtml", "proprietesHtml", "retenonsHtml", "corrigeHtml"].some(function(k) { return typeof c[k] === "string"; }));
+      const nouveauFormat = !!c && (!!c.exercices || ["coursHtml", "proprietesHtml", "retenonsHtml", "corrigeHtml", "htmlComplet"].some(function(k) { return typeof c[k] === "string"; }));
       ZONES_DEF.forEach(function(def) {
         const el = document.getElementById("zone-" + prefixe + "-" + def.id);
         if (!el) return;
         if (nouveauFormat) el.innerHTML = c[def.id + "Html"] || "";
-        else el.innerHTML = (def.id === "cours" && c) ? (c.contenu || "") : "";
+        else el.innerHTML = "";
       });
 
       const liste = racine.querySelector(".exo-liste");
@@ -1063,6 +1082,22 @@
       }
       exos.forEach(function(d) { ajouterExercice(liste, d); });
 
+      // Ancien mode : HTML complet. Les cours créés avant les zones s'y rechargent tels quels.
+      const taH = document.getElementById("html-complet-" + prefixe);
+      if (taH) {
+        const detH = taH.parentNode;
+        if (c && typeof c.htmlComplet === "string" && c.htmlComplet) {
+          taH.value = c.htmlComplet;
+          detH.open = true;
+        } else if (c && !nouveauFormat && c.contenu) {
+          taH.value = c.contenu;
+          detH.open = true;
+        } else {
+          taH.value = "";
+          detH.open = false;
+        }
+      }
+
       racine.querySelectorAll(".zone-note").forEach(function(n) { n.textContent = ""; });
       const rendu = racine.querySelector(".rendu-final");
       if (rendu) { rendu.style.display = "none"; rendu.innerHTML = ""; }
@@ -1074,6 +1109,7 @@
     // retenons (encadrés foncés toujours visibles), puis les exercices,
     // chacun avec son énoncé et son bouton « Voir les réponses » (sans JavaScript).
     function assemblerContenu(z) {
+      if (z.htmlComplet) return z.htmlComplet;
       const exos = z.exercices || [];
       let html = "";
       const aCorrige = exos.some(function(x) { return x.corrige; });
@@ -1398,6 +1434,7 @@
         retenonsHtml: zonesAjout.retenons,
         corrigeHtml: "",
         exercices: zonesAjout.exercices,
+        htmlComplet: zonesAjout.htmlComplet,
         image: image || "",
         dateCreation: now,
         actif: true
@@ -1491,6 +1528,7 @@
         retenonsHtml: zonesModif.retenons,
         corrigeHtml: "",
         exercices: zonesModif.exercices,
+        htmlComplet: zonesModif.htmlComplet,
         image: image,
         dateModification: Date.now()
       };
