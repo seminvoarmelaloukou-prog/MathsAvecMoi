@@ -261,6 +261,17 @@
       .epreuve-item { flex-direction: column; align-items: stretch; }
       .choix-ligne .choix-num { width: auto; flex: 0 0 auto; }
     }
+  
+    /* ---- Zones de collage Word (épreuve en document) ---- */
+    .zone-bloc { margin: 14px 0; }
+    .zone-bloc > label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: bold; }
+    .zone-collage { min-height: 110px; max-height: 320px; overflow: auto; padding: 10px 12px; border: 2px solid #cfd8f0; border-radius: 10px; background: #fff; font-size: 14px; line-height: 1.6; outline: none; }
+    .zone-collage:empty::before { content: attr(data-placeholder); color: #999; }
+    .zone-collage img { max-width: 100%; height: auto; }
+    .zone-collage table { border-collapse: collapse; }
+    .zone-collage td, .zone-collage th { border: 1px solid #999; padding: 3px 6px; }
+    .zone-bloc .zone-note { font-size: 12px; color: #c0392b; margin-top: 4px; }
+    .zone-bloc .zone-effacer { margin-top: 6px; padding: 4px 10px; font-size: 12px; }
   </style>
 </head>
 
@@ -391,16 +402,85 @@
         <select id="select-sequence"></select>
       </div>
 
+      <div class="row">
+        <label for="select-format">Format de l'épreuve :</label>
+        <select id="select-format">
+          <option value="qcm">QCM (corrigé automatiquement)</option>
+          <option value="document">Document (texte collé, PDF ou Word)</option>
+        </select>
+      </div>
+
       <div class="row" id="row-duree" style="display: none;">
         <label for="input-duree">Durée de composition (minutes) :</label>
         <input type="number" id="input-duree" min="1" placeholder="ex : 120" style="width: 100px;">
       </div>
+
+      <div id="bloc-qcm">
+      <div class="section-title">📥 Importer un QCM depuis Word</div>
+      <p style="font-size: 13px; color: var(--muted);">Envoie un fichier Word (.docx) : les questions, les 4 choix, la bonne réponse et les points sont créés automatiquement dans les cartes ci-dessous. Tu vérifies, puis tu enregistres.</p>
+      <div class="row">
+        <input type="file" id="fichier-import-word" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      </div>
+      <details style="margin: 8px 0;">
+        <summary style="cursor: pointer; font-weight: bold; color: var(--indigo);">Comment écrire le QCM dans Word ?</summary>
+        <div style="font-size: 13px; line-height: 1.7; margin-top: 8px;">
+          <p>Pour chaque question, écris :</p>
+          <pre style="background: #f5f7ff; padding: 10px; border-radius: 8px; white-space: pre-wrap;">1. Texte de la question
+A. premier choix
+B. deuxième choix
+C. troisième choix
+D. quatrième choix
+Réponse : B
+Points : 2</pre>
+          <p>• « Points » est facultatif (1 par défaut).<br>
+          • Tu peux aussi mettre la bonne réponse en gras, surlignée ou soulignée à la place de la ligne « Réponse ».<br>
+          • Les équations Word (fractions, puissances, racines) sont transformées en texte, par exemple 1/2, x², √16.<br>
+          • Les images et figures ne sont pas importées : ajoute leur lien dans la carte de la question.</p>
+        </div>
+      </details>
+      <details style="margin: 8px 0;">
+        <summary style="cursor: pointer; font-weight: bold; color: var(--indigo);">Ou colle le texte copié depuis Word</summary>
+        <textarea id="texte-import-word" style="width: 100%; min-height: 140px; margin-top: 8px;" placeholder="1. Question&#10;A. ...&#10;B. ...&#10;C. ...&#10;D. ...&#10;Réponse : B"></textarea>
+        <button type="button" class="secondaire" id="btn-importer-texte" style="margin-top: 8px;">Importer ce texte</button>
+      </details>
+      <p class="message" id="message-import"></p>
 
       <div class="section-title">Questions</div>
       <div id="liste-questions-editeur"></div>
 
       <div class="row">
         <button id="btn-ajouter-question-carte" class="secondaire">+ Ajouter une question</button>
+      </div>
+      </div>
+
+      <div id="bloc-document" style="display: none;">
+        <div class="section-title">📄 Épreuve en document</div>
+        <p style="font-size: 13px; color: var(--muted);">Les élèves lisent le sujet sur la page et/ou le téléchargent en PDF ou en Word. Il n'y a pas de correction automatique. Pour mettre un fichier en ligne, envoie-le sur GitHub puis colle son lien ici.</p>
+
+        <div class="row">
+          <label for="eval-url-pdf">Sujet — lien du PDF :</label>
+          <input type="text" id="eval-url-pdf" placeholder="https://...github.io/.../sujet.pdf" style="flex: 1 1 280px;">
+        </div>
+        <div class="row">
+          <label for="eval-url-word">Sujet — lien du Word :</label>
+          <input type="text" id="eval-url-word" placeholder="https://...github.io/.../sujet.docx" style="flex: 1 1 280px;">
+        </div>
+        <div id="zones-eval-enonce"></div>
+
+        <div class="row">
+          <label for="eval-url-corrige-pdf">Corrigé — lien du PDF :</label>
+          <input type="text" id="eval-url-corrige-pdf" placeholder="https://...github.io/.../corrige.pdf" style="flex: 1 1 280px;">
+        </div>
+        <div class="row">
+          <label for="eval-url-corrige-word">Corrigé — lien du Word :</label>
+          <input type="text" id="eval-url-corrige-word" placeholder="https://...github.io/.../corrige.docx" style="flex: 1 1 280px;">
+        </div>
+        <div id="zones-eval-corrige"></div>
+
+        <div class="row">
+          <label for="eval-date-corrige">Corrigé visible à partir du :</label>
+          <input type="datetime-local" id="eval-date-corrige">
+        </div>
       </div>
 
       <div class="row">
@@ -627,7 +707,7 @@
 
         const meta = document.createElement("p");
         meta.className = "meta";
-        meta.textContent = (ep.sequence || "Séquence non précisée") + " — " + nbQuestions + " question(s)" +
+        meta.textContent = (ep.sequence || "Séquence non précisée") + " — " + (ep.format === "document" ? "document" : nbQuestions + " question(s)") +
           (ep.duree ? " — " + ep.duree + " min" : "");
         infos.appendChild(meta);
 
@@ -851,6 +931,9 @@
       inputTitreAutre.style.display = "none";
       selectSequence.value = "";
       inputDuree.value = "";
+      selectFormat.value = "qcm";
+      mettreAJourFormat();
+      viderChampsDocument();
       listeQuestionsEditeur.innerHTML = "";
       messageEditeur.textContent = "";
       messageEditeur.classList.remove("success", "error");
@@ -892,6 +975,18 @@
 
       if (ep.sequence) {
         selectSequence.value = ep.sequence;
+      }
+
+      selectFormat.value = ep.format === "document" ? "document" : "qcm";
+      mettreAJourFormat();
+      if (ep.format === "document") {
+        zoneEvalEnonce.zone.innerHTML = ep.enonceHtml || "";
+        zoneEvalCorrige.zone.innerHTML = ep.corrigeHtml || "";
+        champUrlPdf.value = ep.devoirUrl || "";
+        champUrlWord.value = ep.devoirWordUrl || "";
+        champUrlCorrigePdf.value = ep.corrigeUrl || "";
+        champUrlCorrigeWord.value = ep.corrigeWordUrl || "";
+        champDateCorrige.value = ep.dateCorrige ? versChampDate(ep.dateCorrige) : "";
       }
 
       const questions = ep.questions ? Object.values(ep.questions) : [];
@@ -947,6 +1042,63 @@
         duree = dureeSaisie;
       }
 
+      if (selectFormat.value === "document") {
+        const enonceHtml = zoneEstVide(zoneEvalEnonce.zone) ? "" : zoneEvalEnonce.zone.innerHTML.trim();
+        const corrigeHtml = zoneEstVide(zoneEvalCorrige.zone) ? "" : zoneEvalCorrige.zone.innerHTML.trim();
+        const urlPdf = champUrlPdf.value.trim();
+        const urlWord = champUrlWord.value.trim();
+
+        if (!urlPdf && !urlWord && !enonceHtml) {
+          messageEditeur.textContent = "Ajoute le sujet : texte collé, lien PDF et/ou lien Word.";
+          messageEditeur.classList.add("error");
+          return;
+        }
+        if (enonceHtml.length + corrigeHtml.length > 700000) {
+          messageEditeur.textContent = "Le texte est trop volumineux (images collées ?). Réduis-le ou héberge les images à part.";
+          messageEditeur.classList.add("error");
+          return;
+        }
+
+        const dateCorrige = champDateCorrige.value ? new Date(champDateCorrige.value).getTime() : null;
+
+        const epreuveDoc = {
+          titre: titre,
+          sequence: sequence,
+          classe: classe,
+          matiere: matiere,
+          type: type,
+          format: "document",
+          enonceHtml: enonceHtml,
+          corrigeHtml: corrigeHtml,
+          devoirUrl: urlPdf,
+          devoirWordUrl: urlWord,
+          corrigeUrl: champUrlCorrigePdf.value.trim(),
+          corrigeWordUrl: champUrlCorrigeWord.value.trim(),
+          dateCorrige: dateCorrige,
+          misAJour: Date.now()
+        };
+        if (duree !== null) {
+          epreuveDoc.duree = duree;
+        }
+
+        const idDoc = epreuveEnEdition || ("ep_" + Date.now());
+        messageEditeur.textContent = "Sauvegarde en cours...";
+
+        db.ref(cheminEpreuves(type, classe, matiere) + "/" + idDoc).set(epreuveDoc)
+          .then(function() {
+            messageEditeur.textContent = "Épreuve enregistrée avec succès.";
+            messageEditeur.classList.add("success");
+            chargerEpreuves();
+            setTimeout(fermerEditeur, 700);
+          })
+          .catch(function(erreur) {
+            console.error("Erreur sauvegarde épreuve :", erreur);
+            messageEditeur.textContent = "Erreur lors de la sauvegarde.";
+            messageEditeur.classList.add("error");
+          });
+        return;
+      }
+
       const resultat = collecterQuestionsDepuisCartes();
       if (resultat.erreur) {
         messageEditeur.textContent = resultat.erreur;
@@ -966,6 +1118,7 @@
         classe: classe,
         matiere: matiere,
         type: type,
+        format: "qcm",
         questions: questionsObjet,
         misAJour: Date.now()
       };
@@ -990,6 +1143,756 @@
           messageEditeur.textContent = "Erreur lors de la sauvegarde.";
           messageEditeur.classList.add("error");
         });
+    }
+
+    // ===================================================================
+    // Import d'un QCM depuis un fichier Word (.docx) ou un texte collé.
+    // Les questions, les 4 choix, la bonne réponse et les points sont
+    // reconnus puis chargés dans les cartes de questions de l'éditeur.
+    // ===================================================================
+
+    // Lit un fichier à l'intérieur d'un .docx (qui est une archive zip)
+    async function lireDansZip(buffer, nomCherche) {
+      const u8 = new Uint8Array(buffer);
+      const dv = new DataView(buffer);
+      let eocd = -1;
+      for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) {
+        if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+      }
+      if (eocd < 0) throw new Error("Ce fichier n'est pas un document Word (.docx) valide.");
+
+      const nbEntrees = dv.getUint16(eocd + 10, true);
+      let pos = dv.getUint32(eocd + 16, true);
+      const decodeur = new TextDecoder("utf-8");
+
+      for (let n = 0; n < nbEntrees; n++) {
+        if (dv.getUint32(pos, true) !== 0x02014b50) break;
+        const methode = dv.getUint16(pos + 10, true);
+        const tailleCompressee = dv.getUint32(pos + 20, true);
+        const lgNom = dv.getUint16(pos + 28, true);
+        const lgExtra = dv.getUint16(pos + 30, true);
+        const lgCommentaire = dv.getUint16(pos + 32, true);
+        const offsetLocal = dv.getUint32(pos + 42, true);
+        const nom = decodeur.decode(u8.subarray(pos + 46, pos + 46 + lgNom));
+
+        if (nom === nomCherche) {
+          const lgNomLocal = dv.getUint16(offsetLocal + 26, true);
+          const lgExtraLocal = dv.getUint16(offsetLocal + 28, true);
+          const debut = offsetLocal + 30 + lgNomLocal + lgExtraLocal;
+          const donnees = u8.subarray(debut, debut + tailleCompressee);
+          if (methode === 0) return decodeur.decode(donnees);
+          if (methode === 8) {
+            const flux = new Blob([donnees]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+            const resultat = await new Response(flux).arrayBuffer();
+            return decodeur.decode(resultat);
+          }
+          throw new Error("Type de compression non pris en charge dans ce fichier Word.");
+        }
+        pos += 46 + lgNom + lgExtra + lgCommentaire;
+      }
+      throw new Error("Le contenu du document Word est introuvable.");
+    }
+
+    // ---- Équations Word (OMML) -> texte lisible : fractions, puissances, racines
+    const EXPOSANTS = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "+": "⁺", "-": "⁻", "−": "⁻", "=": "⁼", "(": "⁽", ")": "⁾", "n": "ⁿ", "i": "ⁱ" };
+    const INDICES = { "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉", "+": "₊", "-": "₋", "−": "₋", "=": "₌", "(": "₍", ")": "₎", "a": "ₐ", "e": "ₑ", "o": "ₒ", "x": "ₓ", "n": "ₙ", "i": "ᵢ", "j": "ⱼ" };
+
+    function enUnicode(texte, table) {
+      let sortie = "";
+      for (const c of texte) {
+        if (!table[c]) return null;
+        sortie += table[c];
+      }
+      return sortie;
+    }
+    function simpleOuParentheses(s) {
+      return /^[\p{L}\d.,]+$/u.test(s) ? s : "(" + s + ")";
+    }
+    function exposantTexte(s) {
+      if (!s) return "";
+      return enUnicode(s, EXPOSANTS) || ("^" + simpleOuParentheses(s));
+    }
+    function indiceTexte(s) {
+      if (!s) return "";
+      return enUnicode(s, INDICES) || ("_" + simpleOuParentheses(s));
+    }
+    function enfantParNom(el, nom) {
+      for (let i = 0; i < el.childNodes.length; i++) {
+        if (el.childNodes[i].nodeType === 1 && el.childNodes[i].tagName === nom) return el.childNodes[i];
+      }
+      return null;
+    }
+    function ommlEnTexte(n) {
+      if (n.nodeType === 3) return n.nodeValue;
+      if (n.nodeType !== 1) return "";
+      const txt = function(el) {
+        return el ? Array.from(el.childNodes).map(ommlEnTexte).join("") : "";
+      };
+      switch (n.tagName) {
+        case "m:t":
+          return n.textContent;
+        case "m:f":
+          return simpleOuParentheses(txt(enfantParNom(n, "m:num"))) + "/" + simpleOuParentheses(txt(enfantParNom(n, "m:den")));
+        case "m:sSup":
+          return txt(enfantParNom(n, "m:e")) + exposantTexte(txt(enfantParNom(n, "m:sup")));
+        case "m:sSub":
+          return txt(enfantParNom(n, "m:e")) + indiceTexte(txt(enfantParNom(n, "m:sub")));
+        case "m:sSubSup":
+          return txt(enfantParNom(n, "m:e")) + indiceTexte(txt(enfantParNom(n, "m:sub"))) + exposantTexte(txt(enfantParNom(n, "m:sup")));
+        case "m:rad": {
+          const degre = txt(enfantParNom(n, "m:deg"));
+          const contenu = txt(enfantParNom(n, "m:e"));
+          return (degre && degre !== "2" ? exposantTexte(degre) : "") + "√" + simpleOuParentheses(contenu);
+        }
+        case "m:d": {
+          const parties = Array.from(n.childNodes).filter(function(c) { return c.nodeType === 1 && c.tagName === "m:e"; }).map(txt);
+          return "(" + parties.join(", ") + ")";
+        }
+        default:
+          return Array.from(n.childNodes).map(ommlEnTexte).join("");
+      }
+    }
+
+    // ---- Document Word (XML) -> liste de paragraphes avec leur mise en forme
+    function paragraphesDepuisXml(xml) {
+      const doc = new DOMParser().parseFromString(xml, "application/xml");
+      if (doc.getElementsByTagName("parsererror").length) {
+        throw new Error("Le contenu du document Word est illisible.");
+      }
+
+      const actif = function(el) {
+        if (!el) return false;
+        const v = (el.getAttribute("w:val") || "").toLowerCase();
+        return v !== "0" && v !== "false" && v !== "off" && v !== "none";
+      };
+
+      const paragraphes = [];
+      const liste = doc.getElementsByTagName("w:p");
+
+      for (let i = 0; i < liste.length; i++) {
+        const p = liste[i];
+        const info = { texte: "", nbCar: 0, gras: 0, souligne: 0, surligne: 0, couleur: 0, liste: false, niveau: 0, numId: null };
+
+        const ppr = enfantParNom(p, "w:pPr");
+        const numPr = ppr ? enfantParNom(ppr, "w:numPr") : null;
+        if (numPr) {
+          const numId = enfantParNom(numPr, "w:numId");
+          const ilvl = enfantParNom(numPr, "w:ilvl");
+          info.numId = numId ? numId.getAttribute("w:val") : null;
+          info.niveau = ilvl ? parseInt(ilvl.getAttribute("w:val"), 10) || 0 : 0;
+          info.liste = info.numId !== null && info.numId !== "0";
+        }
+
+        const ajouterTexte = function(texte, drapeaux) {
+          info.texte += texte;
+          const n = texte.replace(/\s/g, "").length;
+          info.nbCar += n;
+          if (drapeaux) {
+            if (drapeaux.gras) info.gras += n;
+            if (drapeaux.souligne) info.souligne += n;
+            if (drapeaux.surligne) info.surligne += n;
+            if (drapeaux.couleur) info.couleur += n;
+          }
+        };
+
+        const parcourir = function(noeud) {
+          for (let k = 0; k < noeud.childNodes.length; k++) {
+            const c = noeud.childNodes[k];
+            if (c.nodeType !== 1) continue;
+            const nom = c.tagName;
+
+            if (nom === "w:r") {
+              const rpr = enfantParNom(c, "w:rPr");
+              const drapeaux = { gras: false, souligne: false, surligne: false, couleur: false };
+              if (rpr) {
+                drapeaux.gras = actif(enfantParNom(rpr, "w:b"));
+                drapeaux.souligne = actif(enfantParNom(rpr, "w:u"));
+                drapeaux.surligne = actif(enfantParNom(rpr, "w:highlight"));
+                const shd = enfantParNom(rpr, "w:shd");
+                if (shd) {
+                  const fond = (shd.getAttribute("w:fill") || "auto").toLowerCase();
+                  if (fond !== "auto" && fond !== "ffffff") drapeaux.surligne = true;
+                }
+                const coul = enfantParNom(rpr, "w:color");
+                if (coul) {
+                  const v = (coul.getAttribute("w:val") || "auto").toLowerCase();
+                  if (v !== "auto" && v !== "000000") drapeaux.couleur = true;
+                }
+              }
+              for (let j = 0; j < c.childNodes.length; j++) {
+                const e = c.childNodes[j];
+                if (e.nodeType !== 1) continue;
+                if (e.tagName === "w:t") ajouterTexte(e.textContent, drapeaux);
+                else if (e.tagName === "w:tab") ajouterTexte(" ", null);
+                else if (e.tagName === "w:br" || e.tagName === "w:cr") ajouterTexte("\n", null);
+              }
+            } else if (nom === "m:oMath" || nom === "m:oMathPara") {
+              ajouterTexte(ommlEnTexte(c), null);
+            } else if (nom === "w:del" || nom === "w:pPr") {
+              continue;
+            } else {
+              parcourir(c);
+            }
+          }
+        };
+        parcourir(p);
+
+        paragraphes.push(info);
+      }
+      return paragraphes;
+    }
+
+    // ---- Reconnaissance des questions, des choix et de la bonne réponse
+    const RE_REPONSE = /^\s*(?:la\s+)?(?:bonne\s+)?(?:r[ée]ponse|correction|corrig[ée]|solution)\b[^A-Za-z0-9]*([A-Da-d1-4])\b/i;
+    const RE_POINTS = /^\s*(?:points?|pts?|bar[eè]me|note)\s*[:=]?\s*(\d+)/i;
+    const RE_NUMERO = /^\s*(?:question\s*)?\d+\s*[\.\)\-:–]\s*/i;
+
+    function extraireChoixEtiquetes(texte) {
+      const t = texte.replace(/^\s+/, "");
+      const premier = /^\(?([A-Da-d])[\.\)]\s*/.exec(t);
+      if (!premier) return null;
+
+      const lettres = ["a", "b", "c", "d"];
+      const morceaux = [];
+      let lettre = premier[1].toLowerCase();
+      let pos = premier[0].length;
+
+      while (true) {
+        const suivante = lettres[lettres.indexOf(lettre) + 1];
+        if (!suivante) break;
+        const re = new RegExp("(?:^|\\s)\\(?[" + suivante + suivante.toUpperCase() + "][\\.\\)]\\s*", "g");
+        re.lastIndex = pos;
+        const m = re.exec(t);
+        if (!m) break;
+        morceaux.push({ lettre: lettre, texte: t.slice(pos, m.index).trim() });
+        pos = m.index + m[0].length;
+        lettre = suivante;
+      }
+      morceaux.push({ lettre: lettre, texte: t.slice(pos).trim() });
+      return morceaux;
+    }
+
+    function retirerMarqueurs(texte) {
+      let t = texte.trim();
+      let marque = false;
+      const avant = /^\s*(?:[\*✓✔☑]+|\[\s*[xX]\s*\]|\(\s*[xX]\s*\))\s*/;
+      const apres = /\s*(?:[\*✓✔☑]+|\[\s*[xX]\s*\]|\(\s*[xX]\s*\)|\(\s*(?:bonne\s+r[ée]ponse|correcte?|vrai)\s*\))\s*$/i;
+      if (avant.test(t)) { t = t.replace(avant, ""); marque = true; }
+      if (apres.test(t)) { t = t.replace(apres, ""); marque = true; }
+      return { texte: t.trim(), marque: marque };
+    }
+
+    function proteger(texte) {
+      // les pages élèves affichent ce texte avec textContent : aucune transformation nécessaire
+      return texte;
+    }
+
+    function construireQuestions(paras) {
+      const questions = [];
+      const avertissements = [];
+      let courante = null;
+
+      const nouvelle = function(p, texte) {
+        return { stem: [texte], stemInfo: p, choix: [], etiquetes: [], reponse: null, points: 1, sansEtiquettes: false };
+      };
+
+      const ratio = function(p, cle) {
+        // vrai si presque tout le texte est mis en forme (l'étiquette « A. » peut ne pas l'être)
+        return p.nbCar > 0 && p[cle] >= Math.max(1, p.nbCar - 3);
+      };
+
+      const ajouterChoix = function(texte, p, lettre, seul) {
+        const r = retirerMarqueurs(texte);
+        courante.choix.push({
+          texte: r.texte,
+          marqueTexte: r.marque,
+          gras: seul && ratio(p, "gras"),
+          souligne: seul && ratio(p, "souligne"),
+          surligne: seul && ratio(p, "surligne"),
+          couleur: seul && ratio(p, "couleur")
+        });
+        courante.etiquetes.push(lettre);
+      };
+
+      const terminer = function() {
+        if (!courante) return;
+        const q = courante;
+        courante = null;
+
+        const numero = questions.length + 1;
+        if (q.choix.length === 0) {
+          avertissements.push("« " + q.stem.join(" ").slice(0, 40) + "… » : aucun choix reconnu, ignorée.");
+          return;
+        }
+        if (q.choix.length !== 4) {
+          avertissements.push("Question " + numero + " : " + q.choix.length + " choix trouvés au lieu de 4 (à compléter).");
+        }
+
+        let bonne = -1;
+        if (q.reponse !== null) {
+          const indexEtiquette = q.etiquetes.indexOf(q.reponse);
+          bonne = indexEtiquette >= 0 ? indexEtiquette : (/^[a-d]$/.test(q.reponse) ? "abcd".indexOf(q.reponse) : parseInt(q.reponse, 10) - 1);
+        }
+        if (bonne < 0 || bonne > 3) {
+          const parMarqueur = [];
+          q.choix.forEach(function(c, i) { if (c.marqueTexte) parMarqueur.push(i); });
+          if (parMarqueur.length === 1) bonne = parMarqueur[0];
+        }
+        if (bonne < 0 || bonne > 3) {
+          const cles = ["surligne", "souligne", "couleur", "gras"];
+          for (let k = 0; k < cles.length; k++) {
+            const idx = [];
+            q.choix.forEach(function(c, i) { if (c[cles[k]]) idx.push(i); });
+            if (idx.length === 1 && q.choix.length > 1) { bonne = idx[0]; break; }
+          }
+        }
+
+        const choix = q.choix.slice(0, 4).map(function(c) { return proteger(c.texte); });
+        while (choix.length < 4) choix.push("");
+
+        const premiereLigne = q.stem[0].replace(RE_NUMERO, "");
+        const enonce = [premiereLigne].concat(q.stem.slice(1)).join("\n").trim();
+
+        questions.push({
+          question: proteger(enonce),
+          choix: choix,
+          bonneReponse: (bonne >= 0 && bonne <= 3) ? bonne : null,
+          points: q.points || 1,
+          image: ""
+        });
+      };
+
+      paras.forEach(function(p) {
+        const texte = p.texte.replace(/[ \t]+/g, " ").trim();
+        if (!texte) return;
+
+        const rep = RE_REPONSE.exec(texte);
+        if (rep && courante) {
+          courante.reponse = /^[1-4]$/.test(rep[1]) ? rep[1] : rep[1].toLowerCase();
+          if (/^[1-4]$/.test(rep[1])) courante.reponse = "abcd"[parseInt(rep[1], 10) - 1];
+          return;
+        }
+
+        const pts = RE_POINTS.exec(texte);
+        if (pts && courante) {
+          courante.points = parseInt(pts[1], 10) || 1;
+          return;
+        }
+
+        const etiquetes = extraireChoixEtiquetes(texte);
+        if (etiquetes) {
+          if (!courante || courante.choix.length >= 4) {
+            if (courante) terminer();
+            avertissements.push("Des choix (A, B, C, D) ont été trouvés sans énoncé : ignorés.");
+            return;
+          }
+          etiquetes.forEach(function(e) {
+            if (courante.choix.length < 4) ajouterChoix(e.texte, p, e.lettre, etiquetes.length === 1);
+          });
+          return;
+        }
+
+        if (courante && courante.choix.length >= 4) {
+          terminer();
+          courante = nouvelle(p, texte);
+          return;
+        }
+
+        if (courante && courante.choix.length > 0) {
+          if (courante.sansEtiquettes) {
+            ajouterChoix(texte, p, "abcd"[courante.choix.length], true);
+          } else {
+            const dernier = courante.choix[courante.choix.length - 1];
+            dernier.texte += " " + texte;
+          }
+          return;
+        }
+
+        if (courante) {
+          const info = courante.stemInfo;
+          const debutChoix = p.liste && (!info.liste || p.niveau > info.niveau || p.numId !== info.numId);
+          if (debutChoix) {
+            courante.sansEtiquettes = true;
+            ajouterChoix(texte, p, "a", true);
+          } else {
+            courante.stem.push(texte);
+          }
+          return;
+        }
+
+        courante = nouvelle(p, texte);
+      });
+      terminer();
+
+      if (questions.length === 0) {
+        // Repli : fichier sans lettres A, B, C, D (listes numérotées automatiques de Word)
+        avertissements.length = 0;
+        const lignes = [];
+        const meta = {};
+        paras.forEach(function(p) {
+          const texte = p.texte.replace(/[ \t]+/g, " ").trim();
+          if (!texte) return;
+          const groupe = Math.max(0, Math.ceil(lignes.length / 5) - 1);
+          const rep = RE_REPONSE.exec(texte);
+          if (rep && lignes.length) {
+            meta[groupe] = meta[groupe] || {};
+            meta[groupe].reponse = /^[1-4]$/.test(rep[1]) ? "abcd"[parseInt(rep[1], 10) - 1] : rep[1].toLowerCase();
+            return;
+          }
+          const pts = RE_POINTS.exec(texte);
+          if (pts && lignes.length) {
+            meta[groupe] = meta[groupe] || {};
+            meta[groupe].points = parseInt(pts[1], 10) || 1;
+            return;
+          }
+          lignes.push({ p: p, texte: texte });
+        });
+
+        if (lignes.length >= 5 && lignes.length % 5 === 0) {
+          for (let g = 0; g < lignes.length / 5; g++) {
+            const bloc = lignes.slice(g * 5, g * 5 + 5);
+            courante = nouvelle(bloc[0].p, bloc[0].texte);
+            courante.sansEtiquettes = true;
+            for (let k = 1; k <= 4; k++) ajouterChoix(bloc[k].texte, bloc[k].p, "abcd"[k - 1], true);
+            if (meta[g] && meta[g].reponse) courante.reponse = meta[g].reponse;
+            if (meta[g] && meta[g].points) courante.points = meta[g].points;
+            terminer();
+          }
+          avertissements.push("Fichier sans lettres A, B, C, D : chaque question a été lue comme 1 ligne d'énoncé suivie de 4 lignes de choix.");
+        } else if (lignes.length) {
+          avertissements.push("Aucune question reconnue. Écris chaque choix en commençant par A., B., C., D. (ou 1 énoncé + 4 choix, une ligne chacun).");
+        }
+      }
+
+      return { questions: questions, avertissements: avertissements };
+    }
+
+    // ---- Branchement de l'import dans l'éditeur ----
+    const fichierImportWord = document.getElementById("fichier-import-word");
+    const texteImportWord = document.getElementById("texte-import-word");
+    const btnImporterTexte = document.getElementById("btn-importer-texte");
+    const messageImport = document.getElementById("message-import");
+
+    function afficherMessageImport(texte, erreur) {
+      messageImport.textContent = texte;
+      messageImport.classList.remove("success", "error");
+      if (erreur === true) messageImport.classList.add("error");
+      else if (erreur === false) messageImport.classList.add("success");
+    }
+
+    function carteEstVide(carte) {
+      if (carte.querySelector(".champ-texte-question").value.trim()) return false;
+      if (carte.querySelector(".champ-image").value.trim()) return false;
+      const choix = carte.querySelectorAll(".champ-choix");
+      for (let i = 0; i < choix.length; i++) {
+        if (choix[i].value.trim()) return false;
+      }
+      return true;
+    }
+
+    function importerQuestions(resultat) {
+      if (!resultat.questions.length) {
+        afficherMessageImport(resultat.avertissements.join(" ") || "Aucune question reconnue dans ce contenu.", true);
+        return;
+      }
+
+      const cartes = listeQuestionsEditeur.querySelectorAll(".question-card");
+      if (cartes.length === 1 && carteEstVide(cartes[0])) cartes[0].remove();
+
+      let premiere = null;
+      resultat.questions.forEach(function(q) {
+        const carte = creerCarteQuestion(q);
+        listeQuestionsEditeur.appendChild(carte);
+        if (!premiere) premiere = carte;
+      });
+      renumeroterCartes();
+
+      const sansReponse = resultat.questions.filter(function(q) { return q.bonneReponse === null; }).length;
+      let texte = "✅ " + resultat.questions.length + " question(s) importée(s) ci-dessous.";
+      if (sansReponse > 0) texte += " ⚠ " + sansReponse + " sans bonne réponse reconnue : coche-la.";
+      if (resultat.avertissements.length) texte += " " + resultat.avertissements.join(" ");
+      texte += " Vérifie chaque question avant d'enregistrer.";
+      afficherMessageImport(texte, sansReponse > 0 || resultat.avertissements.length > 0 ? true : false);
+
+      if (premiere) premiere.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    fichierImportWord.addEventListener("change", async function() {
+      const fichier = fichierImportWord.files[0];
+      if (!fichier) return;
+      afficherMessageImport("Lecture du fichier Word…", null);
+
+      try {
+        if (!/\.docx$/i.test(fichier.name)) {
+          throw new Error("Choisis un fichier Word au format .docx (si c'est un .doc, enregistre-le d'abord en .docx).");
+        }
+        if (typeof DecompressionStream === "undefined") {
+          throw new Error("Ce navigateur ne sait pas lire les fichiers Word. Mets Chrome à jour, ou utilise « Ou colle le texte copié depuis Word ».");
+        }
+        const buffer = await fichier.arrayBuffer();
+        const xml = await lireDansZip(buffer, "word/document.xml");
+        importerQuestions(construireQuestions(paragraphesDepuisXml(xml)));
+      } catch (erreur) {
+        console.error("Erreur import Word :", erreur);
+        afficherMessageImport("Import impossible : " + (erreur && erreur.message ? erreur.message : "fichier illisible."), true);
+      }
+      fichierImportWord.value = "";
+    });
+
+    btnImporterTexte.addEventListener("click", function() {
+      const lignes = texteImportWord.value.split(/\r?\n/).map(function(l) {
+        return { texte: l.trim(), nbCar: 0, gras: 0, souligne: 0, surligne: 0, couleur: 0, liste: false, niveau: 0, numId: null };
+      });
+      importerQuestions(construireQuestions(lignes));
+      texteImportWord.value = "";
+    });
+
+    // ---- Nettoyage du collage Word et zones de collage (épreuve en document) ----
+    function echapperHtml(t) {
+      return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Nettoie le HTML venant de Word : retire styles, classes Mso, balises
+    // parasites ; garde gras, italique, exposants, listes, tableaux, liens, images.
+    function nettoyerHtmlWord(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      let imagesIgnorees = 0;
+
+      // Listes Word (paragraphes MsoListParagraph + puce factice)
+      doc.querySelectorAll("p").forEach(function(p) {
+        if (!/MsoList/i.test(p.getAttribute("class") || "")) return;
+        let marqueur = "";
+        const faux = Array.from(p.querySelectorAll("span")).find(function(sp) {
+          return /mso-list\s*:\s*ignore/i.test(sp.getAttribute("style") || "");
+        });
+        if (faux) { marqueur = faux.textContent || ""; faux.remove(); }
+        p.setAttribute("data-ml", /^\s*(\d+|[a-zA-Z])\s*[.)]/.test(marqueur) ? "ol" : "ul");
+      });
+
+      const sortie = document.createElement("div");
+      const IGNORES = ["STYLE", "SCRIPT", "META", "LINK", "XML", "TITLE", "HEAD", "NOSCRIPT", "OBJECT", "IFRAME"];
+      const GARDES = ["P", "BR", "UL", "OL", "LI", "TABLE", "THEAD", "TBODY", "TR", "TD", "TH", "H1", "H2", "H3", "H4", "H5", "H6", "B", "STRONG", "I", "EM", "U", "SUB", "SUP", "A", "IMG", "BLOCKQUOTE"];
+
+      function copier(src, dest) {
+        src.childNodes.forEach(function(n) {
+          if (n.nodeType === 3) {
+            dest.appendChild(document.createTextNode(n.nodeValue.replace(/[ \t\r\n]+/g, " ")));
+            return;
+          }
+          if (n.nodeType !== 1) return;
+          const tag = n.tagName.toUpperCase();
+          if (IGNORES.indexOf(tag) > -1) return;
+
+          if (GARDES.indexOf(tag) === -1) {
+            // span, font, div, o:p, balises mathématiques Word... : on garde le contenu,
+            // et on traduit le style en gras / italique / souligné / exposant / indice
+            if (tag === "SPAN" || tag === "FONT") {
+              const st = (n.getAttribute("style") || "").toLowerCase();
+              const enveloppes = [];
+              if (/font-weight\s*:\s*(bold|[6-9]00)/.test(st)) enveloppes.push("strong");
+              if (/font-style\s*:\s*italic/.test(st)) enveloppes.push("em");
+              if (/text-decoration[^;]*underline/.test(st)) enveloppes.push("u");
+              if (/vertical-align\s*:\s*super/.test(st)) enveloppes.push("sup");
+              if (/vertical-align\s*:\s*sub/.test(st)) enveloppes.push("sub");
+              if (enveloppes.length) {
+                let haut = null, bas = null;
+                enveloppes.forEach(function(nom) {
+                  const el = document.createElement(nom);
+                  if (!haut) haut = el; else bas.appendChild(el);
+                  bas = el;
+                });
+                dest.appendChild(haut);
+                copier(n, bas);
+                return;
+              }
+            }
+            copier(n, dest);
+            return;
+          }
+
+          let el;
+          if (tag === "P" && n.getAttribute("data-ml")) {
+            el = document.createElement("li");
+            el.setAttribute("data-ml", n.getAttribute("data-ml"));
+          } else if (tag === "IMG") {
+            const src = n.getAttribute("src") || "";
+            if (!/^(https?:|data:image\/)/i.test(src)) { imagesIgnorees++; return; }
+            el = document.createElement("img");
+            el.setAttribute("src", src);
+            if (n.getAttribute("alt")) el.setAttribute("alt", n.getAttribute("alt"));
+          } else if (tag === "A") {
+            const href = n.getAttribute("href") || "";
+            if (!/^(https?:|mailto:)/i.test(href)) { copier(n, dest); return; }
+            el = document.createElement("a");
+            el.setAttribute("href", href);
+            el.setAttribute("target", "_blank");
+            el.setAttribute("rel", "noopener noreferrer");
+          } else {
+            el = document.createElement(tag.toLowerCase());
+            if (tag === "TD" || tag === "TH") {
+              if (n.getAttribute("colspan")) el.setAttribute("colspan", n.getAttribute("colspan"));
+              if (n.getAttribute("rowspan")) el.setAttribute("rowspan", n.getAttribute("rowspan"));
+            }
+          }
+
+          const st2 = (n.getAttribute("style") || "").toLowerCase();
+          const al = (n.getAttribute("align") || "").toLowerCase();
+          const m = st2.match(/text-align\s*:\s*(center|right|justify)/);
+          const aligne = m ? m[1] : (/^(center|right|justify)$/.test(al) ? al : "");
+          if (aligne && /^(P|LI|H[1-6]|TD|TH)$/.test(tag)) el.style.textAlign = aligne;
+
+          dest.appendChild(el);
+          copier(n, el);
+        });
+      }
+      copier(doc.body, sortie);
+
+      // Regrouper les <li> orphelins en <ul>/<ol>
+      Array.from(sortie.querySelectorAll("*")).concat([sortie]).forEach(function(parent) {
+        let enfant = parent.firstChild;
+        while (enfant) {
+          if (enfant.nodeType === 1 && enfant.tagName === "LI" && enfant.hasAttribute("data-ml")) {
+            const liste = document.createElement(enfant.getAttribute("data-ml"));
+            parent.insertBefore(liste, enfant);
+            let courant = enfant;
+            while (courant && courant.nodeType === 1 && courant.tagName === "LI" && courant.hasAttribute("data-ml") && courant.getAttribute("data-ml") === liste.tagName.toLowerCase()) {
+              const suivant = courant.nextSibling;
+              courant.removeAttribute("data-ml");
+              liste.appendChild(courant);
+              courant = suivant;
+            }
+            enfant = courant;
+          } else {
+            enfant = enfant.nextSibling;
+          }
+        }
+      });
+
+      // Retirer les paragraphes vides (Word en met beaucoup)
+      sortie.querySelectorAll("p").forEach(function(p) {
+        const vide = p.textContent.replace(/[\s\u00a0]/g, "") === "";
+        if (vide && !p.querySelector("img, table")) p.remove();
+      });
+
+      // Mise en forme minimale (tableaux, images)
+      sortie.querySelectorAll("table").forEach(function(t) { t.style.borderCollapse = "collapse"; t.style.margin = "8px 0"; t.style.maxWidth = "100%"; });
+      sortie.querySelectorAll("td, th").forEach(function(c) { c.style.border = "1px solid #999"; c.style.padding = "4px 8px"; });
+      sortie.querySelectorAll("img").forEach(function(i) { i.style.maxWidth = "100%"; i.style.height = "auto"; });
+
+      return { html: sortie.innerHTML, imagesIgnorees: imagesIgnorees };
+    }
+
+    function insererDansZone(html) {
+      let ok = false;
+      try { ok = document.execCommand("insertHTML", false, html); } catch (e) {}
+      if (ok) return;
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const frag = range.createContextualFragment(html);
+      const dernier = frag.lastChild;
+      range.insertNode(frag);
+      if (dernier) { range.setStartAfter(dernier); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
+    }
+
+    function zoneEstVide(el) {
+      return el.textContent.replace(/[\s\u00a0]/g, "") === "" && !el.querySelector("img, table");
+    }
+
+    // Crée une zone de collage (étiquette + zone + note + bouton effacer)
+    function creerZoneCollage(o) {
+      const bloc = document.createElement("div");
+      bloc.className = "zone-bloc";
+
+      const label = document.createElement("label");
+      label.textContent = o.etiquette;
+      label.style.color = o.couleur;
+      bloc.appendChild(label);
+
+      const zone = document.createElement("div");
+      zone.className = "zone-collage" + (o.classe ? " " + o.classe : "");
+      if (o.id) zone.id = o.id;
+      zone.contentEditable = "true";
+      zone.setAttribute("data-placeholder", o.placeholder);
+      zone.style.borderColor = o.couleur;
+      zone.style.background = o.fond;
+      bloc.appendChild(zone);
+
+      const note = document.createElement("p");
+      note.className = "zone-note";
+      bloc.appendChild(note);
+
+      const btnEffacer = document.createElement("button");
+      btnEffacer.type = "button";
+      btnEffacer.className = "secondaire zone-effacer";
+      btnEffacer.textContent = "Effacer cette zone";
+      btnEffacer.addEventListener("click", function() { zone.innerHTML = ""; note.textContent = ""; });
+      bloc.appendChild(btnEffacer);
+
+      zone.addEventListener("paste", function(e) {
+        e.preventDefault();
+        const cd = e.clipboardData || window.clipboardData;
+        const htmlBrut = cd ? cd.getData("text/html") : "";
+        let resultat;
+        if (htmlBrut && htmlBrut.trim()) {
+          resultat = nettoyerHtmlWord(htmlBrut);
+        } else {
+          const texte = cd ? (cd.getData("text/plain") || "") : "";
+          resultat = {
+            html: texte.split(/\r?\n+/).filter(function(l) { return l.trim(); }).map(function(l) { return "<p>" + echapperHtml(l) + "</p>"; }).join(""),
+            imagesIgnorees: 0
+          };
+        }
+        insererDansZone(resultat.html);
+        note.textContent = resultat.imagesIgnorees
+          ? "⚠ " + resultat.imagesIgnorees + " image(s) de Word non collée(s) : héberge-les (ex. GitHub) puis ajoute-les avec un lien, ou colle l'image directement depuis la galerie."
+          : "";
+      });
+
+      zone.addEventListener("input", function() {
+        if (zoneEstVide(zone)) zone.innerHTML = "";
+      });
+
+      return { bloc: bloc, zone: zone };
+    }
+
+
+    const zoneEvalEnonce = creerZoneCollage({ etiquette: "✏️ Sujet (texte collé depuis Word)", couleur: "#2c3e8c", fond: "#f5f7ff", placeholder: "Colle ici le texte du sujet", id: "zone-eval-enonce" });
+    const zoneEvalCorrige = creerZoneCollage({ etiquette: "👁 Corrigé (texte collé depuis Word)", couleur: "#1e8449", fond: "#eafaf1", placeholder: "Colle ici le texte du corrigé", id: "zone-eval-corrige" });
+    document.getElementById("zones-eval-enonce").appendChild(zoneEvalEnonce.bloc);
+    document.getElementById("zones-eval-corrige").appendChild(zoneEvalCorrige.bloc);
+
+    const selectFormat = document.getElementById("select-format");
+    const blocQcm = document.getElementById("bloc-qcm");
+    const blocDocument = document.getElementById("bloc-document");
+    const champUrlPdf = document.getElementById("eval-url-pdf");
+    const champUrlWord = document.getElementById("eval-url-word");
+    const champUrlCorrigePdf = document.getElementById("eval-url-corrige-pdf");
+    const champUrlCorrigeWord = document.getElementById("eval-url-corrige-word");
+    const champDateCorrige = document.getElementById("eval-date-corrige");
+
+    function mettreAJourFormat() {
+      const modeDocument = selectFormat.value === "document";
+      blocQcm.style.display = modeDocument ? "none" : "block";
+      blocDocument.style.display = modeDocument ? "block" : "none";
+    }
+    selectFormat.addEventListener("change", mettreAJourFormat);
+
+    function versChampDate(ms) {
+      const d = new Date(ms);
+      const p = function(n) { return String(n).padStart(2, "0"); };
+      return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+    }
+
+    function viderChampsDocument() {
+      zoneEvalEnonce.zone.innerHTML = "";
+      zoneEvalCorrige.zone.innerHTML = "";
+      champUrlPdf.value = "";
+      champUrlWord.value = "";
+      champUrlCorrigePdf.value = "";
+      champUrlCorrigeWord.value = "";
+      champDateCorrige.value = "";
     }
 
     // ---------- Écouteurs ----------
