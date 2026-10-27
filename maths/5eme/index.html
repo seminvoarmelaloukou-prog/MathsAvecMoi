@@ -633,7 +633,14 @@
             let html = "";
 
             if (c.contenu) {
-              html += "<p>" + String(c.contenu).replace(/\n/g, "<br>") + "</p>";
+              const texte = String(c.contenu);
+              if (/<[a-z][\s\S]*>/i.test(texte)) {
+                // Contenu HTML (collé depuis l'admin) : affiché tel quel
+                html += texte;
+              } else {
+                // Ancien contenu en texte simple : retours à la ligne conservés
+                html += "<p>" + texte.replace(/\n/g, "<br>") + "</p>";
+              }
             }
 
             if (c.lien) {
