@@ -714,6 +714,7 @@
     // ===================================================================
     const ZONES_DEF = [
       { id: "cours",      etiquette: "📘 Cours",       couleur: "#2c3e8c", fond: "#f5f7ff", aide: "Colle ici le cours copié depuis Word." },
+      { id: "definition",  etiquette: "📖 Définition",  couleur: "#0e7c7b", fond: "#eaf7f6", aide: "Encadré vert foncé, toujours visible, sous le cours." },
       { id: "proprietes", etiquette: "📐 Propriétés",  couleur: "#6c3fa0", fond: "#f6eefa", aide: "Encadré violet foncé, toujours visible, sous le cours." },
       { id: "retenons",   etiquette: "⭐ Retenons",    couleur: "#1c2245", fond: "#eef0fa", aide: "Encadré bleu nuit avec titre orange, toujours visible (comme l'ancien modèle)." }
     ];
@@ -1064,7 +1065,7 @@
 
     function chargerZones(prefixe, c) {
       const racine = document.getElementById("zones-" + prefixe);
-      const nouveauFormat = !!c && (!!c.exercices || ["coursHtml", "proprietesHtml", "retenonsHtml", "corrigeHtml", "htmlComplet"].some(function(k) { return typeof c[k] === "string"; }));
+      const nouveauFormat = !!c && (!!c.exercices || ["coursHtml", "definitionHtml", "proprietesHtml", "retenonsHtml", "corrigeHtml", "htmlComplet"].some(function(k) { return typeof c[k] === "string"; }));
       ZONES_DEF.forEach(function(def) {
         const el = document.getElementById("zone-" + prefixe + "-" + def.id);
         if (!el) return;
@@ -1113,7 +1114,7 @@
       const exos = z.exercices || [];
       let html = "";
       const aCorrige = exos.some(function(x) { return x.corrige; });
-      const aDesBlocs = z.proprietes || z.retenons || aCorrige;
+      const aDesBlocs = z.definition || z.proprietes || z.retenons || aCorrige;
 
       if (aDesBlocs) {
         html += "<style>"
@@ -1136,6 +1137,7 @@
           + contenu + "</div>";
       }
 
+      if (z.definition) html += boite("cf-definition", "#0b4f4e", "#7fe0d3", "📖 Définition", z.definition);
       if (z.proprietes) html += boite("cf-proprietes", "#2e1f4d", "#d7b8ff", "📐 Propriétés", z.proprietes);
       if (z.retenons) html += boite("cf-retenons", "#1c2245", "#f5a623", "⭐ Retenons", z.retenons);
 
@@ -1430,6 +1432,7 @@
         lien: lien || "",
         contenu: contenu || "",
         coursHtml: zonesAjout.cours,
+        definitionHtml: zonesAjout.definition,
         proprietesHtml: zonesAjout.proprietes,
         retenonsHtml: zonesAjout.retenons,
         corrigeHtml: "",
@@ -1524,6 +1527,7 @@
         lien: lien,
         contenu: contenu,
         coursHtml: zonesModif.cours,
+        definitionHtml: zonesModif.definition,
         proprietesHtml: zonesModif.proprietes,
         retenonsHtml: zonesModif.retenons,
         corrigeHtml: "",
