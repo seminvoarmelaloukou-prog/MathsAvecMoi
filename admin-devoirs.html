@@ -305,6 +305,18 @@
       </div>
       <p class="message" id="devoir-actuel"></p>
 
+      <p style="font-size: 13px; color: var(--muted);">Version Word du devoir (facultatif) : les élèves pourront la télécharger en plus du PDF.</p>
+      <div class="row">
+        <label for="fichier-devoir-word">Devoir — fichier Word à uploader :</label>
+        <input type="file" id="fichier-devoir-word" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      </div>
+      <p class="separateur-ou">— OU —</p>
+      <div class="row">
+        <label for="url-devoir-word">Devoir — lien du fichier Word (GitHub) :</label>
+        <input type="text" id="url-devoir-word" placeholder="https://...github.io/.../devoir1.docx" style="flex: 1 1 280px;">
+      </div>
+      <p class="message" id="devoir-word-actuel"></p>
+
       <div class="row">
         <label for="fichier-corrige">Corrigé — fichier PDF à uploader :</label>
         <input type="file" id="fichier-corrige" accept="application/pdf">
@@ -315,6 +327,18 @@
         <input type="text" id="url-corrige" placeholder="https://...github.io/.../corrige1.pdf" style="flex: 1 1 280px;">
       </div>
       <p class="message" id="corrige-actuel"></p>
+
+      <p style="font-size: 13px; color: var(--muted);">Version Word du corrigé (facultatif) : visible à la même date que le PDF.</p>
+      <div class="row">
+        <label for="fichier-corrige-word">Corrigé — fichier Word à uploader :</label>
+        <input type="file" id="fichier-corrige-word" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+      </div>
+      <p class="separateur-ou">— OU —</p>
+      <div class="row">
+        <label for="url-corrige-word">Corrigé — lien du fichier Word (GitHub) :</label>
+        <input type="text" id="url-corrige-word" placeholder="https://...github.io/.../corrige1.docx" style="flex: 1 1 280px;">
+      </div>
+      <p class="message" id="corrige-word-actuel"></p>
 
       <div class="barre-progression" id="barre-progression">
         <div class="remplissage" id="remplissage-progression"></div>
@@ -372,6 +396,12 @@
     const corrigeActuel = document.getElementById("corrige-actuel");
     const urlDevoirInput = document.getElementById("url-devoir");
     const urlCorrigeInput = document.getElementById("url-corrige");
+    const fichierDevoirWord = document.getElementById("fichier-devoir-word");
+    const urlDevoirWordInput = document.getElementById("url-devoir-word");
+    const devoirWordActuel = document.getElementById("devoir-word-actuel");
+    const fichierCorrigeWord = document.getElementById("fichier-corrige-word");
+    const urlCorrigeWordInput = document.getElementById("url-corrige-word");
+    const corrigeWordActuel = document.getElementById("corrige-word-actuel");
     const barreProgression = document.getElementById("barre-progression");
     const remplissageProgression = document.getElementById("remplissage-progression");
     const inputDateCorrige = document.getElementById("input-date-corrige");
@@ -548,10 +578,16 @@
 
         const liens = document.createElement("p");
         liens.className = "meta";
+        const lDevoir = [];
+        if (dv.devoirUrl) lDevoir.push("<a href='" + dv.devoirUrl + "' target='_blank'>Devoir (PDF)</a>");
+        if (dv.devoirWordUrl) lDevoir.push("<a href='" + dv.devoirWordUrl + "' target='_blank'>Devoir (Word)</a>");
+        const lCorrige = [];
+        if (dv.corrigeUrl) lCorrige.push("<a href='" + dv.corrigeUrl + "' target='_blank'>Corrigé (PDF)</a>");
+        if (dv.corrigeWordUrl) lCorrige.push("<a href='" + dv.corrigeWordUrl + "' target='_blank'>Corrigé (Word)</a>");
         liens.innerHTML =
-          (dv.devoirUrl ? "<a href='" + dv.devoirUrl + "' target='_blank'>Voir le devoir</a>" : "Pas de devoir") +
+          (lDevoir.length ? lDevoir.join(" · ") : "Pas de devoir") +
           " · " +
-          (dv.corrigeUrl ? "<a href='" + dv.corrigeUrl + "' target='_blank'>Voir le corrigé</a>" : "Pas de corrigé");
+          (lCorrige.length ? lCorrige.join(" · ") : "Pas de corrigé");
         infos.appendChild(liens);
 
         const actions = document.createElement("div");
@@ -610,6 +646,12 @@
       urlCorrigeInput.value = "";
       devoirActuel.textContent = "";
       corrigeActuel.textContent = "";
+      fichierDevoirWord.value = "";
+      fichierCorrigeWord.value = "";
+      urlDevoirWordInput.value = "";
+      urlCorrigeWordInput.value = "";
+      devoirWordActuel.textContent = "";
+      corrigeWordActuel.textContent = "";
       inputDateCorrige.value = "";
       inputDureeDevoir.value = "";
       barreProgression.style.display = "none";
@@ -638,6 +680,11 @@
       devoirActuel.textContent = dv.devoirUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
       corrigeActuel.textContent = dv.corrigeUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
 
+      urlDevoirWordInput.value = dv.devoirWordUrl || "";
+      urlCorrigeWordInput.value = dv.corrigeWordUrl || "";
+      devoirWordActuel.textContent = dv.devoirWordUrl ? "Lien Word actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
+      corrigeWordActuel.textContent = dv.corrigeWordUrl ? "Lien Word actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
+
       if (dv.dateCorrige) {
         const d = new Date(dv.dateCorrige);
         inputDateCorrige.value = d.toISOString().slice(0, 10);
@@ -655,6 +702,10 @@
       cardEditeur.style.display = "none";
       devoirEnEdition = null;
       reinitialiserEditeur();
+    }
+
+    function extensionWord(fichier) {
+      return /\.doc$/i.test(fichier.name) ? "doc" : "docx";
     }
 
     function televerserFichier(fichier, chemin) {
@@ -696,9 +747,13 @@
       const fichierCorrigeChoisi = fichierCorrige.files[0] || null;
       let urlDevoirFinale = urlDevoirInput.value.trim();
       let urlCorrigeFinale = urlCorrigeInput.value.trim();
+      const fichierDevoirWordChoisi = fichierDevoirWord.files[0] || null;
+      const fichierCorrigeWordChoisi = fichierCorrigeWord.files[0] || null;
+      let urlDevoirWordFinale = urlDevoirWordInput.value.trim();
+      let urlCorrigeWordFinale = urlCorrigeWordInput.value.trim();
 
-      if (!fichierDevoirChoisi && !urlDevoirFinale) {
-        messageEditeur.textContent = "Ajoute le PDF du devoir : soit en l'uploadant, soit en collant son lien.";
+      if (!fichierDevoirChoisi && !urlDevoirFinale && !fichierDevoirWordChoisi && !urlDevoirWordFinale) {
+        messageEditeur.textContent = "Ajoute le devoir : en PDF et/ou en Word (soit en l'uploadant, soit en collant son lien).";
         messageEditeur.classList.add("error");
         return;
       }
@@ -738,6 +793,22 @@
         );
       }
 
+      if (fichierDevoirWordChoisi) {
+        televersements.push(
+          televerserFichier(fichierDevoirWordChoisi, cheminBase + "/devoir." + extensionWord(fichierDevoirWordChoisi)).then(function(url) {
+            urlDevoirWordFinale = url;
+          })
+        );
+      }
+
+      if (fichierCorrigeWordChoisi) {
+        televersements.push(
+          televerserFichier(fichierCorrigeWordChoisi, cheminBase + "/corrige." + extensionWord(fichierCorrigeWordChoisi)).then(function(url) {
+            urlCorrigeWordFinale = url;
+          })
+        );
+      }
+
       Promise.all(televersements)
         .then(function() {
           const devoirData = {
@@ -747,6 +818,8 @@
             matiere: matiere,
             devoirUrl: urlDevoirFinale,
             corrigeUrl: urlCorrigeFinale || "",
+            devoirWordUrl: urlDevoirWordFinale || "",
+            corrigeWordUrl: urlCorrigeWordFinale || "",
             dateCorrige: dateCorrigeTimestamp,
             duree: dureeDevoir,
             misAJour: Date.now()
