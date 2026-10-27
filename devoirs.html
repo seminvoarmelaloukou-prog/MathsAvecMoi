@@ -97,6 +97,19 @@
       cursor: not-allowed;
     }
 
+    .texte-devoir, .contenu-corrige {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e8f4;
+      line-height: 1.9;
+      font-size: 15px;
+      overflow-x: auto;
+    }
+    .texte-devoir img, .contenu-corrige img { max-width: 100%; height: auto; }
+    .texte-corrige { margin-top: 14px; }
+    .texte-corrige > summary { list-style: none; cursor: pointer; }
+    .texte-corrige > summary::-webkit-details-marker { display: none; }
+
     footer {
       background: var(--indigo);
       color: white;
@@ -206,19 +219,35 @@
       const btnCommencer = zone.querySelector("button[data-action='commencer']");
       if (btnCommencer) btnCommencer.remove();
 
-      const lienDevoir = document.createElement("a");
-      lienDevoir.className = "btn";
-      lienDevoir.href = dv.devoirUrl;
-      lienDevoir.target = "_blank";
-      lienDevoir.textContent = "Télécharger le devoir";
-      zone.insertBefore(lienDevoir, zone.firstChild);
+      const definitionsLiens = [];
+      if (dv.devoirUrl) definitionsLiens.push({ href: dv.devoirUrl, texte: "Télécharger le devoir (PDF)" });
+      if (dv.devoirWordUrl) definitionsLiens.push({ href: dv.devoirWordUrl, texte: "Télécharger le devoir (Word)" });
+
+      const liensDevoir = definitionsLiens.map(function(d) {
+        const a = document.createElement("a");
+        a.className = "btn";
+        a.href = d.href;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = d.texte;
+        return a;
+      });
+      liensDevoir.slice().reverse().forEach(function(a) { zone.insertBefore(a, zone.firstChild); });
 
       const chronoSpan = document.createElement("span");
       chronoSpan.className = "chrono-devoir";
       chronoSpan.style.fontWeight = "bold";
       chronoSpan.style.color = "var(--indigo)";
       chronoSpan.style.alignSelf = "center";
-      zone.insertBefore(chronoSpan, lienDevoir);
+      zone.insertBefore(chronoSpan, liensDevoir[0] || zone.firstChild);
+
+      let blocTexte = null;
+      if (dv.enonceHtml) {
+        blocTexte = document.createElement("div");
+        blocTexte.className = "texte-devoir";
+        blocTexte.innerHTML = dv.enonceHtml;
+        zone.parentNode.insertBefore(blocTexte, zone.nextSibling);
+      }
 
       let secondesRestantes = dv.duree * 60;
       chronoSpan.textContent = "Temps restant : " + formaterChronoDevoir(secondesRestantes);
@@ -230,7 +259,8 @@
           clearInterval(intervalId);
           chronoSpan.textContent = "Temps écoulé";
           chronoSpan.style.color = "var(--error, #c0392b)";
-          lienDevoir.remove();
+          liensDevoir.forEach(function(a) { a.remove(); });
+          if (blocTexte) blocTexte.remove();
           return;
         }
 
@@ -259,24 +289,28 @@
             const card = document.createElement("div");
             card.className = "devoir-card";
 
-            const corrigeDisponible = dv.corrigeUrl && dv.dateCorrige && maintenant >= dv.dateCorrige;
+            const aDevoir = dv.devoirUrl || dv.devoirWordUrl || dv.enonceHtml;
+            const aCorrige = dv.corrigeUrl || dv.corrigeWordUrl || dv.corrigeHtml;
+            const corrigeDisponible = aCorrige && dv.dateCorrige && maintenant >= dv.dateCorrige;
             const zoneDevoirId = "zone-devoir-" + id;
 
             let html = "<h3>" + (dv.titre || "Devoir") + "</h3>";
             html += "<p class='meta'>" + (dv.sequence || "") + (dv.duree ? " — chronométré (" + dv.duree + " min)" : "") + "</p>";
             html += "<div class='liens' id='" + zoneDevoirId + "'>";
 
-            if (dv.devoirUrl) {
+            if (aDevoir) {
               if (dv.duree) {
                 html += "<button class='btn' data-action='commencer' data-id='" + id + "'>Commencer (" + dv.duree + " min)</button>";
               } else {
-                html += "<a class='btn' href='" + dv.devoirUrl + "' target='_blank'>Télécharger le devoir</a>";
+                if (dv.devoirUrl) html += "<a class='btn' href='" + dv.devoirUrl + "' target='_blank' rel='noopener'>Télécharger le devoir (PDF)</a>";
+                if (dv.devoirWordUrl) html += "<a class='btn' href='" + dv.devoirWordUrl + "' target='_blank' rel='noopener'>Télécharger le devoir (Word)</a>";
               }
             }
 
-            if (dv.corrigeUrl) {
+            if (aCorrige) {
               if (corrigeDisponible) {
-                html += "<a class='btn corrige' href='" + dv.corrigeUrl + "' target='_blank'>Voir le corrigé</a>";
+                if (dv.corrigeUrl) html += "<a class='btn corrige' href='" + dv.corrigeUrl + "' target='_blank' rel='noopener'>Voir le corrigé (PDF)</a>";
+                if (dv.corrigeWordUrl) html += "<a class='btn corrige' href='" + dv.corrigeWordUrl + "' target='_blank' rel='noopener'>Télécharger le corrigé (Word)</a>";
               } else {
                 const texteAttente = dv.dateCorrige
                   ? "Corrigé disponible le " + formaterDate(dv.dateCorrige)
@@ -286,10 +320,19 @@
             }
 
             html += "</div>";
+
+            if (dv.enonceHtml && !dv.duree) {
+              html += "<div class='texte-devoir'>" + dv.enonceHtml + "</div>";
+            }
+
+            if (corrigeDisponible && dv.corrigeHtml) {
+              html += "<details class='texte-corrige'><summary class='btn corrige'>👁 Voir le corrigé (texte)</summary><div class='contenu-corrige'>" + dv.corrigeHtml + "</div></details>";
+            }
+
             card.innerHTML = html;
             listeDevoirs.appendChild(card);
 
-            if (dv.devoirUrl && dv.duree) {
+            if (aDevoir && dv.duree) {
               const btnCommencer = card.querySelector("button[data-action='commencer']");
               btnCommencer.addEventListener("click", function() {
                 demarrerChronoDevoir(zoneDevoirId, dv);

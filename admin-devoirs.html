@@ -186,6 +186,16 @@
       .row { flex-direction: column; align-items: stretch; }
       .devoir-item { flex-direction: column; align-items: stretch; }
     }
+    /* ---- Zones de collage Word ---- */
+    .zone-bloc { margin: 14px 0; }
+    .zone-bloc > label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: bold; }
+    .zone-collage { min-height: 110px; max-height: 320px; overflow: auto; padding: 10px 12px; border: 2px solid #cfd8f0; border-radius: 10px; background: #fff; font-size: 14px; line-height: 1.6; outline: none; }
+    .zone-collage:empty::before { content: attr(data-placeholder); color: #999; }
+    .zone-collage img { max-width: 100%; height: auto; }
+    .zone-collage table { border-collapse: collapse; }
+    .zone-collage td, .zone-collage th { border: 1px solid #999; padding: 3px 6px; }
+    .zone-bloc .zone-note { font-size: 12px; color: #c0392b; margin-top: 4px; }
+    .zone-bloc .zone-effacer { margin-top: 6px; padding: 4px 10px; font-size: 12px; }
   </style>
 </head>
 
@@ -340,6 +350,9 @@
       </div>
       <p class="message" id="corrige-word-actuel"></p>
 
+      <p style="font-size: 13px; color: var(--muted);">Ou saisie directe (facultatif) : colle le texte du devoir et du corrigé depuis Word. Les élèves le liront directement sur la page, en plus des fichiers éventuels. Le corrigé suit la même date de visibilité.</p>
+      <div id="zones-devoir-texte"></div>
+
       <div class="barre-progression" id="barre-progression">
         <div class="remplissage" id="remplissage-progression"></div>
       </div>
@@ -411,6 +424,222 @@
     const messageEditeur = document.getElementById("message-editeur");
 
     const lienDeconnexion = document.getElementById("lien-deconnexion");
+
+    // ---- Nettoyage du collage Word et zones de collage ----
+    function echapperHtml(t) {
+      return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // Nettoie le HTML venant de Word : retire styles, classes Mso, balises
+    // parasites ; garde gras, italique, exposants, listes, tableaux, liens, images.
+    function nettoyerHtmlWord(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      let imagesIgnorees = 0;
+
+      // Listes Word (paragraphes MsoListParagraph + puce factice)
+      doc.querySelectorAll("p").forEach(function(p) {
+        if (!/MsoList/i.test(p.getAttribute("class") || "")) return;
+        let marqueur = "";
+        const faux = Array.from(p.querySelectorAll("span")).find(function(sp) {
+          return /mso-list\s*:\s*ignore/i.test(sp.getAttribute("style") || "");
+        });
+        if (faux) { marqueur = faux.textContent || ""; faux.remove(); }
+        p.setAttribute("data-ml", /^\s*(\d+|[a-zA-Z])\s*[.)]/.test(marqueur) ? "ol" : "ul");
+      });
+
+      const sortie = document.createElement("div");
+      const IGNORES = ["STYLE", "SCRIPT", "META", "LINK", "XML", "TITLE", "HEAD", "NOSCRIPT", "OBJECT", "IFRAME"];
+      const GARDES = ["P", "BR", "UL", "OL", "LI", "TABLE", "THEAD", "TBODY", "TR", "TD", "TH", "H1", "H2", "H3", "H4", "H5", "H6", "B", "STRONG", "I", "EM", "U", "SUB", "SUP", "A", "IMG", "BLOCKQUOTE"];
+
+      function copier(src, dest) {
+        src.childNodes.forEach(function(n) {
+          if (n.nodeType === 3) {
+            dest.appendChild(document.createTextNode(n.nodeValue.replace(/[ \t\r\n]+/g, " ")));
+            return;
+          }
+          if (n.nodeType !== 1) return;
+          const tag = n.tagName.toUpperCase();
+          if (IGNORES.indexOf(tag) > -1) return;
+
+          if (GARDES.indexOf(tag) === -1) {
+            // span, font, div, o:p, balises mathématiques Word... : on garde le contenu,
+            // et on traduit le style en gras / italique / souligné / exposant / indice
+            if (tag === "SPAN" || tag === "FONT") {
+              const st = (n.getAttribute("style") || "").toLowerCase();
+              const enveloppes = [];
+              if (/font-weight\s*:\s*(bold|[6-9]00)/.test(st)) enveloppes.push("strong");
+              if (/font-style\s*:\s*italic/.test(st)) enveloppes.push("em");
+              if (/text-decoration[^;]*underline/.test(st)) enveloppes.push("u");
+              if (/vertical-align\s*:\s*super/.test(st)) enveloppes.push("sup");
+              if (/vertical-align\s*:\s*sub/.test(st)) enveloppes.push("sub");
+              if (enveloppes.length) {
+                let haut = null, bas = null;
+                enveloppes.forEach(function(nom) {
+                  const el = document.createElement(nom);
+                  if (!haut) haut = el; else bas.appendChild(el);
+                  bas = el;
+                });
+                dest.appendChild(haut);
+                copier(n, bas);
+                return;
+              }
+            }
+            copier(n, dest);
+            return;
+          }
+
+          let el;
+          if (tag === "P" && n.getAttribute("data-ml")) {
+            el = document.createElement("li");
+            el.setAttribute("data-ml", n.getAttribute("data-ml"));
+          } else if (tag === "IMG") {
+            const src = n.getAttribute("src") || "";
+            if (!/^(https?:|data:image\/)/i.test(src)) { imagesIgnorees++; return; }
+            el = document.createElement("img");
+            el.setAttribute("src", src);
+            if (n.getAttribute("alt")) el.setAttribute("alt", n.getAttribute("alt"));
+          } else if (tag === "A") {
+            const href = n.getAttribute("href") || "";
+            if (!/^(https?:|mailto:)/i.test(href)) { copier(n, dest); return; }
+            el = document.createElement("a");
+            el.setAttribute("href", href);
+            el.setAttribute("target", "_blank");
+            el.setAttribute("rel", "noopener noreferrer");
+          } else {
+            el = document.createElement(tag.toLowerCase());
+            if (tag === "TD" || tag === "TH") {
+              if (n.getAttribute("colspan")) el.setAttribute("colspan", n.getAttribute("colspan"));
+              if (n.getAttribute("rowspan")) el.setAttribute("rowspan", n.getAttribute("rowspan"));
+            }
+          }
+
+          const st2 = (n.getAttribute("style") || "").toLowerCase();
+          const al = (n.getAttribute("align") || "").toLowerCase();
+          const m = st2.match(/text-align\s*:\s*(center|right|justify)/);
+          const aligne = m ? m[1] : (/^(center|right|justify)$/.test(al) ? al : "");
+          if (aligne && /^(P|LI|H[1-6]|TD|TH)$/.test(tag)) el.style.textAlign = aligne;
+
+          dest.appendChild(el);
+          copier(n, el);
+        });
+      }
+      copier(doc.body, sortie);
+
+      // Regrouper les <li> orphelins en <ul>/<ol>
+      Array.from(sortie.querySelectorAll("*")).concat([sortie]).forEach(function(parent) {
+        let enfant = parent.firstChild;
+        while (enfant) {
+          if (enfant.nodeType === 1 && enfant.tagName === "LI" && enfant.hasAttribute("data-ml")) {
+            const liste = document.createElement(enfant.getAttribute("data-ml"));
+            parent.insertBefore(liste, enfant);
+            let courant = enfant;
+            while (courant && courant.nodeType === 1 && courant.tagName === "LI" && courant.hasAttribute("data-ml") && courant.getAttribute("data-ml") === liste.tagName.toLowerCase()) {
+              const suivant = courant.nextSibling;
+              courant.removeAttribute("data-ml");
+              liste.appendChild(courant);
+              courant = suivant;
+            }
+            enfant = courant;
+          } else {
+            enfant = enfant.nextSibling;
+          }
+        }
+      });
+
+      // Retirer les paragraphes vides (Word en met beaucoup)
+      sortie.querySelectorAll("p").forEach(function(p) {
+        const vide = p.textContent.replace(/[\s\u00a0]/g, "") === "";
+        if (vide && !p.querySelector("img, table")) p.remove();
+      });
+
+      // Mise en forme minimale (tableaux, images)
+      sortie.querySelectorAll("table").forEach(function(t) { t.style.borderCollapse = "collapse"; t.style.margin = "8px 0"; t.style.maxWidth = "100%"; });
+      sortie.querySelectorAll("td, th").forEach(function(c) { c.style.border = "1px solid #999"; c.style.padding = "4px 8px"; });
+      sortie.querySelectorAll("img").forEach(function(i) { i.style.maxWidth = "100%"; i.style.height = "auto"; });
+
+      return { html: sortie.innerHTML, imagesIgnorees: imagesIgnorees };
+    }
+
+    function insererDansZone(html) {
+      let ok = false;
+      try { ok = document.execCommand("insertHTML", false, html); } catch (e) {}
+      if (ok) return;
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      range.deleteContents();
+      const frag = range.createContextualFragment(html);
+      const dernier = frag.lastChild;
+      range.insertNode(frag);
+      if (dernier) { range.setStartAfter(dernier); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
+    }
+
+    function zoneEstVide(el) {
+      return el.textContent.replace(/[\s\u00a0]/g, "") === "" && !el.querySelector("img, table");
+    }
+
+    // Crée une zone de collage (étiquette + zone + note + bouton effacer)
+    function creerZoneCollage(o) {
+      const bloc = document.createElement("div");
+      bloc.className = "zone-bloc";
+
+      const label = document.createElement("label");
+      label.textContent = o.etiquette;
+      label.style.color = o.couleur;
+      bloc.appendChild(label);
+
+      const zone = document.createElement("div");
+      zone.className = "zone-collage" + (o.classe ? " " + o.classe : "");
+      if (o.id) zone.id = o.id;
+      zone.contentEditable = "true";
+      zone.setAttribute("data-placeholder", o.placeholder);
+      zone.style.borderColor = o.couleur;
+      zone.style.background = o.fond;
+      bloc.appendChild(zone);
+
+      const note = document.createElement("p");
+      note.className = "zone-note";
+      bloc.appendChild(note);
+
+      const btnEffacer = document.createElement("button");
+      btnEffacer.type = "button";
+      btnEffacer.className = "secondaire zone-effacer";
+      btnEffacer.textContent = "Effacer cette zone";
+      btnEffacer.addEventListener("click", function() { zone.innerHTML = ""; note.textContent = ""; });
+      bloc.appendChild(btnEffacer);
+
+      zone.addEventListener("paste", function(e) {
+        e.preventDefault();
+        const cd = e.clipboardData || window.clipboardData;
+        const htmlBrut = cd ? cd.getData("text/html") : "";
+        let resultat;
+        if (htmlBrut && htmlBrut.trim()) {
+          resultat = nettoyerHtmlWord(htmlBrut);
+        } else {
+          const texte = cd ? (cd.getData("text/plain") || "") : "";
+          resultat = {
+            html: texte.split(/\r?\n+/).filter(function(l) { return l.trim(); }).map(function(l) { return "<p>" + echapperHtml(l) + "</p>"; }).join(""),
+            imagesIgnorees: 0
+          };
+        }
+        insererDansZone(resultat.html);
+        note.textContent = resultat.imagesIgnorees
+          ? "⚠ " + resultat.imagesIgnorees + " image(s) de Word non collée(s) : héberge-les (ex. GitHub) puis ajoute-les avec un lien, ou colle l'image directement depuis la galerie."
+          : "";
+      });
+
+      zone.addEventListener("input", function() {
+        if (zoneEstVide(zone)) zone.innerHTML = "";
+      });
+
+      return { bloc: bloc, zone: zone };
+    }
+
+
+    const zoneEnonce = creerZoneCollage({ etiquette: "✏️ Texte du devoir (collé depuis Word)", couleur: "#2c3e8c", fond: "#f5f7ff", placeholder: "Colle ici le texte du devoir", id: "zone-enonce-devoir" });
+    const zoneCorrigeTexte = creerZoneCollage({ etiquette: "👁 Texte du corrigé (collé depuis Word)", couleur: "#1e8449", fond: "#eafaf1", placeholder: "Colle ici le texte du corrigé", id: "zone-corrige-devoir" });
+    document.getElementById("zones-devoir-texte").appendChild(zoneEnonce.bloc);
+    document.getElementById("zones-devoir-texte").appendChild(zoneCorrigeTexte.bloc);
 
     let adminUid = null;
     let droitModifier = false;
@@ -581,7 +810,9 @@
         const lDevoir = [];
         if (dv.devoirUrl) lDevoir.push("<a href='" + dv.devoirUrl + "' target='_blank'>Devoir (PDF)</a>");
         if (dv.devoirWordUrl) lDevoir.push("<a href='" + dv.devoirWordUrl + "' target='_blank'>Devoir (Word)</a>");
+        if (dv.enonceHtml) lDevoir.push("Devoir (texte)");
         const lCorrige = [];
+        if (dv.corrigeHtml) lCorrige.push("Corrigé (texte)");
         if (dv.corrigeUrl) lCorrige.push("<a href='" + dv.corrigeUrl + "' target='_blank'>Corrigé (PDF)</a>");
         if (dv.corrigeWordUrl) lCorrige.push("<a href='" + dv.corrigeWordUrl + "' target='_blank'>Corrigé (Word)</a>");
         liens.innerHTML =
@@ -646,6 +877,8 @@
       urlCorrigeInput.value = "";
       devoirActuel.textContent = "";
       corrigeActuel.textContent = "";
+      zoneEnonce.zone.innerHTML = "";
+      zoneCorrigeTexte.zone.innerHTML = "";
       fichierDevoirWord.value = "";
       fichierCorrigeWord.value = "";
       urlDevoirWordInput.value = "";
@@ -680,6 +913,8 @@
       devoirActuel.textContent = dv.devoirUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
       corrigeActuel.textContent = dv.corrigeUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
 
+      zoneEnonce.zone.innerHTML = dv.enonceHtml || "";
+      zoneCorrigeTexte.zone.innerHTML = dv.corrigeHtml || "";
       urlDevoirWordInput.value = dv.devoirWordUrl || "";
       urlCorrigeWordInput.value = dv.corrigeWordUrl || "";
       devoirWordActuel.textContent = dv.devoirWordUrl ? "Lien Word actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
@@ -752,8 +987,11 @@
       let urlDevoirWordFinale = urlDevoirWordInput.value.trim();
       let urlCorrigeWordFinale = urlCorrigeWordInput.value.trim();
 
-      if (!fichierDevoirChoisi && !urlDevoirFinale && !fichierDevoirWordChoisi && !urlDevoirWordFinale) {
-        messageEditeur.textContent = "Ajoute le devoir : en PDF et/ou en Word (soit en l'uploadant, soit en collant son lien).";
+      const enonceHtml = zoneEstVide(zoneEnonce.zone) ? "" : zoneEnonce.zone.innerHTML.trim();
+      const corrigeHtml = zoneEstVide(zoneCorrigeTexte.zone) ? "" : zoneCorrigeTexte.zone.innerHTML.trim();
+
+      if (!fichierDevoirChoisi && !urlDevoirFinale && !fichierDevoirWordChoisi && !urlDevoirWordFinale && !enonceHtml) {
+        messageEditeur.textContent = "Ajoute le devoir : en PDF, en Word (upload ou lien) et/ou en texte collé.";
         messageEditeur.classList.add("error");
         return;
       }
@@ -767,6 +1005,12 @@
       const dureeSaisie = parseInt(inputDureeDevoir.value, 10);
       if (dureeSaisie && dureeSaisie > 0) {
         dureeDevoir = dureeSaisie;
+      }
+
+      if (enonceHtml.length + corrigeHtml.length > 700000) {
+        messageEditeur.textContent = "Le texte est trop volumineux (images collées ?). Réduis-le ou héberge les images à part.";
+        messageEditeur.classList.add("error");
+        return;
       }
 
       const id = devoirEnEdition || ("dv_" + Date.now());
@@ -818,6 +1062,8 @@
             matiere: matiere,
             devoirUrl: urlDevoirFinale,
             corrigeUrl: urlCorrigeFinale || "",
+            enonceHtml: enonceHtml,
+            corrigeHtml: corrigeHtml,
             devoirWordUrl: urlDevoirWordFinale || "",
             corrigeWordUrl: urlCorrigeWordFinale || "",
             dateCorrige: dateCorrigeTimestamp,
