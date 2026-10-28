@@ -393,6 +393,35 @@
           </div>
         </div>
 
+        <div id="bloc-libre" style="display: none;">
+          <div class="form-row" id="row-libre-volet" style="display: none;">
+            <div>
+              <label for="libre-volet">Volet *</label>
+              <select id="libre-volet"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label for="libre-sa-select" id="libre-label-sa">Rubrique</label>
+              <select id="libre-sa-select"></select>
+              <input type="text" id="libre-sa-texte" placeholder="Écris le nom de la nouvelle rubrique" style="display: none; margin-top: 6px;" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label for="libre-titre" id="libre-label-titre">Titre *</label>
+              <input type="text" id="libre-titre" placeholder="Le titre tel que les élèves le verront" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label for="libre-ordre">Ordre d'affichage (facultatif)</label>
+              <input type="number" id="libre-ordre" min="1" placeholder="Automatique : à la suite" />
+              <span class="aide">Les titres s'affichent dans l'ordre de ce numéro (1, 2, 3...).</span>
+            </div>
+          </div>
+        </div>
+
         <div class="form-row">
           <div>
             <label for="input-lien-cours">Lien du cours (optionnel)</label>
@@ -1317,7 +1346,7 @@
             pCle.style.cssText = "font-size:11px;color:#999;margin-bottom:4px;";
             pCle.textContent = "clé : " + cle;
             div.appendChild(pCle);
-            if (!cleOfficielle && seqsOfficielles.length) {
+            if (!cleOfficielle && !c.libre && seqsOfficielles.length) {
               const pAlerte = document.createElement("p");
               pAlerte.style.cssText = "font-size:12px;color:#b9770e;background:#fef5e7;border-radius:8px;padding:6px 8px;";
               pAlerte.textContent = "⚠ Ancienne fiche non reliée à une séquence : les élèves ne la voient pas. Clique sur « Modifier » pour la rattacher.";
@@ -1387,11 +1416,192 @@
         });
     }
 
+    // ===================================================================
+    // Titres libres : la rubrique et le titre sont écrits par l'enseignant
+    // (matières sans programme fixe). Ce qui est écrit devient tel quel
+    // le titre affiché aux élèves.
+    // ===================================================================
+    const ORGANISATION = {
+      "Histoire-Géographie": { sa: "SA", titre: "Activité" },
+      "Français": { sa: "SA", titre: "Unité", volets: ["Lecture", "Communication écrite"], classesVolets: ["6e", "5e", "4e", "3e"] },
+      "SVT": { sa: "SA", titre: "Séquence" },
+      "EPS": { sa: "Activité", titre: "Sous-activité" }
+    };
+
+    function estMatiereLibre() {
+      return !!matiereSelectionnee && matiereSelectionnee !== "Mathématiques";
+    }
+
+    function organisationActuelle() {
+      const o = ORGANISATION[matiereSelectionnee] || { sa: "Rubrique", titre: "Titre" };
+      const aVolets = !!(o.volets && o.classesVolets && o.classesVolets.indexOf(classeSelectionnee) !== -1);
+      return { sa: o.sa, titre: o.titre, volets: aVolets ? o.volets : null };
+    }
+
+    function slugCle(s) {
+      return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40);
+    }
+
+    function cleLibre(volet, sa, titre) {
+      return "l_" + [slugCle(volet), slugCle(sa), slugCle(titre)].filter(Boolean).join("__");
+    }
+
+    const blocLibre = document.getElementById("bloc-libre");
+    const rowLibreVolet = document.getElementById("row-libre-volet");
+    const selLibreVolet = document.getElementById("libre-volet");
+    const selLibreSa = document.getElementById("libre-sa-select");
+    const inputLibreSa = document.getElementById("libre-sa-texte");
+    const inputLibreTitre = document.getElementById("libre-titre");
+    const inputLibreOrdre = document.getElementById("libre-ordre");
+    let existantsLibres = [];
+
+    function chargerExistantsLibres() {
+      const c = classeSelectionnee;
+      const m = matiereSelectionnee;
+      return Promise.all([
+        db.ref("cours/" + c + "/" + m).once("value"),
+        db.ref("videos/" + c + "/" + m).once("value")
+      ]).then(function(res) {
+        const liste = [];
+        ["cours", "videos"].forEach(function(source, i) {
+          const snap = res[i];
+          if (!snap || !snap.exists()) return;
+          const v = snap.val();
+          Object.keys(v).forEach(function(k) {
+            const x = v[k] || {};
+            liste.push({ cle: k, source: source, volet: x.voletLabel || "", sa: x.saLabel || "", titre: x.seqLabel || "", ordre: typeof x.ordre === "number" ? x.ordre : null });
+          });
+        });
+        existantsLibres = liste;
+      }).catch(function() { existantsLibres = []; });
+    }
+
+    function modeLibreActif() {
+      return estMatiereLibre() && (!getSequencesActuelles() || selectSequenceCours.value === "__libre__");
+    }
+
+    function remplirRubriques() {
+      const org = organisationActuelle();
+      const volet = org.volets ? selLibreVolet.value : "";
+      const sas = [];
+      existantsLibres.forEach(function(x) {
+        if ((x.volet || "") === volet && x.sa && sas.indexOf(x.sa) === -1) sas.push(x.sa);
+      });
+      selLibreSa.innerHTML = "<option value=''>— Choisir —</option>";
+      sas.forEach(function(sa) {
+        const o = document.createElement("option");
+        o.value = sa;
+        o.textContent = sa;
+        selLibreSa.appendChild(o);
+      });
+      const nouvelle = document.createElement("option");
+      nouvelle.value = "__nouvelle__";
+      nouvelle.textContent = "✏️ Nouvelle " + (org.sa === "SA" ? "SA" : org.sa.toLowerCase()) + "…";
+      selLibreSa.appendChild(nouvelle);
+      const aucune = document.createElement("option");
+      aucune.value = "__aucune__";
+      aucune.textContent = "(aucune rubrique)";
+      selLibreSa.appendChild(aucune);
+      if (!sas.length) selLibreSa.value = "__nouvelle__";
+      inputLibreSa.style.display = selLibreSa.value === "__nouvelle__" ? "block" : "none";
+    }
+
+    function mettreAJourBlocLibre() {
+      blocLibre.style.display = modeLibreActif() ? "block" : "none";
+    }
+
+    function preparerChampsLibres() {
+      const rowSeq = selectSequenceCours.closest(".form-row");
+      const predefini = !!getSequencesActuelles();
+
+      if (!estMatiereLibre()) {
+        blocLibre.style.display = "none";
+        return;
+      }
+
+      if (predefini) {
+        if (!selectSequenceCours.querySelector("option[value='__libre__']")) {
+          const o = document.createElement("option");
+          o.value = "__libre__";
+          o.textContent = "✏️ Autre (écrire moi-même)";
+          selectSequenceCours.appendChild(o);
+        }
+        rowSeq.style.display = "";
+        selectSequenceCours.required = true;
+      } else {
+        rowSeq.style.display = "none";
+        selectSequenceCours.required = false;
+        selectSequenceCours.disabled = false;
+        selectSequenceCours.value = "";
+        aideSequenceCours.textContent = "";
+      }
+
+      const org = organisationActuelle();
+      document.getElementById("libre-label-sa").textContent = org.sa + " (facultatif)";
+      document.getElementById("libre-label-titre").textContent = org.titre + " *";
+      inputLibreTitre.placeholder = "Le titre tel que les élèves le verront";
+      inputLibreTitre.value = "";
+      inputLibreOrdre.value = "";
+      inputLibreSa.value = "";
+
+      if (org.volets) {
+        rowLibreVolet.style.display = "";
+        selLibreVolet.innerHTML = "<option value=''>— Choisir —</option>";
+        org.volets.forEach(function(v) {
+          const o = document.createElement("option");
+          o.value = v;
+          o.textContent = v;
+          selLibreVolet.appendChild(o);
+        });
+      } else {
+        rowLibreVolet.style.display = "none";
+        selLibreVolet.innerHTML = "";
+      }
+
+      existantsLibres = [];
+      remplirRubriques();
+      mettreAJourBlocLibre();
+      chargerExistantsLibres().then(remplirRubriques);
+    }
+
+    function lireChampsLibres() {
+      const org = organisationActuelle();
+      const volet = org.volets ? selLibreVolet.value : "";
+      if (org.volets && !volet) return { erreur: "Choisis le volet." };
+
+      let sa = "";
+      if (selLibreSa.value === "") return { erreur: "Choisis la rubrique, ou « Nouvelle », ou « aucune rubrique »." };
+      if (selLibreSa.value === "__nouvelle__") {
+        sa = inputLibreSa.value.trim();
+        if (!sa) return { erreur: "Écris le nom de la nouvelle rubrique." };
+      } else if (selLibreSa.value !== "__aucune__") {
+        sa = selLibreSa.value;
+      }
+
+      const titre = inputLibreTitre.value.trim();
+      if (!titre) return { erreur: "Écris le titre." };
+
+      let ordre = parseInt(inputLibreOrdre.value, 10);
+      if (!(ordre > 0)) {
+        let max = 0;
+        existantsLibres.forEach(function(x) { if (typeof x.ordre === "number" && x.ordre > max) max = x.ordre; });
+        ordre = max + 1;
+      }
+      return { volet: volet, sa: sa, titre: titre, ordre: ordre, cle: cleLibre(volet, sa, titre) };
+    }
+
+    selectSequenceCours.addEventListener("change", mettreAJourBlocLibre);
+    selLibreVolet.addEventListener("change", remplirRubriques);
+    selLibreSa.addEventListener("change", function() {
+      inputLibreSa.style.display = selLibreSa.value === "__nouvelle__" ? "block" : "none";
+    });
+
     function ouvrirModalAjout() {
       titreModalAjout.textContent = "Ajouter un cours - " + classeSelectionnee + " - " + matiereSelectionnee;
       formAjoutCours.reset();
       viderZones("ajout");
       peuplerSelectSequence();
+      preparerChampsLibres();
       modalAjout.style.display = "flex";
     }
 
@@ -1402,7 +1612,17 @@
     formAjoutCours.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const sequenceKey = selectSequenceCours.value;
+      let sequenceKey = selectSequenceCours.value;
+      let infoLibre = null;
+      if (modeLibreActif()) {
+        infoLibre = lireChampsLibres();
+        if (infoLibre.erreur) {
+          alert(infoLibre.erreur);
+          return;
+        }
+        sequenceKey = infoLibre.cle;
+        if (existantsLibres.some(function(x) { return x.cle === sequenceKey && x.source === "cours"; }) && !confirm("Un cours existe déjà avec ce titre. Le remplacer ?")) return;
+      }
       const lien = inputLienCours.value.trim();
       const zonesAjout = lireZones("ajout");
       const contenu = assemblerContenu(zonesAjout);
@@ -1427,8 +1647,8 @@
 
       const nouveauCours = {
         sequenceKey: sequenceKey,
-        saLabel: seqInfo ? seqInfo.sa : "",
-        seqLabel: seqInfo ? seqInfo.seq : "",
+        saLabel: infoLibre ? infoLibre.sa : (seqInfo ? seqInfo.sa : ""),
+        seqLabel: infoLibre ? infoLibre.titre : (seqInfo ? seqInfo.seq : ""),
         lien: lien || "",
         contenu: contenu || "",
         coursHtml: zonesAjout.cours,
@@ -1442,6 +1662,12 @@
         dateCreation: now,
         actif: true
       };
+
+      if (infoLibre) {
+        nouveauCours.voletLabel = infoLibre.volet;
+        nouveauCours.ordre = infoLibre.ordre;
+        nouveauCours.libre = true;
+      }
 
       db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee + "/" + sequenceKey).set(nouveauCours)
         .then(function() {
@@ -1467,7 +1693,7 @@
       const blocRatt = document.getElementById("bloc-rattacher");
       const selRatt = document.getElementById("select-rattacher");
       selRatt.innerHTML = "<option value=''>Choisir la séquence</option>";
-      if (seqsOff.length && !seqsOff.some(function(sq) { return sq.key === cle; })) {
+      if (seqsOff.length && !cours.libre && !seqsOff.some(function(sq) { return sq.key === cle; })) {
         seqsOff.forEach(function(sq) {
           const o = document.createElement("option");
           o.value = sq.key;
@@ -1729,6 +1955,29 @@
       }
     }
 
+    function sequencesLibresDepuis(cours) {
+      const ORDRE = ["Lecture", "Communication écrite"];
+      const liste = Object.keys(cours || {}).map(function(k) {
+        const c = cours[k] || {};
+        return { key: k, volet: c.voletLabel || "", sa: c.saLabel || "", seq: c.seqLabel || c.titre || k, ordre: typeof c.ordre === "number" ? c.ordre : 1e12 };
+      });
+      const min = {};
+      liste.forEach(function(x) {
+        const g = x.volet + "|" + x.sa;
+        min[g] = Math.min(min[g] === undefined ? 1e12 : min[g], x.ordre);
+      });
+      const rang = function(v) { const i = ORDRE.indexOf(v); return i === -1 ? (v ? 99 : -1) : i; };
+      liste.sort(function(a, b) {
+        if (rang(a.volet) !== rang(b.volet)) return rang(a.volet) - rang(b.volet);
+        const ga = min[a.volet + "|" + a.sa], gb = min[b.volet + "|" + b.sa];
+        if (ga !== gb) return ga - gb;
+        if (a.sa !== b.sa) return a.sa < b.sa ? -1 : 1;
+        if (a.ordre !== b.ordre) return a.ordre - b.ordre;
+        return a.key < b.key ? -1 : 1;
+      });
+      return liste.map(function(x) { return { key: x.key, sa: (x.volet ? x.volet + " — " : "") + (x.sa || "Cours"), seq: x.seq }; });
+    }
+
     function ouvrirApercu(cleAOuvrir) {
       if (!classeSelectionnee || !matiereSelectionnee) return;
       try { sessionStorage.setItem("cf_apercu_cours", JSON.stringify({ classe: classeSelectionnee, matiere: matiereSelectionnee, cle: cleAOuvrir || null })); } catch (e) {}
@@ -1739,7 +1988,22 @@
 
       const sequences = getSequencesActuelles();
       if (!sequences) {
-        apercuCorps.innerHTML = "<p class='a-venir' style='padding:16px;'>Les séquences ne sont pas encore configurées pour " + classeSelectionnee + " - " + matiereSelectionnee + ".</p>";
+        if (!estMatiereLibre()) {
+          apercuCorps.innerHTML = "<p class='a-venir' style='padding:16px;'>Les séquences ne sont pas encore configurées pour " + classeSelectionnee + " - " + matiereSelectionnee + ".</p>";
+          return;
+        }
+        db.ref("cours/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
+          .then(function(snap) {
+            const coursLibres = snap.exists() ? snap.val() : {};
+            if (Object.keys(coursLibres).length === 0) {
+              apercuCorps.innerHTML = "<p class='a-venir' style='padding:16px;'>Aucun cours pour le moment.</p>";
+              return;
+            }
+            construireApercu(sequencesLibresDepuis(coursLibres), coursLibres, cleAOuvrir);
+          })
+          .catch(function(erreur) {
+            apercuCorps.innerHTML = "<p class='message error' style='padding:16px;'>Impossible de charger l'aperçu : " + (erreur.message || "erreur inconnue") + "</p>";
+          });
         return;
       }
 
