@@ -318,6 +318,7 @@
       </div>
 
       <button id="btn-ouvrir-modal-ajout" class="secondaire">+ Ajouter une vidéo</button>
+      <button id="btn-ouvrir-import-videos" class="secondaire">+ Ajouter plusieurs vidéos</button>
 
       <p id="message-ajouter" class="message"></p>
     </section>
@@ -334,6 +335,26 @@
     </section>
 
   </main>
+
+  <div class="modal" id="modal-import-videos">
+    <div class="modal-content">
+      <h3>Ajouter plusieurs vidéos</h3>
+      <p style="font-size: 13px; color: var(--muted);">Colle une vidéo par ligne, avec la séquence puis le lien YouTube. Exemples :<br>
+        <code>Séquence 3 | https://youtu.be/abc123</code><br>
+        <code>SA2 Séquence 1 : https://www.youtube.com/watch?v=xyz789</code><br>
+        Tu pourras corriger la séquence reconnue avant d'importer.</p>
+      <textarea id="texte-import-videos" style="width: 100%; min-height: 130px;"></textarea>
+      <div style="margin: 10px 0;">
+        <button type="button" class="secondaire" id="btn-analyser-videos">Analyser la liste</button>
+      </div>
+      <div id="apercu-import-videos"></div>
+      <p class="message" id="message-import-videos"></p>
+      <div class="modal-buttons">
+        <button type="button" class="secondaire" id="btn-annuler-import-videos">Annuler</button>
+        <button type="button" id="btn-valider-import-videos" disabled>Importer</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal" id="modal-ajout-video">
     <div class="modal-content">
@@ -355,6 +376,21 @@
             <label for="input-lien-video">Lien de la vidéo (YouTube) *</label>
             <input type="url" id="input-lien-video" placeholder="https://www.youtube.com/watch?v=..." required />
             <span class="aide">Colle le lien YouTube normal (pas besoin du format "embed").</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-fiche-pdf">Fiche de la séquence — lien PDF (facultatif)</label>
+            <input type="url" id="input-fiche-pdf" placeholder="https://...github.io/.../fiche.pdf" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-fiche-word">Fiche de la séquence — lien Word (facultatif)</label>
+            <input type="url" id="input-fiche-word" placeholder="https://...github.io/.../fiche.docx" />
+            <span class="aide">Les élèves pourront télécharger la fiche avec la vidéo. Mets le fichier sur GitHub puis colle son lien.</span>
           </div>
         </div>
 
@@ -382,6 +418,20 @@
           <div>
             <label for="input-lien-modif">Lien de la vidéo (YouTube) *</label>
             <input type="url" id="input-lien-modif" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-fiche-pdf-modif">Fiche de la séquence — lien PDF (facultatif)</label>
+            <input type="url" id="input-fiche-pdf-modif" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="input-fiche-word-modif">Fiche de la séquence — lien Word (facultatif)</label>
+            <input type="url" id="input-fiche-word-modif" />
           </div>
         </div>
 
@@ -512,6 +562,74 @@
           { key: "sa3_seq9", sa: "SA 3 — Lieux géométriques", seq: "Séquence 9 — Cercles dans le plan" },
           { key: "sa3_seq10", sa: "SA 3 — Lieux géométriques", seq: "Séquence 10 — Équations et inéquations dans ℝ×ℝ" }
         ]
+      },
+      "1re AB": {
+        "Mathématiques": [
+          { "key": "sa1_seq1", "sa": "SA 1 — Organisation des données", "seq": "Séquence 1 — Équations et inéquations du second degré dans ℝ" },
+          { "key": "sa1_seq2", "sa": "SA 1 — Organisation des données", "seq": "Séquence 2 — Systèmes d’équations et d’inéquations linéaires dans ℝ×ℝ" },
+          { "key": "sa1_seq3", "sa": "SA 1 — Organisation des données", "seq": "Séquence 3 — Suites arithmétiques" },
+          { "key": "sa1_seq4", "sa": "SA 1 — Organisation des données", "seq": "Séquence 4 — Suites géométriques" },
+          { "key": "sa1_seq5", "sa": "SA 1 — Organisation des données", "seq": "Séquence 5 — Statistiques" },
+          { "key": "sa1_seq6", "sa": "SA 1 — Organisation des données", "seq": "Séquence 6 — Dénombrements" },
+          { "key": "sa2_seq1", "sa": "SA 2 — Lieux géométriques", "seq": "Séquence 1 — Fonctions – Applications" },
+          { "key": "sa2_seq2", "sa": "SA 2 — Lieux géométriques", "seq": "Séquence 2 — Notion de limite" },
+          { "key": "sa2_seq3", "sa": "SA 2 — Lieux géométriques", "seq": "Séquence 3 — Continuité" },
+          { "key": "sa2_seq4", "sa": "SA 2 — Lieux géométriques", "seq": "Séquence 4 — Dérivation" }
+        ]
+      },
+      "1re D": {
+        "Mathématiques": [
+          { "key": "sa1_seq1", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 1 — Orthogonalité dans l'espace" },
+          { "key": "sa1_seq2", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 2 — Vecteurs de l'espace" },
+          { "key": "sa2_seq1", "sa": "SA 2 — Organisation des données", "seq": "Séquence 1 — Équations et inéquations dans ℝ" },
+          { "key": "sa2_seq2", "sa": "SA 2 — Organisation des données", "seq": "Séquence 2 — Statistique" },
+          { "key": "sa2_seq3", "sa": "SA 2 — Organisation des données", "seq": "Séquence 3 — Dénombrement" },
+          { "key": "sa2_seq4", "sa": "SA 2 — Organisation des données", "seq": "Séquence 4 — Fonctions – Applications" },
+          { "key": "sa2_seq5", "sa": "SA 2 — Organisation des données", "seq": "Séquence 5 — Limites et continuité" },
+          { "key": "sa2_seq6", "sa": "SA 2 — Organisation des données", "seq": "Séquence 6 — Dérivation – Étude de fonction" },
+          { "key": "sa2_seq7", "sa": "SA 2 — Organisation des données", "seq": "Séquence 7 — Suites numériques" },
+          { "key": "sa3_seq1", "sa": "SA 3 — Lieux géométriques dans le plan", "seq": "Séquence 1 — Trigonométrie" },
+          { "key": "sa3_seq2", "sa": "SA 3 — Lieux géométriques dans le plan", "seq": "Séquence 2 — Barycentre de deux, trois ou quatre points pondérés" },
+          { "key": "sa3_seq3", "sa": "SA 3 — Lieux géométriques dans le plan", "seq": "Séquence 3 — Cercle dans le plan" },
+          { "key": "sa3_seq4", "sa": "SA 3 — Lieux géométriques dans le plan", "seq": "Séquence 4 — Isométrie" },
+          { "key": "sa3_seq5", "sa": "SA 3 — Lieux géométriques dans le plan", "seq": "Séquence 5 — Représentations graphiques de fonctions et transformations du plan" }
+        ]
+      },
+      "Tle AB": {
+        "Mathématiques": [
+          { "key": "sa1_seq1", "sa": "SA 1 — Lieux géométriques dans le plan", "seq": "Séquence 1 — Fonctions" },
+          { "key": "sa1_seq2", "sa": "SA 1 — Lieux géométriques dans le plan", "seq": "Séquence 2 — Fonctions polynômes – Fonctions rationnelles" },
+          { "key": "sa1_seq3", "sa": "SA 1 — Lieux géométriques dans le plan", "seq": "Séquence 3 — Fonctions logarithme népérien et exponentielle" },
+          { "key": "sa2_seq1", "sa": "SA 2 — Organisation des données", "seq": "Séquence 1 — Entiers naturels" },
+          { "key": "sa2_seq2", "sa": "SA 2 — Organisation des données", "seq": "Séquence 2 — Équations – Inéquations – Systèmes" },
+          { "key": "sa2_seq3", "sa": "SA 2 — Organisation des données", "seq": "Séquence 3 — Suites numériques" },
+          { "key": "sa2_seq4", "sa": "SA 2 — Organisation des données", "seq": "Séquence 4 — Statistique" },
+          { "key": "sa2_seq5", "sa": "SA 2 — Organisation des données", "seq": "Séquence 5 — Probabilités" }
+        ]
+      },
+      "Tle D": {
+        "Mathématiques": [
+          { "key": "sa1_seq1", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 1 — Vecteurs de l'espace" },
+          { "key": "sa1_seq2", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 2 — Barycentre de n points pondérés (n ≥ 2)" },
+          { "key": "sa1_seq3", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 3 — Produit scalaire" },
+          { "key": "sa1_seq4", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 4 — Équation cartésienne d'un plan – Représentations paramétriques d'un plan" },
+          { "key": "sa1_seq5", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 5 — Systèmes d'équations linéaires" },
+          { "key": "sa1_seq6", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 6 — Systèmes d'équations cartésiennes d'une droite de l'espace – Représentations paramétriques d'une droite" },
+          { "key": "sa1_seq7", "sa": "SA 1 — Configurations de l'espace", "seq": "Séquence 7 — Produit vectoriel" },
+          { "key": "sa2_seq1", "sa": "SA 2 — Organisation des données", "seq": "Séquence 1 — Nombres complexes" },
+          { "key": "sa2_seq2", "sa": "SA 2 — Organisation des données", "seq": "Séquence 2 — Limites et continuité" },
+          { "key": "sa2_seq3", "sa": "SA 2 — Organisation des données", "seq": "Séquence 3 — Dérivation – Étude de fonctions" },
+          { "key": "sa2_seq4", "sa": "SA 2 — Organisation des données", "seq": "Séquence 4 — Primitives" },
+          { "key": "sa2_seq5", "sa": "SA 2 — Organisation des données", "seq": "Séquence 5 — Fonction logarithme népérien" },
+          { "key": "sa2_seq6", "sa": "SA 2 — Organisation des données", "seq": "Séquence 6 — Fonction exponentielle népérienne" },
+          { "key": "sa2_seq7", "sa": "SA 2 — Organisation des données", "seq": "Séquence 7 — Fonctions exponentielles – Fonctions puissances" },
+          { "key": "sa2_seq8", "sa": "SA 2 — Organisation des données", "seq": "Séquence 8 — Calcul intégral" },
+          { "key": "sa2_seq9", "sa": "SA 2 — Organisation des données", "seq": "Séquence 9 — Équations différentielles linéaires à coefficients constants" },
+          { "key": "sa2_seq10", "sa": "SA 2 — Organisation des données", "seq": "Séquence 10 — Probabilité" },
+          { "key": "sa2_seq11", "sa": "SA 2 — Organisation des données", "seq": "Séquence 11 — Suites numériques" },
+          { "key": "sa2_seq12", "sa": "SA 2 — Organisation des données", "seq": "Séquence 12 — Statistique" },
+          { "key": "sa3_seq1", "sa": "SA 3 — Lieux géométriques dans le plan", "seq": "Séquence 1 — Application des nombres complexes aux transformations du plan" }
+        ]
       }
     };
 
@@ -550,6 +668,20 @@
     const texteSequenceModif = document.getElementById("texte-sequence-modif");
     const inputLienModif = document.getElementById("input-lien-modif");
     const btnAnnulerModif = document.getElementById("btn-annuler-modif");
+
+    const inputFichePdf = document.getElementById("input-fiche-pdf");
+    const inputFicheWord = document.getElementById("input-fiche-word");
+    const inputFichePdfModif = document.getElementById("input-fiche-pdf-modif");
+    const inputFicheWordModif = document.getElementById("input-fiche-word-modif");
+
+    const btnOuvrirImportVideos = document.getElementById("btn-ouvrir-import-videos");
+    const modalImportVideos = document.getElementById("modal-import-videos");
+    const texteImportVideos = document.getElementById("texte-import-videos");
+    const btnAnalyserVideos = document.getElementById("btn-analyser-videos");
+    const apercuImportVideos = document.getElementById("apercu-import-videos");
+    const messageImportVideos = document.getElementById("message-import-videos");
+    const btnValiderImportVideos = document.getElementById("btn-valider-import-videos");
+    const btnAnnulerImportVideos = document.getElementById("btn-annuler-import-videos");
 
     let adminUid = null;
     let droitModifier = false;
@@ -722,6 +854,23 @@
               div.appendChild(pLien);
             }
 
+            const fichesListe = [];
+            if (v.ficheUrl) fichesListe.push("<a href='" + v.ficheUrl + "' target='_blank'>Fiche (PDF)</a>");
+            if (v.ficheWordUrl) fichesListe.push("<a href='" + v.ficheWordUrl + "' target='_blank'>Fiche (Word)</a>");
+            if (fichesListe.length) {
+              const pFiche = document.createElement("p");
+              pFiche.innerHTML = "📄 " + fichesListe.join(" · ");
+              div.appendChild(pFiche);
+            }
+
+            const sequencesOfficielles = getSequencesActuelles() || [];
+            if (sequencesOfficielles.length && !sequencesOfficielles.some(function(sq) { return sq.key === cle; })) {
+              const pAlerte = document.createElement("p");
+              pAlerte.style.cssText = "font-size:12px;color:#b9770e;background:#fef5e7;border-radius:8px;padding:6px 8px;";
+              pAlerte.textContent = "⚠ Vidéo non reliée à une séquence officielle : elle ne s'affiche pas dans le cours. Supprime-la puis ajoute-la de nouveau.";
+              div.appendChild(pAlerte);
+            }
+
             const actionsDiv = document.createElement("div");
             actionsDiv.className = "actions";
 
@@ -794,6 +943,8 @@
         saLabel: seqInfo ? seqInfo.sa : "",
         seqLabel: seqInfo ? seqInfo.seq : "",
         lien: lienEmbed,
+        ficheUrl: inputFichePdf.value.trim(),
+        ficheWordUrl: inputFicheWord.value.trim(),
         dateCreation: now,
         actif: true
       };
@@ -818,6 +969,8 @@
       titreModalModif.textContent = "Modifier la vidéo";
       texteSequenceModif.textContent = (video.saLabel || "") + " — " + (video.seqLabel || "");
       inputLienModif.value = video.lien || "";
+      inputFichePdfModif.value = video.ficheUrl || "";
+      inputFicheWordModif.value = video.ficheWordUrl || "";
       modalModif.style.display = "flex";
     }
 
@@ -840,6 +993,8 @@
 
       const videoModifiee = {
         lien: convertirEnLienEmbed(lienBrut),
+        ficheUrl: inputFichePdfModif.value.trim(),
+        ficheWordUrl: inputFicheWordModif.value.trim(),
         dateModification: Date.now()
       };
 
@@ -873,6 +1028,258 @@
           messageAjouter.classList.add("error");
         });
     }
+
+
+    // ===================================================================
+    // Ajout de plusieurs vidéos d'un coup : « Séquence 3 | lien YouTube »
+    // ===================================================================
+    let lignesImportVideos = [];
+    let videosExistantesImport = {};
+
+    function normaliserTexte(t) {
+      return String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+    }
+
+    function numeroSequenceDe(libelle) {
+      const m = /sequence\s*(\d+)/.exec(normaliserTexte(libelle));
+      return m ? m[1] : null;
+    }
+
+    function devinerSequence(libelle, sequences) {
+      const n = normaliserTexte(libelle);
+      if (!n) return "";
+
+      const existe = function(cle) {
+        return sequences.some(function(sq) { return sq.key === cle; }) ? cle : "";
+      };
+
+      const sa = /\bsa\s*(\d+)/.exec(n);
+      const seq = /\b(?:sequence|seq|s)\s*(\d+)/.exec(n);
+      if (sa && seq) return existe("sa" + sa[1] + "_seq" + seq[1]);
+
+      const nombres = n.match(/\d+/g) || [];
+      if (!sa && !seq && nombres.length >= 2) {
+        const k = existe("sa" + nombres[0] + "_seq" + nombres[1]);
+        if (k) return k;
+      }
+
+      const numSeq = seq ? seq[1] : (nombres.length === 1 ? nombres[0] : null);
+      if (numSeq) {
+        const candidats = sequences.filter(function(sq) { return numeroSequenceDe(sq.seq) === numSeq; });
+        if (candidats.length === 1) return candidats[0].key;
+        if (sa) {
+          const k = existe("sa" + sa[1] + "_seq" + numSeq);
+          if (k) return k;
+        }
+        return "";
+      }
+
+      const mots = n.split(" ").filter(function(w) { return w.length >= 4 && !/^(sequence|vers|dans|avec|pour|cours|video)$/.test(w); });
+      let meilleur = ""; let scoreMax = 0; let egalite = false;
+      sequences.forEach(function(sq) {
+        const cible = " " + normaliserTexte(sq.seq) + " ";
+        let score = 0;
+        mots.forEach(function(w) { if (cible.indexOf(" " + w) !== -1) score++; });
+        if (score > scoreMax) { scoreMax = score; meilleur = sq.key; egalite = false; }
+        else if (score === scoreMax && score > 0) { egalite = true; }
+      });
+      return (scoreMax >= 1 && !egalite) ? meilleur : "";
+    }
+
+    function afficherApercuImport() {
+      apercuImportVideos.innerHTML = "";
+      const sequences = getSequencesActuelles() || [];
+
+      lignesImportVideos.forEach(function(ligne, idx) {
+        const bloc = document.createElement("div");
+        bloc.style.cssText = "border:1px solid #cfd8f0;border-radius:10px;padding:8px 10px;margin-bottom:8px;";
+
+        const haut = document.createElement("label");
+        haut.style.cssText = "display:flex;gap:8px;align-items:flex-start;font-weight:bold;";
+        const coche = document.createElement("input");
+        coche.type = "checkbox";
+        coche.className = "coche-import";
+        coche.checked = !!(ligne.url && ligne.cle);
+        coche.disabled = !ligne.url;
+        const texte = document.createElement("span");
+        texte.style.wordBreak = "break-all";
+        texte.textContent = ligne.url ? (ligne.texte || "(sans titre)") + " — " + ligne.url : ligne.brut;
+        haut.appendChild(coche);
+        haut.appendChild(texte);
+        bloc.appendChild(haut);
+
+        if (!ligne.url) {
+          const p = document.createElement("p");
+          p.style.cssText = "font-size:12px;color:#c0392b;margin:4px 0 0;";
+          p.textContent = "Aucun lien trouvé sur cette ligne : elle sera ignorée.";
+          bloc.appendChild(p);
+        } else {
+          const sel = document.createElement("select");
+          sel.className = "select-import";
+          sel.style.cssText = "width:100%;margin-top:6px;";
+          sel.innerHTML = "<option value=''>— Choisir la séquence —</option>";
+          sequences.forEach(function(sq) {
+            const o = document.createElement("option");
+            o.value = sq.key;
+            o.textContent = sq.sa + " — " + sq.seq;
+            if (sq.key === ligne.cle) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener("change", function() {
+            if (sel.value) coche.checked = true;
+            mettreAJourNotesImport();
+          });
+          coche.addEventListener("change", mettreAJourNotesImport);
+          bloc.appendChild(sel);
+
+          const note = document.createElement("p");
+          note.className = "note-import";
+          note.style.cssText = "font-size:12px;margin:4px 0 0;color:#b9770e;";
+          bloc.appendChild(note);
+        }
+        bloc.setAttribute("data-idx", idx);
+        apercuImportVideos.appendChild(bloc);
+      });
+
+      mettreAJourNotesImport();
+    }
+
+    function mettreAJourNotesImport() {
+      let importables = 0;
+      apercuImportVideos.querySelectorAll("[data-idx]").forEach(function(bloc) {
+        const sel = bloc.querySelector(".select-import");
+        const coche = bloc.querySelector(".coche-import");
+        const note = bloc.querySelector(".note-import");
+        if (!sel || !note) return;
+        if (!sel.value) {
+          note.textContent = "Séquence non reconnue : choisis-la dans la liste.";
+        } else if (videosExistantesImport[sel.value]) {
+          note.textContent = "Cette séquence a déjà une vidéo : elle sera remplacée (la fiche est conservée).";
+        } else {
+          note.textContent = "";
+        }
+        if (coche.checked && sel.value) importables++;
+      });
+      btnValiderImportVideos.disabled = importables === 0;
+      btnValiderImportVideos.textContent = importables > 0 ? "Importer (" + importables + ")" : "Importer";
+    }
+
+    function ouvrirImportVideos() {
+      texteImportVideos.value = "";
+      apercuImportVideos.innerHTML = "";
+      messageImportVideos.textContent = "";
+      messageImportVideos.classList.remove("error", "success");
+      btnValiderImportVideos.disabled = true;
+      btnValiderImportVideos.textContent = "Importer";
+      lignesImportVideos = [];
+      modalImportVideos.style.display = "flex";
+    }
+
+    function fermerImportVideos() {
+      modalImportVideos.style.display = "none";
+    }
+
+    btnOuvrirImportVideos.addEventListener("click", function() {
+      if (!classeSelectionnee || !matiereSelectionnee) {
+        messageAjouter.textContent = "Choisis d'abord une classe et une matière.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+      if (!getSequencesActuelles()) {
+        messageAjouter.textContent = "Les séquences ne sont pas encore configurées pour cette classe.";
+        messageAjouter.classList.add("error");
+        return;
+      }
+      ouvrirImportVideos();
+    });
+
+    btnAnnulerImportVideos.addEventListener("click", fermerImportVideos);
+
+    btnAnalyserVideos.addEventListener("click", function() {
+      const sequences = getSequencesActuelles() || [];
+      const lignes = texteImportVideos.value.split(/\r?\n/).map(function(l) { return l.trim(); }).filter(Boolean);
+
+      if (lignes.length === 0) {
+        messageImportVideos.textContent = "Colle d'abord ta liste.";
+        messageImportVideos.classList.add("error");
+        return;
+      }
+      messageImportVideos.textContent = "";
+      messageImportVideos.classList.remove("error", "success");
+
+      lignesImportVideos = lignes.map(function(brut) {
+        const m = /https?:\/\/\S+/.exec(brut);
+        if (!m) return { brut: brut, texte: brut, url: "", cle: "" };
+        const libelle = (brut.slice(0, m.index) + " " + brut.slice(m.index + m[0].length))
+          .replace(/[|;\t]+/g, " ").replace(/[:\-–—]+\s*$/, "").replace(/^\s*[:\-–—]+/, "").trim();
+        return { brut: brut, texte: libelle, url: m[0].replace(/[),.;]+$/, ""), cle: devinerSequence(libelle, sequences) };
+      });
+
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee).once("value")
+        .then(function(snap) { videosExistantesImport = snap && snap.exists() ? snap.val() : {}; })
+        .catch(function() { videosExistantesImport = {}; })
+        .then(afficherApercuImport);
+    });
+
+    btnValiderImportVideos.addEventListener("click", function() {
+      const sequences = getSequencesActuelles() || [];
+      const maintenant = Date.now();
+      const mises = {};
+      const vues = {};
+      let remplacements = 0;
+
+      const blocs = apercuImportVideos.querySelectorAll("[data-idx]");
+      for (let i = 0; i < blocs.length; i++) {
+        const bloc = blocs[i];
+        const coche = bloc.querySelector(".coche-import");
+        const sel = bloc.querySelector(".select-import");
+        if (!coche || !sel || !coche.checked || !sel.value) continue;
+
+        const cle = sel.value;
+        if (vues[cle]) {
+          alert("Deux lignes sont rattachées à la même séquence. Corrige la liste.");
+          return;
+        }
+        vues[cle] = true;
+
+        const ligne = lignesImportVideos[parseInt(bloc.getAttribute("data-idx"), 10)];
+        const info = sequences.find(function(sq) { return sq.key === cle; });
+        const existe = !!videosExistantesImport[cle];
+        if (existe) remplacements++;
+
+        mises[cle + "/sequenceKey"] = cle;
+        mises[cle + "/saLabel"] = info ? info.sa : "";
+        mises[cle + "/seqLabel"] = info ? info.seq : "";
+        mises[cle + "/lien"] = convertirEnLienEmbed(ligne.url);
+        mises[cle + "/actif"] = true;
+        if (existe) mises[cle + "/dateModification"] = maintenant;
+        else mises[cle + "/dateCreation"] = maintenant;
+      }
+
+      if (Object.keys(vues).length === 0) return;
+
+      if (remplacements > 0 && !droitModifier) {
+        alert("Tu n'as pas l'autorisation de remplacer une vidéo existante. Décoche ces lignes ou demande l'autorisation à l'administrateur.");
+        return;
+      }
+
+      btnValiderImportVideos.disabled = true;
+      db.ref("videos/" + classeSelectionnee + "/" + matiereSelectionnee).update(mises)
+        .then(function() {
+          const n = Object.keys(vues).length;
+          fermerImportVideos();
+          messageAjouter.textContent = n + " vidéo(s) importée(s) avec succès !";
+          messageAjouter.classList.remove("error");
+          messageAjouter.classList.add("success");
+          chargerVideos();
+        })
+        .catch(function(erreur) {
+          console.error("Erreur import vidéos :", erreur);
+          messageImportVideos.textContent = "Erreur lors de l'import.";
+          messageImportVideos.classList.add("error");
+          btnValiderImportVideos.disabled = false;
+        });
+    });
 
     btnOuvrirModalAjout.addEventListener("click", function() {
       if (!classeSelectionnee || !matiereSelectionnee) {

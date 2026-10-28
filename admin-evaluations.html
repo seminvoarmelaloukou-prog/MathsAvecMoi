@@ -485,6 +485,7 @@ Points : 2</pre>
 
       <div class="row">
         <button id="btn-enregistrer-epreuve">Enregistrer</button>
+        <button id="btn-apercu-editeur" class="secondaire">👁 Aperçu</button>
         <button id="btn-annuler-editeur" class="secondaire">Annuler</button>
       </div>
 
@@ -732,6 +733,14 @@ Points : 2</pre>
           }
         });
 
+        const btnApercu = document.createElement("button");
+        btnApercu.className = "secondaire";
+        btnApercu.textContent = "👁 Aperçu";
+        btnApercu.addEventListener("click", function() {
+          ouvrirApercuEpreuve(ep, selectType.value);
+        });
+
+        actions.appendChild(btnApercu);
         actions.appendChild(btnModifier);
         actions.appendChild(btnSupprimer);
 
@@ -1894,6 +1903,256 @@ Points : 2</pre>
       champUrlCorrigeWord.value = "";
       champDateCorrige.value = "";
     }
+
+    // ===================================================================
+    // Aperçu côté admin : voir l'épreuve comme l'élève, sans compte élève
+    // ===================================================================
+    function formaterDateApercu(ms) {
+      return new Date(ms).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
+    }
+
+    function donneesApercuDepuisFormulaire() {
+      const type = selectType.value;
+      const titre = selectTitre.value === "__autre__" ? inputTitreAutre.value.trim() : selectTitre.value;
+      const ep = {
+        titre: titre || "(sans titre)",
+        sequence: selectSequence.value || "",
+        duree: type === "officielle" ? (parseInt(inputDuree.value, 10) || null) : null
+      };
+
+      if (selectFormat.value === "document") {
+        ep.format = "document";
+        ep.enonceHtml = zoneEstVide(zoneEvalEnonce.zone) ? "" : zoneEvalEnonce.zone.innerHTML.trim();
+        ep.corrigeHtml = zoneEstVide(zoneEvalCorrige.zone) ? "" : zoneEvalCorrige.zone.innerHTML.trim();
+        ep.devoirUrl = champUrlPdf.value.trim();
+        ep.devoirWordUrl = champUrlWord.value.trim();
+        ep.corrigeUrl = champUrlCorrigePdf.value.trim();
+        ep.corrigeWordUrl = champUrlCorrigeWord.value.trim();
+        ep.dateCorrige = champDateCorrige.value ? new Date(champDateCorrige.value).getTime() : null;
+        return ep;
+      }
+
+      ep.format = "qcm";
+      ep.questions = {};
+      listeQuestionsEditeur.querySelectorAll(".question-card").forEach(function(carte, i) {
+        const radio = carte.querySelector("input[type='radio']:checked");
+        ep.questions["q" + (i + 1)] = {
+          question: carte.querySelector(".champ-texte-question").value.trim(),
+          image: carte.querySelector(".champ-image").value.trim(),
+          choix: Array.from(carte.querySelectorAll(".champ-choix")).map(function(c) { return c.value.trim(); }),
+          bonneReponse: radio ? parseInt(radio.value, 10) : null,
+          points: parseInt(carte.querySelector(".champ-points").value, 10) || 1
+        };
+      });
+      return ep;
+    }
+
+    function ouvrirApercuEpreuve(ep, type) {
+      const ancien = document.getElementById("apercu-epreuve-overlay");
+      if (ancien) ancien.remove();
+
+      const overlay = document.createElement("div");
+      overlay.id = "apercu-epreuve-overlay";
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;overflow-y:auto;padding:14px;";
+
+      const fenetre = document.createElement("div");
+      fenetre.style.cssText = "background:#f5f7ff;border-radius:14px;max-width:760px;margin:0 auto;box-shadow:0 8px 30px rgba(0,0,0,0.3);overflow:hidden;";
+      overlay.appendChild(fenetre);
+
+      const entete = document.createElement("div");
+      entete.style.cssText = "background:#2c3e8c;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;";
+      const titreFenetre = document.createElement("strong");
+      titreFenetre.textContent = "Aperçu élève — " + (type === "blanche" ? "Évaluation Blanche" : "Évaluation Officielle");
+      const btnFermer = document.createElement("button");
+      btnFermer.type = "button";
+      btnFermer.textContent = "✕ Fermer";
+      btnFermer.style.cssText = "background:#fff;color:#2c3e8c;border:none;border-radius:8px;padding:6px 12px;font-weight:bold;cursor:pointer;";
+      entete.appendChild(titreFenetre);
+      entete.appendChild(btnFermer);
+      fenetre.appendChild(entete);
+
+      const corps = document.createElement("div");
+      corps.style.cssText = "padding:16px;line-height:1.6;";
+      fenetre.appendChild(corps);
+
+      const fermer = function() { overlay.remove(); };
+      btnFermer.addEventListener("click", fermer);
+      overlay.addEventListener("click", function(e) { if (e.target === overlay) fermer(); });
+
+      const h2 = document.createElement("h2");
+      h2.style.cssText = "margin:0 0 4px;font-size:20px;color:#2c3e8c;";
+      h2.textContent = ep.titre || "(sans titre)";
+      corps.appendChild(h2);
+
+      const infos = [];
+      if (ep.sequence) infos.push(ep.sequence);
+      if (ep.duree) infos.push("Durée : " + ep.duree + " min");
+      const pInfos = document.createElement("p");
+      pInfos.style.cssText = "margin:0 0 14px;color:#666;font-size:13px;";
+      corps.appendChild(pInfos);
+
+      if (ep.format === "document") {
+        pInfos.textContent = infos.concat(["épreuve en document"]).join(" — ");
+
+        const boiteSujet = document.createElement("div");
+        boiteSujet.style.cssText = "background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;";
+        const t1 = document.createElement("strong");
+        t1.textContent = "Sujet";
+        boiteSujet.appendChild(t1);
+
+        const liensSujet = document.createElement("div");
+        liensSujet.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;margin:10px 0;";
+        [[ep.devoirUrl, "📄 Télécharger le sujet (PDF)"], [ep.devoirWordUrl, "📝 Télécharger le sujet (Word)"]].forEach(function(l) {
+          if (!l[0]) return;
+          const a = document.createElement("a");
+          a.href = l[0]; a.target = "_blank"; a.rel = "noopener"; a.textContent = l[1];
+          a.style.cssText = "display:inline-block;padding:8px 16px;border-radius:20px;background:#2c3e8c;color:#fff;text-decoration:none;font-weight:bold;font-size:14px;";
+          liensSujet.appendChild(a);
+        });
+        boiteSujet.appendChild(liensSujet);
+
+        if (ep.enonceHtml) {
+          const texte = document.createElement("div");
+          texte.style.cssText = "line-height:1.9;overflow-x:auto;";
+          texte.innerHTML = ep.enonceHtml;
+          boiteSujet.appendChild(texte);
+        } else if (!ep.devoirUrl && !ep.devoirWordUrl) {
+          const vide = document.createElement("p");
+          vide.style.color = "#c0392b";
+          vide.textContent = "Aucun sujet renseigné pour l'instant.";
+          boiteSujet.appendChild(vide);
+        }
+        corps.appendChild(boiteSujet);
+
+        const boiteCorrige = document.createElement("div");
+        boiteCorrige.style.cssText = "background:#eafaf1;border-radius:12px;padding:14px;";
+        const t2 = document.createElement("strong");
+        t2.textContent = "Corrigé";
+        boiteCorrige.appendChild(t2);
+
+        const note = document.createElement("p");
+        note.style.cssText = "font-size:12px;color:#b9770e;margin:6px 0 10px;";
+        note.textContent = ep.dateCorrige
+          ? "Les élèves le verront à partir du " + formaterDateApercu(ep.dateCorrige) + " (affiché ici sans attendre)."
+          : "Aucune date de visibilité définie : les élèves ne verront pas le corrigé tant que tu n'en choisis pas une.";
+        boiteCorrige.appendChild(note);
+
+        const liensCorrige = document.createElement("div");
+        liensCorrige.style.cssText = "display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;";
+        [[ep.corrigeUrl, "Voir le corrigé (PDF)"], [ep.corrigeWordUrl, "Télécharger le corrigé (Word)"]].forEach(function(l) {
+          if (!l[0]) return;
+          const a = document.createElement("a");
+          a.href = l[0]; a.target = "_blank"; a.rel = "noopener"; a.textContent = l[1];
+          a.style.cssText = "display:inline-block;padding:8px 16px;border-radius:20px;background:#1e8449;color:#fff;text-decoration:none;font-weight:bold;font-size:14px;";
+          liensCorrige.appendChild(a);
+        });
+        boiteCorrige.appendChild(liensCorrige);
+
+        if (ep.corrigeHtml) {
+          const texteCorrige = document.createElement("div");
+          texteCorrige.style.cssText = "line-height:1.9;overflow-x:auto;";
+          texteCorrige.innerHTML = ep.corrigeHtml;
+          boiteCorrige.appendChild(texteCorrige);
+        } else if (!ep.corrigeUrl && !ep.corrigeWordUrl) {
+          const vide = document.createElement("p");
+          vide.textContent = "Aucun corrigé renseigné.";
+          boiteCorrige.appendChild(vide);
+        }
+        corps.appendChild(boiteCorrige);
+      } else {
+        const cles = Object.keys(ep.questions || {});
+        let total = 0;
+        cles.forEach(function(k) { total += (ep.questions[k].points || 1); });
+        pInfos.textContent = infos.concat([cles.length + " question(s)", total + " point(s)"]).join(" — ");
+
+        const lettres = ["A", "B", "C", "D"];
+        const etiquettesChoix = [];
+
+        const barre = document.createElement("div");
+        barre.style.cssText = "margin-bottom:14px;";
+        const btnReponses = document.createElement("button");
+        btnReponses.type = "button";
+        btnReponses.className = "secondaire";
+        btnReponses.textContent = "Afficher les bonnes réponses";
+        let reponsesVisibles = false;
+        btnReponses.addEventListener("click", function() {
+          reponsesVisibles = !reponsesVisibles;
+          btnReponses.textContent = reponsesVisibles ? "Masquer les bonnes réponses" : "Afficher les bonnes réponses";
+          etiquettesChoix.forEach(function(e) {
+            const bonne = e.bonne && reponsesVisibles;
+            e.label.style.background = bonne ? "#e8f8f0" : "#fff";
+            e.label.style.borderColor = bonne ? "#27ae60" : "#dfe3f5";
+            e.marque.textContent = bonne ? " ✓ bonne réponse" : "";
+          });
+        });
+        barre.appendChild(btnReponses);
+        corps.appendChild(barre);
+
+        if (cles.length === 0) {
+          const vide = document.createElement("p");
+          vide.style.color = "#c0392b";
+          vide.textContent = "Aucune question dans cette épreuve.";
+          corps.appendChild(vide);
+        }
+
+        cles.forEach(function(k, i) {
+          const q = ep.questions[k];
+          const carte = document.createElement("div");
+          carte.style.cssText = "background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;";
+
+          const entQ = document.createElement("div");
+          entQ.style.cssText = "font-size:12px;color:#666;margin-bottom:6px;";
+          entQ.textContent = "Question " + (i + 1) + " / " + cles.length + " — " + (q.points || 1) + " point(s)";
+          carte.appendChild(entQ);
+
+          const texte = document.createElement("div");
+          texte.style.cssText = "font-weight:bold;white-space:pre-wrap;margin-bottom:8px;";
+          texte.textContent = q.question || "(question vide)";
+          carte.appendChild(texte);
+
+          if (q.image) {
+            const img = document.createElement("img");
+            img.src = q.image;
+            img.alt = "Figure de la question " + (i + 1);
+            img.style.cssText = "max-width:100%;height:auto;margin-bottom:8px;";
+            carte.appendChild(img);
+          }
+
+          (q.choix || []).forEach(function(c, idx) {
+            const label = document.createElement("label");
+            label.style.cssText = "display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:2px solid #dfe3f5;border-radius:10px;margin-bottom:6px;background:#fff;cursor:pointer;";
+            const radio = document.createElement("input");
+            radio.type = "radio";
+            radio.name = "apercu-q" + i;
+            const span = document.createElement("span");
+            span.textContent = (lettres[idx] || "") + ". " + (c || "(choix vide)");
+            const marque = document.createElement("strong");
+            marque.style.cssText = "color:#1e8449;font-size:12px;margin-left:6px;";
+            span.appendChild(marque);
+            label.appendChild(radio);
+            label.appendChild(span);
+            carte.appendChild(label);
+            etiquettesChoix.push({ label: label, marque: marque, bonne: q.bonneReponse === idx });
+          });
+
+          if (typeof q.bonneReponse !== "number") {
+            const alerte = document.createElement("p");
+            alerte.style.cssText = "font-size:12px;color:#c0392b;margin:4px 0 0;";
+            alerte.textContent = "⚠ La bonne réponse n'est pas encore choisie pour cette question.";
+            carte.appendChild(alerte);
+          }
+
+          corps.appendChild(carte);
+        });
+      }
+
+      document.body.appendChild(overlay);
+      overlay.scrollTop = 0;
+    }
+
+    document.getElementById("btn-apercu-editeur").addEventListener("click", function() {
+      ouvrirApercuEpreuve(donneesApercuDepuisFormulaire(), selectType.value);
+    });
 
     // ---------- Écouteurs ----------
     lienDeconnexion.addEventListener("click", function(e) {
