@@ -616,10 +616,85 @@
     // ===================================================================
     // Chargement dynamique des cours ajoutés depuis l'admin (Firebase).
     // ===================================================================
+    // ===================================================================
+    // Fiche (PDF / Word) liée à une vidéo + vidéo affichée dans la séquence
+    // ===================================================================
+    let promesseCours = Promise.resolve();
+
+    function creerBoutonsFiche(v) {
+      if (!v || (!v.ficheUrl && !v.ficheWordUrl)) return null;
+      const zone = document.createElement("div");
+      zone.className = "fiches-video";
+      if (v.ficheUrl) {
+        const a = document.createElement("a");
+        a.href = v.ficheUrl;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "📄 Fiche de la séquence (PDF)";
+        zone.appendChild(a);
+      }
+      if (v.ficheWordUrl) {
+        const a = document.createElement("a");
+        a.href = v.ficheWordUrl;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "📝 Fiche de la séquence (Word)";
+        zone.appendChild(a);
+      }
+      return zone;
+    }
+
+    function ajouterVideosDansSequences(videos) {
+      if (!document.getElementById("style-video-sequence")) {
+        const style = document.createElement("style");
+        style.id = "style-video-sequence";
+        style.textContent =
+          ".video-sequence{margin:0 0 14px;line-height:1.6;}" +
+          ".video-sequence>summary{cursor:pointer;display:inline-block;padding:8px 16px;border-radius:20px;background:#2c3e8c;color:#fff;font-weight:bold;font-size:14px;list-style:none;}" +
+          ".video-sequence>summary::-webkit-details-marker{display:none;}" +
+          ".video-sequence .video-container{margin-top:12px;}" +
+          ".fiches-video{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px;line-height:1.6;}" +
+          ".fiches-video a{display:inline-block;padding:8px 16px;border-radius:20px;background:#1f5c80;color:#fff;text-decoration:none;font-weight:bold;font-size:14px;margin:0;}";
+        document.head.appendChild(style);
+      }
+
+      // on attend que les cours soient affichés pour ne pas être effacé par eux
+      Promise.resolve(promesseCours).then(function() {
+        Object.keys(videos).forEach(function(cle) {
+          const v = videos[cle];
+          if (!v || (!v.lien && !v.ficheUrl && !v.ficheWordUrl)) return;
+
+          const devoirDiv = document.querySelector('.devoir[data-key="' + cle + '"]');
+          if (!devoirDiv || devoirDiv.querySelector(".video-sequence, .fiches-video")) return;
+
+          const bloc = document.createElement("div");
+
+          if (v.lien) {
+            const details = document.createElement("details");
+            details.className = "video-sequence";
+            const resume = document.createElement("summary");
+            resume.textContent = "🎥 Vidéo de la séquence";
+            const cadre = document.createElement("div");
+            cadre.className = "video-container";
+            cadre.innerHTML =
+              "<iframe src='" + v.lien + "' title='" + (v.seqLabel || "Vidéo") + "' loading='lazy' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>";
+            details.appendChild(resume);
+            details.appendChild(cadre);
+            bloc.appendChild(details);
+          }
+
+          const fiches = creerBoutonsFiche(v);
+          if (fiches) bloc.appendChild(fiches);
+
+          devoirDiv.insertBefore(bloc, devoirDiv.firstChild);
+        });
+      });
+    }
+
     function chargerCoursDynamiques() {
       if (typeof db === "undefined" || !db) return;
 
-      db.ref("cours/5e/Mathématiques").once("value")
+      promesseCours = db.ref("cours/5e/Mathématiques").once("value")
         .then(function(snap) {
           if (!snap || !snap.exists()) return;
 
@@ -675,6 +750,7 @@
           }
 
           const videos = snap.val();
+          ajouterVideosDansSequences(videos);
           const cles = Object.keys(videos);
 
           if (cles.length === 0) {
@@ -710,12 +786,17 @@
             titreSeq.textContent = v.seqLabel || "";
 
             const conteneurVideo = document.createElement("div");
-            conteneurVideo.className = "video-container toggle-content";
+            conteneurVideo.className = "video-container";
             conteneurVideo.innerHTML =
               "<iframe src='" + v.lien + "' title='" + (v.seqLabel || "Vidéo") + "' loading='lazy' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>";
 
             groupesSA[saLabel].appendChild(titreSeq);
-            groupesSA[saLabel].appendChild(conteneurVideo);
+            const enveloppeVideo = document.createElement("div");
+            enveloppeVideo.className = "toggle-content";
+            enveloppeVideo.appendChild(conteneurVideo);
+            const fichesVideo = creerBoutonsFiche(v);
+            if (fichesVideo) enveloppeVideo.appendChild(fichesVideo);
+            groupesSA[saLabel].appendChild(enveloppeVideo);
           });
 
           activerRepliage(conteneurVideosDynamiques);
