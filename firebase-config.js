@@ -33,3 +33,5 @@ const storage = (typeof firebase.storage === "function")
   ? firebase.storage()
   : null;
 (function(){try{var s=document.currentScript;if(!s||!s.src||document.getElementById("cf-suivi-script"))return;var l=document.createElement("script");l.id="cf-suivi-script";l.src=s.src.replace(/[^\/]*$/,"")+"suivi-visite.js";document.head.appendChild(l);}catch(e){}})();
+// Campus Flex : affichage dynamique des cours
+(function () { try { var s = document.createElement("script"); s.src = document.currentScript.src.replace(/firebase-config\.js(\?.*)?$/, "cours-dynamique.js"); document.head.appendChild(s); } catch (e) {} })();
