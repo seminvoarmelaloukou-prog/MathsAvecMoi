@@ -345,6 +345,37 @@
       });
     }
 
+    function creerBoutonsFiche(v) {
+      if (!v || (!v.ficheUrl && !v.ficheWordUrl)) return null;
+      if (!document.getElementById("style-fiches-video")) {
+        const style = document.createElement("style");
+        style.id = "style-fiches-video";
+        style.textContent =
+          ".fiches-video{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px;}" +
+          ".fiches-video a{display:inline-block;padding:8px 16px;border-radius:20px;background:#1f5c80;color:#fff;text-decoration:none;font-weight:bold;font-size:14px;}";
+        document.head.appendChild(style);
+      }
+      const zone = document.createElement("div");
+      zone.className = "fiches-video";
+      if (v.ficheUrl) {
+        const a = document.createElement("a");
+        a.href = v.ficheUrl;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "📄 Fiche de la séquence (PDF)";
+        zone.appendChild(a);
+      }
+      if (v.ficheWordUrl) {
+        const a = document.createElement("a");
+        a.href = v.ficheWordUrl;
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.textContent = "📝 Fiche de la séquence (Word)";
+        zone.appendChild(a);
+      }
+      return zone;
+    }
+
     function chargerVideosPourClasse(classeEleve) {
       classeTitre.textContent = "Vidéos de " + classeEleve;
 
@@ -391,12 +422,17 @@
             titreSeq.textContent = v.seqLabel || "";
 
             const conteneurVideo = document.createElement("div");
-            conteneurVideo.className = "video-container toggle-content";
+            conteneurVideo.className = "video-container";
             conteneurVideo.innerHTML =
               "<iframe src='" + v.lien + "' title='" + (v.seqLabel || "Vidéo") + "' loading='lazy' allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' allowfullscreen></iframe>";
 
             groupesSA[saLabel].appendChild(titreSeq);
-            groupesSA[saLabel].appendChild(conteneurVideo);
+            const enveloppeVideo = document.createElement("div");
+            enveloppeVideo.className = "toggle-content";
+            enveloppeVideo.appendChild(conteneurVideo);
+            const fichesVideo = creerBoutonsFiche(v);
+            if (fichesVideo) enveloppeVideo.appendChild(fichesVideo);
+            groupesSA[saLabel].appendChild(enveloppeVideo);
           });
 
           activerRepliage(conteneurVideosDynamiques);
