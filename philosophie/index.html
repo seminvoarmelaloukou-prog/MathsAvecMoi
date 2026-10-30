@@ -294,7 +294,7 @@
   <main>
 
     <section class="hero">
-      <h2>Philosophie – Classes de Terminale</h2>
+      <h2>Philosophie – 2nde, 1re et Terminale</h2>
       <p>Choisis ta classe pour accéder aux cours, exercices et évaluations.</p>
 
       <div>
@@ -319,31 +319,87 @@
 
     const NIVEAUX = [
       {
+        id: "2de AB",
+        nom: "2de AB",
+        desc: "Cours, exercices et évaluations de philosophie en 2de AB.",
+        actif: true,
+        lienCours: "2ndeAB/index.html"
+      },
+      {
+        id: "2de C",
+        nom: "2de C",
+        desc: "Cours, exercices et évaluations de philosophie en 2de C.",
+        actif: true,
+        lienCours: "2ndeC/index.html"
+      },
+      {
+        id: "2de D",
+        nom: "2de D",
+        desc: "Cours, exercices et évaluations de philosophie en 2de D.",
+        actif: true,
+        lienCours: "2ndeD/index.html"
+      },
+      {
+        id: "2de E",
+        nom: "2de E",
+        desc: "Cours, exercices et évaluations de philosophie en 2de E.",
+        actif: true,
+        lienCours: "2ndeE/index.html"
+      },
+      {
+        id: "1re AB",
+        nom: "1re AB",
+        desc: "Cours, exercices et évaluations de philosophie en 1re AB.",
+        actif: true,
+        lienCours: "1reAB/index.html"
+      },
+      {
+        id: "1re C",
+        nom: "1re C",
+        desc: "Cours, exercices et évaluations de philosophie en 1re C.",
+        actif: true,
+        lienCours: "1reC/index.html"
+      },
+      {
+        id: "1re D",
+        nom: "1re D",
+        desc: "Cours, exercices et évaluations de philosophie en 1re D.",
+        actif: true,
+        lienCours: "1reD/index.html"
+      },
+      {
+        id: "1re E",
+        nom: "1re E",
+        desc: "Cours, exercices et évaluations de philosophie en 1re E.",
+        actif: true,
+        lienCours: "1reE/index.html"
+      },
+      {
         id: "Tle AB",
         nom: "Tle AB",
         desc: "Cours, exercices et évaluations de philosophie en Tle AB.",
-        actif: false,
+        actif: true,
         lienCours: "TleAB/index.html"
       },
       {
         id: "Tle C",
         nom: "Tle C",
         desc: "Cours, exercices et évaluations de philosophie en Tle C.",
-        actif: false,
+        actif: true,
         lienCours: "TleC/index.html"
       },
       {
         id: "Tle D",
         nom: "Tle D",
         desc: "Cours, exercices et évaluations de philosophie en Tle D.",
-        actif: false,
+        actif: true,
         lienCours: "TleD/index.html"
       },
       {
         id: "Tle E",
         nom: "Tle E",
         desc: "Cours, exercices et évaluations de philosophie en Tle E.",
-        actif: false,
+        actif: true,
         lienCours: "TleE/index.html"
       }
     ];
@@ -376,7 +432,7 @@
 
       if (!niveau) {
         niveauxContainer.innerHTML =
-          "<p>La philosophie est enseignée en classe de Terminale.</p>";
+          "<p>La philosophie est enseignée en 2nde, 1re et Terminale.</p>";
         return;
       }
 
