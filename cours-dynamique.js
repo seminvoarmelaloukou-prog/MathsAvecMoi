@@ -48,25 +48,25 @@
     var s = document.createElement("style");
     s.id = "style-cours-dynamique";
     s.textContent =
-      "#cours-dynamique{margin:10px 0 20px;}" +
-      "#cours-dynamique .cd-header{cursor:pointer;user-select:none;}" +
-      "#cours-dynamique .cd-header::after{content:'▸';float:right;transition:transform .2s;}" +
-      "#cours-dynamique .cd-header.ouvert::after{transform:rotate(90deg);}" +
-      "#cours-dynamique .cd-content{display:none;}" +
-      "#cours-dynamique .cd-content.ouvert{display:block;}" +
-      "#cours-dynamique .cd-volet{margin:18px 0 8px;padding:12px 16px;border-radius:12px;background:#1c2245;color:#fff;font-size:20px;font-weight:bold;}" +
-      "#cours-dynamique .cd-sa{margin:12px 0 6px;padding:12px 16px;border-radius:10px;background:#2c3e8c;color:#fff;font-size:18px;font-weight:bold;}" +
-      "#cours-dynamique .cd-seq{margin:10px 0 4px;padding:10px 4px;border-bottom:2px solid #dfe3f5;color:#2c3e8c;font-size:16px;font-weight:bold;}" +
-      "#cours-dynamique .cd-contenu{background:#fff;border-radius:10px;padding:15px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.1);line-height:2;overflow-x:auto;}" +
-      "#cours-dynamique .cd-contenu img{max-width:100%;height:auto;}" +
-      "#cours-dynamique .cd-avenir{color:#999;font-style:italic;}" +
-      "#cours-dynamique .cd-video{margin:0 0 14px;line-height:1.6;}" +
-      "#cours-dynamique .cd-video>summary{cursor:pointer;display:inline-block;padding:8px 16px;border-radius:20px;background:#2c3e8c;color:#fff;font-weight:bold;font-size:14px;list-style:none;}" +
-      "#cours-dynamique .cd-video>summary::-webkit-details-marker{display:none;}" +
-      "#cours-dynamique .cd-cadre{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:8px;background:#000;margin-top:12px;}" +
-      "#cours-dynamique .cd-cadre iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}" +
-      "#cours-dynamique .cd-fiches{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px;line-height:1.6;}" +
-      "#cours-dynamique .cd-fiches a,#cours-dynamique .cd-lien{display:inline-block;padding:8px 16px;border-radius:20px;background:#1f5c80;color:#fff;text-decoration:none;font-weight:bold;font-size:14px;}";
+      ".cd-racine{margin:10px 0 20px;}" +
+      ".cd-racine .cd-header{cursor:pointer;user-select:none;}" +
+      ".cd-racine .cd-header::after{content:'▸';float:right;transition:transform .2s;}" +
+      ".cd-racine .cd-header.ouvert::after{transform:rotate(90deg);}" +
+      ".cd-racine .cd-content{display:none;}" +
+      ".cd-racine .cd-content.ouvert{display:block;}" +
+      ".cd-racine .cd-volet{margin:18px 0 8px;padding:12px 16px;border-radius:12px;background:#1c2245;color:#fff;font-size:20px;font-weight:bold;}" +
+      ".cd-racine .cd-sa{margin:12px 0 6px;padding:12px 16px;border-radius:10px;background:#2c3e8c;color:#fff;font-size:18px;font-weight:bold;}" +
+      ".cd-racine .cd-seq{margin:10px 0 4px;padding:10px 4px;border-bottom:2px solid #dfe3f5;color:#2c3e8c;font-size:16px;font-weight:bold;}" +
+      ".cd-racine .cd-contenu{background:#fff;border-radius:10px;padding:15px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.1);line-height:2;overflow-x:auto;}" +
+      ".cd-racine .cd-contenu img{max-width:100%;height:auto;}" +
+      ".cd-racine .cd-avenir{color:#999;font-style:italic;}" +
+      ".cd-racine .cd-video{margin:0 0 14px;line-height:1.6;}" +
+      ".cd-racine .cd-video>summary{cursor:pointer;display:inline-block;padding:8px 16px;border-radius:20px;background:#2c3e8c;color:#fff;font-weight:bold;font-size:14px;list-style:none;}" +
+      ".cd-racine .cd-video>summary::-webkit-details-marker{display:none;}" +
+      ".cd-racine .cd-cadre{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:8px;background:#000;margin-top:12px;}" +
+      ".cd-racine .cd-cadre iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}" +
+      ".cd-racine .cd-fiches{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 16px;line-height:1.6;}" +
+      ".cd-racine .cd-fiches a,.cd-racine .cd-lien{display:inline-block;padding:8px 16px;border-radius:20px;background:#1f5c80;color:#fff;text-decoration:none;font-weight:bold;font-size:14px;}";
     document.head.appendChild(s);
   }
 
@@ -137,7 +137,7 @@
     parent.appendChild(a);
   }
 
-  function remplirItem(zone, it) {
+  function remplirItem(zone, it, options) {
     var c = it.cours || {}, v = it.video || {};
     var vide = true;
 
@@ -145,6 +145,7 @@
       vide = false;
       var det = document.createElement("details");
       det.className = "cd-video";
+      if (options && options.ouvrirVideo) det.open = true;
       var res = document.createElement("summary");
       res.textContent = "🎥 Vidéo";
       var cadre = document.createElement("div");
@@ -207,9 +208,10 @@
     }
   }
 
-  function construire(items) {
+  function construire(items, options) {
     var racine = document.createElement("div");
-    racine.id = "cours-dynamique";
+    racine.className = "cd-racine";
+    racine.id = (options && options.id) || "cours-dynamique";
     var voletCourant = null, saCourante = null, zoneVolet = racine, zoneSA = racine;
 
     trier(items).forEach(function (it) {
@@ -240,10 +242,31 @@
       zoneSA.appendChild(entete("h4", "cd-seq", it.titre || "Sans titre"));
       var zone = document.createElement("div");
       zone.className = "cd-content cd-contenu";
-      remplirItem(zone, it);
+      remplirItem(zone, it, options);
       zoneSA.appendChild(zone);
     });
     return racine;
+  }
+
+  // L'onglet « Vidéos » des pages d'attente est rempli par l'ancien code de la page :
+  // on le remplace par le même affichage que le cours (volets, rubriques, fiches).
+  function reprendreOngletVideos(items) {
+    var conteneur = document.getElementById("conteneur-videos-dynamiques");
+    if (!conteneur) return;
+    var avecVideo = items.filter(function (it) { return it.video && it.video.lien; })
+      .map(function (it) { return { cle: it.cle, volet: it.volet, sa: it.sa, titre: it.titre, ordre: it.ordre, cours: null, video: it.video }; });
+    if (!avecVideo.length) return;
+    var observateur = null;
+    function afficher() {
+      if (observateur) observateur.disconnect();
+      conteneur.innerHTML = "";
+      conteneur.appendChild(construire(avecVideo, { id: "cours-dynamique-videos", ouvrirVideo: true }));
+      if (observateur) observateur.observe(conteneur, { childList: true });
+    }
+    observateur = new MutationObserver(function () {
+      if (!document.getElementById("cours-dynamique-videos")) afficher();
+    });
+    afficher();
   }
 
   // Exposé pour d'éventuels aperçus
@@ -279,6 +302,7 @@
         } else {
           section.insertBefore(racine, section.firstChild);
         }
+        reprendreOngletVideos(items);
       }).catch(function (e) { console.error("Cours dynamiques :", e); });
     });
   }
