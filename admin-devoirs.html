@@ -944,19 +944,48 @@
     }
 
     function televerserFichier(fichier, chemin) {
-      const storageRef = firebase.storage().ref().child(chemin);
+      function erreurStockage(code, message) {
+        const e = new Error(message);
+        e.code = code;
+        return e;
+      }
+
+      if (typeof firebase.storage !== "function") {
+        return Promise.reject(erreurStockage("storage/indisponible", "Storage indisponible"));
+      }
+
+      let storage;
+      try {
+        storage = firebase.storage();
+        if (storage.setMaxUploadRetryTime) storage.setMaxUploadRetryTime(15000);
+      } catch (e) {
+        return Promise.reject(erreurStockage("storage/indisponible", "Storage indisponible"));
+      }
+
+      const storageRef = storage.ref().child(chemin);
       const tache = storageRef.put(fichier);
 
       barreProgression.style.display = "block";
+      remplissageProgression.style.width = "0%";
 
       return new Promise(function(resolve, reject) {
+        let aDemarre = false;
+        // si rien n'est envoyé au bout de 20 secondes, on arrête et on prévient
+        const delai = setTimeout(function() {
+          if (aDemarre) return;
+          try { tache.cancel(); } catch (e) {}
+          reject(erreurStockage("storage/delai-depasse", "Le téléversement ne démarre pas"));
+        }, 20000);
+
         tache.on("state_changed",
           function(snapshot) {
+            if (snapshot.bytesTransferred > 0) aDemarre = true;
             const pourcentage = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             remplissageProgression.style.width = pourcentage + "%";
           },
-          function(erreur) { reject(erreur); },
+          function(erreur) { clearTimeout(delai); reject(erreur); },
           function() {
+            clearTimeout(delai);
             storageRef.getDownloadURL().then(resolve).catch(reject);
           }
         );
@@ -1083,11 +1112,12 @@
         .catch(function(erreur) {
           console.error("Erreur sauvegarde devoir :", erreur);
           if (erreur && erreur.code && erreur.code.indexOf("storage/") === 0) {
-            messageEditeur.textContent = "L'upload direct a échoué (Storage nécessite le forfait Blaze). Utilise plutôt le lien GitHub en attendant.";
+            messageEditeur.textContent = "L'envoi direct du fichier ne fonctionne pas (il demande le forfait Blaze). Mets le fichier dans le dossier « devoirs » de GitHub, puis colle son lien dans la case « lien », et retire le fichier choisi ci-dessus.";
           } else {
             messageEditeur.textContent = "Erreur lors de la sauvegarde.";
           }
           messageEditeur.classList.add("error");
+          barreProgression.style.display = "none";
           btnEnregistrerDevoir.disabled = false;
         });
     }
