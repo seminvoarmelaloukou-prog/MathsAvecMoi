@@ -66,8 +66,7 @@ button.sec{background:var(--amber)}
   <section class="card" id="zone" style="display:none"></section>
   <section class="card" id="export" style="display:none">
     <h2>Emploi du temps en document</h2>
-    <p class="aide">Choisis mon emploi du temps ou celui d'une de mes classes (toutes les matières), puis vois l'aperçu et télécharge le PDF.</p>
-    <label>Document</label><select id="exp-cible"></select>
+    <p class="aide">Mon emploi du temps pour ma matière, toutes mes classes réunies en un seul tableau. Vois l'aperçu, puis télécharge le PDF.</p>
     <button id="btn-apercu">Voir l'aperçu</button><button id="btn-pdf" class="sec">Télécharger en PDF</button>
     <p class="aide" id="msg-export" style="margin-top:8px"></p>
     <div id="apercu-edt"></div>
@@ -81,7 +80,7 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const mn=h=>{const p=String(h||"0:0").split(":");return +p[0]*60+ +p[1];};
 function norm(x){x=String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
   return x.replace(/^(\d)eme/,"$1e").replace(/^(\d)ere/,"$1re").replace(/^(\d)e$/,"$1e");}
-function matiere(code){const l=String(code||"").toUpperCase().replace(/[^A-Z]/g,"");return MATIERES[l]||l||"Cours";}
+function matiere(code){return CF_EDT.matiere(code,D&&D.profs)||"Cours";}
 const dj=new Date().getDay();
 const AUJOURDHUI=dj===0?"":JOURS[dj-1];
 
@@ -150,10 +149,9 @@ function construireOnglets(){
 
 /* ---------- Export PDF (inchangé) ---------- */
 function initExport(u){
-  $("exp-cible").innerHTML='<option value="uid:'+esc(u.uid)+'">Mon emploi du temps (toutes mes classes)</option>'+Object.keys(GROUPES).sort().map(lib=>'<option value="classe:'+esc(GROUPES[lib].join(","))+'">Classe '+esc(lib)+'</option>').join("");
   $("export").style.display="block";
 }
-function modele(){const v=$("exp-cible").value.split(":");const mode=v.shift()==="uid"?"uid":"classe";return CF_EDT.preparer(D,mode,v.join(":"));}
+function modele(){return CF_EDT.preparer(D,"uid",UID);}
 $("btn-apercu").onclick=function(){if(!D)return;CF_EDT.afficher($("apercu-edt"),modele());$("apercu-edt").scrollIntoView({behavior:"smooth"});};
 $("btn-pdf").onclick=function(){if(!D)return;const m=$("msg-export");m.textContent="Préparation du PDF...";CF_EDT.pdf(modele()).then(function(){m.textContent="PDF téléchargé.";}).catch(function(e){m.textContent="Erreur : "+e.message;});};
 $("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};

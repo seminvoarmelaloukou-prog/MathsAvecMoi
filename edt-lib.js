@@ -17,6 +17,12 @@
     "EPS": [215, 242, 247], "Éducation civique": [247, 240, 200], "Philosophie": [236, 224, 216]
   };
   var AUTRE = [238, 241, 252];
+  // La lettre du code désigne la matière (M = Mathématiques, M1 = un enseignant de maths...) ; la fiche du prof sert de secours
+  var LETTRES = { M: "Mathématiques", H: "Histoire-Géographie", F: "Français", A: "Anglais", B: "SVT", P: "PCT", EPS: "EPS", E: "Espagnol", AL: "Allemand" };
+  function matiereDe(code, profs) {
+    var l = String(code || "").toUpperCase().replace(/[^A-Z]/g, "");
+    return LETTRES[l] || ((profs || {})[code] || {}).matiere || code || "";
+  }
 
   // ---------- utilitaires ----------
   var charges = {};
@@ -69,7 +75,7 @@
     });
     var items = liste.map(function (s) {
       var p = profs[s.code] || {};
-      return { jour: s.jour, debut: s.debut, fin: s.fin, matiere: p.matiere || s.code || "", enseignant: p.nom || "", classe: libClasse(classes, s.classeId) };
+      return { jour: s.jour, debut: s.debut, fin: s.fin, code: s.code, matiere: matiereDe(s.code, profs), enseignant: p.nom || "", classe: libClasse(classes, s.classeId) };
     });
     var jours = JOURS.filter(function (j) { return items.some(function (i) { return i.jour === j; }); });
     var cles = [];
@@ -87,7 +93,10 @@
     });
     var sous;
     if (mode === "classe") sous = "Classe : " + libClasse(classes, ids[0]);
-    else if (mode === "uid") sous = "Emploi du temps de l'enseignant (toutes ses classes)";
+    else if (mode === "uid") {
+      var f = items[0], pf = f ? (profs[f.code] || {}) : {};
+      sous = "Enseignant" + (pf.nom ? " : " + pf.nom : "") + (f ? " - " + f.matiere : "") + " (toutes ses classes)";
+    }
     else sous = "Enseignant : " + ((profs[cible] || {}).nom || cible) + " (" + ((profs[cible] || {}).matiere || "") + ")";
     return {
       mode: mode, cible: cible, sous: sous, annee: cfg.annee || "", etablissement: cfg.etablissement || "Campus Flex",
@@ -207,5 +216,5 @@
     });
   }
 
-  window.CF_EDT = { preparer: preparer, afficher: afficher, pdf: pdf, libClasse: libClasse };
+  window.CF_EDT = { preparer: preparer, afficher: afficher, pdf: pdf, libClasse: libClasse, matiere: matiereDe };
 })();
