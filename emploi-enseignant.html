@@ -85,6 +85,8 @@ const dj=new Date().getDay();
 const AUJOURDHUI=dj===0?"":JOURS[dj-1];
 
 let D=null,UID="",PROFIL=null,GROUPES={},TOUTES=[],MES=[],ACTIF="semaine";
+/* Une séance est la mienne si elle porte mon compte, ou si son code est relié à mon compte dans l'admin */
+function estMien(s){return s.uid===UID||((D&&D.profs||{})[s.code]||{}).uid===UID;}
 
 /* ---------- Données ---------- */
 function charger(u,profil){
@@ -92,7 +94,7 @@ function charger(u,profil){
   return Promise.all([db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),db.ref("edt/seances").once("value"),db.ref("bulletins_config").once("value").catch(function(){return null;})]).then(function(r){
     D={classes:r[0].val()||{},profs:r[1].val()||{},seances:r[2].val()||{},config:(r[3]&&r[3].val())||{}};
     TOUTES=Object.keys(D.seances).map(k=>D.seances[k]);
-    MES=TOUTES.filter(s=>s.uid===UID);
+    MES=TOUTES.filter(estMien);
     /* Mes classes : celles où j'ai une séance + celles cochées dans mon profil */
     const mes=Object.keys((profil&&profil.classes)||{}).filter(k=>profil.classes[k]===true).map(norm);
     const ids={};
@@ -107,7 +109,7 @@ function charger(u,profil){
 function ligneSeance(s,mode){
   const c=D.classes[s.classeId];
   const lib=c?CF_EDT.libClasse(D.classes,s.classeId):"Classe";
-  const mien=s.uid===UID;
+  const mien=estMien(s);
   const heure='<div class="h">'+esc(s.debut)+' - '+esc(s.fin)+'</div>';
   if(mode==="semaine"){
     return '<div class="ligne mien">'+heure+'<div class="t"><b>'+esc(lib)+'</b><small>'+esc(matiere(s.code))+' · Code '+esc(s.code)+'</small></div></div>';

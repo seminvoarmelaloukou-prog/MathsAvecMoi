@@ -69,7 +69,7 @@
     var liste = Object.keys(d.seances || {}).map(function (id) { return d.seances[id]; }).filter(function (s) {
       var cle = [s.jour, s.debut, s.fin, s.code, libClasse(classes, s.classeId)].join("|");
       if (vues[cle]) return false; // séance enregistrée deux fois
-      var ok = mode === "classe" ? ids.indexOf(s.classeId) !== -1 : mode === "uid" ? s.uid === cible : s.code === cible;
+      var ok = mode === "classe" ? ids.indexOf(s.classeId) !== -1 : mode === "uid" ? (s.uid === cible || (profs[s.code] || {}).uid === cible) : s.code === cible;
       if (ok) vues[cle] = true;
       return ok;
     });

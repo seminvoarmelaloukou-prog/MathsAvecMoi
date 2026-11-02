@@ -174,7 +174,11 @@ $("btn-classe").onclick=function(){
 $("btn-prof").onclick=function(){
   const code=$("p-code").value.trim().replace(/[.#$\[\]\/]/g,"");if(!code)return;
   const uid=$("p-uid").value,c=comptes[uid]||{};
-  db.ref("edt/profs/"+code).set({matiere:$("p-matiere").value,uid:uid||"",nom:uid?((c.prenom||"")+" "+(c.nom||"")).trim():""}).then(()=>{$("p-code").value="";charger();});
+  const maj={};
+  maj["profs/"+code]={matiere:$("p-matiere").value,uid:uid||"",nom:uid?((c.prenom||"")+" "+(c.nom||"")).trim():""};
+  /* les séances déjà saisies avec ce code reçoivent aussi le compte */
+  Object.keys(seances).forEach(id=>{if(seances[id].code===code)maj["seances/"+id+"/uid"]=uid||"";});
+  db.ref("edt").update(maj).then(()=>{$("p-code").value="";charger();}).catch(x=>msg("Erreur : "+x.message,false));
 };
 $("btn-seance").onclick=function(){
   const n={jour:$("s-jour").value,classeId:$("s-classe").value,code:$("s-prof").value,debut:$("s-debut").value,fin:$("s-fin").value};
