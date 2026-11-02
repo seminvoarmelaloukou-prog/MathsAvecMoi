@@ -23,11 +23,32 @@ main{max-width:800px;margin:25px auto;padding:0 14px}
 .aide{color:var(--muted);font-size:14px;line-height:1.5}
 label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
 select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-size:15px;background:#fff;margin-bottom:6px}
-.jour{color:var(--indigo);font-weight:bold;margin:16px 0 6px}
-.seance{background:#f8f9ff;border-left:4px solid var(--amber);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px}
-.seance small{display:block;color:var(--muted);margin-top:3px;font-size:13px}
 button{background:var(--indigo);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer;margin:8px 8px 0 0}
 button.sec{background:var(--amber)}
+
+/* Pastilles de navigation (Ma semaine + classes) */
+.onglets{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 12px;position:sticky;top:0;background:var(--bg);z-index:5;-webkit-overflow-scrolling:touch}
+.onglet{flex:0 0 auto;background:#fff;color:var(--indigo);border:2px solid var(--indigo);border-radius:999px;padding:9px 16px;font-size:14px;font-weight:bold;margin:0;white-space:nowrap}
+.onglet.actif{background:var(--indigo);color:#fff}
+.onglet:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+/* Jours et séances */
+.vue-titre{color:var(--indigo);font-size:19px;margin-bottom:4px}
+.legende{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 2px;font-size:13px;color:var(--muted)}
+.legende i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.jour-bloc{margin-top:18px}
+.jour-tete{display:flex;align-items:center;gap:8px;color:var(--indigo);font-weight:bold;font-size:16px;margin-bottom:7px}
+.badge{font-size:11px;font-weight:bold;background:var(--amber);color:#fff;border-radius:999px;padding:2px 9px}
+.aujourdhui .jour-tete{border-left:4px solid var(--amber);padding-left:8px}
+.ligne{display:flex;gap:12px;border-radius:10px;padding:10px 12px;margin-bottom:6px;font-size:15px;line-height:1.35}
+.ligne .h{flex:0 0 92px;font-weight:bold;font-size:14px}
+.ligne .t small{display:block;font-size:13px;margin-top:2px}
+.ligne.mien{background:var(--indigo);color:#fff}
+.ligne.mien small{color:#d9deff}
+.ligne.autre{background:#eef0f7;color:#555}
+.ligne.autre small{color:#777}
+.libre{color:var(--muted);font-size:14px;padding:4px 2px}
+@media(max-width:420px){.ligne .h{flex-basis:84px}}
 </style>
 </head>
 <body>
@@ -41,6 +62,7 @@ button.sec{background:var(--amber)}
 <main>
 
   <section class="card"><h2 id="titre">Mon emploi du temps</h2><p class="aide" id="info">Chargement...</p></section>
+  <div class="onglets" id="onglets" role="tablist" style="display:none"></div>
   <section class="card" id="zone" style="display:none"></section>
   <section class="card" id="export" style="display:none">
     <h2>Emploi du temps en document</h2>
@@ -53,51 +75,104 @@ button.sec{background:var(--amber)}
 </main>
 <script>
 const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const MATIERES={M:"Mathématiques",H:"Histoire-Géographie",F:"Français",A:"Anglais",B:"SVT",P:"PCT",EPS:"EPS",E:"Espagnol",AL:"Allemand"};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const mn=h=>{const p=h.split(":");return +p[0]*60+ +p[1];};
+const mn=h=>{const p=String(h||"0:0").split(":");return +p[0]*60+ +p[1];};
 function norm(x){x=String(x==null?"":x).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
   return x.replace(/^(\d)eme/,"$1e").replace(/^(\d)ere/,"$1re").replace(/^(\d)e$/,"$1e");}
-let D=null,UID="",PROFIL=null;
-function initExport(u,profil){
+function matiere(code){const l=String(code||"").toUpperCase().replace(/[^A-Z]/g,"");return MATIERES[l]||l||"Cours";}
+const dj=new Date().getDay();
+const AUJOURDHUI=dj===0?"":JOURS[dj-1];
+
+let D=null,UID="",PROFIL=null,GROUPES={},TOUTES=[],MES=[],ACTIF="semaine";
+
+/* ---------- Données ---------- */
+function charger(u,profil){
   UID=u.uid;
-  Promise.all([db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),db.ref("edt/seances").once("value"),db.ref("bulletins_config").once("value").catch(function(){return null;})]).then(function(r){
+  return Promise.all([db.ref("edt/classes").once("value"),db.ref("edt/profs").once("value"),db.ref("edt/seances").once("value"),db.ref("bulletins_config").once("value").catch(function(){return null;})]).then(function(r){
     D={classes:r[0].val()||{},profs:r[1].val()||{},seances:r[2].val()||{},config:(r[3]&&r[3].val())||{}};
+    TOUTES=Object.keys(D.seances).map(k=>D.seances[k]);
+    MES=TOUTES.filter(s=>s.uid===UID);
+    /* Mes classes : celles où j'ai une séance + celles cochées dans mon profil */
     const mes=Object.keys((profil&&profil.classes)||{}).filter(k=>profil.classes[k]===true).map(norm);
     const ids={};
-    Object.keys(D.seances).forEach(k=>{if(D.seances[k].uid===u.uid)ids[D.seances[k].classeId]=true;});
+    MES.forEach(s=>{ids[s.classeId]=true;});
     Object.keys(D.classes).forEach(id=>{if(mes.indexOf(norm(D.classes[id].niveau))!==-1)ids[id]=true;});
-    const groupes={};
-    Object.keys(ids).filter(id=>D.classes[id]).forEach(id=>{const lib=CF_EDT.libClasse(D.classes,id);(groupes[lib]=groupes[lib]||[]).push(id);});
-    $("exp-cible").innerHTML='<option value="uid:'+esc(u.uid)+'">Mon emploi du temps (toutes mes classes)</option>'+Object.keys(groupes).sort().map(lib=>'<option value="classe:'+esc(groupes[lib].join(","))+'">Classe '+esc(lib)+'</option>').join("");
-    $("export").style.display="block";
-  }).catch(function(e){$("msg-export").textContent="Export indisponible : "+e.message;});
+    GROUPES={};
+    Object.keys(ids).filter(id=>D.classes[id]).forEach(id=>{const lib=CF_EDT.libClasse(D.classes,id);(GROUPES[lib]=GROUPES[lib]||[]).push(id);});
+  });
+}
+
+/* ---------- Affichage ---------- */
+function ligneSeance(s,mode){
+  const c=D.classes[s.classeId];
+  const lib=c?CF_EDT.libClasse(D.classes,s.classeId):"Classe";
+  const mien=s.uid===UID;
+  const heure='<div class="h">'+esc(s.debut)+' - '+esc(s.fin)+'</div>';
+  if(mode==="semaine"){
+    return '<div class="ligne mien">'+heure+'<div class="t"><b>'+esc(lib)+'</b><small>'+esc(matiere(s.code))+' · Code '+esc(s.code)+'</small></div></div>';
+  }
+  return '<div class="ligne '+(mien?'mien':'autre')+'">'+heure+'<div class="t"><b>'+esc(matiere(s.code))+'</b><small>'+(mien?'Mon cours · ':'')+'Code '+esc(s.code)+'</small></div></div>';
+}
+function blocJours(liste,mode){
+  let h="";
+  JOURS.forEach(j=>{
+    const lj=liste.filter(s=>s.jour===j).sort((a,b)=>mn(a.debut)-mn(b.debut));
+    const auj=j===AUJOURDHUI;
+    h+='<div class="jour-bloc'+(auj?' aujourdhui':'')+'"><div class="jour-tete">'+j+(auj?' <span class="badge">Aujourd\'hui</span>':'')+'</div>'+
+      (lj.length?lj.map(s=>ligneSeance(s,mode)).join(""):'<div class="libre">Libre</div>')+'</div>';
+  });
+  return h;
+}
+function vueSemaine(){
+  return '<h2 class="vue-titre">Ma semaine</h2><p class="aide">Tous mes cours, jour par jour, dans toutes mes classes.</p>'+blocJours(MES,"semaine");
+}
+function vueClasse(lib){
+  const ids=GROUPES[lib]||[];
+  const l=TOUTES.filter(s=>ids.indexOf(s.classeId)!==-1);
+  return '<h2 class="vue-titre">Classe '+esc(lib)+'</h2><p class="aide">Toutes les matières de la classe.</p>'+
+    '<div class="legende"><span><i style="background:var(--indigo)"></i>Mes cours</span><span><i style="background:#cfd4e6"></i>Autres matières</span></div>'+
+    blocJours(l,"classe");
+}
+function dessiner(){
+  document.querySelectorAll(".onglet").forEach(b=>{const a=b.dataset.k===ACTIF;b.classList.toggle("actif",a);b.setAttribute("aria-selected",a?"true":"false");});
+  $("zone").innerHTML=ACTIF==="semaine"?vueSemaine():vueClasse(ACTIF.slice(2));
+  $("zone").style.display="block";
+}
+function construireOnglets(){
+  const libs=Object.keys(GROUPES).sort();
+  let h='<button class="onglet" role="tab" data-k="semaine">Ma semaine</button>';
+  libs.forEach(lib=>{h+='<button class="onglet" role="tab" data-k="'+esc("c:"+lib)+'">'+esc(lib)+'</button>';});
+  $("onglets").innerHTML=h;$("onglets").style.display="flex";
+  document.querySelectorAll(".onglet").forEach(b=>{b.onclick=function(){ACTIF=b.dataset.k;dessiner();};});
+}
+
+/* ---------- Export PDF (inchangé) ---------- */
+function initExport(u){
+  $("exp-cible").innerHTML='<option value="uid:'+esc(u.uid)+'">Mon emploi du temps (toutes mes classes)</option>'+Object.keys(GROUPES).sort().map(lib=>'<option value="classe:'+esc(GROUPES[lib].join(","))+'">Classe '+esc(lib)+'</option>').join("");
+  $("export").style.display="block";
 }
 function modele(){const v=$("exp-cible").value.split(":");const mode=v.shift()==="uid"?"uid":"classe";return CF_EDT.preparer(D,mode,v.join(":"));}
 $("btn-apercu").onclick=function(){if(!D)return;CF_EDT.afficher($("apercu-edt"),modele());$("apercu-edt").scrollIntoView({behavior:"smooth"});};
 $("btn-pdf").onclick=function(){if(!D)return;const m=$("msg-export");m.textContent="Préparation du PDF...";CF_EDT.pdf(modele()).then(function(){m.textContent="PDF téléchargé.";}).catch(function(e){m.textContent="Erreur : "+e.message;});};
 $("lien-deconnexion").onclick=function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});};
+
+/* ---------- Démarrage ---------- */
 auth.onAuthStateChanged(function(u){
   if(!u){location.href="connexion.html";return;}
   db.ref("enseignants/"+u.uid).once("value").then(function(s){
     if(!s.exists()){$("info").textContent="Ce compte n'est pas un compte enseignant.";return null;}
     if(s.val().statut!=="actif"){$("info").textContent="Ton compte enseignant n'est pas encore actif.";return null;}
     PROFIL=s.val();
-    return Promise.all([db.ref("edt/seances").orderByChild("uid").equalTo(u.uid).once("value"),db.ref("edt/classes").once("value")]);
-  }).then(function(r){
-    if(!r)return;
-    initExport(auth.currentUser,PROFIL);
-    const seances=r[0].val()||{},classes=r[1].val()||{};
-    const l=Object.keys(seances).map(k=>seances[k]);
-    if(!l.length){$("info").textContent="Aucune séance ne t'est encore attribuée.";return;}
-    $("info").textContent=l.length+" séance(s) par semaine.";
-    let h="";
-    JOURS.forEach(j=>{
-      const lj=l.filter(s=>s.jour===j).sort((a,b)=>mn(a.debut)-mn(b.debut));
-      if(!lj.length)return;
-      h+='<div class="jour">'+j+'</div>'+lj.map(s=>{const c=classes[s.classeId];return '<div class="seance"><b>'+esc(s.debut)+' - '+esc(s.fin)+'</b> · '+esc(c?CF_EDT.libClasse(classes,s.classeId):"Classe")+'<small>Code '+esc(s.code)+'</small></div>';}).join("");
-    });
-    $("zone").innerHTML=h;$("zone").style.display="block";
+    return charger(u,PROFIL).then(function(){return true;});
+  }).then(function(ok){
+    if(!ok)return;
+    initExport(u);
+    if(!MES.length&&!Object.keys(GROUPES).length){$("info").textContent="Aucune séance ne t'est encore attribuée.";return;}
+    const nc=Object.keys(GROUPES).length;
+    $("info").textContent=MES.length+" séance(s) par semaine · "+nc+" classe(s).";
+    construireOnglets();dessiner();
   }).catch(e=>{$("info").textContent="Erreur : "+e.message;});
 });
 </script>
