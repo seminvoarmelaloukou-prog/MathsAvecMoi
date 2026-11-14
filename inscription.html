@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inscription - Campus Flex</title>
+  <meta name="theme-color" content="#2c3e8c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="pwa-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -24,439 +30,236 @@
   </script>
 
   <style>
-    :root {
-      --bleu: #2c3e8c;
-      --bleu-fonce: #1e2c66;
-      --orange: #f39c12;
-      --fond: #f5f7ff;
-      --texte: #333333;
-      --gris: #666666;
-      --rouge: #c0392b;
-      --vert: #1e8449;
+    :root{
+      --bg:#FFFFFF; --paper:#F4F8FD; --grid:#D3DEF1; --ink:#2c3e8c; --text:#14203F; --muted:#46547A;
+      --line:#AEBBDA; --btn-bg:#2c3e8c; --btn-fg:#FFFFFF; --card:#FFFFFF; --amber:#f39c12; --hl:#FFF3CF;
+      --ok:#1B7A3E; --err:#B3261E;
+      /* utilisées par le script (anciennes variables) */
+      --rouge:#B3261E; --vert:#1B7A3E; --gris:#46547A;
     }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      font-family: Arial, sans-serif;
-      background: var(--fond);
-      color: var(--texte);
-    }
-
-    nav {
-      background: var(--bleu);
-      color: white;
-      padding: 15px 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    nav h1 {
-      font-size: 22px;
-    }
-
-    main {
-      width: 100%;
-      max-width: 520px;
-      flex: 1;
-      margin: 35px auto;
-      padding: 0 18px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 28px 22px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-    }
-
-    .card h2 {
-      color: var(--bleu);
-      text-align: center;
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-
-    .intro {
-      color: var(--gris);
-      text-align: center;
-      font-size: 14px;
-      line-height: 1.5;
-      margin-bottom: 24px;
-    }
-
-    .champ {
-      margin-bottom: 17px;
-    }
-
-    label {
-      display: block;
-      color: #444;
-      font-weight: bold;
-      font-size: 14px;
-      margin-bottom: 7px;
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 12px 13px;
-      border: 1px solid #cfd4e6;
-      border-radius: 8px;
-      background: white;
-      color: var(--texte);
-      font-size: 15px;
-      outline: none;
-    }
-
-    input:focus,
-    select:focus {
-      border-color: var(--bleu);
-      box-shadow: 0 0 0 3px rgba(44, 62, 140, 0.12);
-    }
-
-    input:disabled,
-    select:disabled {
-      background: #f1f1f1;
-      cursor: not-allowed;
-    }
-
-    .aide {
-      display: block;
-      color: #777;
-      font-size: 12px;
-      margin-top: 5px;
-      line-height: 1.4;
-    }
-
-    .verification-card {
-      display: none;
-      margin: 18px 0;
-      padding: 15px;
-      background: #fff8e1;
-      border-left: 4px solid var(--orange);
-      border-radius: 8px;
-    }
-
-    .verification-card.visible {
-      display: block;
-    }
-
-    .verification-card h3 {
-      color: var(--bleu);
-      font-size: 16px;
-      margin-bottom: 7px;
-    }
-
-    .verification-card p {
-      color: #5c5233;
-      font-size: 13px;
-      line-height: 1.45;
-      margin-bottom: 12px;
-    }
-
-    .btn {
-      width: 100%;
-      margin-top: 5px;
-      padding: 13px 18px;
-      border: none;
-      border-radius: 25px;
-      background: var(--orange);
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s ease, transform 0.2s ease;
-    }
-
-    .btn:hover {
-      background: #d68910;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondaire {
-      background: var(--bleu);
-    }
-
-    .btn-secondaire:hover {
-      background: var(--bleu-fonce);
-    }
-
-    .btn:disabled {
-      background: #b8b8b8;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    #recaptcha-container {
-      display: flex;
-      justify-content: center;
-      margin: 12px 0;
-      min-height: 78px;
-    }
-
-    #message {
-      min-height: 21px;
-      margin-top: 16px;
-      text-align: center;
-      font-size: 14px;
-      line-height: 1.45;
-    }
-
-    .connexion {
-      margin-top: 20px;
-      color: var(--gris);
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .connexion a {
-      color: var(--bleu);
-      font-weight: bold;
-      text-decoration: none;
-    }
-
-    .connexion a:hover {
-      text-decoration: underline;
-    }
-
-    footer {
-      margin-top: 25px;
-      padding: 14px;
-      background: var(--bleu);
-      color: white;
-      text-align: center;
-      font-size: 13px;
-    }
-
-    .bloc-piece {
-      margin-bottom: 20px;
-      padding: 16px;
-      border: 1.5px dashed #cfd4e6;
-      border-radius: 10px;
-      background: #fafbff;
-    }
-
-    .bloc-piece label {
-      margin-bottom: 4px;
-    }
-
-    .bloc-piece .aide {
-      margin-top: 2px;
-      margin-bottom: 10px;
-    }
-
-    .bloc-piece input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #cfd4e6;
-      border-radius: 8px;
-      background: white;
-      font-size: 13px;
-    }
-
-    .apercu-piece {
-      display: none;
-      max-width: 100%;
-      max-height: 160px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: 1px solid #cfd4e6;
-    }
-
-    .ocr-statut {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--bleu);
-    }
-
-    .ocr-statut.visible {
-      display: flex;
-    }
-
-    .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid #cfd4e6;
-      border-top-color: var(--bleu);
-      border-radius: 50%;
-      animation: tourner 0.7s linear infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes tourner {
-      to { transform: rotate(360deg); }
-    }
-
-    .ocr-resultat {
-      display: none;
-      margin-top: 12px;
-      padding: 12px;
-      background: #eefaf1;
-      border-left: 4px solid var(--vert);
-      border-radius: 8px;
-      font-size: 13px;
-      color: #1e5c33;
-      line-height: 1.5;
-    }
-
-    .ocr-resultat.visible {
-      display: block;
-    }
-
-    .ocr-brut {
-      margin-top: 8px;
-      cursor: pointer;
-      color: var(--bleu);
-      font-size: 12px;
-      text-decoration: underline;
-    }
-
-    .ocr-texte-brut {
-      display: none;
-      margin-top: 6px;
-      padding: 8px;
-      background: white;
-      border-radius: 6px;
-      font-size: 11px;
-      color: #777;
-      white-space: pre-wrap;
-      max-height: 120px;
-      overflow-y: auto;
-    }
-
-    .ocr-texte-brut.visible {
-      display: block;
-    }
-
-    @media (max-width: 520px) {
-      main {
-        margin: 22px auto;
-        padding: 0 14px;
-      }
-
-      .card {
-        padding: 23px 17px;
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0E1630; --paper:#16213F; --grid:#243256; --ink:#A9BEFF; --text:#E8EDFB; --muted:#A3B0D2;
+        --line:#3F507F; --btn-bg:#A9BEFF; --btn-fg:#0E1630; --card:#0E1630; --hl:#2A2A1E;
+        --ok:#6FD39A; --err:#FF8A80; --rouge:#FF8A80; --vert:#6FD39A; --gris:#A3B0D2;
       }
     }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:flex;flex-direction:column;color:var(--text);
+      font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;
+      background-color:var(--paper);
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:30px 30px}
+    :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+
+    .barre{background:#2c3e8c;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .marque{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+    .marque img{width:34px;height:34px;border-radius:8px;display:block}
+    .barre a.lien{color:#fff;font-weight:600;font-size:.95rem;text-decoration:none;padding:10px 2px}
+    .barre a:focus-visible{outline-color:#fff}
+
+    main{flex:1;width:100%;max-width:520px;margin:0 auto;padding:28px 20px 40px}
+    .accueil{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:clamp(2rem,9vw,2.6rem);line-height:1.1;color:var(--ink);margin-bottom:14px}
+    .carte{background:var(--card);border:2px solid var(--ink);border-radius:6px;padding:24px 20px}
+    h1{font-size:1.6rem;line-height:1.15;letter-spacing:-.02em;font-weight:800;color:var(--ink);margin-bottom:6px}
+    .intro{color:var(--muted);margin-bottom:22px}
+
+    /* Étapes du formulaire */
+    form{counter-reset:etape}
+    .groupe{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+    .groupe:first-of-type{margin-top:22px}
+    .groupe h2{display:flex;align-items:center;gap:10px;font-size:1.15rem;line-height:1.2;color:var(--ink);margin-bottom:16px}
+    .groupe h2::before{counter-increment:etape;content:counter(etape);flex:none;width:30px;height:30px;border-radius:50%;
+      background:var(--ink);color:var(--bg);font-size:.95rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+    .champ{margin-bottom:18px}
+    label{display:block;margin-bottom:7px;font-weight:700}
+    input,select{width:100%;min-height:52px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;
+      background:var(--card);color:var(--text);font:inherit;font-size:16px}
+    input::placeholder{color:var(--muted);opacity:.8}
+    input:focus,select:focus{border-color:var(--ink);outline:none;box-shadow:0 0 0 3px rgba(243,156,18,.45)}
+    input:disabled,select:disabled{opacity:.6;cursor:not-allowed}
+    .aide{display:block;color:var(--muted);font-size:.9rem;margin-top:6px;line-height:1.4}
+
+    .champ-mdp{position:relative}
+    .champ-mdp input{padding-right:104px}
+    .oeil{position:absolute;right:4px;top:4px;height:44px;min-width:92px;padding:0 12px;border:0;background:transparent;
+      color:var(--ink);font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;border-radius:8px}
+
+    .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;padding:12px 24px;border-radius:10px;
+      font:inherit;font-weight:700;text-decoration:none;cursor:pointer;border:2px solid var(--btn-bg);
+      background:var(--btn-bg);color:var(--btn-fg)}
+    .btn-alt{background:transparent;color:var(--ink)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+
+    /* Carte d'identité (facultatif, repliée) */
+    details.bloc-piece{margin-top:4px;border:2px dashed var(--line);border-radius:6px;background:var(--paper)}
+    details.bloc-piece summary{min-height:52px;padding:12px 16px;font-weight:700;color:var(--ink);cursor:pointer;display:flex;align-items:center}
+    details.bloc-piece .contenu{padding:0 16px 16px}
+    .bloc-piece input[type="file"]{padding:12px;font-size:.95rem;min-height:56px}
+    .apercu-piece{display:none;max-width:100%;max-height:160px;margin-top:10px;border-radius:6px;border:2px solid var(--line)}
+    .ocr-statut{display:none;align-items:center;gap:10px;margin-top:12px;font-size:.95rem;color:var(--ink);font-weight:600}
+    .ocr-statut.visible{display:flex}
+    .spinner{width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:tourner .7s linear infinite;flex-shrink:0}
+    @keyframes tourner{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce){.spinner{animation-duration:2s}}
+    .ocr-resultat{display:none;margin-top:12px;padding:12px 14px;background:var(--card);border-left:5px solid var(--ok);border-radius:6px;font-size:.95rem;line-height:1.5}
+    .ocr-resultat.visible{display:block}
+    .ocr-brut{margin-top:10px;padding:8px 0;cursor:pointer;color:var(--ink);font-size:.9rem;font-weight:600;text-decoration:underline}
+    .ocr-texte-brut{display:none;margin-top:6px;padding:10px;background:var(--paper);border-radius:6px;font-size:.8rem;color:var(--muted);white-space:pre-wrap;max-height:120px;overflow-y:auto}
+    .ocr-texte-brut.visible{display:block}
+
+    /* Vérification par SMS */
+    #recaptcha-container{display:flex;justify-content:center;margin:14px 0;min-height:78px}
+    @media (max-width:380px){#recaptcha-container>div{transform:scale(.88);transform-origin:center top}}
+    .verification-card{display:none;margin:18px 0 0;padding:16px;background:var(--hl);border-left:5px solid var(--amber);border-radius:6px}
+    .verification-card.visible{display:block}
+    .verification-card h3{font-size:1.1rem;color:var(--ink);margin-bottom:6px}
+    .verification-card p{color:var(--text);margin-bottom:14px;line-height:1.45}
+    .verification-card input{margin-bottom:16px;letter-spacing:.2em;font-weight:700}
+
+    #message{margin-top:18px;padding:12px 14px;border-radius:6px;background:var(--paper);font-weight:600;line-height:1.45}
+    #message:empty{display:none}
+    #message.ok{border-left:5px solid var(--ok)}
+    #message.err{border-left:5px solid var(--err)}
+    #message.info{border-left:5px solid var(--ink)}
+
+    .autre{margin-top:26px;text-align:center}
+    .autre p{color:var(--muted);margin-bottom:10px}
+    .retour{display:inline-block;margin-top:14px;padding:10px 6px;color:var(--ink);font-weight:600;text-decoration:none}
   </style>
-<script src="logo-nav.js"></script>
 </head>
 
 <body>
 
-  <nav>
-    <h1>Campus Flex</h1>
-  </nav>
+  <header class="barre">
+    <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
+    <a class="lien" href="connexion.html">Se connecter</a>
+  </header>
 
   <main>
-    <section class="card">
-      <h2>Créer un compte</h2>
 
-      <p class="intro">
-        Crée ton espace apprenant. Ton numéro WhatsApp doit être vérifié par SMS.
-      </p>
+    <p class="accueil">Bienvenue !</p>
+
+    <section class="carte">
+      <h1>Créer un compte</h1>
+      <p class="intro">Crée ton espace apprenant. Ton numéro WhatsApp doit être vérifié par SMS.</p>
 
       <form id="form-inscription">
 
-        <div class="bloc-piece">
-          <label for="piece-identite">Carte d'identité (photo ou PDF) — facultatif</label>
-          <span class="aide">
-            Ajoute une photo nette et bien à plat de ta carte d'identité (ou son PDF).
-            Nous lisons automatiquement ton nom, ton/tes prénom(s) et ta date de naissance
-            pour préremplir le formulaire — <strong>vérifie et corrige si besoin</strong>,
-            tous les champs restent modifiables.
-          </span>
-          <input
-            type="file"
-            id="piece-identite"
-            accept="image/*,.pdf"
-          >
-          <img id="apercu-piece" class="apercu-piece" alt="Aperçu de la carte d'identité">
-          <div id="ocr-statut" class="ocr-statut">
-            <span class="spinner"></span>
-            <span id="ocr-statut-texte">Lecture de la carte en cours...</span>
+        <!-- Facultatif : préremplit nom, prénom et date de naissance -->
+        <details class="bloc-piece">
+          <summary>Gagner du temps avec ma carte d’identité (facultatif)</summary>
+          <div class="contenu">
+            <label for="piece-identite">Carte d'identité (photo ou PDF)</label>
+            <span class="aide">
+              Ajoute une photo nette et bien à plat de ta carte d'identité (ou son PDF).
+              Nous lisons automatiquement ton nom, ton/tes prénom(s) et ta date de naissance
+              pour préremplir le formulaire — <strong>vérifie et corrige si besoin</strong>,
+              tous les champs restent modifiables.
+            </span>
+            <input type="file" id="piece-identite" accept="image/*,.pdf" style="margin-top:10px">
+            <img id="apercu-piece" class="apercu-piece" alt="Aperçu de la carte d'identité">
+            <div id="ocr-statut" class="ocr-statut">
+              <span class="spinner"></span>
+              <span id="ocr-statut-texte">Lecture de la carte en cours...</span>
+            </div>
+            <div id="ocr-resultat" class="ocr-resultat">
+              <span id="ocr-resultat-texte"></span>
+              <div class="ocr-brut" id="ocr-brut-toggle">Voir le texte détecté</div>
+              <div class="ocr-texte-brut" id="ocr-texte-brut"></div>
+            </div>
           </div>
-          <div id="ocr-resultat" class="ocr-resultat">
-            <span id="ocr-resultat-texte"></span>
-            <div class="ocr-brut" id="ocr-brut-toggle">Voir le texte détecté</div>
-            <div class="ocr-texte-brut" id="ocr-texte-brut"></div>
+        </details>
+
+        <section class="groupe">
+          <h2>Toi</h2>
+
+          <div class="champ">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom" placeholder="Exemple : Armel" autocomplete="given-name" required>
           </div>
-        </div>
 
-        <div class="champ">
-          <label for="prenom">Prénom</label>
-          <input
-            type="text"
-            id="prenom"
-            placeholder="Exemple : Armel"
-            autocomplete="given-name"
-            required
-          >
-        </div>
+          <div class="champ">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" placeholder="Exemple : Aloukou" autocomplete="family-name" required>
+          </div>
 
-        <div class="champ">
-          <label for="nom">Nom</label>
-          <input
-            type="text"
-            id="nom"
-            placeholder="Exemple : Aloukou"
-            autocomplete="family-name"
-            required
-          >
-        </div>
+          <div class="champ">
+            <label for="date-naissance">Date de naissance</label>
+            <input type="date" id="date-naissance" autocomplete="bday">
+            <span class="aide">Préremplie automatiquement si tu ajoutes ta carte d'identité ci-dessus.</span>
+          </div>
 
-        <div class="champ">
-          <label for="date-naissance">Date de naissance</label>
-          <input
-            type="date"
-            id="date-naissance"
-            autocomplete="bday"
-          >
-          <span class="aide">
-            Préremplie automatiquement si tu ajoutes ta carte d'identité ci-dessus.
-          </span>
-        </div>
+          <div class="champ">
+            <label for="classe">Classe</label>
+            <select id="classe" required>
+            <option value="">Choisis ta classe</option>
+            <optgroup label="Collège">
+              <option value="6e">6e</option>
+              <option value="5e">5e</option>
+              <option value="4e">4e</option>
+              <option value="3e">3e</option>
+            </optgroup>
+            <optgroup label="2nde">
+              <option value="2ndeAB">2nde AB</option>
+              <option value="2ndeC">2nde C</option>
+              <option value="2ndeD">2nde D</option>
+              <option value="2ndeE">2nde E</option>
+            </optgroup>
+            <optgroup label="1re">
+              <option value="1reAB">1re AB</option>
+              <option value="1reC">1re C</option>
+              <option value="1reD">1re D</option>
+              <option value="1reE">1re E</option>
+            </optgroup>
+            <optgroup label="Terminale">
+              <option value="TleAB">Tle AB</option>
+              <option value="TleC">Tle C</option>
+              <option value="TleD">Tle D</option>
+              <option value="TleE">Tle E</option>
+            </optgroup>
+          </select>
+          </div>
+        </section>
 
-        <div class="champ">
-          <label for="identifiant">Identifiant</label>
-          <input
-            type="text"
-            id="identifiant"
-            placeholder="Exemple : armel2026"
-            minlength="3"
-            autocomplete="username"
-            required
-          >
-          <span class="aide">
-            Choisis un identifiant d’au moins 3 caractères.
-          </span>
-        </div>
+        <section class="groupe">
+          <h2>Ton compte</h2>
 
-        <div class="champ">
-          <label for="email">Adresse e-mail</label>
-          <input
-            type="email"
-            id="email"
-            placeholder="exemple@email.com"
-            autocomplete="email"
-            required
-          >
-        </div>
+          <div class="champ">
+            <label for="identifiant">Identifiant</label>
+            <input type="text" id="identifiant" placeholder="Exemple : armel2026" minlength="3" autocomplete="username" autocapitalize="none" required>
+            <span class="aide">Choisis un identifiant d’au moins 3 caractères.</span>
+          </div>
 
-        <div class="champ">
-          <label for="pays">Pays</label>
-          <select id="pays" required>
+          <div class="champ">
+            <label for="email">Adresse e-mail</label>
+            <input type="email" id="email" placeholder="exemple@email.com" autocomplete="email" autocapitalize="none" required>
+          </div>
+
+          <div class="champ">
+            <label for="mot-de-passe">Mot de passe</label>
+            <div class="champ-mdp">
+              <input type="password" id="mot-de-passe" placeholder="Au moins 6 caractères" minlength="6" autocomplete="new-password" required>
+              <button type="button" class="oeil" data-cible="mot-de-passe" aria-label="Afficher le mot de passe" aria-pressed="false">Afficher</button>
+            </div>
+          </div>
+
+          <div class="champ">
+            <label for="confirmation-mot-de-passe">Confirmer le mot de passe</label>
+            <div class="champ-mdp">
+              <input type="password" id="confirmation-mot-de-passe" placeholder="Réécris ton mot de passe" minlength="6" autocomplete="new-password" required>
+              <button type="button" class="oeil" data-cible="confirmation-mot-de-passe" aria-label="Afficher la confirmation du mot de passe" aria-pressed="false">Afficher</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="groupe">
+          <h2>Ton numéro WhatsApp</h2>
+
+          <div class="champ">
+            <label for="pays">Pays</label>
+            <select id="pays" required>
             <option value="">Choisis ton pays</option>
 
             <option value="213" data-pays="Algérie">Algérie (+213)</option>
@@ -493,129 +296,44 @@
             <option value="1" data-pays="Canada">Canada (+1)</option>
             <option value="509" data-pays="Haïti">Haïti (+509)</option>
           </select>
-        </div>
+          </div>
 
-        <div class="champ">
-          <label for="telephone">Numéro WhatsApp</label>
-          <input
-            type="tel"
-            id="telephone"
-            placeholder="Exemple : 0700000000"
-            inputmode="numeric"
-            autocomplete="tel"
-            required
-          >
-          <span class="aide">
-            Écris ton numéro local complet, avec ou sans le premier zéro.
-            Exemple : 0700000000 pour la Côte d’Ivoire.
-          </span>
-        </div>
+          <div class="champ">
+            <label for="telephone">Numéro WhatsApp</label>
+            <input type="tel" id="telephone" placeholder="Exemple : 0700000000" inputmode="numeric" autocomplete="tel" required>
+            <span class="aide">
+              Écris ton numéro local complet, avec ou sans le premier zéro.
+              Exemple : 0700000000 pour la Côte d’Ivoire.
+            </span>
+          </div>
 
-        <div class="champ">
-          <label for="classe">Classe</label>
-          <select id="classe" required>
-            <option value="">Choisis ta classe</option>
-            <optgroup label="Collège">
-              <option value="6e">6e</option>
-              <option value="5e">5e</option>
-              <option value="4e">4e</option>
-              <option value="3e">3e</option>
-            </optgroup>
-            <optgroup label="2nde">
-              <option value="2ndeAB">2nde AB</option>
-              <option value="2ndeC">2nde C</option>
-              <option value="2ndeD">2nde D</option>
-              <option value="2ndeE">2nde E</option>
-            </optgroup>
-            <optgroup label="1re">
-              <option value="1reAB">1re AB</option>
-              <option value="1reC">1re C</option>
-              <option value="1reD">1re D</option>
-              <option value="1reE">1re E</option>
-            </optgroup>
-            <optgroup label="Terminale">
-              <option value="TleAB">Tle AB</option>
-              <option value="TleC">Tle C</option>
-              <option value="TleD">Tle D</option>
-              <option value="TleE">Tle E</option>
-            </optgroup>
-          </select>
-        </div>
+          <!-- reCAPTCHA Firebase : obligatoire pour envoyer le SMS -->
+          <div id="recaptcha-container"></div>
 
-        <div class="champ">
-          <label for="mot-de-passe">Mot de passe</label>
-          <input
-            type="password"
-            id="mot-de-passe"
-            placeholder="Au moins 6 caractères"
-            minlength="6"
-            autocomplete="new-password"
-            required
-          >
-        </div>
+          <button id="btn-envoyer-code" class="btn" type="button">Envoyer le code SMS</button>
 
-        <div class="champ">
-          <label for="confirmation-mot-de-passe">Confirmer le mot de passe</label>
-          <input
-            type="password"
-            id="confirmation-mot-de-passe"
-            placeholder="Réécris ton mot de passe"
-            minlength="6"
-            autocomplete="new-password"
-            required
-          >
-        </div>
+          <div id="verification-sms" class="verification-card">
+            <h3>Vérification du numéro</h3>
+            <p id="texte-verification">Un code a été envoyé par SMS.</p>
 
-        <!-- reCAPTCHA Firebase : obligatoire pour envoyer le SMS -->
-        <div id="recaptcha-container"></div>
+            <label for="code-sms">Code reçu par SMS</label>
+            <input type="text" id="code-sms" placeholder="Exemple : 123456" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
 
-        <button
-          id="btn-envoyer-code"
-          class="btn btn-secondaire"
-          type="button"
-        >
-          Envoyer le code SMS
-        </button>
+            <button id="btn-verifier-code" class="btn" type="button">Vérifier le code et créer mon compte</button>
+          </div>
+        </section>
 
-        <div id="verification-sms" class="verification-card">
-          <h3>Vérification du numéro</h3>
-
-          <p id="texte-verification">
-            Un code a été envoyé par SMS.
-          </p>
-
-          <label for="code-sms">Code reçu par SMS</label>
-          <input
-            type="text"
-            id="code-sms"
-            placeholder="Exemple : 123456"
-            inputmode="numeric"
-            autocomplete="one-time-code"
-            maxlength="6"
-          >
-
-          <button
-            id="btn-verifier-code"
-            class="btn"
-            type="button"
-          >
-            Vérifier le code et créer mon compte
-          </button>
-        </div>
-
-        <p id="message"></p>
+        <p id="message" role="status" aria-live="polite"></p>
       </form>
-
-      <p class="connexion">
-        Tu as déjà un compte ?
-        <a href="connexion.html">Se connecter</a>
-      </p>
     </section>
-  </main>
 
-  <footer>
-    © 2026 Campus Flex - Tous droits réservés
-  </footer>
+    <div class="autre">
+      <p>Tu as déjà un compte ?</p>
+      <a href="connexion.html" class="btn btn-alt">Se connecter</a>
+      <a href="index.html" class="retour">← Retour à l’accueil</a>
+    </div>
+
+  </main>
 
   <script>
     const form = document.getElementById("form-inscription");
@@ -852,11 +570,16 @@
 
     function afficherMessage(texte, couleur) {
       message.textContent = texte;
-      message.style.color = couleur;
+      message.className = !texte ? "" :
+        couleur === "var(--vert)" ? "ok" :
+        couleur === "var(--rouge)" ? "err" : "info";
+      if (texte && message.scrollIntoView) {
+        message.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
     }
 
     function nettoyerTexte(texte) {
-      return String(texte || "").trim().replace(/s+/g, " ");
+      return String(texte || "").trim().replace(/\s+/g, " ");
     }
 
     function nettoyerTelephone(telephone) {
@@ -1249,6 +972,21 @@
       } else {
         boutonVerifierCode.click();
       }
+    });
+    </script>
+
+  <!-- Afficher / masquer les mots de passe -->
+  <script>
+    document.querySelectorAll(".oeil").forEach(function (bouton) {
+      var champ = document.getElementById(bouton.getAttribute("data-cible"));
+      if (!champ) { return; }
+      bouton.addEventListener("click", function () {
+        var visible = champ.type === "text";
+        champ.type = visible ? "password" : "text";
+        bouton.textContent = visible ? "Afficher" : "Masquer";
+        bouton.setAttribute("aria-pressed", visible ? "false" : "true");
+        champ.focus();
+      });
     });
   </script>
 
