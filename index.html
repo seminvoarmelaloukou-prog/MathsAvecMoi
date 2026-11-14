@@ -1,333 +1,195 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Campus Flex – Ton école en ligne, flexible et accessible</title>
-  <meta name="description" content="Campus Flex : ton école en ligne, flexible et accessible. Cours, exercices progressifs et évaluations en ligne pour les élèves du collège et du lycée, de la 6e à la Terminale.">
-  <meta name="keywords" content="Campus Flex, école en ligne, mathématiques, cours en ligne, collège, lycée, 6e, Terminale, exercices, évaluations">
-  <meta property="og:site_name" content="Campus Flex">
-  <meta property="og:title" content="Campus Flex – Ton école en ligne, flexible et accessible">
-  <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"WebSite","name":"Campus Flex"}
-  </script>
- <meta name="msvalidate.01" content="AA43320C9F74B418E65B75F64CEC50E5" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Flex – Ton école en ligne, flexible et accessible</title>
+<meta name="description" content="Campus Flex : ton école en ligne, flexible et accessible. Cours, exercices progressifs et évaluations en ligne pour les élèves du collège et du lycée, de la 6e à la Terminale.">
+<meta name="keywords" content="Campus Flex, école en ligne, mathématiques, cours en ligne, collège, lycée, 6e, Terminale, exercices, évaluations">
+<meta property="og:site_name" content="Campus Flex">
+<meta property="og:title" content="Campus Flex – Ton école en ligne, flexible et accessible">
+<meta property="og:description" content="Cours clairs, exercices progressifs et évaluations, de la 6e à la Terminale.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#2c3e8c">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"Campus Flex"}
+</script>
+<meta name="msvalidate.01" content="AA43320C9F74B418E65B75F64CEC50E5" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<style>
+:root{
+  --bg:#FFFFFF; --paper:#F4F8FD; --grid:#D3DEF1; --ink:#2c3e8c; --ink-dark:#1e2c66;
+  --text:#14203F; --muted:#46547A; --margin:#D63A32; --amber:#f39c12; --hl:#FFD76A;
+  --green:#2E8B57; --btn-bg:#2c3e8c; --btn-fg:#FFFFFF; --line:#DCE4F3;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0E1630; --paper:#16213F; --grid:#243256; --ink:#A9BEFF; --text:#E8EDFB;
+    --muted:#A3B0D2; --margin:#FF7A70; --green:#5BC48A;
+    --btn-bg:#A9BEFF; --btn-fg:#0E1630; --line:#26345C;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.wrap{max-width:720px;margin:0 auto;padding:0 20px}
 
-  <style>
-    :root {
-      --indigo: #2c3e8c;
-      --indigo-dark: #1e2c66;
-      --amber: #f39c12;
-      --background: #f5f7ff;
-      --text: #333333;
-      --muted: #666666;
-    }
+/* Barre du haut (reste indigo : le logo blanc de logo-nav.js s'y affiche) */
+nav{background:#2c3e8c;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+nav h1{margin:0;color:#fff;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
+nav ul{display:flex;gap:6px 18px;list-style:none;margin:0;padding:0}
+nav a{display:inline-block;color:#fff;text-decoration:none;font-size:.95rem;font-weight:600;padding:10px 2px}
+nav a:hover{text-decoration:underline}
+nav a:focus-visible{outline-color:#fff}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:0 20px}
+.hero{padding:34px 0 40px}
+.hero h2{font-size:clamp(2rem,8.5vw,3.1rem);line-height:1.08;letter-spacing:-.025em;font-weight:800;margin:0 0 14px;color:var(--ink)}
+.lead{margin:0 0 24px;color:var(--muted);max-width:34em}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:34px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;border:2px solid var(--btn-bg)}
+.btn-main{background:var(--btn-bg);color:var(--btn-fg)}
+.btn-alt{background:transparent;color:var(--ink)}
 
-    body {
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: var(--background);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-    }
+/* Page de cahier */
+.cahier{position:relative;background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:30px 30px;border:2px solid var(--ink);border-radius:6px;padding:22px 20px 22px 58px;overflow:hidden}
+.cahier::before{content:"";position:absolute;top:0;bottom:0;left:40px;width:2px;background:var(--margin)}
+.cahier p{margin:0;font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:1.85rem;line-height:30px;color:var(--ink);white-space:nowrap}
+.cahier mark{background:var(--hl);color:#14203F;padding:0 .3em;border-radius:3px}
+.cahier .note{color:var(--margin);font-size:1.45rem;margin-top:30px}
+.ecrit{clip-path:inset(0 100% 0 0);animation:ecrire .9s steps(18,end) forwards}
+.ecrit:nth-child(1){animation-delay:.3s}
+.ecrit:nth-child(2){animation-delay:1.3s}
+.ecrit:nth-child(3){animation-delay:2.2s}
+.ecrit:nth-child(4){animation-delay:3.1s}
+.ecrit:nth-child(5){animation-delay:4.2s}
+@keyframes ecrire{to{clip-path:inset(0 0 0 0)}}
+@media (prefers-reduced-motion:reduce){.ecrit{animation:none;clip-path:none}}
 
-    nav {
-      background: var(--indigo);
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    }
+/* Sections */
+section{padding:34px 0;border-top:1px solid var(--line)}
+section h2{font-size:1.5rem;line-height:1.2;letter-spacing:-.015em;margin:0 0 18px;color:var(--ink)}
+section p{margin:0 0 14px}
+.liste{list-style:none;margin:0;padding:0;display:grid;gap:18px}
+.liste li{padding:4px 0 4px 16px;border-left:5px solid var(--c)}
+.liste strong{display:block;font-size:1.08rem}
+.liste span{color:var(--muted)}
+.liste li:nth-child(1){--c:var(--amber)}
+.liste li:nth-child(2){--c:var(--ink)}
+.liste li:nth-child(3){--c:var(--green)}
 
-    nav h1 {
-      color: white;
-      font-size: 20px;
-    }
+.nora{background:var(--paper);border-radius:6px;padding:24px 20px;border-left:5px solid var(--margin)}
+.nora h2{margin-bottom:10px}
+.nora p{color:var(--muted);margin-bottom:16px}
 
-    nav ul {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      list-style: none;
-    }
+.matieres{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}
+.matieres li{padding:8px 16px;border:2px solid var(--ink);border-radius:999px;font-weight:600;color:var(--ink)}
 
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-    }
+.etapes{margin:0;padding:0;list-style:none;counter-reset:e;display:grid;gap:14px}
+.etapes li{counter-increment:e;position:relative;padding-left:46px;min-height:34px}
+.etapes li::before{content:counter(e);position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--bg);font-weight:800;display:flex;align-items:center;justify-content:center}
 
-    nav a:hover {
-      text-decoration: underline;
-    }
+/* Équipe */
+.membre-card{display:grid;gap:16px;justify-items:start}
+.membre-photo{width:112px;height:112px;border-radius:50%;object-fit:cover;border:3px solid var(--amber);background:var(--paper)}
+.membre-card h3{margin:0;font-size:1.2rem;color:var(--ink)}
+.membre-role{font-weight:700;color:var(--muted);margin:-10px 0 0}
+.membre-card p{color:var(--muted);margin:0}
 
-    main {
-      flex: 1;
-      width: 100%;
-      max-width: 900px;
-      margin: 45px auto;
-      padding: 0 20px;
-    }
-
-    .hero {
-      background: white;
-      padding: 35px 25px;
-      border-radius: 14px;
-      text-align: center;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-      margin-bottom: 22px;
-    }
-
-    .hero h2 {
-      color: var(--indigo);
-      font-size: 26px;
-      margin-bottom: 12px;
-    }
-
-    .hero p {
-      color: var(--muted);
-      line-height: 1.6;
-      font-size: 15px;
-      margin-bottom: 18px;
-    }
-
-    .cta-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 18px;
-    }
-
-    .btn {
-      display: inline-block;
-      padding: 11px 22px;
-      border-radius: 24px;
-      background: var(--indigo);
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .btn:hover {
-      background: var(--indigo-dark);
-    }
-
-    .btn-secondaire {
-      background: #e3e7f6;
-      color: var(--indigo);
-    }
-
-    .btn-secondaire:hover {
-      background: #cdd5f6;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 22px;
-    }
-
-    .feature {
-      background: white;
-      padding: 20px 18px;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-      text-align: center;
-    }
-
-    .feature h3 {
-      color: var(--indigo);
-      font-size: 18px;
-      margin-bottom: 8px;
-    }
-
-    .feature p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .equipe {
-      margin-top: 22px;
-    }
-
-    .equipe h2 {
-      color: var(--indigo);
-      font-size: 22px;
-      text-align: center;
-      margin-bottom: 18px;
-    }
-
-    .equipe-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-    }
-
-    .membre-card {
-      background: white;
-      padding: 26px 22px;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-      text-align: center;
-    }
-
-    .membre-photo {
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin: 0 auto 16px;
-      display: block;
-      border: 3px solid var(--amber);
-    }
-
-    .membre-card h3 {
-      color: var(--indigo);
-      font-size: 18px;
-      margin-bottom: 2px;
-    }
-
-    .membre-role {
-      color: var(--amber);
-      font-size: 13px;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
-    }
-
-    .membre-card p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-      text-align: left;
-    }
-
-    footer {
-      background: var(--indigo);
-      color: white;
-      text-align: center;
-      padding: 14px;
-      font-size: 13px;
-    }
-
-    @media (max-width: 600px) {
-      nav {
-        justify-content: center;
-        text-align: center;
-      }
-
-      nav ul {
-        justify-content: center;
-      }
-
-      main {
-        margin: 25px auto;
-        padding: 0 14px;
-      }
-
-      .hero {
-        padding: 25px 18px;
-      }
-
-      .hero h2 {
-        font-size: 22px;
-      }
-    }
-  </style>
+footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9rem}
+</style>
 <script src="logo-nav.js"></script>
 </head>
 
 <body>
 
-  <nav>
-    <h1>🎓 Campus Flex</h1>
+<nav>
+  <h1>Campus Flex</h1>
+  <ul>
+    <li><a href="connexion.html">Se connecter</a></li>
+    <li><a href="inscription.html">S’inscrire</a></li>
+  </ul>
+</nav>
 
-    <ul>
-      <li><a href="connexion.html">Se connecter</a></li>
-      <li><a href="inscription.html">S’inscrire</a></li>
+<main>
+
+  <div class="hero">
+    <h2>Ton école en ligne, flexible et accessible</h2>
+    <p class="lead">Des cours clairs, des exercices progressifs et des évaluations, de la 6e à la Terminale. Tout est sur ton téléphone, quand tu veux.</p>
+    <div class="actions">
+      <a class="btn btn-main" href="inscription.html">Créer un compte</a>
+      <a class="btn btn-alt" href="connexion.html">Se connecter</a>
+    </div>
+
+    <div class="cahier" role="img" aria-label="Exemple d’exercice résolu pas à pas : 2x + 3 = 11 donne x = 4">
+      <p class="ecrit">Résous : 2x + 3 = 11</p>
+      <p class="ecrit">2x = 11 − 3</p>
+      <p class="ecrit">2x = 8</p>
+      <p class="ecrit">x = 8 ÷ 2 = <mark>4</mark></p>
+      <p class="ecrit note">← on isole x, étape par étape</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Ce que tu trouves sur Campus Flex</h2>
+    <ul class="liste">
+      <li><strong>Cours structurés</strong><span>Des leçons claires, conformes au programme, de la 6e à la Terminale.</span></li>
+      <li><strong>Exercices progressifs</strong><span>Mets-toi au défi avec des exercices adaptés à ton niveau.</span></li>
+      <li><strong>Évaluations et suivi</strong><span>Évalue-toi et suis tes progrès grâce à un tableau de bord personnel.</span></li>
     </ul>
-  </nav>
+  </section>
 
-  <main>
+  <section>
+    <div class="nora">
+      <h2>Bloqué sur un exercice ? Demande à Nora.</h2>
+      <p>Nora est ton tuteur. Elle t’explique la méthode pas à pas, sans te donner juste la réponse.</p>
+      <a class="btn btn-main" href="inscription.html">Créer un compte</a>
+    </div>
+  </section>
 
-    <section class="hero">
-      <h2>Ton école en ligne, flexible et accessible</h2>
+  <section>
+    <h2>Pour chaque élève</h2>
+    <p>Que tu sois en difficulté, en rattrapage ou candidat libre, Campus Flex t’accompagne à ton rythme, où que tu sois.</p>
+    <ul class="matieres" aria-label="Matières disponibles">
+      <li>Maths</li><li>Français</li><li>Anglais</li><li>PCT</li><li>SVT</li><li>Philosophie</li><li>Espagnol</li><li>Allemand</li><li>Histoire-Géographie</li><li>EPS</li>
+    </ul>
+  </section>
 
+  <section>
+    <h2>Pour commencer</h2>
+    <ol class="etapes">
+      <li>Crée ton compte et choisis ta classe.</li>
+      <li>Entre le code reçu sur ton téléphone pour confirmer ton numéro.</li>
+      <li>Ouvre tes cours et lance-toi.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>L’équipe</h2>
+
+    <div class="membre-card">
+      <img src="images/armel-aloukou.jpg" alt="ALOUKOU Sèminvo Armel" class="membre-photo">
+      <h3>ALOUKOU Sèminvo Armel</h3>
+      <div class="membre-role">Initiateur du projet Campus Flex</div>
       <p>
-        Campus Flex t’accompagne du collège au lycée avec des cours clairs, des exercices progressifs et des évaluations pour mesurer tes progrès.
+        Enseignant du secondaire dans la Commune de Karimama, au Bénin, ALOUKOU Sèminvo Armel est à l’origine du projet Campus Flex, une initiative née de sa volonté de rendre un enseignement de qualité accessible à chaque élève francophone, où qu’il se trouve. Porté par un engagement constant pour la réussite scolaire, la plateforme accompagne aussi bien les élèves en difficulté que ceux en rattrapage ou les candidats libres, avec l’ambition de faire de l’excellence académique un droit pour tous.
       </p>
+    </div>
 
-      <div class="cta-buttons">
-        <a href="inscription.html" class="btn">
-          Créer un compte
-        </a>
+    <!-- Prochaine carte admin : dupliquer le bloc .membre-card ci-dessus -->
+  </section>
 
-        <a href="connexion.html" class="btn btn-secondaire">
-          Se connecter
-        </a>
-      </div>
-    </section>
+</main>
 
-    <section class="features">
-      <div class="feature">
-        <h3>Cours structurés</h3>
-        <p>
-          Des leçons claires, conformes au programme, de la 6e à la Terminale.
-        </p>
-      </div>
-
-      <div class="feature">
-        <h3>Exercices progressifs</h3>
-        <p>
-          Mets-toi au défi avec des exercices adaptés à ton niveau.
-        </p>
-      </div>
-
-      <div class="feature">
-        <h3>Évaluations & suivi</h3>
-        <p>
-          Évalue-toi et suis tes progrès grâce à un tableau de bord personnel.
-        </p>
-      </div>
-    </section>
-
-    <section class="equipe">
-      <h2>L’équipe</h2>
-
-      <div class="equipe-grid">
-        <div class="membre-card">
-          <img src="images/armel-aloukou.jpg" alt="ALOUKOU Sèminvo Armel" class="membre-photo">
-          <h3>ALOUKOU Sèminvo Armel</h3>
-          <div class="membre-role">Initiateur du projet Campus Flex</div>
-          <p>
-            Enseignant du secondaire dans la Commune de Karimama, au Bénin, ALOUKOU Sèminvo Armel est à l’origine du projet Campus Flex, une initiative née de sa volonté de rendre un enseignement de qualité accessible à chaque élève francophone, où qu’il se trouve. Porté par un engagement constant pour la réussite scolaire, la plateforme accompagne aussi bien les élèves en difficulté que ceux en rattrapage ou les candidats libres, avec l’ambition de faire de l’excellence académique un droit pour tous.
-          </p>
-        </div>
-
-        <!-- Prochaine carte admin : dupliquer le bloc .membre-card ci-dessus -->
-      </div>
-    </section>
-
-  </main>
-
-  <footer>
-    © 2026 Campus Flex - Tous droits réservés
-  </footer>
+<footer>
+  © 2026 Campus Flex - Tous droits réservés
+</footer>
 
 </body>
 </html>
