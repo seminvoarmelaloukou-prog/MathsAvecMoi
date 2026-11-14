@@ -11,6 +11,9 @@
 <meta property="og:description" content="Cours clairs, exercices progressifs et évaluations, de la 6e à la Terminale.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#2c3e8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="pwa-192.png">
+<script src="pwa.js" defer></script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","name":"Campus Flex"}
 </script>
@@ -72,6 +75,14 @@ main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:0 20px}
 @keyframes ecrire{to{clip-path:inset(0 0 0 0)}}
 @media (prefers-reduced-motion:reduce){.ecrit{animation:none;clip-path:none}}
 
+/* Onglets des matières */
+.scenes{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding:2px 0 6px;scrollbar-width:none}
+.scenes::-webkit-scrollbar{display:none}
+.scenes button{flex:none;min-height:42px;padding:6px 16px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:inherit;font-size:.95rem;font-weight:700;cursor:pointer}
+.scenes button[aria-pressed="true"]{background:var(--btn-bg);color:var(--btn-fg)}
+.cahier p{font-size:clamp(1.45rem,6.4vw,1.85rem);white-space:normal;overflow-wrap:anywhere}
+.cahier .note{font-size:clamp(1.2rem,5.2vw,1.45rem)}
+
 /* Sections */
 section{padding:34px 0;border-top:1px solid var(--line)}
 section h2{font-size:1.5rem;line-height:1.2;letter-spacing:-.015em;margin:0 0 18px;color:var(--ink)}
@@ -127,12 +138,13 @@ footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9
       <a class="btn btn-alt" href="connexion.html">Se connecter</a>
     </div>
 
-    <div class="cahier" role="img" aria-label="Exemple d’exercice résolu pas à pas : 2x + 3 = 11 donne x = 4">
+    <div class="scenes" id="scenes" role="group" aria-label="Choisis une matière pour voir un exemple"></div>
+    <div class="cahier" id="cahier">
       <p class="ecrit">Résous : 2x + 3 = 11</p>
       <p class="ecrit">2x = 11 − 3</p>
       <p class="ecrit">2x = 8</p>
       <p class="ecrit">x = 8 ÷ 2 = <mark>4</mark></p>
-      <p class="ecrit note">← on isole x, étape par étape</p>
+      <p class="ecrit note">← on isole x, pas à pas</p>
     </div>
   </div>
 
@@ -191,5 +203,82 @@ footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9
   © 2026 Campus Flex - Tous droits réservés
 </footer>
 
+<script>
+(function () {
+  "use strict";
+  // Une page de cahier par matière ; *mot* = surligné
+  var SCENES = [
+    { nom: "Maths", lignes: ["Résous : 2x + 3 = 11", "2x = 11 − 3", "2x = 8", "x = 8 ÷ 2 = *4*"], note: "← on isole x, pas à pas" },
+    { nom: "Français", lignes: ["« finir » au présent", "je finis, il finit", "nous finissons", "ils *finissent*"], note: "← radical : finiss-" },
+    { nom: "Anglais", lignes: ["Past simple : go → went", "eat → ate", "see → saw", "write → *wrote*"], note: "← verbes irréguliers" },
+    { nom: "PCT", lignes: ["Vitesse : v = d ÷ t", "d = 120 km ; t = 2 h", "v = 120 ÷ 2", "v = *60 km/h*"], note: "← n’oublie pas l’unité" },
+    { nom: "SVT", lignes: ["La photosynthèse", "CO2 + eau + lumière", "donne du *glucose* + O2", "dans les feuilles vertes"], note: "← la plante se nourrit" },
+    { nom: "Hist-Géo", lignes: ["Bénin : indépendance", "le *1er août 1960*", "Capitale : Porto-Novo", "Grande ville : Cotonou"], note: "← retiens les dates clés" },
+    { nom: "Philo", lignes: ["Sujet : la liberté", "Définis les termes", "Pose la *problématique*", "Construis ton plan"], note: "← la méthode d’abord" },
+    { nom: "EPS", lignes: ["Le départ du 100 m", "« À vos marques »", "« Prêts »", "« *Partez* »"], note: "← écoute bien le signal" },
+    { nom: "Espagnol", lignes: ["Le verbe « ser » (être)", "yo *soy* → je suis", "tú eres → tu es", "él es → il est"], note: "← verbe irrégulier" },
+    { nom: "Allemand", lignes: ["Le verbe « sein » (être)", "ich *bin* → je suis", "du bist → tu es", "er ist → il est"], note: "← verbe irrégulier" }
+  ];
+
+  var barre = document.getElementById("scenes");
+  var cahier = document.getElementById("cahier");
+  if (!barre || !cahier) { return; }
+
+  var reduit = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var courant = 0, timer = null, boutons = [];
+
+  function ligne(texte, classe) {
+    var p = document.createElement("p");
+    p.className = "ecrit" + (classe ? " " + classe : "");
+    texte.split("*").forEach(function (morceau, i) {
+      if (!morceau) { return; }
+      if (i % 2) {
+        var m = document.createElement("mark");
+        m.textContent = morceau;
+        p.appendChild(m);
+      } else {
+        p.appendChild(document.createTextNode(morceau));
+      }
+    });
+    return p;
+  }
+
+  function marquer(i) {
+    boutons.forEach(function (b, j) { b.setAttribute("aria-pressed", j === i ? "true" : "false"); });
+    var b = boutons[i];
+    barre.scrollTo({ left: b.offsetLeft - (barre.clientWidth - b.offsetWidth) / 2, behavior: "smooth" });
+  }
+
+  function afficher(i) {
+    courant = i;
+    var s = SCENES[i];
+    cahier.textContent = "";
+    s.lignes.forEach(function (l) { cahier.appendChild(ligne(l)); });
+    cahier.appendChild(ligne(s.note, "note"));
+    marquer(i);
+  }
+
+  function arreter() { if (timer) { clearInterval(timer); timer = null; } }
+
+  function demarrer() {
+    if (reduit) { return; }
+    timer = setInterval(function () {
+      if (!document.hidden) { afficher((courant + 1) % SCENES.length); }
+    }, 9000);
+  }
+
+  SCENES.forEach(function (s, i) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = s.nom;
+    b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.addEventListener("click", function () { arreter(); afficher(i); });
+    barre.appendChild(b);
+    boutons.push(b);
+  });
+
+  demarrer();
+})();
+</script>
 </body>
 </html>
