@@ -38,14 +38,37 @@
     :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 
     /* Barre du haut (reste indigo) */
-    .barre{background:#2c3e8c;padding:10px 20px 0}
+    .barre{background:#2c3e8c;padding:10px 20px}
     .marque{display:inline-flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
     .marque img{width:34px;height:34px;border-radius:8px;display:block}
-    .barre ul{display:flex;gap:4px 18px;list-style:none;overflow-x:auto;white-space:nowrap;scrollbar-width:none;margin:4px -20px 0;padding:0 20px}
-    .barre ul::-webkit-scrollbar{display:none}
     .barre a:focus-visible{outline-color:#fff}
-    .barre nav a{display:inline-block;color:#fff;text-decoration:none;font-size:.95rem;font-weight:600;padding:12px 2px}
-    .barre nav a:hover{text-decoration:underline}
+
+    /* Mascotte + boîte de menu (bulle) */
+    .mascotte{position:relative;display:flex;justify-content:center;margin:2px 0 0}
+    .mascotte::before{content:"";position:absolute;top:50%;left:50%;width:200px;height:200px;border-radius:50%;transform:translate(-50%,-50%);
+      background:radial-gradient(circle,rgba(243,156,18,.30),rgba(44,62,140,.14) 55%,transparent 72%)}
+    .mascotte img{position:relative;width:92px;height:92px;border-radius:22px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.22));animation:flotter 3.2s ease-in-out infinite}
+    @keyframes flotter{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+    .bulle{position:relative;background:var(--card);border:2px solid var(--ink);border-radius:28px;padding:22px 16px 16px;margin:20px 0 22px;animation:monter .5s ease both}
+    .bulle::before{content:"";position:absolute;top:-13px;left:50%;width:24px;height:24px;background:var(--card);
+      border-top:2px solid var(--ink);border-left:2px solid var(--ink);border-top-left-radius:5px;transform:translateX(-50%) rotate(45deg)}
+    .bulle .salut{margin:0 0 4px;text-align:center}
+    .question-menu{text-align:center;font-weight:800;font-size:1.1rem;color:var(--text);margin-bottom:16px}
+    .menu{display:grid;gap:10px}
+    .menu-ligne{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:10px 16px 10px 14px;border-radius:16px;
+      border-left:7px solid var(--c);background:var(--paper);color:var(--text);text-decoration:none;font-weight:800;animation:monter .4s ease both}
+    @supports (background:color-mix(in srgb,red 10%,white)){
+      .menu-ligne{background:color-mix(in srgb,var(--c) 12%,var(--card))}
+    }
+    .menu-ligne:active{transform:scale(.98)}
+    .menu-ligne .desc{font-size:.85rem;font-weight:700;color:var(--muted);text-align:right}
+    .menu-ligne:nth-child(1){animation-delay:.10s}
+    .menu-ligne:nth-child(2){animation-delay:.16s}
+    .menu-ligne:nth-child(3){animation-delay:.22s}
+    .menu-ligne:nth-child(4){animation-delay:.28s}
+    .menu-ligne:nth-child(5){animation-delay:.34s}
+    .menu-ligne:nth-child(6){animation-delay:.40s}
 
     main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:26px 20px 40px}
     .salut{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:clamp(2.1rem,10vw,2.8rem);line-height:1.1;color:var(--ink);margin-bottom:14px}
@@ -149,22 +172,25 @@
 <body>
 
   <header class="barre">
-    <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
-    <nav aria-label="Navigation principale">
-      <ul>
-        <li><a href="matieres.html">Matières</a></li>
-        <li><a href="emploi-eleve.html">Emploi du temps</a></li>
-        <li><a href="echanges.html">Échanges</a></li>
-        <li><a href="bulletin.html">Mon bulletin</a></li>
-        <li><a href="index.html">Accueil</a></li>
-        <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-      </ul>
-    </nav>
+    <a class="marque" href="index.html">Campus Flex</a>
   </header>
 
   <main>
 
-    <p class="salut" id="salutation">Mon profil</p>
+    <div class="mascotte"><img src="logo-icone.png" alt="" width="92" height="92"></div>
+
+    <section class="bulle" aria-labelledby="question-menu">
+      <p class="salut" id="salutation">Mon profil</p>
+      <p class="question-menu" id="question-menu">Où veux-tu aller ?</p>
+      <nav class="menu" aria-label="Navigation principale">
+        <a class="menu-ligne" href="matieres.html" style="--c:#2c3e8c"><span>Matières</span><span class="desc">Cours</span></a>
+        <a class="menu-ligne" href="emploi-eleve.html" style="--c:#1F7A8C"><span>Emploi du temps</span><span class="desc">Ta semaine</span></a>
+        <a class="menu-ligne" href="echanges.html" style="--c:#7A3E9D"><span>Échanges</span><span class="desc">Tes questions</span></a>
+        <a class="menu-ligne" href="bulletin.html" style="--c:#2E7D32"><span>Mon bulletin</span><span class="desc">Tes notes</span></a>
+        <a class="menu-ligne" href="index.html" style="--c:#f39c12"><span>Accueil</span><span class="desc">Campus Flex</span></a>
+        <a class="menu-ligne" href="#" id="lien-deconnexion" style="--c:#B3261E"><span>Déconnexion</span><span class="desc">À bientôt</span></a>
+      </nav>
+    </section>
 
     <section class="carte" id="card-chargement">
       <h2>Chargement de ton profil</h2>
@@ -266,12 +292,12 @@
 
     btnEvaluationBlanche.addEventListener("click", function(e) {
       e.preventDefault();
-      window.location.href = selectMatiereEval.value + "/evaluation-blanche.html";
+      window.location.href = "composition.html?type=blanche&matiere=" + encodeURIComponent(selectMatiereEval.value);
     });
 
     btnEvaluationOfficielle.addEventListener("click", function(e) {
       e.preventDefault();
-      window.location.href = selectMatiereEval.value + "/evaluation.html";
+      window.location.href = "composition.html?type=officielle&matiere=" + encodeURIComponent(selectMatiereEval.value);
     });
 
     btnDevoirs.addEventListener("click", function(e) {
