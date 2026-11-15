@@ -4,313 +4,188 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon profil - Campus Flex</title>
+  <meta name="theme-color" content="#2c3e8c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="pwa-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-<script src="logo-nav.js"></script>
 
   <style>
-    :root {
-      --indigo: #2c3e8c;
-      --indigo-dark: #1e2c66;
-      --amber: #f39c12;
-      --background: #f5f7ff;
-      --text: #333333;
-      --muted: #666666;
-      --error: #c0392b;
-      --success: #27ae60;
-      --gris: #7f8c8d;
+    :root{
+      --bg:#FFFFFF; --paper:#F4F8FD; --grid:#D3DEF1; --ink:#2c3e8c; --text:#14203F; --muted:#46547A;
+      --line:#AEBBDA; --btn-bg:#2c3e8c; --btn-fg:#FFFFFF; --card:#FFFFFF; --amber:#f39c12; --hl:#FFF3CF;
+      --error:#B3261E; --ok:#1B7A3E; --indigo:#2c3e8c;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0E1630; --paper:#16213F; --grid:#243256; --ink:#A9BEFF; --text:#E8EDFB; --muted:#A3B0D2;
+        --line:#3F507F; --btn-bg:#A9BEFF; --btn-fg:#0E1630; --card:#0E1630; --hl:#2A2A1E;
+        --error:#FF8A80; --ok:#6FD39A; --indigo:#A9BEFF;
+      }
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:flex;flex-direction:column;color:var(--text);
+      font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;
+      background-color:var(--paper);
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:30px 30px}
+    :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+
+    /* Barre du haut (reste indigo) */
+    .barre{background:#2c3e8c;padding:10px 20px 0}
+    .marque{display:inline-flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+    .marque img{width:34px;height:34px;border-radius:8px;display:block}
+    .barre ul{display:flex;gap:4px 18px;list-style:none;overflow-x:auto;white-space:nowrap;scrollbar-width:none;margin:4px -20px 0;padding:0 20px}
+    .barre ul::-webkit-scrollbar{display:none}
+    .barre a:focus-visible{outline-color:#fff}
+    .barre nav a{display:inline-block;color:#fff;text-decoration:none;font-size:.95rem;font-weight:600;padding:12px 2px}
+    .barre nav a:hover{text-decoration:underline}
+
+    main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:26px 20px 40px}
+    .salut{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:clamp(2.1rem,10vw,2.8rem);line-height:1.1;color:var(--ink);margin-bottom:14px}
+
+    .carte{background:var(--card);border:2px solid var(--ink);border-radius:6px;padding:22px 20px;margin-bottom:20px}
+    .carte h2{font-size:1.4rem;line-height:1.2;letter-spacing:-.015em;font-weight:800;color:var(--ink);margin-bottom:8px}
+    .description{color:var(--muted);margin-bottom:18px}
+    .carte p{line-height:1.5}
+
+    .btn,.btn-eval{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:12px 22px;border-radius:10px;
+      background:var(--btn-bg);color:var(--btn-fg);border:2px solid var(--btn-bg);font:inherit;font-weight:700;text-decoration:none;text-align:center;cursor:pointer}
+    .btn-eval{display:block;width:100%;line-height:1.3;padding:13px 20px}
+    .btn-eval.secondaire{background:transparent;color:var(--ink);border-color:var(--ink)}
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .carte>.btn{margin-top:18px}
+
+    /* Chargement */
+    .loader{width:38px;height:38px;margin:20px 0 14px;border:4px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:tourner .8s linear infinite}
+    @keyframes tourner{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce){.loader{animation-duration:3s}}
+    .error{color:var(--error) !important;font-weight:600}
+
+    /* Profil */
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+    .stat{background:var(--hl);border-radius:6px;padding:12px 8px;text-align:center;border-left:0 !important}
+    .stat strong{order:2;display:block;font-size:.8rem;line-height:1.25;font-weight:700;color:var(--muted);margin-top:4px}
+    .stat span{display:block;font-size:1.35rem;line-height:1.15;font-weight:800;color:var(--ink)}
+    .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;gap:14px}
+    .info-item:nth-child(4),.info-item:nth-child(6){grid-column:1 / -1}
+    .info-item{padding:2px 0 2px 14px;border-left:5px solid var(--ink);min-width:0}
+    .info-item strong{display:block;font-size:.85rem;font-weight:700;color:var(--muted);margin-bottom:2px}
+    .info-item span{display:block;font-size:1.05rem;font-weight:600;overflow-wrap:anywhere}
+    .stat.info-item{padding:12px 8px}
+
+    /* Évaluations */
+    .evaluations-section{display:flex;flex-direction:column;gap:12px}
+    label{display:block;font-weight:700}
+    select,input[type="text"]{width:100%;min-height:50px;padding:10px 14px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font:inherit;font-size:16px}
+    select:focus,input[type="text"]:focus{border-color:var(--ink);outline:none;box-shadow:0 0 0 3px rgba(243,156,18,.45)}
+    .message-eval{font-size:.95rem;color:var(--muted);margin-top:4px}
+
+    /* Nora */
+    .nora-chat-container{display:flex;flex-direction:column;gap:12px}
+    .nora-modes{display:flex;gap:8px}
+    .nora-modes button{flex:1;min-height:46px;padding:8px 8px;border-radius:10px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:inherit;font-size:.9rem;font-weight:700;white-space:nowrap;cursor:pointer}
+    .nora-modes button.actif{background:var(--btn-bg);color:var(--btn-fg)}
+
+    .nora-messages{height:min(62vh,430px);min-height:280px;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;
+      background-color:var(--paper);border:2px solid var(--line);border-radius:6px;text-align:left;
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px);background-size:100% 30px}
+    .nora-message{max-width:88%;padding:10px 14px;border-radius:12px;overflow-wrap:anywhere;word-wrap:break-word;line-height:1.5}
+    .nora-message.eleve{align-self:flex-end;background:var(--btn-bg);color:var(--btn-fg);border-bottom-right-radius:4px}
+    .nora-message.nora{align-self:flex-start;background:var(--card);color:var(--text);border:2px solid var(--line);border-left:5px solid var(--amber);border-bottom-left-radius:4px}
+    .nora-message img{display:block;max-width:100%;max-height:160px;border-radius:6px;margin-bottom:6px}
+
+    .nora-apercu{display:none;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-size:.95rem;color:var(--muted)}
+    .nora-apercu img{max-height:90px;max-width:140px;border-radius:6px;border:2px solid var(--line)}
+    .nora-apercu button{min-height:44px;padding:6px 14px;border:0;border-radius:10px;background:var(--error);color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer}
+
+    .nora-input-container{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+    .nora-input-container input[type="text"]{order:-1;flex:1 1 100%;min-width:0}
+    .nora-input-container .btn{flex:1;min-height:50px;padding:10px 16px}
+    .nora-btn-photo{flex:none;width:50px;min-height:50px;border-radius:10px;border:2px solid var(--ink);background:transparent;color:var(--ink);font-size:1.2rem;cursor:pointer}
+    .nora-btn-photo:disabled{opacity:.5;cursor:not-allowed}
+    .nora-btn-vocal{flex:1;min-height:56px;padding:12px 20px;border-radius:10px;background:var(--btn-bg);color:var(--btn-fg);border:2px solid var(--btn-bg);font:inherit;font-weight:700;cursor:pointer}
+    .nora-btn-vocal:disabled{opacity:.6;cursor:not-allowed}
+    .nora-btn-vocal.enregistre{background:#B3261E;border-color:#B3261E;color:#fff}
+
+    /* ---------- Animations (légères, coupées si l'appareil réduit les animations) ---------- */
+    @keyframes monter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    @keyframes apparaitre{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+    @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+    @keyframes ecrire{to{clip-path:inset(0 0 0 0)}}
+    @keyframes pulsation{0%,100%{box-shadow:0 0 0 0 rgba(179,38,30,.55)}50%{box-shadow:0 0 0 10px rgba(179,38,30,0)}}
+
+    .carte{animation:monter .5s ease both}
+    #card-evaluations{animation-delay:.12s}
+    #card-nora{animation-delay:.24s}
+    .stat{animation:apparaitre .45s cubic-bezier(.2,.9,.3,1.2) both}
+    .stat:nth-child(1){animation-delay:.15s}
+    .stat:nth-child(2){animation-delay:.27s}
+    .stat:nth-child(3){animation-delay:.39s}
+    .salut.ecrit{clip-path:inset(0 100% 0 0);animation:ecrire .9s steps(14,end) .1s forwards}
+    .nora-message{animation:pop .3s ease both}
+    .nora-btn-vocal.enregistre{animation:pulsation 1.4s ease-out infinite}
+    .btn,.btn-eval,.nora-modes button,.nora-btn-photo,.nora-btn-vocal{transition:transform .12s ease,background-color .2s ease}
+    .btn:active,.btn-eval:active,.nora-modes button:active,.nora-btn-photo:active,.nora-btn-vocal:active{transform:scale(.97)}
+
+    .record{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:.75rem;font-weight:800;font-style:normal;animation:pop .4s ease .9s both}
+
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation:none !important;transition:none !important}
+      .salut.ecrit{clip-path:none}
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      background: var(--background);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-    }
-
-    nav {
-      background: var(--indigo);
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    nav h1 { color: white; font-size: 20px; }
-    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
-    nav a { color: white; text-decoration: none; font-size: 14px; }
-    nav a:hover { text-decoration: underline; }
-
-    main {
-      flex: 1;
-      width: 100%;
-      max-width: 900px;
-      margin: 45px auto;
-      padding: 0 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 28px 22px;
-      border-radius: 14px;
-      text-align: center;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
-      margin-bottom: 22px;
-    }
-
-    .card h2 {
-      color: var(--indigo);
-      font-size: 24px;
-      margin-bottom: 12px;
-    }
-
-    .card p {
-      color: var(--muted);
-      line-height: 1.55;
-      font-size: 15px;
-    }
-
-    .description { margin-bottom: 18px; }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 18px;
-      text-align: left;
-    }
-
-    .info-item {
-      background: #f8f9ff;
-      padding: 14px;
-      border-radius: 10px;
-      border-left: 4px solid var(--indigo);
-    }
-
-    .info-item strong {
-      color: var(--indigo);
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-    }
-
-    .info-item span { font-size: 15px; }
-
-    .loader {
-      width: 38px;
-      height: 38px;
-      margin: 22px auto 15px;
-      border: 4px solid #e3e7f6;
-      border-top-color: var(--amber);
-      border-radius: 50%;
-      animation: tourner 0.8s linear infinite;
-    }
-
-    .error { color: var(--error) !important; margin-top: 15px; }
-
-    .btn {
-      display: inline-block;
-      margin-top: 18px;
-      padding: 11px 22px;
-      border-radius: 24px;
-      background: var(--indigo);
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    .btn:hover { background: var(--indigo-dark); }
-
-    .btn-secondaire {
-      background: #e3e7f6;
-      color: var(--indigo);
-    }
-
-    .btn-secondaire:hover { background: #cdd5f6; }
-
-    .evaluations-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      margin-top: 14px;
-    }
-
-    .btn-eval {
-      display: inline-block;
-      padding: 11px 22px;
-      border-radius: 24px;
-      background: var(--indigo);
-      color: white;
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .btn-eval.secondaire {
-      background: #e3e7f6;
-      color: var(--indigo);
-    }
-
-    .btn-eval:hover { opacity: 0.9; }
-    .message-eval { font-size: 14px; color: var(--muted); margin-top: 6px; }
-
-    .nora-chat-container { display: flex; flex-direction: column; gap: 12px; }
-    .nora-modes { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .nora-modes button {
-      padding: 10px 18px;
-      border-radius: 20px;
-      border: 2px solid var(--indigo);
-      background: white;
-      color: var(--indigo);
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .nora-modes button.actif { background: var(--indigo); color: white; }
-
-    .nora-messages {
-      border: 1px solid #cfd8f0;
-      border-radius: 10px;
-      padding: 12px;
-      height: 300px;
-      overflow-y: auto;
-      background: #fafbff;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .nora-message { overflow-wrap: anywhere; max-width: 100%;
-      padding: 8px 12px;
-      border-radius: 8px;
-      max-width: 85%;
-      word-wrap: break-word;
-    }
-
-    .nora-message.eleve { background: #e3e7f6; align-self: flex-end; }
-    .nora-message.nora { background: #d4edda; align-self: flex-start; }
-
-    .nora-input-container {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .nora-input-container input {
-      flex: 1 1 250px;
-      padding: 10px 14px;
-      border-radius: 20px;
-      border: 1px solid #cfd8f0;
-      font-size: 14px;
-    }
-
-    .nora-btn-vocal {
-      padding: 10px 20px;
-      border-radius: 50px;
-      background: var(--indigo);
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .nora-btn-vocal:disabled { background: var(--gris); cursor: not-allowed; }
-
-    .nora-btn-photo {
-      padding: 10px 14px;
-      border-radius: 50px;
-      background: white;
-      color: var(--indigo);
-      border: 2px solid var(--indigo);
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .nora-btn-photo:disabled { opacity: 0.5; cursor: not-allowed; }
-    .nora-apercu {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      font-size: 13px;
-      color: #444;
-    }
-    .nora-apercu img { max-height: 90px; max-width: 140px; border-radius: 8px; border: 1px solid #cfd8f0; }
-    .nora-apercu button {
-      border: none; background: #c0392b; color: white;
-      border-radius: 50px; padding: 6px 12px; font-size: 13px; cursor: pointer;
-    }
-    .nora-message img { display: block; max-width: 100%; max-height: 160px; border-radius: 6px; margin-bottom: 6px; }
-
-    footer {
-      background: var(--indigo);
-      color: white;
-      text-align: center;
-      padding: 14px;
-      font-size: 13px;
-    }
-
-    @keyframes tourner { to { transform: rotate(360deg); } }
-
-    @media (max-width: 600px) {
-      nav { justify-content: center; text-align: center; }
-      nav ul { justify-content: center; }
-      main { margin: 25px auto; padding: 0 14px; }
-      .nora-messages { height: 250px; }
-    }
+    footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9rem}
+    footer a{color:inherit;text-decoration:underline}
   </style>
 </head>
 
 <body>
 
-  <nav>
-    <h1>Campus Flex - Mon profil</h1>
-    <ul>
-      <li><a href="matieres.html">Matières</a></li>
-      <li><a href="emploi-eleve.html">Emploi du temps</a></li>
-      <li><a href="echanges.html">Échanges</a></li>
-      <li><a href="bulletin.html">Mon bulletin</a></li>
-      <li><a href="index.html">Accueil</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+  <header class="barre">
+    <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
+    <nav aria-label="Navigation principale">
+      <ul>
+        <li><a href="matieres.html">Matières</a></li>
+        <li><a href="emploi-eleve.html">Emploi du temps</a></li>
+        <li><a href="echanges.html">Échanges</a></li>
+        <li><a href="bulletin.html">Mon bulletin</a></li>
+        <li><a href="index.html">Accueil</a></li>
+        <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+      </ul>
+    </nav>
+  </header>
 
   <main>
 
-    <section class="card" id="card-chargement">
+    <p class="salut" id="salutation">Mon profil</p>
+
+    <section class="carte" id="card-chargement">
       <h2>Chargement de ton profil</h2>
       <div id="loader" class="loader"></div>
       <p id="message-chargement">Récupération de tes informations...</p>
     </section>
 
-    <section class="card" id="card-profil" style="display: none;">
+    <section class="carte" id="card-profil" style="display: none;">
       <h2>Mon profil</h2>
       <p class="description">Voici les informations associées à ton compte.</p>
+      <div class="stats-grid" id="stats-grid"></div>
       <div class="info-grid" id="info-grid"></div>
       <a href="matieres.html" class="btn">Retour aux cours</a>
     </section>
 
-    <section class="card" id="card-evaluations" style="display: none;">
+    <section class="carte" id="card-evaluations" style="display: none;">
       <h2>Évaluations</h2>
       <p class="description">Retrouve ici tes évaluations blanches et officielles.</p>
       <div class="evaluations-section">
-        <label for="selectMatiereEval" style="display:block; margin-bottom:8px; font-weight:bold; color:#333; text-align:left;">Choisir la matière</label>
-        <select id="selectMatiereEval" style="width:100%; padding:10px; margin-bottom:14px; border:1px solid #ccc; border-radius:8px; font-size:15px;">
+        <label for="selectMatiereEval">Choisir la matière</label>
+        <select id="selectMatiereEval">
           <option value="maths">Mathématiques</option>
           <option value="francais">Français</option>
           <option value="anglais">Anglais</option>
@@ -329,9 +204,9 @@
       </div>
     </section>
 
-    <section class="card" id="card-nora" style="display: none;">
+    <section class="carte" id="card-nora" style="display: none;">
       <h2>🤖 Tuteur Nora - Ton assistant IA</h2>
-      <p class="description">Pose tes questions en mathématiques !</p>
+      <p class="description">Pose tes questions dans toutes tes matières !</p>
 
       <div class="nora-chat-container">
         <div class="nora-modes">
@@ -339,9 +214,9 @@
           <button id="btn-mode-vocal">🎤 Mode Vocal</button>
         </div>
 
-        <div id="nora-messages" class="nora-messages">
+        <div id="nora-messages" class="nora-messages" aria-live="polite">
           <div class="nora-message nora">
-            <strong>Nora :</strong> Bonjour ! Je suis Nora, ton tuteur en mathématiques. Pose-moi tes questions !
+            <strong>Nora :</strong> Bonjour ! Je suis Nora, ton tuteur. Pose-moi tes questions en maths, en français, en anglais, en SVT, en PCT et dans tes autres matières !
           </div>
         </div>
 
@@ -352,7 +227,7 @@
         </div>
 
         <div class="nora-input-container" id="nora-input-ecrit">
-          <button type="button" id="nora-btn-photo" class="nora-btn-photo" title="Envoyer la photo d'un exercice">📷</button>
+          <button type="button" id="nora-btn-photo" class="nora-btn-photo" title="Envoyer la photo d'un exercice" aria-label="Joindre la photo d'un exercice">📷</button>
           <input type="file" id="nora-fichier-image" accept="image/*" style="display:none" />
           <input type="text" id="nora-question-input" placeholder="Pose ta question ou joins un exercice 📷" />
           <button id="nora-btn-envoyer" class="btn">Envoyer</button>
@@ -368,7 +243,7 @@
 
   </main>
 
-  <footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html" style="color:inherit;text-decoration:underline">Contact</a></footer>
+  <footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html">Contact</a></footer>
 
   <script>
     const cardChargement = document.getElementById("card-chargement");
@@ -379,6 +254,8 @@
     const messageChargement = document.getElementById("message-chargement");
     const loader = document.getElementById("loader");
     const infoGrid = document.getElementById("info-grid");
+    const statsGrid = document.getElementById("stats-grid");
+    const salutation = document.getElementById("salutation");
 
     const messageEvaluation = document.getElementById("message-evaluation");
     const btnEvaluationOfficielle = document.getElementById("btn-evaluation-officielle");
@@ -470,37 +347,79 @@
       loader.style.display = "none";
     }
 
+    // Les chiffres montent de 0 jusqu'à leur valeur ; badge « Record ! » si la série actuelle est la meilleure (3 jours ou plus)
+    function animerStats(eleve) {
+      try {
+        const reduit = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const tuiles = statsGrid.querySelectorAll(".stat");
+
+        tuiles.forEach(function(tuile, i) {
+          const span = tuile.querySelector("span");
+          const texte = span.textContent;
+          const cible = parseInt(texte, 10);
+          const avecUnite = /jour/.test(texte);
+          if (reduit || !(cible > 0)) return;
+
+          const debut = performance.now();
+          const duree = 900;
+          function afficher(valeur) {
+            span.textContent = valeur + (avecUnite ? (valeur > 1 ? " jours" : " jour") : "");
+          }
+          afficher(0);
+          function pas(maintenant) {
+            const t = Math.min(1, (maintenant - debut - i * 120) / duree);
+            afficher(t <= 0 ? 0 : Math.round(cible * (1 - Math.pow(1 - t, 3))));
+            if (t < 1) requestAnimationFrame(pas);
+          }
+          requestAnimationFrame(pas);
+        });
+
+        const serie = Number(eleve.streak || 0);
+        const meilleure = Number(eleve.bestStreak || 0);
+        if (serie >= 3 && serie >= meilleure && tuiles[1]) {
+          const badge = document.createElement("em");
+          badge.className = "record";
+          badge.textContent = "Record !";
+          tuiles[1].appendChild(badge);
+        }
+      } catch (e) { /* l'animation ne doit jamais gêner l'affichage du profil */ }
+    }
+
     function afficherProfil(eleve) {
       cardChargement.style.display = "none";
       cardProfil.style.display = "block";
       cardEvaluations.style.display = "block";
       cardNora.style.display = "block";
 
+      if (eleve.prenom) { salutation.textContent = "Salut " + eleve.prenom + " !"; salutation.classList.add("ecrit"); }
+
       const champs = [
         { label: "Prénom", valeur: eleve.prenom },
         { label: "Nom", valeur: eleve.nom },
         { label: "Identifiant", valeur: eleve.identifiant },
         { label: "Email", valeur: eleve.email },
-        { label: "Classe", valeur: eleve.classe },
+        { label: "Classe", valeur: String(eleve.classe || "").replace(/^(2nde|1re|Tle)([A-Z]+)$/, "$1 $2") },
         { label: "Téléphone", valeur: eleve.telephoneInternational },
         { label: "Points", valeur: String(eleve.points || 0) },
-        { label: "Série actuelle", valeur: String(eleve.streak || 0) + " jours" },
-        { label: "Meilleure série", valeur: String(eleve.bestStreak || 0) + " jours" }
+        { label: "Série actuelle", valeur: String(eleve.streak || 0) + (Number(eleve.streak || 0) > 1 ? " jours" : " jour") },
+        { label: "Meilleure série", valeur: String(eleve.bestStreak || 0) + (Number(eleve.bestStreak || 0) > 1 ? " jours" : " jour") }
       ];
 
       infoGrid.innerHTML = "";
-      champs.forEach(function(champ) {
+      statsGrid.innerHTML = "";
+      champs.forEach(function(champ, index) {
         const div = document.createElement("div");
-        div.className = "info-item";
+        div.className = index >= 6 ? "info-item stat" : "info-item";
         const strong = document.createElement("strong");
         strong.textContent = champ.label;
         const span = document.createElement("span");
         span.textContent = champ.valeur || "—";
         div.appendChild(strong);
         div.appendChild(span);
-        infoGrid.appendChild(div);
+        (index >= 6 ? statsGrid : infoGrid).appendChild(div);
       });
 
+      animerStats(eleve);
       gererEvaluations();
     }
 
@@ -712,7 +631,7 @@
         reconnaissanceVocale.onstart = function() {
           noraMessage.textContent = "🎤 Je t'écoute...";
           noraBtnParler.textContent = "🔴 Enregistrement...";
-          noraBtnParler.style.background = "#c0392b";
+          noraBtnParler.classList.add("enregistre");
         };
 
         reconnaissanceVocale.onresult = function(event) {
@@ -722,7 +641,7 @@
           noraMessage.textContent = "";
           noraBtnParler.disabled = false;
           noraBtnParler.textContent = "🎤 Appuie pour parler";
-          noraBtnParler.style.background = "var(--indigo)";
+          noraBtnParler.classList.remove("enregistre");
         };
 
         reconnaissanceVocale.onerror = function(event) {
@@ -730,7 +649,7 @@
           noraMessage.classList.add("error");
           noraBtnParler.disabled = false;
           noraBtnParler.textContent = "🎤 Appuie pour parler";
-          noraBtnParler.style.background = "var(--indigo)";
+          noraBtnParler.classList.remove("enregistre");
         };
 
         reconnaissanceVocale.onend = function() {
@@ -873,7 +792,7 @@
     });
 
     chargerProfil();
-  </script>
+    </script>
 
 </body>
 </html>
