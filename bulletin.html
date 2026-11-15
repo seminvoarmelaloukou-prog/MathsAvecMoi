@@ -1,52 +1,50 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mon bulletin - Campus Flex</title>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="auth-guard.js"></script>
-  <script src="bulletin-lib.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f5f7ff; color: #333; }
-    nav { background: #2c3e8c; color: #fff; padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-    nav h1 { font-size: 18px; }
-    nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 14px; }
-    nav a { color: #fff; text-decoration: none; font-size: 14px; }
-    main { max-width: 900px; margin: 0 auto; padding: 16px; }
-    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.08); padding: 16px; margin-bottom: 16px; }
-    .card h2 { color: #2c3e8c; font-size: 18px; margin-bottom: 6px; }
-    .resume { color: #555; font-size: 14px; margin-bottom: 10px; }
-    button { background: #2c3e8c; color: #fff; border: none; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 0 8px 8px 0; }
-    button.clair { background: #f39c12; }
-    button:disabled { opacity: .6; }
-    .message { color: #666; font-size: 14px; }
-    .message.error { color: #c0392b; }
-    .vue { margin-top: 10px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon bulletin - Campus Flex</title>
+<meta name="theme-color" content="#2c3e8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="pwa-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
+<script src="bulletin-lib.js"></script>
+<link rel="stylesheet" href="campus.css">
+<style>
+.resume{color:var(--muted);margin-bottom:14px}
+.carte button{margin:0 10px 10px 0}
+.vue{margin-top:6px;overflow-x:auto;background:#fff;color:#14203F;border:2px solid var(--line);border-radius:6px;padding:8px}
+#msg{margin-bottom:20px}
+</style>
 </head>
 <body>
-  <nav>
-    <h1>Mon bulletin</h1>
+<header class="barre">
+  <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
+  <nav aria-label="Navigation principale">
     <ul>
       <li><a href="profil.html">Mon profil</a></li>
       <li><a href="matieres.html">Matières</a></li>
       <li><a href="index.html">Accueil</a></li>
     </ul>
   </nav>
+</header>
 
-  <main>
-    <p id="msg" class="message">Chargement de tes bulletins...</p>
-    <div id="liste"></div>
-  </main>
+<main>
 
-  <footer style="text-align:center;padding:16px;color:#666;font-size:13px">© 2026 Campus Flex - <a href="contact.html" style="color:#2c3e8c">Contact</a></footer>
+  <p class="salut ecrit">Mon bulletin</p>
 
-  <script>
+  <p id="msg" class="message">Chargement de tes bulletins...</p>
+  <div id="liste"></div>
+</main>
+<footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html">Contact</a></footer>
+<script>
     const SEMS = ["s1", "s2"];
     const recharge = ((performance.getEntriesByType("navigation")[0] || {}).type === "reload");
     const $ = function (id) { return document.getElementById(id); };

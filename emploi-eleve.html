@@ -4,54 +4,59 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Emploi du temps - Campus Flex</title>
+<meta name="theme-color" content="#2c3e8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="pwa-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="suivi-visite.js"></script>
 <script src="edt-lib.js"></script>
+<link rel="stylesheet" href="campus.css">
 <style>
-:root{--indigo:#2c3e8c;--amber:#f39c12;--bg:#f5f7ff;--text:#333;--muted:#666;--error:#c0392b}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
-nav{background:var(--indigo);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
-nav h1{color:#fff;font-size:20px}nav ul{display:flex;flex-wrap:wrap;gap:18px;list-style:none}
-nav a{color:#fff;text-decoration:none;font-size:14px}
-main{max-width:800px;margin:25px auto;padding:0 14px}
-.card{background:#fff;padding:20px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.1);margin-bottom:18px}
-.card h2{color:var(--indigo);font-size:20px;margin-bottom:8px}
-.aide{color:var(--muted);font-size:14px;line-height:1.5}
-label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
-select{width:100%;padding:10px;border:1px solid #cfd5ee;border-radius:8px;font-size:15px;background:#fff;margin-bottom:6px}
-.jour{color:var(--indigo);font-weight:bold;margin:16px 0 6px}
-.seance{background:#f8f9ff;border-left:4px solid var(--amber);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:15px}
-.seance small{display:block;color:var(--muted);margin-top:3px;font-size:13px}
-button{background:var(--indigo);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer;margin:8px 8px 0 0}
-button.sec{background:var(--amber)}
+.jour{font-weight:800;color:var(--ink);margin:20px 0 8px;font-size:1.05rem}
+.jour:first-child{margin-top:0}
+.seance{background:var(--paper);border-left:5px solid var(--amber);border-radius:6px;padding:11px 14px;margin-bottom:8px;line-height:1.4}
+.seance b{display:inline-block;min-width:118px;color:var(--ink)}
+#choix{margin-top:14px}
+#export button{margin:10px 10px 0 0}
+#apercu-edt{margin-top:14px;overflow-x:auto;background:#fff;color:#14203F;border-radius:6px}
+#apercu-edt:empty{display:none}
 </style>
 </head>
 <body>
-<nav>
-  <h1>Emploi du temps</h1>
-  <ul>
-    <li><a href="profil.html">Retour</a></li>
-    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-  </ul>
-</nav>
+<header class="barre">
+  <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
+  <nav aria-label="Navigation principale">
+    <ul>
+      <li><a href="profil.html">Mon profil</a></li>
+      <li><a href="matieres.html">Matières</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+</header>
+
 <main>
 
-  <section class="card"><h2>Emploi du temps de ma classe</h2><p class="aide" id="info">Chargement...</p>
-    <div id="choix" style="display:none;margin-top:10px"><label>Ma classe</label><select id="groupe"></select></div>
+  <p class="salut ecrit">Mon emploi du temps</p>
+
+  <section class="carte"><h2>Emploi du temps de ma classe</h2><p class="aide" id="info">Chargement...</p>
+    <div id="choix" style="display:none"><label for="groupe">Ma classe</label><select id="groupe"></select></div>
   </section>
-  <section class="card" id="zone" style="display:none"></section>
-  <section class="card" id="export" style="display:none">
+  <section class="carte" id="zone" style="display:none"></section>
+  <section class="carte" id="export" style="display:none">
     <h2>Mon emploi du temps en document</h2>
     <p class="aide">Le document officiel de ma classe, avec toutes les matières. Je peux le voir ici, puis le télécharger en PDF.</p>
     <button id="btn-apercu">Voir l'aperçu</button><button id="btn-pdf" class="sec">Télécharger en PDF</button>
-    <p class="aide" id="msg-export" style="margin-top:8px"></p>
+    <p class="aide" id="msg-export" style="margin-top:10px"></p>
     <div id="apercu-edt"></div>
   </section>
 </main>
+<footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html">Contact</a></footer>
 <script>
 const JOURS=["Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 const $=id=>document.getElementById(id);
