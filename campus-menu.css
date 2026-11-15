@@ -1,0 +1,26 @@
+/* Campus Flex – ruban du haut avec menu déroulant (bouton à trois traits) */
+.barre{background:#2c3e8c;color:#fff;padding:0}
+.barre-haut{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 20px}
+.marque{display:inline-flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:-.01em;padding:0}
+.marque img{width:36px;height:36px;border-radius:9px;display:block}
+.barre a:focus-visible,.burger:focus-visible{outline:3px solid #fff;outline-offset:3px}
+
+.burger{flex:none;width:48px;height:48px;padding:0;border:0;border-radius:14px;background:rgba(255,255,255,.14);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;min-height:48px}
+.burger span{display:block;width:22px;height:3px;border-radius:2px;background:#fff;transition:transform .25s ease,opacity .2s ease}
+.burger[aria-expanded="true"] span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+.burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+
+.menu-panneau{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .3s ease,visibility 0s linear .3s}
+.menu-panneau.ouvert{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .3s ease,visibility 0s}
+.menu-panneau .interieur{overflow:hidden;min-height:0}
+.menu-panneau .liens{display:grid;gap:4px;padding:4px 20px 20px}
+.menu-panneau a{display:flex;align-items:center;min-height:52px;padding:10px 18px;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:1.1rem}
+.menu-panneau a:hover{background:rgba(255,255,255,.10)}
+.menu-panneau a[aria-current="page"]{background:rgba(255,255,255,.18)}
+.menu-panneau a.sortie{margin-top:8px;background:rgba(255,255,255,.08)}
+
+@media (prefers-reduced-motion:reduce){
+  .menu-panneau,.menu-panneau.ouvert,.burger span{transition:none !important}
+}

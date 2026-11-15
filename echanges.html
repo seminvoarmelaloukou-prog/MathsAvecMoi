@@ -16,6 +16,8 @@
 <script src="firebase-config.js"></script>
 <script src="suivi-visite.js"></script>
 <link rel="stylesheet" href="campus.css">
+<link rel="stylesheet" href="campus-menu.css">
+<script src="campus-menu.js" defer></script>
 <style>
 .tabs{display:flex;gap:8px;margin:16px 0}
 .tabs button{flex:1;flex-wrap:wrap;gap:6px;background:transparent;color:var(--ink);border-color:var(--ink);font-size:.95rem;line-height:1.25}
@@ -39,15 +41,23 @@ form button[type="submit"]{width:100%;margin-top:10px}
 </head>
 <body>
 <header class="barre">
-  <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
-  <nav aria-label="Navigation principale">
-    <ul>
-      <li><a href="profil.html">Mon profil</a></li>
-      <li><a href="matieres.html">Matières</a></li>
-      <li><a href="index.html">Accueil</a></li>
-      <li><a href="#" id="deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="profil.html">Mon profil</a>
+        <a href="matieres.html">Matières</a>
+        <a href="composition.html">Composer</a>
+        <a href="echanges.html">Échanges</a>
+        <a href="emploi-eleve.html">Emploi du temps</a>
+        <a href="bulletin.html">Mon bulletin</a>
+        <a href="mes-resultats.html">Mes résultats</a>
+        <a href="index.html">Accueil</a>
+        <a href="#" class="sortie" data-deconnexion id="deconnexion" data-propre>Se déconnecter</a>
+    </div></div>
+  </div>
 </header>
 
 <main>
