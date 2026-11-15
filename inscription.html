@@ -422,56 +422,115 @@
       return "";
     }
 
-    // L'OCR confond souvent le chiffre 0 et la lettre O (et parfois I/l et 1).
-    function corrigerChiffresOcr(texte) {
-      return texte.replace(/[oO]/g, "0").replace(/[Il]/g, "1");
-    }
-
-    function trouverDateDans(texte) {
-      const nettoye = corrigerChiffresOcr(texte);
-      const correspondance = nettoye.match(
-        /(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{2,4})/
-      );
-
-      if (!correspondance) return "";
-
-      let [, jour, mois, annee] = correspondance;
-
+    // ---------- Lecture de la date de naissance ----------
+    // L'OCR lit parfois mal les dates (O pour 0, I ou l pour / ou 1, mois en
+    // lettres, séparateurs absents...). On cherche donc plusieurs formes de date,
+    // puis on garde la plus ancienne : sur une carte, la naissance précède
+    // toujours la délivrance et l'expiration.
+    function anneeSurQuatre(annee) {
+      annee = String(annee);
       if (annee.length === 2) {
-        annee = (Number(annee) > 30 ? "19" : "20") + annee;
+        return (Number(annee) > 30 ? "19" : "20") + annee;
       }
-
-      jour = jour.padStart(2, "0");
-      mois = mois.padStart(2, "0");
-
-      const anneeNum = Number(annee);
-      const anneeActuelle = new Date().getFullYear();
-      if (anneeNum < 1920 || anneeNum > anneeActuelle) return "";
-      if (Number(jour) > 31 || Number(mois) > 12) return "";
-
-      return annee + "-" + mois + "-" + jour;
+      return annee;
     }
 
-    // Une carte d'identité comporte plusieurs dates (naissance, délivrance,
-    // expiration). On cherche d'abord tout près d'un mot-clé de naissance ;
-    // si rien n'est trouvé ainsi, on retombe sur la première date du texte.
-    function extraireDate(texte) {
-      const motsClesNaissance = ["NE(E) LE", "NEE LE", "NE LE", "NAISSANCE", "DATE DE NAISSANCE", "BIRTH"];
-      const texteSansAccent = sansAccents(texte).toUpperCase();
+    function dateValide(jour, mois, annee) {
+      jour = Number(jour);
+      mois = Number(mois);
+      annee = Number(annee);
 
-      for (const motCle of motsClesNaissance) {
-        const position = texteSansAccent.indexOf(motCle);
-        if (position === -1) continue;
+      if (annee < 1920 || annee > new Date().getFullYear()) return "";
+      if (mois < 1 || mois > 12 || jour < 1) return "";
+      if (jour > new Date(annee, mois, 0).getDate()) return "";
 
-        // On regarde seulement dans une fenêtre de texte juste après le
-        // mot-clé (au cas où il y aurait plusieurs dates plus loin).
-        const fenetre = texte.slice(position, position + motCle.length + 40);
-        const date = trouverDateDans(fenetre);
-        if (date) return date;
+      return annee + "-" + String(mois).padStart(2, "0") + "-" + String(jour).padStart(2, "0");
+    }
+
+    function numeroDuMois(nom) {
+      if (nom.indexOf("JUIL") === 0 || nom.indexOf("JUL") === 0) return 7;
+      if (nom.indexOf("JUIN") === 0 || nom.indexOf("JUN") === 0) return 6;
+
+      const table = {
+        JAN: 1, FEV: 2, FEB: 2, MAR: 3, AVR: 4, APR: 4, MAI: 5, MAY: 5,
+        AOU: 8, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12
+      };
+      return table[nom.slice(0, 3)] || 0;
+    }
+
+    // texte : déjà en majuscules et sans accents.
+    // souple = true : accepte aussi "12 05 2009" et "12052009" (seulement près d'un mot-clé de naissance).
+    function trouverDates(texte, souple) {
+      const trouvees = [];
+
+      function ajouter(jour, mois, annee) {
+        const date = dateValide(jour, mois, anneeSurQuatre(annee));
+        if (date && trouvees.indexOf(date) === -1) trouvees.push(date);
       }
 
-      // Repli : la première date trouvée dans tout le texte.
-      return trouverDateDans(texte);
+      // La lettre O collée à un chiffre est un zéro (2O09 -> 2009)
+      let t = texte;
+      for (let i = 0; i < 2; i++) {
+        t = t.replace(/(\d)O/g, function(m, c) { return c + "0"; })
+             .replace(/O(\d)/g, function(m, c) { return "0" + c; });
+      }
+
+      // I, L ou | peuvent être un séparateur (12I05I2009) ou un 1 (L2/05/2009)
+      const variantes = [
+        t,
+        t.replace(/[IL|]/g, "/"),
+        t.replace(/[IL|]/g, "1")
+      ];
+
+      variantes.forEach(function(v) {
+        let m;
+
+        // 12/05/2009, 12.05.09, 12-05-2009, 12 / 05 / 2009
+        const numerique = /(\d{1,2})\s*[.,:;\/\\_-]\s*(\d{1,2})\s*[.,:;\/\\_-]\s*(\d{4}|\d{2})(?!\d)/g;
+        while ((m = numerique.exec(v)) !== null) ajouter(m[1], m[2], m[3]);
+
+        // 12 MARS 2009, 12 MAR 2009, 12-MAR-2009
+        const lettres = /(\d{1,2})\s*[.\/-]?\s*(JANV?[A-Z]*|FEV[A-Z]*|FEB[A-Z]*|MARS?|AVR[A-Z]*|APR[A-Z]*|MAI|MAY|JUIN|JUIL[A-Z]*|JUN|JUL|AOUT?|AUG[A-Z]*|SEPT?[A-Z]*|OCT[A-Z]*|NOV[A-Z]*|DEC[A-Z]*)\.?\s*[.\/-]?\s*(\d{4}|\d{2})(?!\d)/g;
+        while ((m = lettres.exec(v)) !== null) {
+          const mois = numeroDuMois(m[2]);
+          if (mois) ajouter(m[1], mois, m[3]);
+        }
+
+        if (souple) {
+          // 12 05 2009
+          const espaces = /(?<!\d)(\d{2})\s+(\d{2})\s+(\d{4})(?!\d)/g;
+          while ((m = espaces.exec(v)) !== null) ajouter(m[1], m[2], m[3]);
+
+          // 12052009
+          const colle = /(?<!\d)(\d{2})(\d{2})(\d{4})(?!\d)/g;
+          while ((m = colle.exec(v)) !== null) ajouter(m[1], m[2], m[3]);
+        }
+      });
+
+      return trouvees.sort(); // format AAAA-MM-JJ : la première est la plus ancienne
+    }
+
+    // On cherche d'abord juste après un mot-clé de naissance ; sinon dans tout le texte.
+    function extraireDate(texte) {
+      const brut = sansAccents(texte).toUpperCase();
+      const motsCles = [
+        "NE(E) LE", "NEE LE", "NE(E)LE", "NE LE", "DATE DE NAISSANCE",
+        "NAISSANCE", "NAISS", "DATE OF BIRTH", "BIRTH", "BORN", "DOB"
+      ];
+
+      for (const motCle of motsCles) {
+        let position = brut.indexOf(motCle);
+
+        while (position !== -1) {
+          const fenetre = brut.slice(position, position + motCle.length + 120);
+          const dates = trouverDates(fenetre, true);
+          if (dates.length) return dates[0];
+          position = brut.indexOf(motCle, position + motCle.length);
+        }
+      }
+
+      const toutes = trouverDates(brut, false);
+      return toutes.length ? toutes[0] : "";
     }
 
     function analyserTextePiece(texteOcr) {
@@ -508,7 +567,8 @@
       if (champsRemplis.length > 0) {
         ocrResultatTexte.textContent =
           "Champs préremplis automatiquement : " + champsRemplis.join(", ") +
-          ". Vérifie qu'ils sont exacts avant de continuer.";
+          ". Vérifie qu'ils sont exacts avant de continuer." +
+          (dateTrouvee ? "" : " La date de naissance n'a pas été reconnue : choisis-la toi-même dans le champ « Date de naissance ».");
       } else {
         ocrResultatTexte.textContent =
           "La lecture automatique n'a pas identifié les champs avec certitude. " +
@@ -949,7 +1009,7 @@
           );
 
           window.setTimeout(function() {
-            window.location.href = "maths/profil.html";
+            window.location.href = "matieres.html";
           }, 1200);
         })
         .catch(function(erreur) {
