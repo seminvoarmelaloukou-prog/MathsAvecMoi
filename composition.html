@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Composer - Campus Flex</title>
+<meta name="theme-color" content="#2c3e8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="pwa-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<link rel="stylesheet" href="campus.css">
+<style>
+[hidden]{display:none !important}
+.retour{margin-bottom:14px;min-height:44px;padding:8px 16px}
+
+/* Type d'évaluation */
+.types{display:grid;gap:10px;margin:12px 0 6px}
+.type{flex-direction:column;align-items:flex-start;text-align:left;min-height:66px;padding:12px 16px;background:transparent;color:var(--ink);border-color:var(--ink)}
+.type small{font-weight:600;font-size:.85rem;color:var(--muted)}
+.type[aria-pressed="true"]{background:var(--btn-bg);color:var(--btn-fg)}
+.type[aria-pressed="true"] small{color:inherit;opacity:.85}
+.carte h2.etape{display:flex;align-items:center;gap:10px;margin-top:22px}
+.carte h2.etape:first-child{margin-top:0}
+.carte h2.etape span{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:.95rem;display:flex;align-items:center;justify-content:center}
+
+/* Matières */
+.tuiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.tuile{flex-direction:column;align-items:flex-start;justify-content:flex-end;min-height:88px;padding:12px 14px;border-radius:10px;background:var(--c);border-color:var(--c);color:#fff;text-align:left;gap:2px}
+.tuile .court{font-size:.8rem;font-weight:800;opacity:.85}
+.tuile .nom{font-size:1.02rem;font-weight:800;line-height:1.2}
+
+/* Épreuves */
+.epreuve{width:100%;flex-direction:column;align-items:flex-start;text-align:left;background:var(--card);color:var(--text);border:2px solid var(--line);border-left:5px solid var(--ink);margin-bottom:10px;padding:12px 14px;gap:2px}
+.epreuve .titre{font-weight:800;color:var(--ink)}
+.epreuve .meta{font-weight:600;color:var(--muted);font-size:.9rem}
+.epreuve .statut{margin-top:6px;font-size:.8rem;font-weight:800;padding:2px 10px;border-radius:999px;background:var(--hl);color:var(--ink)}
+.epreuve:disabled{opacity:.75}
+
+/* Barre de composition */
+.barre-compo{position:sticky;top:0;z-index:5;background:var(--card);border:2px solid var(--ink);border-radius:6px;padding:10px 14px;margin-bottom:16px;font-weight:800}
+.barre-compo .ligne{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chrono{color:var(--ink)}
+.chrono.urgent{color:var(--error)}
+.fond{height:10px;background:var(--line);border-radius:999px;margin-top:8px;overflow:hidden}
+.fait{height:100%;width:0;background:var(--amber);border-radius:999px;transition:width .3s ease}
+
+/* Questions */
+.question{background:var(--card);border:2px solid var(--line);border-left:5px solid var(--ink);border-radius:6px;padding:16px;margin-bottom:14px;animation:pop .3s ease both}
+.question h3{margin-bottom:10px;overflow-wrap:anywhere}
+.question img{max-width:100%;height:auto;border-radius:6px;margin:6px 0 10px}
+.choix{display:flex;flex-direction:column;gap:10px}
+.choix label{display:flex;align-items:center;gap:12px;min-height:52px;padding:10px 14px;border:2px solid var(--line);border-radius:10px;font-weight:600;cursor:pointer;margin:0;line-height:1.35}
+.choix input{width:22px;height:22px;flex:none;accent-color:var(--ink)}
+.choix label:has(input:checked){border-color:var(--ink);background:var(--hl)}
+.envoi button{width:100%;margin-top:10px}
+#confirmation{margin-top:14px;padding:14px;border-radius:6px;background:var(--hl);border-left:5px solid var(--amber)}
+#confirmation p{margin-bottom:10px;font-weight:700}
+#confirmation .deux{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Document */
+.liens a{display:flex;align-items:center;min-height:48px;padding:10px 14px;margin:8px 0;border:2px solid var(--ink);border-radius:10px;color:var(--ink);font-weight:700;text-decoration:none}
+.texte-document,.contenu-corrige{margin-top:14px;padding:14px;background:#fff;color:#14203F;border-radius:6px;line-height:1.8;overflow-x:auto}
+.texte-document img,.contenu-corrige img{max-width:100%;height:auto}
+.corrige-verrouille{display:inline-block;margin-top:14px;padding:8px 16px;border-radius:999px;background:var(--hl);color:var(--ink);font-weight:800;font-size:.9rem}
+details.corrige{margin-top:14px}
+details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:800;color:var(--ink)}
+
+/* Résultat */
+.score{font-size:2.4rem;font-weight:800;color:var(--ink);line-height:1.1;margin:8px 0}
+.pourcent{height:12px;background:var(--line);border-radius:999px;overflow:hidden;margin:12px 0 16px}
+.pourcent div{height:100%;width:0;background:var(--amber);transition:width .8s ease}
+.actions-fin{display:grid;gap:10px;margin-top:16px}
+#message{margin-top:12px}
+</style>
+</head>
+<body>
+
+<header class="barre">
+  <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
+  <nav aria-label="Navigation principale">
+    <ul>
+      <li><a href="matieres.html">Matières</a></li>
+      <li><a href="profil.html">Mon profil</a></li>
+      <li><a href="mes-resultats.html">Mes résultats</a></li>
+      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <p class="salut ecrit">Composer</p>
+
+  <section class="carte" id="card-chargement">
+    <div class="loader" id="loader"></div>
+    <p class="aide" id="message-chargement" style="margin-top:12px">Chargement...</p>
+  </section>
+
+  <!-- 1 + 2 : type et matière -->
+  <section class="carte" id="card-choix" hidden>
+    <h2 class="etape"><span>1</span>Que veux-tu faire ?</h2>
+    <div class="types">
+      <button type="button" class="type" id="type-blanche" data-type="blanche" aria-pressed="true">Évaluation blanche<small>Pour t'entraîner : tu peux recommencer</small></button>
+      <button type="button" class="type" id="type-officielle" data-type="officielle" aria-pressed="false">Évaluation officielle<small>Une seule tentative</small></button>
+    </div>
+    <p class="aide" id="msg-type"></p>
+
+    <h2 class="etape"><span>2</span>Dans quelle matière ?</h2>
+    <div class="tuiles" id="tuiles"></div>
+  </section>
+
+  <!-- 3 : épreuves de la matière -->
+  <section class="carte" id="card-liste" hidden>
+    <button type="button" class="sec retour" id="btn-retour-choix">← Changer de matière</button>
+    <h2 id="titre-liste"></h2>
+    <p class="aide" id="aide-liste" style="margin-bottom:14px"></p>
+    <div class="loader" id="loader-liste" hidden></div>
+    <div id="liste-epreuves"></div>
+  </section>
+
+  <!-- Avant de commencer (QCM) -->
+  <section class="carte" id="card-depart" hidden>
+    <h2 id="titre-depart"></h2>
+    <p class="aide" id="infos-depart" style="margin:6px 0 14px"></p>
+    <p id="regle-depart" style="margin-bottom:16px;font-weight:700"></p>
+    <button type="button" id="btn-commencer" style="width:100%">Commencer</button>
+    <button type="button" class="sec" id="btn-annuler-depart" style="width:100%;margin-top:10px">Retour à la liste</button>
+  </section>
+
+  <!-- QCM -->
+  <div id="zone-qcm" hidden>
+    <div class="barre-compo" aria-live="polite">
+      <div class="ligne"><span class="chrono" id="chrono" hidden></span><span id="progression-texte"></span></div>
+      <div class="fond"><div class="fait" id="progression-barre"></div></div>
+    </div>
+    <section class="carte">
+      <h2 id="titre-eval"></h2>
+      <div id="liste-questions" style="margin-top:14px"></div>
+      <div class="envoi">
+        <button type="button" id="btn-envoyer">Envoyer mes réponses</button>
+        <button type="button" class="sec" id="btn-abandonner">Retour à la liste des épreuves</button>
+      </div>
+      <div id="confirmation" hidden>
+        <p id="texte-confirmation"></p>
+        <div class="deux">
+          <button type="button" id="btn-oui">Oui, envoyer</button>
+          <button type="button" class="sec" id="btn-non">Continuer</button>
+        </div>
+      </div>
+      <p class="message" id="message" hidden></p>
+    </section>
+  </div>
+
+  <!-- Document -->
+  <section class="carte" id="card-document" hidden>
+    <h2 id="titre-document"></h2>
+    <p class="chrono" id="chrono-document" hidden style="margin:8px 0;font-size:1.2rem;font-weight:800"></p>
+    <div class="liens" id="liens-document"></div>
+    <div class="texte-document" id="texte-document" hidden></div>
+    <div id="zone-corrige"></div>
+    <p class="message" id="info-document" hidden style="margin-top:14px"></p>
+    <button type="button" class="sec" id="btn-retour-doc" style="width:100%;margin-top:16px">Retour à la liste des épreuves</button>
+  </section>
+
+  <!-- Résultat -->
+  <section class="carte" id="card-resultat" hidden>
+    <h2 id="titre-resultat">Réponses envoyées</h2>
+    <p class="score" id="score-resultat"></p>
+    <div class="pourcent"><div id="pourcent-barre"></div></div>
+    <p class="aide" id="texte-resultat"></p>
+    <div class="actions-fin">
+      <button type="button" id="btn-autre">Choisir une autre épreuve</button>
+      <a href="profil.html" class="btn sec">Retour à mon profil</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html">Contact</a></footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // Même liste, mêmes noms et mêmes couleurs que matieres.html et admin-evaluations.html
+  var MATIERES = [
+    { nom: "Mathématiques", slug: "maths", court: "Ma", couleur: "#2c3e8c" },
+    { nom: "Français", slug: "francais", court: "Fr", couleur: "#B23A48" },
+    { nom: "Anglais", slug: "anglais", court: "An", couleur: "#1F7A8C" },
+    { nom: "PCT", slug: "pct", court: "PCT", couleur: "#7A3E9D" },
+    { nom: "SVT", slug: "svt", court: "SVT", couleur: "#2E7D32" },
+    { nom: "Histoire-Géographie", slug: "histoire-geographie", court: "HG", couleur: "#8A5A00" },
+    { nom: "Philosophie", slug: "philosophie", court: "Ph", couleur: "#4A4E69" },
+    { nom: "EPS", slug: "eps", court: "EPS", couleur: "#C2410C" },
+    { nom: "Espagnol", slug: "espagnol", court: "Es", couleur: "#A15C07" },
+    { nom: "Allemand", slug: "allemand", court: "Al", couleur: "#374151" }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var SECTIONS = ["card-chargement", "card-choix", "card-liste", "card-depart", "zone-qcm", "card-document", "card-resultat"];
+
+  var uid = null, classe = null, config = {};
+  var type = "blanche", matiere = null, actives = { blanche: false, officielle: false };
+  var epreuves = {}, suivi = {}, epreuveId = null, questions = {}, cles = [];
+  var finChrono = 0, timer = null, enCours = false, envoiEnCours = false;
+
+  function montrer(id) {
+    SECTIONS.forEach(function (s) { $(s).hidden = (s !== id); });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function erreur(texte) {
+    montrer("card-chargement");
+    $("loader").hidden = true;
+    var m = $("message-chargement");
+    m.textContent = texte;
+    m.className = "erreur";
+  }
+
+  function libelleType() { return type === "officielle" ? "Évaluation officielle" : "Évaluation blanche"; }
+  function cheminResultats() {
+    return (type === "officielle" ? "evaluations/resultats/" : "evaluations_blanches/resultats/") + uid;
+  }
+
+  /* ---------- Déconnexion ---------- */
+  $("lien-deconnexion").addEventListener("click", function (e) {
+    e.preventDefault();
+    auth.signOut().then(function () { window.location.href = "index.html"; });
+  });
+
+  /* ---------- Démarrage ---------- */
+  function parametres() {
+    var p = new URLSearchParams(window.location.search);
+    var m = (p.get("matiere") || "").toLowerCase();
+    var trouvee = MATIERES.filter(function (x) { return x.slug === m || x.nom.toLowerCase() === m; })[0] || null;
+    return { type: p.get("type") === "officielle" ? "officielle" : (p.get("type") === "blanche" ? "blanche" : null), matiere: trouvee };
+  }
+
+  function charger() {
+    Promise.all([db.ref("evaluations/config").once("value"), db.ref("eleves/" + uid).once("value")])
+      .then(function (r) {
+        config = r[0].val() || {};
+        var eleve = r[1].val();
+        if (!eleve) { erreur("Ce compte n'est pas un compte élève. Va dans Mon profil."); return; }
+        if (!eleve.classe) { erreur("Ta classe n'est pas renseignée dans ton profil."); return; }
+        classe = eleve.classe;
+        preparerChoix();
+      })
+      .catch(function (e) { console.error(e); erreur("Erreur de chargement. Vérifie ta connexion et réessaie."); });
+  }
+
+  function preparerChoix() {
+    actives.blanche = config.blanche_active === true;
+    actives.officielle = config.officielle_active === true || config.evaluation_officielle_active === true;
+
+    if (!actives.blanche && !actives.officielle) {
+      erreur("Aucune évaluation n'est disponible pour le moment.");
+      return;
+    }
+
+    $("type-blanche").disabled = !actives.blanche;
+    $("type-officielle").disabled = !actives.officielle;
+
+    var p = parametres();
+    type = (p.type && actives[p.type]) ? p.type : (actives.blanche ? "blanche" : "officielle");
+    if (p.type && !actives[p.type]) {
+      $("msg-type").textContent = (p.type === "officielle" ? "L'évaluation officielle" : "L'évaluation blanche") + " n'est pas disponible pour le moment.";
+    }
+    majType();
+
+    var zone = $("tuiles");
+    zone.innerHTML = "";
+    MATIERES.forEach(function (m) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "tuile";
+      b.style.setProperty("--c", m.couleur);
+      var c = document.createElement("span"); c.className = "court"; c.textContent = m.court;
+      var n = document.createElement("span"); n.className = "nom"; n.textContent = m.nom;
+      b.appendChild(c); b.appendChild(n);
+      b.addEventListener("click", function () { ouvrirListe(m); });
+      zone.appendChild(b);
+    });
+
+    if (p.matiere) { ouvrirListe(p.matiere); } else { montrer("card-choix"); }
+  }
+
+  function majType() {
+    ["blanche", "officielle"].forEach(function (t) {
+      $("type-" + t).setAttribute("aria-pressed", t === type ? "true" : "false");
+    });
+  }
+
+  ["blanche", "officielle"].forEach(function (t) {
+    $("type-" + t).addEventListener("click", function () {
+      if (!actives[t]) { return; }
+      type = t; $("msg-type").textContent = ""; majType();
+    });
+  });
+
+  $("btn-retour-choix").addEventListener("click", function () { montrer("card-choix"); });
+
+  /* ---------- Liste des épreuves d'une matière ---------- */
+  function ouvrirListe(m) {
+    matiere = m;
+    montrer("card-liste");
+    $("titre-liste").textContent = libelleType() + " — " + m.nom;
+    $("aide-liste").textContent = "";
+    $("liste-epreuves").innerHTML = "";
+    $("loader-liste").hidden = false;
+
+    Promise.all([
+      db.ref("evaluations/epreuves/" + classe + "/" + m.nom + "/" + type).once("value"),
+      db.ref(cheminResultats()).once("value")
+    ]).then(function (r) {
+      epreuves = r[0].val() || {};
+      suivi = {};
+      r[1].forEach(function (c) {
+        var res = c.val();
+        if (!res || !res.epreuveId) { return; }
+        var s = suivi[res.epreuveId] || (suivi[res.epreuveId] = { n: 0, score: 0, total: 0 });
+        s.n++;
+        var meilleur = res.totalPoints > 0 && (s.total === 0 || res.score / res.totalPoints > s.score / s.total);
+        if (meilleur || s.total === 0) { s.score = res.score; s.total = res.totalPoints; }
+      });
+      $("loader-liste").hidden = true;
+      afficherListe();
+    }).catch(function (e) {
+      console.error(e);
+      $("loader-liste").hidden = true;
+      $("aide-liste").textContent = "Erreur de chargement. Réessaie dans un instant.";
+      $("aide-liste").className = "erreur";
+    });
+  }
+
+  function corrigeDispo(ep) { return !!(ep.dateCorrige && Date.now() >= ep.dateCorrige); }
+
+  function afficherListe() {
+    var zone = $("liste-epreuves");
+    zone.innerHTML = "";
+    var ids = Object.keys(epreuves).sort(function (a, b) { return (epreuves[b].misAJour || 0) - (epreuves[a].misAJour || 0); });
+
+    if (!ids.length) {
+      $("aide-liste").className = "aide";
+      $("aide-liste").textContent = "Aucune épreuve disponible pour ta classe (" + classe + ") dans cette matière pour le moment.";
+      return;
+    }
+    $("aide-liste").className = "aide";
+    $("aide-liste").textContent = "Choisis l'épreuve à passer.";
+
+    ids.forEach(function (id) {
+      var ep = epreuves[id];
+      var estDoc = ep.format === "document";
+      var nbQ = ep.questions ? Object.keys(ep.questions).length : 0;
+      var s = suivi[id];
+
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "epreuve";
+
+      var t = document.createElement("span"); t.className = "titre"; t.textContent = ep.titre || "Épreuve";
+      var meta = [];
+      if (ep.sequence) meta.push(ep.sequence);
+      meta.push(estDoc ? "Sujet à consulter" : nbQ + " question" + (nbQ > 1 ? "s" : ""));
+      if (ep.duree) meta.push(ep.duree + " min");
+      var m = document.createElement("span"); m.className = "meta"; m.textContent = meta.join(" · ");
+      b.appendChild(t); b.appendChild(m);
+
+      var statut = null;
+      if (!estDoc && s && type === "officielle") {
+        statut = "Déjà composée" + (s.total ? " · " + s.score + " / " + s.total : "");
+        b.disabled = true;
+      } else if (!estDoc && s) {
+        statut = "Faite " + s.n + " fois · meilleur score " + s.score + " / " + s.total;
+      } else if (estDoc && corrigeDispo(ep)) {
+        statut = "Corrigé disponible";
+      }
+      if (statut) {
+        var st = document.createElement("span"); st.className = "statut"; st.textContent = statut;
+        b.appendChild(st);
+      }
+
+      b.addEventListener("click", function () { ouvrirEpreuve(id); });
+      zone.appendChild(b);
+    });
+  }
+
+  function ouvrirEpreuve(id) {
+    var ep = epreuves[id];
+    if (!ep) { return; }
+    epreuveId = id;
+    if (ep.format === "document") { ouvrirDocument(ep); return; }
+
+    var cl = Object.keys(ep.questions || {}).filter(function (k) { return ep.questions[k].active !== false; });
+    if (!cl.length) { alert("Cette épreuve ne contient pas de question active pour le moment."); return; }
+
+    function porte() { preparerDepart(id, ep, cl.length); }
+
+    if (type === "officielle") {
+      // On revérifie auprès du serveur : une seule tentative
+      db.ref(cheminResultats()).once("value").then(function (snap) {
+        var deja = false;
+        snap.forEach(function (c) { var r = c.val(); if (r && r.epreuveId === id) { deja = true; } });
+        if (deja) { ouvrirListe(matiere); } else { porte(); }
+      }).catch(function () { alert("Impossible de vérifier ta tentative. Vérifie ta connexion et réessaie."); });
+    } else {
+      porte();
+    }
+  }
+
+  /* ---------- Avant de commencer ---------- */
+  function preparerDepart(id, ep, nb) {
+    $("titre-depart").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+    var infos = [nb + " question" + (nb > 1 ? "s" : "")];
+    if (type === "officielle" && ep.duree) infos.push("durée : " + ep.duree + " minutes");
+    $("infos-depart").textContent = infos.join(" · ");
+    $("regle-depart").textContent = type === "officielle"
+      ? "Tu n'as droit qu'à une seule tentative." + (ep.duree ? " Le chronomètre démarre dès que tu appuies sur « Commencer »." : "")
+      : "C'est un entraînement : tu pourras recommencer autant de fois que tu veux.";
+    montrer("card-depart");
+  }
+
+  $("btn-annuler-depart").addEventListener("click", function () { montrer("card-liste"); });
+  $("btn-commencer").addEventListener("click", function () { demarrerQcm(epreuveId, epreuves[epreuveId]); });
+
+  /* ---------- QCM ---------- */
+  function demarrerQcm(id, ep) {
+    questions = ep.questions || {};
+    cles = Object.keys(questions).filter(function (k) { return questions[k].active !== false; });
+
+    $("titre-eval").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+    var liste = $("liste-questions");
+    liste.innerHTML = "";
+
+    cles.forEach(function (key, index) {
+      var q = questions[key];
+      var div = document.createElement("div");
+      div.className = "question";
+      var h3 = document.createElement("h3");
+      h3.id = "q-titre-" + key;
+      h3.textContent = "Question " + (index + 1) + " : " + (q.question || "");
+      div.appendChild(h3);
+      if (q.image) {
+        var img = document.createElement("img");
+        img.src = q.image; img.alt = "Image de la question";
+        div.appendChild(img);
+      }
+      var ch = document.createElement("div");
+      ch.className = "choix";
+      ch.setAttribute("role", "radiogroup");
+      ch.setAttribute("aria-labelledby", h3.id);
+      (q.choix || []).forEach(function (texte, i) {
+        var label = document.createElement("label");
+        var input = document.createElement("input");
+        input.type = "radio"; input.name = "question_" + key; input.value = i;
+        var span = document.createElement("span"); span.textContent = texte;
+        label.appendChild(input); label.appendChild(span);
+        ch.appendChild(label);
+      });
+      div.appendChild(ch);
+      liste.appendChild(div);
+    });
+
+    $("message").hidden = true;
+    $("confirmation").hidden = true;
+    $("btn-envoyer").disabled = false;
+    $("btn-envoyer").textContent = "Envoyer mes réponses";
+    $("btn-abandonner").hidden = (type === "officielle"); // une fois commencée, l'officielle se termine
+    envoiEnCours = false;
+    enCours = true;
+    if (type === "officielle") { window.onbeforeunload = function () { return ""; }; }
+
+    arreterChrono();
+    if (type === "officielle" && ep.duree) { demarrerChrono(ep.duree); }
+    majProgression();
+    montrer("zone-qcm");
+  }
+
+  $("liste-questions").addEventListener("change", majProgression);
+
+  function majProgression() {
+    var faites = cles.filter(function (k) { return document.querySelector("input[name='question_" + k + "']:checked"); }).length;
+    $("progression-texte").textContent = faites + " / " + cles.length + " répondue" + (faites > 1 ? "s" : "");
+    $("progression-barre").style.width = (cles.length ? Math.round(faites * 100 / cles.length) : 0) + "%";
+  }
+
+  function formater(s) {
+    var m = Math.floor(s / 60), r = s % 60;
+    return (m < 10 ? "0" : "") + m + ":" + (r < 10 ? "0" : "") + r;
+  }
+
+  function arreterChrono() {
+    if (timer) { clearInterval(timer); timer = null; }
+    $("chrono").hidden = true;
+  }
+
+  function demarrerChrono(minutes) {
+    finChrono = Date.now() + minutes * 60000;
+    var c = $("chrono");
+    c.hidden = false;
+    c.classList.remove("urgent");
+    function tic() {
+      var reste = Math.max(0, Math.round((finChrono - Date.now()) / 1000));
+      c.textContent = "Temps restant : " + formater(reste);
+      if (reste <= 60) { c.classList.add("urgent"); }
+      if (reste <= 0) { arreterChrono(); c.hidden = false; c.textContent = "Temps écoulé"; envoyer(true); }
+    }
+    tic();
+    timer = setInterval(tic, 1000);
+  }
+
+  $("btn-abandonner").addEventListener("click", function () {
+    enCours = false; arreterChrono(); window.onbeforeunload = null;
+    ouvrirListe(matiere);
+  });
+
+  $("btn-envoyer").addEventListener("click", function () {
+    var faites = cles.filter(function (k) { return document.querySelector("input[name='question_" + k + "']:checked"); }).length;
+    if (faites === 0) { dire("Réponds à au moins une question avant d'envoyer.", true); return; }
+    var reste = cles.length - faites;
+    $("texte-confirmation").textContent = reste
+      ? "Il te reste " + reste + " question" + (reste > 1 ? "s" : "") + " sans réponse. Envoyer quand même ?"
+      : "Tu as répondu à toutes les questions. Envoyer tes réponses ?";
+    $("confirmation").hidden = false;
+    $("confirmation").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  });
+  $("btn-non").addEventListener("click", function () { $("confirmation").hidden = true; });
+  $("btn-oui").addEventListener("click", function () { envoyer(false); });
+
+  function dire(texte, estErreur) {
+    var m = $("message");
+    m.hidden = !texte;
+    m.textContent = texte;
+    m.className = "message" + (estErreur ? " error" : "");
+  }
+
+  function envoyer(auto) {
+    if (envoiEnCours) { return; }
+    envoiEnCours = true;
+    $("confirmation").hidden = true;
+    arreterChrono();
+
+    var reponses = {}, score = 0, total = 0;
+    cles.forEach(function (key) {
+      var q = questions[key];
+      var coche = document.querySelector("input[name='question_" + key + "']:checked");
+      var rep = coche ? parseInt(coche.value, 10) : -1;
+      reponses[key] = rep;
+      if (rep === q.bonneReponse) { score += (q.points || 1); }
+      total += (q.points || 1);
+    });
+
+    var ep = epreuves[epreuveId] || {};
+    var maintenant = Date.now();
+    var resultat = {
+      classe: classe,
+      matiere: matiere.nom,
+      epreuveId: epreuveId,
+      titre: ep.titre || "",
+      sequence: ep.sequence || "",
+      date: maintenant,
+      score: score,
+      totalPoints: total,
+      nbQuestions: cles.length,
+      reponses: reponses
+    };
+
+    $("btn-envoyer").disabled = true;
+    dire(auto ? "Temps écoulé : envoi automatique de tes réponses..." : "Envoi en cours...", false);
+
+    var fin = function () { enCours = false; window.onbeforeunload = null; afficherResultat(score, total); };
+    var echec = function (e) {
+      console.error("Erreur envoi :", e);
+      envoiEnCours = false;
+      $("btn-envoyer").disabled = false;
+      $("btn-envoyer").textContent = "Réessayer l'envoi";
+      dire("L'envoi a échoué. Vérifie ta connexion, puis appuie sur « Réessayer l'envoi » : tes réponses sont conservées.", true);
+    };
+
+    if (type === "officielle") {
+      // Clé fixe par épreuve : une seule écriture possible
+      db.ref("evaluations/resultats/" + uid + "/eval_" + epreuveId)
+        .transaction(function (actuel) { return actuel === null ? resultat : undefined; })
+        .then(function (r) {
+          if (!r.committed) {
+            enCours = false; window.onbeforeunload = null;
+            dire("Tu as déjà composé cette épreuve : ta première tentative est conservée.", true);
+            setTimeout(function () { ouvrirListe(matiere); }, 2500);
+            return;
+          }
+          fin();
+        }).catch(echec);
+    } else {
+      db.ref("evaluations_blanches/resultats/" + uid + "/eval_" + maintenant).set(resultat).then(fin).catch(echec);
+    }
+  }
+
+  function afficherResultat(score, total) {
+    var pc = total > 0 ? Math.round(score * 100 / total) : 0;
+    $("score-resultat").textContent = score + " / " + total;
+    $("texte-resultat").textContent = type === "officielle"
+      ? "Tes réponses sont enregistrées. Tu ne peux plus recomposer cette épreuve."
+      : (pc >= 50 ? "Bravo, continue comme ça !" : "Relis ton cours et recommence : c'est comme ça qu'on progresse.");
+    montrer("card-resultat");
+    var barre = $("pourcent-barre");
+    barre.style.width = "0";
+    setTimeout(function () { barre.style.width = pc + "%"; }, 60);
+  }
+
+  $("btn-autre").addEventListener("click", function () { ouvrirListe(matiere); });
+
+  /* ---------- Épreuve en document (sujet à lire / télécharger) ---------- */
+  var timerDoc = null;
+
+  function arreterChronoDoc() {
+    if (timerDoc) { clearInterval(timerDoc); timerDoc = null; }
+    $("chrono-document").hidden = true;
+  }
+
+  function lien(conteneur, href, texte) {
+    var a = document.createElement("a");
+    a.href = href; a.target = "_blank"; a.rel = "noopener"; a.textContent = texte;
+    conteneur.appendChild(a);
+  }
+
+  function ouvrirDocument(ep) {
+    arreterChronoDoc();
+    $("titre-document").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+    var liens = $("liens-document"); liens.innerHTML = "";
+    var texte = $("texte-document"); texte.innerHTML = "";
+    var zone = $("zone-corrige"); zone.innerHTML = "";
+    var info = $("info-document"); info.hidden = true;
+
+    if (ep.devoirUrl) lien(liens, ep.devoirUrl, "Télécharger le sujet (PDF)");
+    if (ep.devoirWordUrl) lien(liens, ep.devoirWordUrl, "Télécharger le sujet (Word)");
+    if (ep.enonceHtml) { texte.innerHTML = ep.enonceHtml; texte.hidden = false; } else { texte.hidden = true; }
+
+    if (ep.duree) {
+      var fin = Date.now() + ep.duree * 60000;
+      var c = $("chrono-document");
+      c.hidden = false; c.classList.remove("urgent");
+      var tic = function () {
+        var reste = Math.max(0, Math.round((fin - Date.now()) / 1000));
+        if (reste <= 0) {
+          arreterChronoDoc();
+          liens.innerHTML = ""; texte.innerHTML = ""; texte.hidden = true;
+          info.hidden = false; info.textContent = "Le temps est écoulé : le sujet n'est plus affiché.";
+          return;
+        }
+        c.textContent = "Temps restant : " + formater(reste);
+        if (reste <= 300) { c.classList.add("urgent"); }
+      };
+      tic();
+      timerDoc = setInterval(tic, 1000);
+    }
+
+    if (ep.corrigeUrl || ep.corrigeWordUrl || ep.corrigeHtml) {
+      if (corrigeDispo(ep)) {
+        if (ep.corrigeUrl || ep.corrigeWordUrl) {
+          var bloc = document.createElement("div"); bloc.className = "liens"; bloc.style.marginTop = "14px";
+          if (ep.corrigeUrl) lien(bloc, ep.corrigeUrl, "Voir le corrigé (PDF)");
+          if (ep.corrigeWordUrl) lien(bloc, ep.corrigeWordUrl, "Télécharger le corrigé (Word)");
+          zone.appendChild(bloc);
+        }
+        if (ep.corrigeHtml) {
+          var d = document.createElement("details"); d.className = "corrige";
+          var s = document.createElement("summary"); s.textContent = "Voir le corrigé (texte)";
+          var ct = document.createElement("div"); ct.className = "contenu-corrige"; ct.innerHTML = ep.corrigeHtml;
+          d.appendChild(s); d.appendChild(ct); zone.appendChild(d);
+        }
+      } else {
+        var v = document.createElement("span"); v.className = "corrige-verrouille";
+        v.textContent = ep.dateCorrige
+          ? "Corrigé disponible le " + new Date(ep.dateCorrige).toLocaleDateString("fr-FR")
+          : "Corrigé pas encore disponible";
+        zone.appendChild(v);
+      }
+    }
+    montrer("card-document");
+  }
+
+  $("btn-retour-doc").addEventListener("click", function () { arreterChronoDoc(); montrer("card-liste"); });
+
+  /* ---------- Lancement ---------- */
+  if (typeof auth === "undefined" || typeof db === "undefined") {
+    erreur("Service non disponible pour le moment.");
+    return;
+  }
+  auth.onAuthStateChanged(function (user) {
+    if (!user) { window.location.href = "connexion.html"; return; }
+    uid = user.uid;
+    charger();
+  });
+})();
+</script>
+
+</body>
+</html>
