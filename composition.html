@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="campus.css">
 <link rel="stylesheet" href="campus-menu.css">
 <script src="campus-menu.js" defer></script>
+<script src="programme.js"></script>
 <style>
 [hidden]{display:none !important}
 .retour{margin-bottom:14px;min-height:44px;padding:8px 16px}
@@ -273,6 +274,11 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
       .catch(function (e) { console.error(e); erreur("Erreur de chargement. Vérifie ta connexion et réessaie."); });
   }
 
+  // Matières au programme de la classe (voir programme.js)
+  function auProgramme(m) {
+    return !window.CF_PROGRAMME || window.CF_PROGRAMME.autorisee(classe, m.nom);
+  }
+
   function preparerChoix() {
     actives.blanche = config.blanche_active === true;
     actives.officielle = config.officielle_active === true || config.evaluation_officielle_active === true;
@@ -294,7 +300,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
 
     var zone = $("tuiles");
     zone.innerHTML = "";
-    MATIERES.forEach(function (m) {
+    MATIERES.filter(auProgramme).forEach(function (m) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "tuile";
@@ -306,7 +312,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
       zone.appendChild(b);
     });
 
-    if (p.matiere) { ouvrirListe(p.matiere); } else { montrer("card-choix"); }
+    if (p.matiere && auProgramme(p.matiere)) { ouvrirListe(p.matiere); } else { montrer("card-choix"); }
   }
 
   function majType() {

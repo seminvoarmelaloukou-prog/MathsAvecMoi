@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="campus.css">
 <link rel="stylesheet" href="campus-menu.css">
 <script src="campus-menu.js" defer></script>
+<script src="programme.js"></script>
 <style>
 .tabs{display:flex;gap:8px;margin:16px 0}
 .tabs button{flex:1;flex-wrap:wrap;gap:6px;background:transparent;color:var(--ink);border-color:var(--ink);font-size:.95rem;line-height:1.25}
@@ -122,7 +123,7 @@ auth.onAuthStateChanged(function(u){
     NOM=((E.prenom||"")+" "+((E.nom||"").charAt(0)?(E.nom||"").charAt(0).toUpperCase()+".":"")).trim()||"Élève";
     $("verif").classList.add("cache");$("contenu").classList.remove("cache");
     $("titre").textContent="Classe : "+E.classe;
-    $("matiere").innerHTML=MATIERES.map(m=>'<option value="'+m+'">'+m+'</option>').join("");
+    $("matiere").innerHTML=MATIERES.filter(m=>!window.CF_PROGRAMME||CF_PROGRAMME.autorisee(E.classe,m)).map(m=>'<option value="'+m+'">'+m+'</option>').join("");
     $("matiere").addEventListener("change",ouvrir);
     $("tab-forum").addEventListener("click",()=>onglet("forum"));$("tab-prive").addEventListener("click",()=>onglet("prive"));
     $("forum-form").addEventListener("submit",envoyerForum);$("mp-form").addEventListener("submit",envoyerPrive);

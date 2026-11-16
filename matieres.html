@@ -8,6 +8,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="campus-menu.css">
   <script src="campus-menu.js" defer></script>
+  <script src="programme.js"></script>
   <link rel="apple-touch-icon" href="pwa-192.png">
   <script src="pwa.js" defer></script>
 
@@ -156,7 +157,7 @@
 
     function afficherReprise() {
       const nom = lireDerniere();
-      const m = MATIERES.find(function(x) { return x.nom === nom; });
+      const m = visibles().find(function(x) { return x.nom === nom; });
       if (!m) { return; }
 
       document.getElementById("repriseNom").textContent = m.nom;
@@ -166,10 +167,18 @@
       document.getElementById("reprise").classList.add("visible");
     }
 
+    // Matières au programme de la classe de l'élève (voir programme.js)
+    let classeEleve = null;
+    function visibles() {
+      return MATIERES.filter(function(m) {
+        return !window.CF_PROGRAMME || window.CF_PROGRAMME.autorisee(classeEleve, m.nom);
+      });
+    }
+
     function afficherMatieres() {
       matieresContainer.innerHTML = "";
 
-      MATIERES.forEach(function(matiere) {
+      visibles().forEach(function(matiere) {
         const a = document.createElement("a");
         a.className = "matiere";
         a.href = matiere.lien;
@@ -217,7 +226,11 @@
           return;
         }
 
-        afficherMatieres();
+        // On lit la classe pour ne montrer que les matières de son programme
+        firebase.database().ref("eleves/" + user.uid + "/classe").once("value")
+          .then(function(snap) { classeEleve = snap.val(); })
+          .catch(function() { /* classe illisible : on montre tout */ })
+          .then(afficherMatieres);
       });
     });
   </script>

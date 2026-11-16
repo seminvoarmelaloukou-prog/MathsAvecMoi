@@ -168,6 +168,7 @@
     footer a{color:inherit;text-decoration:underline}
   </style>
 <script src="campus-menu.js" defer></script>
+  <script src="programme.js"></script>
 </head>
 
 <body>
@@ -412,11 +413,21 @@
       } catch (e) { /* l'animation ne doit jamais gêner l'affichage du profil */ }
     }
 
+    // Dans la liste des évaluations, seulement les matières du programme de la classe
+    function filtrerMatieresEval(classe) {
+      if (!window.CF_PROGRAMME) { return; }
+      Array.prototype.slice.call(selectMatiereEval.options).forEach(function(option) {
+        if (!window.CF_PROGRAMME.autoriseeSlug(classe, option.value)) { selectMatiereEval.removeChild(option); }
+      });
+    }
+
     function afficherProfil(eleve) {
       cardChargement.style.display = "none";
       cardProfil.style.display = "block";
       cardEvaluations.style.display = "block";
       cardNora.style.display = "block";
+
+      filtrerMatieresEval(eleve.classe);
 
       if (eleve.prenom) { salutation.textContent = "Salut " + eleve.prenom + " !"; salutation.classList.add("ecrit"); }
 
