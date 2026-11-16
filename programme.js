@@ -3,6 +3,7 @@
    - PCT : pas pour les classes littéraires (séries A et AB)
    - Philosophie : pas pour le premier cycle (6e, 5e, 4e, 3e)
    - Espagnol et Allemand : pas pour la 6e et la 5e
+   - Français : deux types (Lecture, Communication écrite) de la 6e à la 3e, un seul au second cycle
    Si la classe est inconnue, aucune matière n'est cachée. */
 (function () {
   "use strict";
@@ -31,7 +32,17 @@
     return true;
   }
 
+  // Français : deux types de la 6e à la 3e (Lecture, Communication écrite), un seul ensuite
+  var PARTIES_FRANCAIS = [
+    { id: "lecture", nom: "Lecture" },
+    { id: "communication-ecrite", nom: "Communication écrite" }
+  ];
+  function partiesFrancais(classe) {
+    return premierCycle(norm(classe)) ? PARTIES_FRANCAIS : [];
+  }
+
   window.CF_PROGRAMME = {
+    partiesFrancais: partiesFrancais,
     autorisee: autorisee,
     autoriseeSlug: function (classe, slug) { return autorisee(classe, SLUGS[slug] || slug); },
     matieresPour: function (classe) { return TOUTES.filter(function (m) { return autorisee(classe, m); }); }

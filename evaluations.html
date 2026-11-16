@@ -16,6 +16,8 @@
 <script src="firebase-config.js"></script>
 
 <link rel="stylesheet" href="campus.css">
+<link rel="stylesheet" href="campus-menu.css">
+<script src="campus-menu.js" defer></script>
 <style>
 .badge-tentative,.tentative-badge{display:inline-block;background:var(--hl);color:var(--ink);border:2px solid var(--amber);padding:5px 14px;border-radius:999px;font-size:.9rem;font-weight:800;margin:6px 0 4px}
 .hero{text-align:left}
@@ -41,13 +43,23 @@
 </head>
 <body>
 <header class="barre">
-  <a class="marque" href="index.html"><img src="logo-icone.png" alt="">Campus Flex</a>
-  <nav aria-label="Navigation principale">
-    <ul>
-      <li><a href="profil.html">Mon profil</a></li>
-      <li><a href="mes-resultats.html">Mes résultats</a></li>
-    </ul>
-  </nav>
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="profil.html">Mon profil</a>
+        <a href="matieres.html">Matières</a>
+        <a href="composition.html">Composer</a>
+        <a href="echanges.html">Échanges</a>
+        <a href="emploi-eleve.html">Emploi du temps</a>
+        <a href="bulletin.html">Mon bulletin</a>
+        <a href="mes-resultats.html">Mes résultats</a>
+        <a href="index.html">Accueil</a>
+        <a href="#" class="sortie" data-deconnexion>Se déconnecter</a>
+    </div></div>
+  </div>
 </header>
 
 <main>
