@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Allemand - Campus Flex</title>
+  <meta name="theme-color" content="#2c3e8c">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../pwa-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -11,68 +17,128 @@
   <script src="../firebase-config.js"></script>
   <script src="../auth-guard.js"></script>
 
+  <link rel="stylesheet" href="../campus.css">
+  <link rel="stylesheet" href="../campus-menu.css">
+  <script src="../campus-menu.js" defer></script>
+
   <style>
-    :root { --indigo: #2c3e8c; --indigo-dark: #1e2c66; --amber: #f39c12; --background: #f5f7ff; --text: #333333; --muted: #666666; --disabled: #b7bccb; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { min-height: 100vh; font-family: Arial, sans-serif; background: var(--background); color: var(--text); display: flex; flex-direction: column; }
-    nav { background: var(--indigo); padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15); }
-    nav h1 { color: white; font-size: 20px; }
-    nav ul { display: flex; flex-wrap: wrap; gap: 18px; list-style: none; }
-    nav a { color: white; text-decoration: none; font-size: 14px; }
-    nav a:hover { text-decoration: underline; }
-    main { flex: 1; width: 100%; max-width: 900px; margin: 45px auto; padding: 0 20px; }
-    .hero { background: white; padding: 35px 25px; border-radius: 14px; text-align: center; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10); margin-bottom: 22px; }
-    .hero h2 { color: var(--indigo); font-size: 26px; margin-bottom: 12px; }
-    .hero p { color: var(--muted); line-height: 1.6; font-size: 15px; margin-bottom: 18px; }
-    .btn { display: inline-block; padding: 11px 22px; border-radius: 24px; background: var(--indigo); color: white; text-decoration: none; font-size: 14px; font-weight: bold; margin: 6px; border: none; cursor: pointer; }
-    .btn:hover { background: var(--indigo-dark); }
-    .btn-secondaire { background: #e3e7f6; color: var(--indigo); }
-    .btn-secondaire:hover { background: #cdd5f6; }
-    .btn-disabled { background: var(--disabled); color: white; cursor: not-allowed; pointer-events: none; }
-    .section-titre { color: var(--indigo); font-size: 22px; margin: 28px 0 14px; text-align: center; }
-    .niveaux-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 18px; }
-    .niveau-card { background: white; padding: 20px 18px; border-radius: 12px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); text-align: center; }
-    .niveau-card.indisponible { opacity: 0.78; }
-    .niveau-card h3 { color: var(--indigo); font-size: 18px; margin-bottom: 8px; }
-    .niveau-card p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
-    .statut { display: block; color: var(--muted); font-size: 12px; margin-top: 6px; }
-    footer { background: var(--indigo); color: white; text-align: center; padding: 14px; font-size: 13px; }
-    @media (max-width: 600px) { nav { justify-content: center; text-align: center; } nav ul { justify-content: center; } main { margin: 25px auto; padding: 0 14px; } .hero { padding: 25px 18px; } .hero h2 { font-size: 22px; } }
-</style>
+    :root{--c:#374151}
+
+    /* ---------- Carte d'introduction avec animation ---------- */
+    .hero-matiere{position:relative;overflow:hidden;padding-bottom:22px}
+    .hero-matiere>*{position:relative}
+    .symbole{position:absolute !important;font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;color:var(--ink);
+      opacity:.16;pointer-events:none;user-select:none;animation:flotter 7s ease-in-out infinite}
+    .s1{top:10px;left:14px;font-size:2.6rem}
+    .s2{top:12px;right:18px;font-size:2.2rem;animation-delay:-2s}
+    .s3{bottom:12px;left:16px;font-size:2.1rem;animation-delay:-4s}
+    .s4{bottom:14px;right:20px;font-size:2.4rem;animation-delay:-1s}
+    @keyframes flotter{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-12px) rotate(5deg)}}
+
+    .scene{display:block;width:100%;margin:0 auto 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    svg.scene{height:auto;max-height:230px}
+    div.scene{min-height:190px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+    .scene *{transform-box:fill-box;transform-origin:center}
+    .txt{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600}
+    @keyframes dessiner{from{stroke-dashoffset:var(--l)}}
+    @keyframes apparaitre{from{opacity:0;transform:scale(.7)}}
+    @keyframes tourner{to{transform:rotate(360deg)}}
+    .trait{fill:none;stroke:var(--ink);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:var(--l);animation:dessiner .9s ease-out backwards}
+
+
+    .mots{flex-direction:row !important;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px}
+    .carte-mot{display:flex;flex-direction:column;align-items:center;min-width:88px;padding:12px 14px;border-radius:14px;background:var(--paper);
+      border:2px solid var(--line);border-top:6px solid var(--col);animation:pop .5s cubic-bezier(.2,.9,.3,1.3) backwards}
+    .carte-mot b{font-size:1.15rem;color:var(--col)}
+    .carte-mot span{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:2rem;line-height:1.1;color:var(--text)}
+    .carte-mot small{margin-top:2px;font-size:.75rem;color:var(--muted)}
+    .cm{--col:#3b82f6;animation-delay:.4s} .cf{--col:#ef4444;animation-delay:1s} .cn{--col:#22a35a;animation-delay:1.6s}
+
+    .hero-matiere .aide{text-align:center;max-width:30em;margin:0 auto}
+    .astuce{display:block;text-align:center;font-size:.8rem;color:var(--muted);margin-top:6px}
+
+    /* ---------- Carte de la classe ---------- */
+    .niveau-card{display:grid;gap:14px;animation:apparaitre .6s cubic-bezier(.2,.9,.3,1.2) .5s backwards}
+    .niveau-tete{display:flex;align-items:center;gap:14px}
+    .niveau-tuile{flex:none;min-width:68px;height:68px;padding:0 12px;border-radius:16px;background:var(--c);color:#fff;
+      font-weight:800;font-size:1.2rem;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1}
+    .niveau-tete h3{margin-bottom:2px}
+    .niveau-card .btn{width:100%}
+    .btn-disabled{background:var(--line) !important;border-color:var(--line) !important;color:var(--muted) !important;cursor:not-allowed;pointer-events:none}
+    .statut{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;color:var(--ok)}
+    .statut::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ok);animation:pulsation 2s ease-out infinite}
+    .statut.attente{color:var(--muted)}
+    .statut.attente::before{background:var(--amber);animation:none}
+    @keyframes pulsation{0%{box-shadow:0 0 0 0 rgba(27,122,62,.5)}70%,100%{box-shadow:0 0 0 9px rgba(27,122,62,0)}}
+
+    /* ---------- Évaluations ---------- */
+    .actions-eval{display:grid;gap:10px;margin-top:14px}
+
+    @media (prefers-reduced-motion:reduce){
+      .scene *,.scene *::before,.scene *::after,.symbole,.niveau-card,.statut::before{animation:none !important}
+      .phrase{clip-path:none}
+    }
+  </style>
 </head>
+
 <body>
 
-  <nav>
-    <h1>🎓 Campus Flex</h1>
-    <ul>
-      <li><a href="../index.html">Accueil</a></li>
-      <li><a href="../matieres.html">Matières</a></li>
-      <li><a href="../mes-resultats.html">Mes résultats</a></li>
-      <li><a href="../profil.html">Mon profil</a></li>
-      <li><a href="#" id="deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+<header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="../index.html"><img data-garder src="../logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="../profil.html">Mon profil</a>
+        <a href="../matieres.html" aria-current="page">Matières</a>
+        <a href="../composition.html">Composer</a>
+        <a href="../echanges.html">Échanges</a>
+        <a href="../emploi-eleve.html">Emploi du temps</a>
+        <a href="../bulletin.html">Mon bulletin</a>
+        <a href="../mes-resultats.html">Mes résultats</a>
+        <a href="../index.html">Accueil</a>
+        <a href="#" class="sortie" data-deconnexion id="deconnexion" data-propre>Se déconnecter</a>
+    </div></div>
+  </div>
+</header>
 
   <main>
-    <section class="hero">
-      <h2>Allemand – Du collège au lycée</h2>
-      <p>Choisis ta classe pour accéder aux cours, exercices et évaluations.</p>
-      <div>
-        <a href="../mes-resultats.html" class="btn btn-secondaire">Voir mes résultats</a>
+
+    <p class="salut ecrit">Allemand</p>
+
+    <section class="carte hero-matiere">
+      <span class="symbole s1" aria-hidden="true">ß</span>
+      <span class="symbole s2" aria-hidden="true">ü</span>
+      <span class="symbole s3" aria-hidden="true">ä</span>
+      <span class="symbole s4" aria-hidden="true">ö</span>
+
+      <div class="scene mots" id="scene" role="img" aria-label="Les articles allemands : der Hund, die Katze, das Haus">
+        <div class="carte-mot cm"><b>der</b><span>Hund</span><small>masculin</small></div>
+        <div class="carte-mot cf"><b>die</b><span>Katze</span><small>féminin</small></div>
+        <div class="carte-mot cn"><b>das</b><span>Haus</span><small>neutre</small></div>
+      </div>
+
+      <p class="aide">Choisis ta classe pour accéder aux cours, exercices et évaluations d’allemand.</p>
+      <span class="astuce">Appuie sur le dessin pour le revoir</span>
+    </section>
+
+    <section class="carte">
+      <div id="niveauxContainer"><p class="aide">Chargement de ta classe…</p></div>
+    </section>
+
+    <section class="carte">
+      <h2>Évaluations</h2>
+      <p class="aide">Entraîne-toi ou compose, puis retrouve tes notes par matière.</p>
+      <div class="actions-eval">
+        <a href="../composition.html?matiere=allemand" class="btn">Composer une évaluation</a>
+        <a href="../mes-resultats.html" class="btn sec">Voir mes résultats</a>
       </div>
     </section>
 
-    <section class="hero">
-      <h2>📖 Traducteur</h2>
-      <p>Besoin de comprendre un mot ou une phrase en allemand ? Utilise ce traducteur.</p>
-      <a href="https://translate.google.com/?sl=fr&tl=de&op=translate" target="_blank" rel="noopener" class="btn">Ouvrir le traducteur Français → Allemand</a>
-    </section>
-
-    <h2 class="section-titre">Cours par classe</h2>
-    <div id="niveauxContainer" class="niveaux-grid"></div>
   </main>
 
-  <footer>© 2026 Campus Flex - Tous droits réservés</footer>
+  <footer>© 2026 Campus Flex - Tous droits réservés - <a href="../contact.html">Contact</a></footer>
 
   <script>
     const niveauxContainer = document.getElementById("niveauxContainer");
@@ -195,9 +261,15 @@
 
     btnDeconnexion.addEventListener("click", function(e) {
       e.preventDefault();
-      if (!confirm("Veux-tu vraiment te déconnecter ?")) return;
+
+      if (!confirm("Veux-tu vraiment te déconnecter ?")) {
+        return;
+      }
+
       firebase.auth().signOut()
-        .then(function() { window.location.href = "../connexion.html"; })
+        .then(function() {
+          window.location.href = "../connexion.html";
+        })
         .catch(function(err) {
           console.error("Erreur déconnexion :", err);
           alert("Une erreur est survenue lors de la déconnexion.");
@@ -206,33 +278,89 @@
 
     let classeEleve = null;
 
-    function afficherNiveauxPourClasse(classe) {
-      niveauxContainer.innerHTML = "";
-      const niveau = NIVEAUX.find(function(n) { return n.id === classe; });
+    // Le cours existe-t-il vraiment pour cette matière et cette classe ? (404 = pas encore de page)
+    function verifierCours(niveau) {
+      if (!niveau.actif) { return Promise.resolve(false); }
+      const ctrl = window.AbortController ? new AbortController() : null;
+      const t = setTimeout(function() { if (ctrl) { ctrl.abort(); } }, 3000);
+      return fetch(niveau.lienCours, { method: "HEAD", cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+        .then(function(r) { clearTimeout(t); return r.status !== 404; })
+        .catch(function() { clearTimeout(t); return true; }); // pas de réseau : on laisse le lien actif
+    }
 
-      if (!niveau) {
-        niveauxContainer.innerHTML = "<p>Classe non reconnue : " + classe + "</p>";
-        return;
-      }
+    function rendreNiveau(niveau) {
+      niveauxContainer.innerHTML = "";
 
       const card = document.createElement("div");
       card.className = "niveau-card" + (niveau.actif ? "" : " indisponible");
 
-      const boutonCours = niveau.actif
-        ? "<a href='" + niveau.lienCours + "' class='btn'>Voir les cours</a>"
-        : "<span class='btn btn-disabled'>Cours bientôt disponible</span>";
+      const tete = document.createElement("div");
+      tete.className = "niveau-tete";
+      const tuile = document.createElement("span");
+      tuile.className = "niveau-tuile";
+      tuile.textContent = niveau.nom;
+      const texte = document.createElement("div");
+      const h3 = document.createElement("h3");
+      h3.textContent = "Ta classe : " + niveau.nom;
+      const desc = document.createElement("p");
+      desc.className = "aide";
+      desc.textContent = niveau.desc;
+      texte.appendChild(h3);
+      texte.appendChild(desc);
+      tete.appendChild(tuile);
+      tete.appendChild(texte);
+      card.appendChild(tete);
 
-      const statut = niveau.actif
-        ? "<span class='statut'>Cours disponible</span>"
-        : "<span class='statut'>Préparation en cours</span>";
+      let bouton;
+      if (niveau.actif) {
+        bouton = document.createElement("a");
+        bouton.href = niveau.lienCours;
+        bouton.className = "btn";
+        bouton.textContent = "Voir les cours";
+      } else {
+        bouton = document.createElement("span");
+        bouton.className = "btn btn-disabled";
+        bouton.textContent = "Cours bientôt disponible";
+      }
+      card.appendChild(bouton);
 
-      card.innerHTML = "<h3>" + niveau.nom + "</h3>" + "<p>" + niveau.desc + "</p>" + boutonCours + statut;
+      const statut = document.createElement("span");
+      statut.className = "statut" + (niveau.actif ? "" : " attente");
+      statut.textContent = niveau.actif ? "Cours disponible" : "Préparation en cours";
+      card.appendChild(statut);
+
       niveauxContainer.appendChild(card);
+    }
+
+
+    function afficherNiveauxPourClasse(classe) {
+      niveauxContainer.innerHTML = "";
+
+      const niveau = NIVEAUX.find(function(n) {
+        return n.id === classe;
+      });
+
+      if (!niveau) {
+        const p = document.createElement("p");
+        p.className = "erreur";
+        p.textContent = "Classe non reconnue : " + classe;
+        niveauxContainer.appendChild(p);
+        return;
+      }
+
+      const attente = document.createElement("p");
+      attente.className = "aide";
+      attente.textContent = "Vérification des cours…";
+      niveauxContainer.appendChild(attente);
+
+      verifierCours(niveau).then(function(ok) {
+        rendreNiveau(Object.assign({}, niveau, { actif: ok }));
+      });
     }
 
     window.addEventListener("load", function() {
       if (!firebase.auth || !firebase.database) {
-        niveauxContainer.innerHTML = "<p>Service indisponible pour le moment.</p>";
+        niveauxContainer.innerHTML = "<p class='erreur'>Service indisponible pour le moment.</p>";
         return;
       }
 
@@ -252,24 +380,42 @@
           })
           .then(function(snap) {
             if (!snap || !snap.exists()) {
-              niveauxContainer.innerHTML = "<p>Ton profil élève n’est pas complet.</p>";
+              niveauxContainer.innerHTML = "<p class='erreur'>Ton profil élève n’est pas complet.</p>";
               return;
             }
+
             const data = snap.val();
             classeEleve = data.classe || null;
+
             if (!classeEleve) {
-              niveauxContainer.innerHTML = "<p>Ta classe n’est pas renseignée.</p>";
+              niveauxContainer.innerHTML = "<p class='erreur'>Ta classe n’est pas renseignée.</p>";
               return;
             }
+
             afficherNiveauxPourClasse(classeEleve);
           })
           .catch(function(err) {
             if (err && err.message === "REDIRECT_ADMIN") return;
             console.error("Erreur lecture profil élève :", err);
-            niveauxContainer.innerHTML = "<p>Impossible de charger ta classe pour le moment.</p>";
+            niveauxContainer.innerHTML = "<p class='erreur'>Impossible de charger ta classe pour le moment.</p>";
           });
       });
     });
+  
+    // L'animation se rejoue quand on appuie dessus
+    (function () {
+      let dessin = document.getElementById("scene");
+      function lier() {
+        dessin.addEventListener("click", function () {
+          const copie = dessin.cloneNode(true);
+          dessin.parentNode.replaceChild(copie, dessin);
+          dessin = copie;
+          lier();
+        });
+      }
+      if (dessin) { lier(); }
+    })();
   </script>
+
 </body>
 </html>
