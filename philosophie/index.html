@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="../campus.css">
   <link rel="stylesheet" href="../campus-menu.css">
   <script src="../campus-menu.js" defer></script>
+  <script src="../programme.js"></script>
 
   <style>
     :root{--c:#4A4E69}
@@ -135,7 +136,7 @@
       <div id="niveauxContainer"><p class="aide">Chargement de ta classe…</p></div>
     </section>
 
-    <section class="carte">
+    <section class="carte" id="carte-evaluations">
       <h2>Évaluations</h2>
       <p class="aide">Entraîne-toi ou compose, puis retrouve tes notes par matière.</p>
       <div class="actions-eval">
@@ -149,6 +150,7 @@
   <footer>© 2026 Campus Flex - Tous droits réservés - <a href="../contact.html">Contact</a></footer>
 
   <script>
+    const MATIERE_NOM = "Philosophie";
     const niveauxContainer = document.getElementById("niveauxContainer");
     const btnDeconnexion = document.getElementById("deconnexion");
 
@@ -343,6 +345,17 @@
 
     function afficherNiveauxPourClasse(classe) {
       niveauxContainer.innerHTML = "";
+
+      // Matière hors programme de cette classe (voir programme.js)
+      if (window.CF_PROGRAMME && !window.CF_PROGRAMME.autorisee(classe, MATIERE_NOM)) {
+        const info = document.createElement("p");
+        info.className = "aide";
+        info.textContent = "Cette matière n’est pas au programme de ta classe (" + classe + ").";
+        niveauxContainer.appendChild(info);
+        const carteEval = document.getElementById("carte-evaluations");
+        if (carteEval) { carteEval.hidden = true; }
+        return;
+      }
 
       const niveau = NIVEAUX.find(function(n) {
         return n.id === classe;
