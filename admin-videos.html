@@ -247,23 +247,37 @@
       .modal-buttons { flex-direction: column; }
     }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 
 <body>
 
-  <nav>
-    <h1>Admin - Gestion des vidéos</h1>
-    <ul>
-      <li><a href="admin.html">Tableau de bord</a></li>
-      <li><a href="admin-cours.html">Cours</a></li>
-      <li><a href="admin-eleves.html">Élèves</a></li>
-      <li><a href="admin-resultats.html">Résultats</a></li>
-      <li><a href="index.html">Accueil</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+  <header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="admin.html">Tableau de bord</a>
+        <a href="admin-cours.html">Cours</a>
+        <a href="admin-eleves.html">Élèves</a>
+        <a href="admin-resultats.html">Résultats</a>
+        <a href="index.html">Accueil</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 
   <main>
+
+    <p class="salut ecrit">Gestion des vidéos</p>
+
 
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>

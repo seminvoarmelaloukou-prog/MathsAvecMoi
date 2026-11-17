@@ -50,13 +50,30 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
 .note{font-size:13px;color:#888;margin-top:6px}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 <body>
-<nav>
-  <h1>Admin - Échanges</h1>
-  <div class="liens"><a href="admin.html">Tableau de bord</a><a href="#" id="deconnexion">Déconnexion</a></div>
-</nav>
+<header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="admin.html">Tableau de bord</a>
+        <a href="#" class="sortie" data-deconnexion id="deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 <main>
+
+    <p class="salut ecrit">Échanges</p>
+
   <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification...</p></section>
   <div id="contenu" class="cache">
     <section class="card">
