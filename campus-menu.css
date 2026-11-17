@@ -15,12 +15,16 @@
 .menu-panneau{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .3s ease,visibility 0s linear .3s}
 .menu-panneau.ouvert{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .3s ease,visibility 0s}
 .menu-panneau .interieur{overflow:hidden;min-height:0}
-.menu-panneau .liens{display:grid;gap:4px;padding:4px 20px 20px}
-.menu-panneau a{display:flex;align-items:center;min-height:52px;padding:10px 18px;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:1.1rem}
-.menu-panneau a:hover{background:rgba(255,255,255,.10)}
-.menu-panneau a[aria-current="page"]{background:rgba(255,255,255,.18)}
-.menu-panneau a.cache{display:none !important}
-.menu-panneau a.sortie{margin-top:8px;background:rgba(255,255,255,.08)}
+
+/* Sélecteurs renforcés (.barre …) : le style propre à une page (par exemple « .liens a » pour des boutons
+   de documents) ne doit jamais changer l'apparence du menu. */
+.barre .menu-panneau .liens{display:grid;flex-direction:row;gap:4px;padding:4px 20px 20px;margin:0;border:0;background:transparent;width:auto}
+.barre .menu-panneau .liens a{display:flex;align-items:center;justify-content:flex-start;width:auto;min-height:52px;padding:10px 18px;margin:0;border:0;
+  border-radius:999px;background:transparent;color:#fff;font-size:1.1rem;font-weight:700;text-decoration:none;text-align:left}
+.barre .menu-panneau .liens a:hover{background:rgba(255,255,255,.10)}
+.barre .menu-panneau .liens a[aria-current="page"]{background:rgba(255,255,255,.18);color:#fff}
+.barre .menu-panneau .liens a.sortie{margin-top:8px;background:rgba(255,255,255,.08);color:#fff}
+.barre .menu-panneau .liens a.cache{display:none !important}
 
 @media (prefers-reduced-motion:reduce){
   .menu-panneau,.menu-panneau.ouvert,.burger span{transition:none !important}
