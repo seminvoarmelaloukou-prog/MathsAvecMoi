@@ -19,6 +19,7 @@
 .menu-panneau a{display:flex;align-items:center;min-height:52px;padding:10px 18px;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:1.1rem}
 .menu-panneau a:hover{background:rgba(255,255,255,.10)}
 .menu-panneau a[aria-current="page"]{background:rgba(255,255,255,.18)}
+.menu-panneau a.cache{display:none !important}
 .menu-panneau a.sortie{margin-top:8px;background:rgba(255,255,255,.08)}
 
 @media (prefers-reduced-motion:reduce){

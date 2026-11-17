@@ -79,13 +79,31 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .btn-action .pastille{margin-left:6px}
 @media(max-width:600px){.stat-grid,.actions-grid{grid-template-columns:1fr 1fr}}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 <body>
-<nav>
-  <h1>Espace enseignant</h1>
-  <div class="liens"><a href="index.html">Accueil</a><a href="#" id="lien-admin" class="cache">Administration</a><a href="#" id="deconnexion">Déconnexion</a></div>
-</nav>
+<header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="index.html">Accueil</a>
+        <a href="#" id="lien-admin" class="cache">Administration</a>
+        <a href="#" class="sortie" data-deconnexion id="deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 <main>
+
+    <p class="salut ecrit">Espace enseignant</p>
+
   <section class="card" id="verif"><div class="loader"></div><p id="verif-msg" style="margin-top:10px">Vérification de ton compte...</p></section>
   <div id="contenu" class="cache">
     <section class="card">

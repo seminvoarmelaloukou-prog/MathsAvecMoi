@@ -12,6 +12,7 @@
   <script src="firebase-config.js"></script>
   <script src="suivi-visite.js"></script>
   <script src="roles.js"></script>
+  <script src="programme.js"></script>
 
   <style>
     :root {
@@ -197,21 +198,35 @@
     .zone-bloc .zone-note { font-size: 12px; color: #c0392b; margin-top: 4px; }
     .zone-bloc .zone-effacer { margin-top: 6px; padding: 4px 10px; font-size: 12px; }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 
 <body>
 
-  <nav>
-    <h1>Admin - Gestion des devoirs</h1>
-    <ul>
-      <li><a href="admin.html">Tableau de bord</a></li>
-      <li><a href="admin-evaluations.html">Évaluations</a></li>
-      <li><a href="index.html">Site public</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+  <header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="admin.html">Tableau de bord</a>
+        <a href="admin-evaluations.html">Évaluations</a>
+        <a href="index.html">Site public</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 
   <main>
+
+    <p class="salut ecrit">Gestion des devoirs</p>
+
 
     <section class="card" id="card-admin-check">
       <div class="row">
@@ -298,6 +313,15 @@
       <div class="row">
         <label for="select-sequence">Séquence (optionnel) :</label>
         <select id="select-sequence"></select>
+      </div>
+
+      <div class="row" id="row-partie" hidden>
+        <label for="select-partie">Type de français :</label>
+        <select id="select-partie">
+          <option value="">Tous les types (Lecture et Communication écrite)</option>
+          <option value="lecture">Lecture</option>
+          <option value="communication-ecrite">Communication écrite</option>
+        </select>
       </div>
 
       <p style="font-size: 13px; color: var(--muted); margin-top: -6px;">
@@ -403,6 +427,8 @@
     const titreEditeur = document.getElementById("titre-editeur");
     const inputTitre = document.getElementById("input-titre");
     const selectSequence = document.getElementById("select-sequence");
+    const selectPartie = document.getElementById("select-partie");
+    const rowPartie = document.getElementById("row-partie");
     const fichierDevoir = document.getElementById("fichier-devoir");
     const devoirActuel = document.getElementById("devoir-actuel");
     const fichierCorrige = document.getElementById("fichier-corrige");
@@ -800,6 +826,7 @@
         const meta = document.createElement("p");
         meta.className = "meta";
         let metaTexte = dv.sequence || "Séquence non précisée";
+        if (dv.partie) { metaTexte += " — " + (dv.partie === "lecture" ? "Lecture" : "Communication écrite"); }
         metaTexte += dv.dateCorrige ? " — Corrigé visible dès le " + formaterDate(dv.dateCorrige) : " — Aucune date de corrigé";
         metaTexte += dv.duree ? " — Chronomètre : " + dv.duree + " min" : "";
         meta.textContent = metaTexte;
@@ -868,9 +895,21 @@
         });
     }
 
+    // Français de la 6e à la 3e : deux types (Lecture, Communication écrite). Sinon, pas de choix.
+    function majPartie() {
+      const concerne = selectMatiere.value === "Français" && window.CF_PROGRAMME &&
+        window.CF_PROGRAMME.partiesFrancais(selectClasse.value).length > 0;
+      rowPartie.hidden = !concerne;
+      if (!concerne) { selectPartie.value = ""; }
+    }
+    selectMatiere.addEventListener("change", majPartie);
+    selectClasse.addEventListener("change", majPartie);
+
     function reinitialiserEditeur() {
       inputTitre.value = "";
       selectSequence.value = "";
+      selectPartie.value = "";
+      majPartie();
       fichierDevoir.value = "";
       fichierCorrige.value = "";
       urlDevoirInput.value = "";
@@ -908,6 +947,7 @@
 
       inputTitre.value = dv.titre || "";
       if (dv.sequence) selectSequence.value = dv.sequence;
+      if (dv.partie && !rowPartie.hidden) selectPartie.value = dv.partie;
       urlDevoirInput.value = dv.devoirUrl || "";
       urlCorrigeInput.value = dv.corrigeUrl || "";
       devoirActuel.textContent = dv.devoirUrl ? "Lien actuel gardé si tu ne choisis pas de nouveau fichier ni ne changes le lien." : "";
@@ -997,6 +1037,7 @@
       const classe = selectClasse.value;
       const titre = inputTitre.value.trim();
       const sequence = selectSequence.value;
+      const partie = rowPartie.hidden ? "" : selectPartie.value;
 
       messageEditeur.textContent = "";
       messageEditeur.classList.remove("success", "error");
@@ -1087,6 +1128,7 @@
           const devoirData = {
             titre: titre,
             sequence: sequence || "",
+            partie: partie,
             classe: classe,
             matiere: matiere,
             devoirUrl: urlDevoirFinale,

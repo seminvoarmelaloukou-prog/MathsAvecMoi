@@ -11,6 +11,7 @@
   <script src="firebase-config.js"></script>
   <script src="suivi-visite.js"></script>
   <script src="roles.js"></script>
+  <script src="programme.js"></script>
 
   <style>
     :root {
@@ -273,20 +274,35 @@
     .zone-bloc .zone-note { font-size: 12px; color: #c0392b; margin-top: 4px; }
     .zone-bloc .zone-effacer { margin-top: 6px; padding: 4px 10px; font-size: 12px; }
   </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 
 <body>
 
-  <nav>
-    <h1>Admin - Gestion des évaluations</h1>
-    <ul>
-      <li><a href="admin.html">Tableau de bord</a></li>
-      <li><a href="index.html">Site public</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+  <header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="admin.html">Tableau de bord</a>
+        <a href="admin-devoirs.html">Devoirs</a>
+        <a href="index.html">Site public</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 
   <main>
+
+    <p class="salut ecrit">Gestion des évaluations</p>
+
 
     <section class="card" id="card-admin-check">
       <h2>Vérification</h2>
@@ -400,6 +416,15 @@
       <div class="row">
         <label for="select-sequence">Séquence :</label>
         <select id="select-sequence"></select>
+      </div>
+
+      <div class="row" id="row-partie" hidden>
+        <label for="select-partie">Type de français :</label>
+        <select id="select-partie">
+          <option value="">Tous les types (Lecture et Communication écrite)</option>
+          <option value="lecture">Lecture</option>
+          <option value="communication-ecrite">Communication écrite</option>
+        </select>
       </div>
 
       <div class="row">
@@ -522,6 +547,8 @@ Points : 2</pre>
     const selectTitre = document.getElementById("select-titre");
     const inputTitreAutre = document.getElementById("input-titre-autre");
     const selectSequence = document.getElementById("select-sequence");
+    const selectPartie = document.getElementById("select-partie");
+    const rowPartie = document.getElementById("row-partie");
     const rowDuree = document.getElementById("row-duree");
     const inputDuree = document.getElementById("input-duree");
     const listeQuestionsEditeur = document.getElementById("liste-questions-editeur");
@@ -708,7 +735,7 @@ Points : 2</pre>
 
         const meta = document.createElement("p");
         meta.className = "meta";
-        meta.textContent = (ep.sequence || "Séquence non précisée") + " — " + (ep.format === "document" ? "document" : nbQuestions + " question(s)") +
+        meta.textContent = (ep.sequence || "Séquence non précisée") + (ep.partie ? " (" + (ep.partie === "lecture" ? "Lecture" : "Communication écrite") + ")" : "") + " — " + (ep.format === "document" ? "document" : nbQuestions + " question(s)") +
           (ep.duree ? " — " + ep.duree + " min" : "");
         infos.appendChild(meta);
 
@@ -934,8 +961,20 @@ Points : 2</pre>
     }
 
     // ---------- Ouverture / fermeture de l'éditeur ----------
+    // Français de la 6e à la 3e : deux types (Lecture, Communication écrite). Sinon, pas de choix.
+    function majPartie() {
+      const concerne = selectMatiere.value === "Français" && window.CF_PROGRAMME &&
+        window.CF_PROGRAMME.partiesFrancais(selectClasse.value).length > 0;
+      rowPartie.hidden = !concerne;
+      if (!concerne) { selectPartie.value = ""; }
+    }
+    selectMatiere.addEventListener("change", majPartie);
+    selectClasse.addEventListener("change", majPartie);
+
     function reinitialiserEditeur() {
       selectTitre.value = "";
+      selectPartie.value = "";
+      majPartie();
       inputTitreAutre.value = "";
       inputTitreAutre.style.display = "none";
       selectSequence.value = "";
@@ -984,6 +1023,10 @@ Points : 2</pre>
 
       if (ep.sequence) {
         selectSequence.value = ep.sequence;
+      }
+
+      if (ep.partie && !rowPartie.hidden) {
+        selectPartie.value = ep.partie;
       }
 
       selectFormat.value = ep.format === "document" ? "document" : "qcm";
@@ -1073,6 +1116,7 @@ Points : 2</pre>
         const epreuveDoc = {
           titre: titre,
           sequence: sequence,
+          partie: (rowPartie.hidden ? "" : selectPartie.value),
           classe: classe,
           matiere: matiere,
           type: type,
@@ -1124,6 +1168,7 @@ Points : 2</pre>
       const epreuveData = {
         titre: titre,
         sequence: sequence,
+        partie: (rowPartie.hidden ? "" : selectPartie.value),
         classe: classe,
         matiere: matiere,
         type: type,

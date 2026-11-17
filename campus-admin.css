@@ -1,0 +1,36 @@
+/* Campus Flex – harmonisation visuelle des pages d'administration et enseignant
+   Ne change que l'apparence (couleurs, bordures, polices) : aucune mise en page n'est modifiée. */
+[hidden]{display:none !important}
+
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif !important;
+  background-color:#F4F8FD !important;
+  background-image:linear-gradient(#D3DEF1 1px,transparent 1px),linear-gradient(90deg,#D3DEF1 1px,transparent 1px) !important;
+  background-size:30px 30px !important;
+  -webkit-text-size-adjust:100%;
+}
+.salut{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:clamp(2rem,9vw,2.7rem);line-height:1.1;color:#2c3e8c;margin:0 0 16px}
+.salut.ecrit{clip-path:inset(0 100% 0 0);animation:ecrire-a 1s steps(18,end) .1s forwards}
+@keyframes ecrire-a{to{clip-path:inset(0 0 0 0)}}
+
+/* Cartes : même cadre que le reste du site */
+.card,.stat-box,.btn-action,.devoir-item,.epreuve-item,.question-card,.stat,.eleve,.thread{border-radius:8px}
+.card{border:2px solid #2c3e8c !important;box-shadow:none !important}
+.card h2{letter-spacing:-.01em}
+.stat-box,.btn-action,.devoir-item,.epreuve-item,.question-card{box-shadow:none !important}
+
+/* Champs et boutons */
+select,input[type="text"],input[type="number"],input[type="date"],textarea{
+  border:2px solid #AEBBDA !important;border-radius:10px !important;font-size:16px !important;font-family:inherit}
+/* Les champs « fichier » gardent leur taille d'origine (sinon ils débordent de l'écran) */
+input[type="file"]{max-width:100%;min-width:0;font-family:inherit}
+.row > *{min-width:0}
+select:focus,input:focus,textarea:focus{border-color:#2c3e8c !important;outline:none;box-shadow:0 0 0 3px rgba(243,156,18,.45)}
+button{border-radius:10px;font-family:inherit;transition:transform .12s ease}
+button:active{transform:scale(.97)}
+
+/* Pas d'animation si l'appareil la refuse */
+@media (prefers-reduced-motion:reduce){
+  .salut.ecrit{animation:none;clip-path:none}
+  button{transition:none}
+}
