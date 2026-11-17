@@ -440,6 +440,8 @@ function colonnes() { return CTX && CTX.matiere === "Conduite" ? COLONNES_CONDUI
             const r = paire[1][k];
             if (!r || typeof r !== "object" || !r.epreuveId) return;
             if ((r.matiere || "Mathématiques") !== CTX.matiere) return;
+            // Français de la 6e à la 3e : une épreuve marquée Lecture ou Communication écrite va dans sa colonne ; sans marque, dans les deux
+            if (CTX.matiere === "Français" && COLLEGE.indexOf(CTX.classe) !== -1 && r.partie && r.partie !== CTX.sub) return;
             if (!(r.date >= debut && r.date <= fin) || !(r.totalPoints > 0)) return;
             const n = (r.score / r.totalPoints) * 20;
             if (meilleur[r.epreuveId] === undefined || n > meilleur[r.epreuveId]) meilleur[r.epreuveId] = n;

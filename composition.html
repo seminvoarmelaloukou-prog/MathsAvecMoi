@@ -21,6 +21,9 @@
 <style>
 [hidden]{display:none !important}
 .retour{margin-bottom:14px;min-height:44px;padding:8px 16px}
+.onglets{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.onglets button{min-height:44px;padding:8px 16px;border-radius:999px;background:transparent;color:var(--ink);border-color:var(--ink);font-size:.95rem}
+.onglets button[aria-pressed="true"]{background:var(--btn-bg);color:var(--btn-fg)}
 
 /* Type d'évaluation */
 .types{display:grid;gap:10px;margin:12px 0 6px}
@@ -131,6 +134,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
     <button type="button" class="sec retour" id="btn-retour-choix">← Changer de matière</button>
     <h2 id="titre-liste"></h2>
     <p class="aide" id="aide-liste" style="margin-bottom:14px"></p>
+    <div class="onglets" id="parties-fr" role="group" aria-label="Type de français" hidden></div>
     <div class="loader" id="loader-liste" hidden></div>
     <div id="liste-epreuves"></div>
   </section>
@@ -242,6 +246,42 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
     m.className = "aide";
   }
 
+  // Français de la 6e à la 3e : deux types (Lecture, Communication écrite). Au second cycle : français seul.
+  var partieChoisie = "tous";
+
+  function nomPartie(id) {
+    if (id === "lecture") { return "Lecture"; }
+    if (id === "communication-ecrite") { return "Communication écrite"; }
+    return "";
+  }
+
+  function preparerParties() {
+    var zone = $("parties-fr");
+    zone.innerHTML = "";
+    zone.hidden = true;
+    partieChoisie = "tous";
+    if (matiere.nom !== "Français" || !window.CF_PROGRAMME) { return; }
+    var parties = window.CF_PROGRAMME.partiesFrancais(classe);
+    if (!parties.length) { return; }
+
+    var voulue = new URLSearchParams(window.location.search).get("partie");
+    if (parties.some(function (p) { return p.id === voulue; })) { partieChoisie = voulue; }
+
+    [{ id: "tous", nom: "Tous" }].concat(parties).forEach(function (p) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = p.nom;
+      b.setAttribute("aria-pressed", p.id === partieChoisie ? "true" : "false");
+      b.addEventListener("click", function () {
+        partieChoisie = p.id;
+        Array.prototype.forEach.call(zone.children, function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+        afficherListe();
+      });
+      zone.appendChild(b);
+    });
+    zone.hidden = false;
+  }
+
   function libelleType() { return type === "officielle" ? "Évaluation officielle" : "Évaluation blanche"; }
   function cheminResultats() {
     return (type === "officielle" ? "evaluations/resultats/" : "evaluations_blanches/resultats/") + uid;
@@ -333,6 +373,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
   /* ---------- Liste des épreuves d'une matière ---------- */
   function ouvrirListe(m) {
     matiere = m;
+    preparerParties();
     montrer("card-liste");
     $("titre-liste").textContent = libelleType() + " — " + m.nom;
     $("aide-liste").textContent = "";
@@ -375,6 +416,13 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
       $("aide-liste").textContent = "Aucune épreuve disponible pour ta classe (" + classe + ") dans cette matière pour le moment.";
       return;
     }
+    // Une épreuve marquée « Lecture » ou « Communication écrite » n'apparaît que dans son type ; sans marque, elle apparaît partout
+    ids = ids.filter(function (id) { return partieChoisie === "tous" || !epreuves[id].partie || epreuves[id].partie === partieChoisie; });
+    if (!ids.length) {
+      $("aide-liste").className = "aide";
+      $("aide-liste").textContent = "Aucune épreuve de ce type pour le moment.";
+      return;
+    }
     $("aide-liste").className = "aide";
     $("aide-liste").textContent = "Choisis l'épreuve à passer.";
 
@@ -395,6 +443,10 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
       if (ep.duree) meta.push(ep.duree + " min");
       var m = document.createElement("span"); m.className = "meta"; m.textContent = meta.join(" · ");
       b.appendChild(t); b.appendChild(m);
+      if (ep.partie && nomPartie(ep.partie)) {
+        var pb = document.createElement("span"); pb.className = "statut"; pb.textContent = nomPartie(ep.partie);
+        b.appendChild(pb);
+      }
 
       var statut = null;
       if (!estDoc && s && type === "officielle") {
@@ -440,7 +492,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
 
   /* ---------- Avant de commencer ---------- */
   function preparerDepart(id, ep, nb) {
-    $("titre-depart").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+    $("titre-depart").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "") + (ep.partie ? " · " + nomPartie(ep.partie) : "");
     var infos = [nb + " question" + (nb > 1 ? "s" : "")];
     if (type === "officielle" && ep.duree) infos.push("durée : " + ep.duree + " minutes");
     $("infos-depart").textContent = infos.join(" · ");
@@ -458,7 +510,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
     questions = ep.questions || {};
     cles = Object.keys(questions).filter(function (k) { return questions[k].active !== false; });
 
-    $("titre-eval").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+    $("titre-eval").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "") + (ep.partie ? " · " + nomPartie(ep.partie) : "");
     var liste = $("liste-questions");
     liste.innerHTML = "";
 
@@ -588,6 +640,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
       epreuveId: epreuveId,
       titre: ep.titre || "",
       sequence: ep.sequence || "",
+      partie: ep.partie || "",
       date: maintenant,
       score: score,
       totalPoints: total,
@@ -655,7 +708,7 @@ details.corrige>summary{cursor:pointer;min-height:48px;display:flex;align-items:
 
   function ouvrirDocument(ep) {
     arreterChronoDoc();
-    $("titre-document").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "");
+    $("titre-document").textContent = libelleType() + " — " + (ep.titre || "") + (ep.sequence ? " (" + ep.sequence + ")" : "") + (ep.partie ? " · " + nomPartie(ep.partie) : "");
     var liens = $("liens-document"); liens.innerHTML = "";
     var texte = $("texte-document"); texte.innerHTML = "";
     var zone = $("zone-corrige"); zone.innerHTML = "";

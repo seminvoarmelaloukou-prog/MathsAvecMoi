@@ -186,6 +186,11 @@
     return typeof r.totalPoints === "number" ? r.totalPoints : (typeof r.maxScore === "number" ? r.maxScore : null);
   }
   function matiereDe(r) { return (r.matiere && String(r.matiere).trim()) || MATIERE_PAR_DEFAUT; }
+  function nomPartie(id) {
+    if (id === "lecture") { return "Lecture"; }
+    if (id === "communication-ecrite") { return "Communication écrite"; }
+    return "";
+  }
   function infoMatiere(nom) {
     for (var i = 0; i < MATIERES.length; i++) { if (MATIERES[i].nom === nom) { return MATIERES[i]; } }
     return { nom: nom, court: nom.slice(0, 2), couleur: "#46547A" };
@@ -217,18 +222,28 @@
     }
 
     // Regroupement par matière
+    // Le français a deux types de la 6e à la 3e (Lecture, Communication écrite) : ils forment deux groupes distincts
     var groupes = {};
     visibles.forEach(function (r) {
       var m = matiereDe(r);
-      (groupes[m] = groupes[m] || []).push(r);
+      var cle = (m === "Français" && nomPartie(r.partie)) ? m + "||" + r.partie : m;
+      (groupes[cle] = groupes[cle] || []).push(r);
     });
 
-    var ordre = MATIERES.map(function (m) { return m.nom; }).filter(function (n) { return groupes[n]; });
-    Object.keys(groupes).sort().forEach(function (n) { if (ordre.indexOf(n) === -1) { ordre.push(n); } });
+    function rang(cle) {
+      var morceaux = cle.split("||");
+      var i = MATIERES.map(function (x) { return x.nom; }).indexOf(morceaux[0]);
+      var sous = morceaux[1] === "lecture" ? 0 : (morceaux[1] === "communication-ecrite" ? 1 : 2);
+      return (i === -1 ? 1000 : i) * 10 + sous;
+    }
+    var ordre = Object.keys(groupes).sort(function (a, b) { return rang(a) - rang(b) || (a < b ? -1 : 1); });
 
-    ordre.forEach(function (nom, gi) {
-      var liste = groupes[nom].sort(function (a, b) { return (getDate(b) || 0) - (getDate(a) || 0); });
-      var info = infoMatiere(nom);
+    ordre.forEach(function (cle, gi) {
+      var liste = groupes[cle].sort(function (a, b) { return (getDate(b) || 0) - (getDate(a) || 0); });
+      var base = cle.split("||")[0];
+      var partieGroupe = cle.split("||")[1] || "";
+      var nom = base + (partieGroupe ? " — " + nomPartie(partieGroupe) : "");
+      var info = infoMatiere(base);
 
       var carte = document.createElement("section");
       carte.className = "carte";
