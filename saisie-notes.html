@@ -506,6 +506,7 @@ function colonnes() { return CTX && CTX.matiere === "Conduite" ? COLONNES_CONDUI
         return db.ref("enseignants/" + user.uid).once("value").then(function(p) {
           const prof = p.val();
           if (!prof || prof.statut !== "actif") { refuser("Accès réservé aux enseignants actifs et à l'administrateur."); return; }
+          if (!(prof.droits && prof.droits.notes === true)) { refuser("La saisie des notes n'est pas encore autorisée pour ton compte. Demande l'autorisation à l'administrateur."); return; }
           ROLE = "prof"; PROFIL = prof; remplirChoix();
         });
       }).catch(function(e) { refuser("Erreur : " + e.message); });

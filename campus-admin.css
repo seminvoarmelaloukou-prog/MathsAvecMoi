@@ -15,9 +15,11 @@ body{
 
 /* Cartes : même cadre que le reste du site */
 .card,.stat-box,.btn-action,.devoir-item,.epreuve-item,.question-card,.stat,.eleve,.thread{border-radius:8px}
-.card{border:2px solid #2c3e8c !important;box-shadow:none !important}
+.card{border:2px solid #2c3e8c !important;box-shadow:none !important;max-width:100%;overflow-x:auto}
 .card h2{letter-spacing:-.01em}
 .stat-box,.btn-action,.devoir-item,.epreuve-item,.question-card{box-shadow:none !important}
+
+.btn-action.verrouille{opacity:.55;cursor:not-allowed;background:#eef1fa !important;border-style:dashed !important}
 
 /* Champs et boutons */
 select,input[type="text"],input[type="number"],input[type="date"],textarea{
