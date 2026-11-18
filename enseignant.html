@@ -115,6 +115,9 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         <div class="stat-box"><h3>Mes élèves</h3><div class="valeur" id="stat-eleves">–</div><div class="sous-texte" id="stat-eleves-detail">Chargement...</div></div>
         <div class="stat-box"><h3>Modifier un contenu</h3><div class="valeur petit" id="stat-modifier">–</div><div class="sous-texte">Cours, vidéos, devoirs, épreuves</div></div>
         <div class="stat-box"><h3>Supprimer un contenu</h3><div class="valeur petit" id="stat-supprimer">–</div><div class="sous-texte">Cours, vidéos, devoirs, épreuves</div></div>
+        <div class="stat-box"><h3>Notes</h3><div class="valeur petit" id="stat-notes">–</div><div class="sous-texte">Saisie et import des notes</div></div>
+        <div class="stat-box"><h3>Emploi du temps</h3><div class="valeur petit" id="stat-edt">–</div><div class="sous-texte">Mon emploi du temps</div></div>
+        <div class="stat-box"><h3>Coefficients</h3><div class="valeur petit" id="stat-coefficients">–</div><div class="sous-texte">Propositions de coefficients</div></div>
       </div>
       <p class="note" id="droits-prof" style="margin-top:12px"></p>
     </section>
@@ -128,9 +131,9 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         <a href="admin-videos.html" class="btn-action">Gestion des vidéos</a>
         <a href="admin-evaluations.html" class="btn-action">Évaluations</a>
         <a href="admin-devoirs.html" class="btn-action">Devoirs</a>
-        <a href="enseignant-coefficients.html" class="btn-action">Coefficients</a>
-        <a href="saisie-notes.html" class="btn-action">Notes</a>
-        <a href="emploi-enseignant.html" class="btn-action">Mon emploi du temps</a>
+        <a href="enseignant-coefficients.html" class="btn-action" id="outil-coefficients">Coefficients</a>
+        <a href="saisie-notes.html" class="btn-action" id="outil-notes">Notes</a>
+        <a href="emploi-enseignant.html" class="btn-action" id="outil-edt">Mon emploi du temps</a>
         <a href="enseignant-echanges.html" class="btn-action" id="outil-echanges">Échanges</a>
       </div>
     </section>
@@ -172,7 +175,16 @@ auth.onAuthStateChanged(function(u){
     $("stat-modifier").textContent=dr.modifier===true?"Autorisée":"Verrouillée";
     $("stat-supprimer").textContent=dr.supprimer===true?"Autorisée":"Verrouillée";
     statsEleves();
-    $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, il faut l'autorisation de l'administrateur.";
+    // Notes, emploi du temps et coefficients : seulement avec l'autorisation de l'administrateur
+    [["notes","Notes"],["edt","Emploi du temps"],["coefficients","Coefficients"]].forEach(function(a){
+      const ok=dr[a[0]]===true, lien=$("outil-"+a[0]);
+      $("stat-"+a[0]).textContent=ok?"Autorisé":"À demander";
+      if(!ok){
+        lien.classList.add("verrouille");lien.setAttribute("aria-disabled","true");lien.textContent=a[1]+" (autorisation requise)";
+        lien.addEventListener("click",function(e){e.preventDefault();$("droits-prof").textContent="« "+a[1]+" » n'est pas encore autorisé pour ton compte. Demande l'autorisation à l'administrateur.";});
+      }
+    });
+    $("droits-prof").textContent="Tu peux toujours ajouter des cours, vidéos, devoirs et épreuves dans tes classes et tes matières. Pour modifier ou supprimer un contenu déjà publié, ainsi que pour les notes, l'emploi du temps et les coefficients, il faut l'autorisation de l'administrateur.";
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
 

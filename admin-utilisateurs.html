@@ -56,18 +56,32 @@ td button{margin-right:4px}
 .menu-coches .liste-coches{display:grid;grid-template-columns:1fr;gap:3px;max-height:190px;overflow:auto;background:#f5f7ff;border:1px solid #dde3f5;border-radius:8px;padding:8px;margin-top:4px;min-width:150px}
 .droits{display:flex;flex-direction:column;gap:3px}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 <body>
-<nav>
-  <h1>Admin - Utilisateurs</h1>
-  <ul>
-    <li><a href="admin.html">Tableau de bord</a></li>
-    <li><a href="admin-eleves.html">Créer / modifier un élève</a></li>
-    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-  </ul>
-</nav>
+<header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="admin.html">Tableau de bord</a>
+        <a href="admin-eleves.html">Créer / modifier un élève</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 
 <main>
+
+    <p class="salut ecrit">Utilisateurs</p>
+
   <section class="card" id="card-check">
     <div class="row"><div class="loader" id="loader"></div><p id="check-msg">Vérification de tes droits administrateur...</p></div>
   </section>
@@ -108,7 +122,7 @@ td button{margin-right:4px}
         <div class="row"><button data-act="creer">+ Nouvel enseignant</button></div>
         <p class="message" style="margin:8px 0">Un enseignant peut toujours <b>ajouter</b> des cours, vidéos, devoirs et épreuves dans ses classes et matières. Coche « Modifier » ou « Supprimer » pour l'autoriser à changer ou effacer un contenu déjà publié. Les choix de classes et de matières s'enregistrent dès que tu coches.</p>
         <table>
-          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Droits sur les contenus</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Droits sur les contenus</th><th>Autorisations</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
           <tbody id="t-profs"></tbody>
         </table>
       </div>
@@ -283,6 +297,12 @@ function menuCoches(type,uid,liste,actuel,titre){
   const n=cles(actuel).filter(k=>actuel[k]===true).length;
   return `<details class="menu-coches"><summary>${titre} (${n})</summary><div class="liste-coches">${liste.map(x=>`<label class="chk"><input type="checkbox" data-pc="${type}" data-val="${esc(x)}" data-id="${uid}"${actuel&&actuel[x]===true?" checked":""}> ${esc(x)}</label>`).join("")}</div></details>`;
 }
+// Autorisations à accorder d'abord par l'administrateur : sans elles, l'enseignant n'a pas accès (voir les règles Firebase)
+const AUTORISATIONS=[["notes","Notes"],["edt","Emploi du temps"],["coefficients","Coefficients"]];
+function autorisationsProf(p){
+  const d=p.droits||{};
+  return AUTORISATIONS.map(a=>`<label class="chk"><input type="checkbox" data-droit="${a[0]}" data-id="${p.uid}"${d[a[0]]===true?" checked":""}> ${a[1]}</label>`).join("");
+}
 function droitsProf(p){
   const d=p.droits||{};
   return `<label class="chk"><input type="checkbox" data-droit="modifier" data-id="${p.uid}"${d.modifier===true?" checked":""}> Modifier</label><label class="chk"><input type="checkbox" data-droit="supprimer" data-id="${p.uid}"${d.supprimer===true?" checked":""}> Supprimer</label>`;
@@ -299,7 +319,7 @@ function tableProfs(){
   const pill={actif:["vert","Actif"],suspendu:["rouge","Suspendu"],refuse:["gris","Refusé"]};
   $("t-profs").innerHTML=l.length?l.map(p=>{const s=pill[p.statut]||["gris",p.statut||"?"];
     return `<tr><td>${esc(p.nom)}</td><td>${esc(p.prenom)}</td><td>${esc(p.email)}</td>
-    <td>${menuCoches("matieres",p.uid,MATIERES,p.matieres,"Matières")}</td><td>${menuCoches("classes",p.uid,CLASSES_CONTENU,p.classes,"Classes")}</td><td><div class="droits">${droitsProf(p)}</div></td>
+    <td>${menuCoches("matieres",p.uid,MATIERES,p.matieres,"Matières")}</td><td>${menuCoches("classes",p.uid,CLASSES_CONTENU,p.classes,"Classes")}</td><td><div class="droits">${droitsProf(p)}</div></td><td><div class="droits">${autorisationsProf(p)}</div></td>
     <td><span class="pill ${s[0]}">${s[1]}</span></td>
     <td>${derniereConn(p.uid)}</td>
     <td><button class="wa" data-act="wa-prof" data-id="${p.uid}">WhatsApp</button>
@@ -307,7 +327,7 @@ function tableProfs(){
     <button data-act="edit-prof" data-id="${p.uid}">Modifier</button>
     <button class="warning" data-act="toggle-prof" data-id="${p.uid}">${p.statut==="actif"?"Suspendre":"Activer"}</button>
     <button class="danger" data-act="del-prof" data-id="${p.uid}">Supprimer</button></td></tr>`;}).join("")
-    :'<tr><td colspan="9">Aucun enseignant.</td></tr>';
+    :'<tr><td colspan="10">Aucun enseignant.</td></tr>';
 }
 
 function tableAttente(l){
@@ -669,7 +689,7 @@ document.addEventListener("change",function(e){
     const uid=t.dataset.id,d=t.dataset.droit;
     db.ref("enseignants/"+uid+"/droits/"+d).set(t.checked).then(()=>{
       profs[uid].droits=profs[uid].droits||{};profs[uid].droits[d]=t.checked;
-      msg("Droit « "+(d==="modifier"?"Modifier":"Supprimer")+" » "+(t.checked?"activé":"retiré")+" pour cet enseignant.",true);
+      msg("Droit « "+({modifier:"Modifier",supprimer:"Supprimer",notes:"Notes",edt:"Emploi du temps",coefficients:"Coefficients"}[d]||d)+" » "+(t.checked?"activé":"retiré")+" pour cet enseignant.",true);
     }).catch(x=>{t.checked=!t.checked;msg("Erreur : "+x.message,false);});
     return;
   }
