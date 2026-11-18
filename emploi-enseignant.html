@@ -50,16 +50,30 @@ button.sec{background:var(--amber)}
 .libre{color:var(--muted);font-size:14px;padding:4px 2px}
 @media(max-width:420px){.ligne .h{flex-basis:84px}}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 <body>
-<nav>
-  <h1>Mon emploi du temps</h1>
-  <ul>
-    <li><a href="enseignant.html">Retour</a></li>
-    <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-  </ul>
-</nav>
+<header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="enseignant.html">Mon espace</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 <main>
+
+    <p class="salut ecrit">Mon emploi du temps</p>
+
 
   <section class="card"><h2 id="titre">Mon emploi du temps</h2><p class="aide" id="info">Chargement...</p></section>
   <div class="onglets" id="onglets" role="tablist" style="display:none"></div>
@@ -164,6 +178,7 @@ auth.onAuthStateChanged(function(u){
   db.ref("enseignants/"+u.uid).once("value").then(function(s){
     if(!s.exists()){$("info").textContent="Ce compte n'est pas un compte enseignant.";return null;}
     if(s.val().statut!=="actif"){$("info").textContent="Ton compte enseignant n'est pas encore actif.";return null;}
+    if(!(s.val().droits&&s.val().droits.edt===true)){$("info").textContent="L'emploi du temps n'est pas encore autorisé pour ton compte. Demande l'autorisation à l'administrateur.";return null;}
     PROFIL=s.val();
     return charger(u,PROFIL).then(function(){return true;});
   }).then(function(ok){
