@@ -165,9 +165,9 @@
     td.coche input { width: 22px; height: 22px; }
   </style>
   <style>
-    .barre { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 10px 0; }
-    .barre > div { display: flex; flex-direction: column; gap: 4px; }
-    .barre label { font-size: 13px; color: var(--muted); }
+    .barre-filtres { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 10px 0; }
+    .barre-filtres > div { display: flex; flex-direction: column; gap: 4px; }
+    .barre-filtres label { font-size: 13px; color: var(--muted); }
     td.note input { width: 62px; text-align: center; padding: 6px 4px; }
     td.note input.invalide { border-color: var(--error); background: #fdecea; }
     td.note input.qcm { background: #eef6ff; }
@@ -178,26 +178,40 @@
     .cache { display: none !important; }
   </style>
 <script src="bulletin-lib.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
 </head>
 
 <body>
 
-  <nav>
-    <h1>Saisie des notes</h1>
-    <ul>
-      <li><a href="enseignant.html" id="lien-retour">Mon espace</a></li>
-      <li><a href="index.html">Accueil</a></li>
-      <li><a href="#" id="lien-deconnexion">Déconnexion</a></li>
-    </ul>
-  </nav>
+  <header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="enseignant.html" id="lien-retour">Mon espace</a>
+        <a href="index.html">Accueil</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
 
   <main>
+
+    <p class="salut ecrit">Saisie des notes</p>
+
     <section class="card">
       <h2>Notes du semestre</h2>
       <p id="msg-acces" class="message">Vérification de tes droits...</p>
 
       <div id="zone-choix" class="cache">
-        <div class="barre">
+        <div class="barre-filtres">
           <div><label for="s-classe">Classe</label><select id="s-classe"></select></div>
           <div><label for="s-sem">Semestre</label>
             <select id="s-sem"><option value="s1">Semestre 1</option><option value="s2">Semestre 2</option></select></div>

@@ -110,6 +110,7 @@ td button{margin-right:4px}
           <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Classe</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
           <tbody id="t-eleves"></tbody>
         </table>
+        <div class="boite-ajout"><a class="btn-lien" href="admin-eleves.html">+ Nouvel élève</a></div>
       </div>
 
       <div id="tab-profs" class="cache">
@@ -119,12 +120,24 @@ td button{margin-right:4px}
           <input type="text" id="fp-q" data-garder placeholder="Nom, prénom, e-mail, téléphone...">
           <button class="mail" data-act="mail-groupe-profs">✉ E-mail à la liste affichée</button>
         </div>
-        <div class="row"><button data-act="creer">+ Nouvel enseignant</button></div>
         <p class="message" style="margin:8px 0">Un enseignant peut toujours <b>ajouter</b> des cours, vidéos, devoirs et épreuves dans ses classes et matières. Coche « Modifier » ou « Supprimer » pour l'autoriser à changer ou effacer un contenu déjà publié. Les choix de classes et de matières s'enregistrent dès que tu coches.</p>
+        <div class="row collectif">
+          <b>Action collective :</b>
+          <select id="col-autor" aria-label="Autorisation concernée">
+            <option value="notes">Notes</option>
+            <option value="edt">Emploi du temps</option>
+            <option value="coefficients">Coefficients</option>
+            <option value="modifier">Modifier (contenus)</option>
+            <option value="supprimer">Supprimer (contenus)</option>
+          </select>
+          <button id="col-oui" type="button">Autoriser tous les enseignants affichés</button>
+          <button id="col-non" type="button" class="warning">Retirer à tous les enseignants affichés</button>
+        </div>
         <table>
           <thead><tr><th>Nom</th><th>Prénom</th><th>E-mail</th><th>Matières</th><th>Classes</th><th>Droits sur les contenus</th><th>Autorisations</th><th>Statut</th><th>Dernière visite</th><th>Actions</th></tr></thead>
           <tbody id="t-profs"></tbody>
         </table>
+        <div class="boite-ajout"><button type="button" data-act="creer">+ Nouvel enseignant</button></div>
       </div>
 
       <div id="tab-attente" class="cache">
@@ -723,6 +736,24 @@ $("btn-norm").addEventListener("click",function(){
 $("f-classe").innerHTML='<option value="">Toutes les classes</option>'+CLASSES.map(c=>`<option>${c}</option>`).join("");
 $("f-classe").addEventListener("change",tableEleves);
 $("f-q").addEventListener("input",tableEleves);
+
+// Action collective : une autorisation (ou un droit) pour tous les enseignants de la liste affichée
+const LIBELLES_DROITS={modifier:"Modifier",supprimer:"Supprimer",notes:"Notes",edt:"Emploi du temps",coefficients:"Coefficients"};
+function actionCollective(valeur){
+  const d=$("col-autor").value,l=listeProfsAffichee||[];
+  if(!l.length){msg("Aucun enseignant dans la liste affichée.",false);return;}
+  const quoi="« "+LIBELLES_DROITS[d]+" » pour "+l.length+" enseignant"+(l.length>1?"s":"")+" de la liste affichée";
+  if(!confirm((valeur?"Autoriser ":"Retirer ")+quoi+" ?"))return;
+  const maj={};
+  l.forEach(p=>{maj[p.uid+"/droits/"+d]=valeur;});
+  db.ref("enseignants").update(maj).then(()=>{
+    l.forEach(p=>{profs[p.uid].droits=profs[p.uid].droits||{};profs[p.uid].droits[d]=valeur;});
+    tableProfs();
+    msg("Droit "+quoi+" : "+(valeur?"activé":"retiré")+".",true);
+  }).catch(x=>msg("Erreur : "+x.message,false));
+}
+$("col-oui").addEventListener("click",()=>actionCollective(true));
+$("col-non").addEventListener("click",()=>actionCollective(false));
 $("fp-classe").innerHTML='<option value="">Toutes les classes</option>'+CLASSES_CONTENU.map(c=>`<option>${esc(c)}</option>`).join("");
 $("fp-matiere").innerHTML='<option value="">Toutes les matières</option>'+MATIERES.map(m=>`<option>${esc(m)}</option>`).join("");
 $("fp-classe").addEventListener("change",tableProfs);$("fp-matiere").addEventListener("change",tableProfs);$("fp-q").addEventListener("input",tableProfs);
