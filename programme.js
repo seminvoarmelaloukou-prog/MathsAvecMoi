@@ -2,7 +2,7 @@
    Règles appliquées :
    - PCT : pas pour les classes littéraires (séries A et AB)
    - Philosophie : pas pour le premier cycle (6e, 5e, 4e, 3e)
-   - Espagnol et Allemand : pas pour la 6e, la 5e ni les terminales C, D et E
+   - Espagnol et Allemand : pas pour la 6e, la 5e ni les séries scientifiques C, D et E (2de, 1re et Tle)
    - Français : deux types (Lecture, Communication écrite) de la 6e à la 3e, un seul au second cycle
    Si la classe est inconnue, aucune matière n'est cachée. */
 (function () {
@@ -21,14 +21,15 @@
   }
   function premierCycle(n) { return /^[3-6](e|eme)$/.test(n); }
   function sixiemeCinquieme(n) { return /^[56](e|eme)$/.test(n); }
-  function terminaleScientifique(n) { return /^(tle|terminale)(c|d|e)$/.test(n); }
+  // 2de C/D/E, 1re C/D/E, Tle C/D/E  (aussi écrits 2nde D, 1ère E, TleC, Terminale D...)
+  function serieScientifique(n) { return /^((2|1)(nde|de|re|ere)|tle|terminale)(c|d|e)$/.test(n); }
   function litteraire(n) { return /^((2|1)(nde|de|re|ere)|tle|terminale)(a|ab|a1|a2)$/.test(n); }
 
   function autorisee(classe, matiere) {
     var n = norm(classe);
     if (!n) { return true; }
     if (matiere === "Philosophie" && premierCycle(n)) { return false; }
-    if ((matiere === "Espagnol" || matiere === "Allemand") && (sixiemeCinquieme(n) || terminaleScientifique(n))) { return false; }
+    if ((matiere === "Espagnol" || matiere === "Allemand") && (sixiemeCinquieme(n) || serieScientifique(n))) { return false; }
     if (matiere === "PCT" && litteraire(n)) { return false; }
     return true;
   }
