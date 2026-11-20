@@ -85,6 +85,7 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 <link rel="stylesheet" href="campus-menu.css">
 <link rel="stylesheet" href="campus-admin.css">
 <script src="campus-menu.js" defer></script>
+<script src="programme.js"></script>
 </head>
 <body>
 <header class="barre">
@@ -163,6 +164,7 @@ function initCoefficients(){
   const combos=[];
   mesClasses().forEach(c=>mesMatieres().forEach(m=>{
     if(!CLE_PAR_MATIERE[m])return;
+    if(window.CF_PROGRAMME&&!window.CF_PROGRAMME.autorisee(c,m))return;
     combos.push({c:c,m:m,parties:(m==="Français"&&COLLEGE.indexOf(c)!==-1)?["lecture","communication-ecrite"]:["g"]});
   }));
   if(!combos.length){zone.innerHTML="<p>Aucune classe ou matière attribuée.</p>";return;}

@@ -186,6 +186,7 @@
 <link rel="stylesheet" href="campus-menu.css">
 <link rel="stylesheet" href="campus-admin.css">
 <script src="campus-menu.js" defer></script>
+<script src="programme.js"></script>
 </head>
 
 <body>
@@ -323,6 +324,7 @@
         const disc = DISC.filter(function(d) {
           if (d.portee === "college" && !college) return false;
           if (d.portee === "lycee" && college) return false;
+          if (window.CF_PROGRAMME && !window.CF_PROGRAMME.autoriseeCle(CTX.classe, d.cle)) return false;
           return typeof coefs[d.cle] === "number" && coefs[d.cle] > 0;
         });
 
@@ -413,7 +415,7 @@
       const alertes = [];
       const sansCoef = DISC.filter(function(d) {
         const note = notes[d.matiere];
-        return note && !(disc.indexOf(d) !== -1) && !(d.portee === "college" && eleves.length && ["6e","5e","4e","3e"].indexOf(CTX.classe) === -1)
+        return note && !(window.CF_PROGRAMME && !window.CF_PROGRAMME.autoriseeCle(CTX.classe, d.cle)) && !(disc.indexOf(d) !== -1) && !(d.portee === "college" && eleves.length && ["6e","5e","4e","3e"].indexOf(CTX.classe) === -1)
           && !(d.portee === "lycee" && ["6e","5e","4e","3e"].indexOf(CTX.classe) !== -1);
       });
       if (sansCoef.length) alertes.push("Des notes existent mais le coefficient est absent ou nul pour : " + sansCoef.map(function(d) { return d.lib; }).join(", ") + ". Ces matières ne figurent pas au bulletin.");

@@ -56,6 +56,7 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 <link rel="stylesheet" href="campus-menu.css">
 <link rel="stylesheet" href="campus-admin.css">
 <script src="campus-menu.js" defer></script>
+<script src="programme.js"></script>
 </head>
 <body>
 <header class="barre">
@@ -205,5 +206,6 @@ function envoyerForum(e){
   db.ref("forum/"+c+"/"+m).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:Date.now()}).then(()=>{$("forum-texte").value="";}).catch(er=>{$("msg").textContent="Envoi impossible : "+er.message;});
 }
 </script>
+<script>if(window.CF_PROGRAMME){window.CF_PROGRAMME.lierClasseMatiere("fo-classe","fo-matiere");}</script>
 </body>
 </html>

@@ -155,6 +155,7 @@
 <link rel="stylesheet" href="campus-menu.css">
 <link rel="stylesheet" href="campus-admin.css">
 <script src="campus-menu.js" defer></script>
+<script src="programme.js"></script>
 </head>
 
 <body>
@@ -311,6 +312,7 @@
     }
 
     function matiereApplicable(m, classe) {
+      if (window.CF_PROGRAMME && !window.CF_PROGRAMME.autoriseeCle(classe, m.cle)) return false;
       if (m.portee === "college") return estCollege(classe);
       if (m.portee === "lycee") return !estCollege(classe);
       return true;

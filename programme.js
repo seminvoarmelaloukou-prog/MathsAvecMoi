@@ -43,7 +43,51 @@
     return premierCycle(norm(classe)) ? PARTIES_FRANCAIS : [];
   }
 
+  // Clés des matières utilisées dans les pages de coefficients et de bulletins
+  var CLES = { "maths": "Mathématiques", "francais": "Français", "lecture": "Français", "communication-ecrite": "Français",
+               "anglais": "Anglais", "espagnol": "Espagnol", "allemand": "Allemand", "pct": "PCT", "svt": "SVT",
+               "histoire-geo": "Histoire-Géographie", "philosophie": "Philosophie", "eps": "EPS", "conduite": "Conduite" };
+
+  // Dans une liste de matières : les matières hors programme de la classe sont masquées et non sélectionnables
+  function restreindreSelect(sel, classe) {
+    if (!sel) { return; }
+    Array.prototype.forEach.call(sel.options, function (o) {
+      if (!o.value) { return; }
+      var ok = autorisee(classe, o.value);
+      o.disabled = !ok;
+      o.hidden = !ok;
+    });
+    var courant = sel.options[sel.selectedIndex];
+    if (courant && courant.disabled) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value && !sel.options[i].disabled) {
+          sel.selectedIndex = i;
+          sel.dispatchEvent(new Event("change", { bubbles: true }));
+          break;
+        }
+      }
+    }
+  }
+
+  // Relie une liste de classes et une liste de matières (même si leurs options arrivent plus tard)
+  function lierClasseMatiere(idClasse, idMatiere) {
+    var c = document.getElementById(idClasse), m = document.getElementById(idMatiere);
+    if (!c || !m) { return; }
+    function maj() { restreindreSelect(m, c.value); }
+    c.addEventListener("change", maj);
+    if (window.MutationObserver) {
+      var obs = new MutationObserver(maj);
+      obs.observe(m, { childList: true });
+      obs.observe(c, { childList: true });
+    }
+    maj();
+    [400, 1200, 2500].forEach(function (t) { setTimeout(maj, t); });
+  }
+
   window.CF_PROGRAMME = {
+    autoriseeCle: function (classe, cle) { return autorisee(classe, CLES[cle] || cle); },
+    restreindreSelect: restreindreSelect,
+    lierClasseMatiere: lierClasseMatiere,
     partiesFrancais: partiesFrancais,
     autorisee: autorisee,
     autoriseeSlug: function (classe, slug) { return autorisee(classe, SLUGS[slug] || slug); },
