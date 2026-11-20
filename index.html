@@ -21,22 +21,56 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem("cf_palette");
+    if (saved) { document.documentElement.setAttribute("data-palette", saved); }
+  } catch (e) {}
+})();
+</script>
 <style>
 :root{
   --bg:#FFFFFF; --paper:#F4F8FD; --grid:#D3DEF1; --ink:#2c3e8c; --ink-dark:#1e2c66;
   --text:#14203F; --muted:#46547A; --margin:#D63A32; --amber:#f39c12; --hl:#FFD76A;
   --green:#2E8B57; --btn-bg:#2c3e8c; --btn-fg:#FFFFFF; --line:#DCE4F3;
 }
+:root[data-palette="emeraude"]{
+  --paper:#F2FBF7; --grid:#CBEAD9; --ink:#0f6b4a; --ink-dark:#094d35;
+  --text:#102A20; --muted:#3F5E52; --margin:#D9534F; --btn-bg:#0f6b4a; --line:#CBEAD9;
+}
+:root[data-palette="bordeaux"]{
+  --paper:#FDF4F6; --grid:#F2D0D8; --ink:#8c1d40; --ink-dark:#63112b;
+  --text:#2A1118; --muted:#63424B; --margin:#2c3e8c; --btn-bg:#8c1d40; --line:#F2D0D8;
+}
+:root[data-palette="ambre"]{
+  --paper:#FFF9F0; --grid:#F5E2C2; --ink:#9a5200; --ink-dark:#6e3900;
+  --text:#291C0B; --muted:#614C31; --margin:#2c3e8c; --btn-bg:#9a5200; --line:#F5E2C2;
+}
+
 @media (prefers-color-scheme:dark){
   :root{
     --bg:#0E1630; --paper:#16213F; --grid:#243256; --ink:#A9BEFF; --text:#E8EDFB;
     --muted:#A3B0D2; --margin:#FF7A70; --green:#5BC48A;
     --btn-bg:#A9BEFF; --btn-fg:#0E1630; --line:#26345C;
   }
+  :root[data-palette="emeraude"]{
+    --bg:#0B1E18; --paper:#122E25; --grid:#1F473A; --ink:#6EE7B7; --text:#E6F7F0;
+    --muted:#9CC7B7; --margin:#FF7A70; --btn-bg:#6EE7B7; --btn-fg:#0B1E18; --line:#1F473A;
+  }
+  :root[data-palette="bordeaux"]{
+    --bg:#1E0C13; --paper:#2F131E; --grid:#4D2032; --ink:#FDA4AF; --text:#FBE8EC;
+    --muted:#D2A4B0; --margin:#93C5FD; --btn-bg:#FDA4AF; --btn-fg:#1E0C13; --line:#4D2032;
+  }
+  :root[data-palette="ambre"]{
+    --bg:#1E1508; --paper:#2E210D; --grid:#4A3617; --ink:#FCD34D; --text:#FDF5E6;
+    --muted:#D4BE9A; --margin:#93C5FD; --btn-bg:#FCD34D; --btn-fg:#1E1508; --line:#4A3617;
+  }
 }
+
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font:17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;transition:background-color .2s ease,color .2s ease}
 a{color:inherit}
 :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 .wrap{max-width:720px;margin:0 auto;padding:0 20px}
@@ -44,10 +78,13 @@ a{color:inherit}
 /* Barre du haut (reste indigo : le logo blanc de logo-nav.js s'y affiche) */
 nav{background:#2c3e8c;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 nav h1{margin:0;color:#fff;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
-nav ul{display:flex;gap:6px 18px;list-style:none;margin:0;padding:0}
+nav ul{display:flex;align-items:center;gap:6px 18px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
 nav a{display:inline-block;color:#fff;text-decoration:none;font-size:.95rem;font-weight:600;padding:10px 2px}
 nav a:hover{text-decoration:underline}
 nav a:focus-visible{outline-color:#fff}
+.theme-toggle{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:7px 14px;font:inherit;font-size:.88rem;font-weight:700;cursor:pointer}
+.theme-toggle:hover{background:rgba(255,255,255,.24)}
+.theme-swatch{width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid #fff;flex:none}
 
 main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:0 20px}
 .hero{padding:34px 0 40px}
@@ -123,6 +160,12 @@ footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9
 <nav>
   <h1>Campus Flex</h1>
   <ul>
+    <li>
+      <button type="button" class="theme-toggle" id="palette-btn" title="Changer la couleur générale en un clic">
+        <span class="theme-swatch" id="palette-swatch" aria-hidden="true"></span>
+        <span id="palette-label">Couleur : Indigo</span>
+      </button>
+    </li>
     <li><a href="connexion.html">Se connecter</a></li>
     <li><a href="inscription.html">S’inscrire</a></li>
   </ul>
@@ -206,6 +249,59 @@ footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9
 <script>
 (function () {
   "use strict";
+
+  // Changement de couleur générale en un clic
+  var PALETTES = [
+    { id: "", label: "Indigo", color: "#2c3e8c" },
+    { id: "emeraude", label: "Émeraude", color: "#0f6b4a" },
+    { id: "bordeaux", label: "Bordeaux", color: "#8c1d40" },
+    { id: "ambre", label: "Ambre", color: "#9a5200" }
+  ];
+  var STORAGE_KEY = "cf_palette";
+  var paletteBtn = document.getElementById("palette-btn");
+  var paletteLabel = document.getElementById("palette-label");
+  var paletteSwatch = document.getElementById("palette-swatch");
+  var themeMeta = document.querySelector('meta[name="theme-color"]');
+
+  function getPaletteIndex(id) {
+    for (var i = 0; i < PALETTES.length; i++) {
+      if (PALETTES[i].id === id) { return i; }
+    }
+    return 0;
+  }
+
+  var paletteIndex = 0;
+  try {
+    paletteIndex = getPaletteIndex(localStorage.getItem(STORAGE_KEY) || "");
+  } catch (e) {}
+
+  function applyPalette(idx, save) {
+    paletteIndex = ((idx % PALETTES.length) + PALETTES.length) % PALETTES.length;
+    var p = PALETTES[paletteIndex];
+    if (p.id) {
+      document.documentElement.setAttribute("data-palette", p.id);
+    } else {
+      document.documentElement.removeAttribute("data-palette");
+    }
+    if (paletteLabel) { paletteLabel.textContent = "Couleur : " + p.label; }
+    if (paletteSwatch) { paletteSwatch.style.background = p.color; }
+    if (themeMeta) { themeMeta.setAttribute("content", p.color); }
+    if (save) {
+      try {
+        if (p.id) { localStorage.setItem(STORAGE_KEY, p.id); }
+        else { localStorage.removeItem(STORAGE_KEY); }
+      } catch (e) {}
+    }
+  }
+
+  applyPalette(paletteIndex, false);
+
+  if (paletteBtn) {
+    paletteBtn.addEventListener("click", function () {
+      applyPalette(paletteIndex + 1, true);
+    });
+  }
+
   // Une page de cahier par matière ; *mot* = surligné
   var SCENES = [
     { nom: "Maths", lignes: ["Résous : 2x + 3 = 11", "2x = 11 − 3", "2x = 8", "x = 8 ÷ 2 = *4*"], note: "← on isole x, pas à pas" },
