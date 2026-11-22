@@ -2,6 +2,19 @@
 (function () {
   "use strict";
 
+  // Charge automatiquement campus-theme.js (couleur et langue) si la page ne l'a pas déjà dans son <head>
+  (function () {
+    if (window.CF_THEME || document.querySelector('script[src*="campus-theme.js"]')) { return; }
+    var moi = document.currentScript;
+    if (!moi) {
+      Array.prototype.forEach.call(document.scripts, function (s) { if (/campus-menu\.js/.test(s.src)) { moi = s; } });
+    }
+    if (!moi || !moi.src) { return; }
+    var t = document.createElement("script");
+    t.src = moi.src.replace(/campus-menu\.js.*$/, "campus-theme.js");
+    document.head.appendChild(t);
+  })();
+
   // ---------- Menu à trois traits ----------
   var bouton = document.getElementById("burger");
   var panneau = document.getElementById("menu-principal");
