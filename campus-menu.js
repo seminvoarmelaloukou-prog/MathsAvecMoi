@@ -15,6 +15,20 @@
     document.head.appendChild(t);
   })();
 
+  // Charge le traducteur (traducteur.js) sur les pages de classe d'anglais, d'espagnol et d'allemand
+  (function () {
+    var pageDeLangue = /\/(anglais|espagnol|allemand)\/[^\/.]+(?:\/(?:index\.html)?)?$/i.test(window.location.pathname);
+    if (!(pageDeLangue || window.CF_TRAD_LANGUE) || window.__cfTraducteur || document.querySelector('script[src*="traducteur.js"]')) { return; }
+    var moi = document.currentScript;
+    if (!moi) {
+      Array.prototype.forEach.call(document.scripts, function (s) { if (/campus-menu\.js/.test(s.src)) { moi = s; } });
+    }
+    if (!moi || !moi.src) { return; }
+    var t = document.createElement("script");
+    t.src = moi.src.replace(/campus-menu\.js.*$/, "traducteur.js");
+    document.head.appendChild(t);
+  })();
+
   // ---------- Menu à trois traits ----------
   var bouton = document.getElementById("burger");
   var panneau = document.getElementById("menu-principal");
