@@ -8,8 +8,10 @@
 
    Les cours et les vidéos viennent de Firebase, comme dans les anciennes pages :
      cours/{classe}/{matière}   et   videos/{classe}/{matière}
-   Les séquences s'affichent dans l'ordre de leurs clés (sa1_seq1, sa1_seq2, sa2_seq1...),
-   regroupées par SA, repliées par défaut. Ce qui est ajouté dans l'admin apparaît tout seul.
+   Matières libres (admin) : volet, rubrique, titre et ordre d'affichage écrits par l'enseignant.
+   Maths : le programme officiel (9 classes) est intégré ci-dessous ; chaque séquence apparaît avec
+   « bientôt disponible » tant que le cours n'est pas ajouté. Tout est replié par défaut.
+   Ce qui est ajouté dans l'admin apparaît tout seul.
 
    Pour l'anglais, l'espagnol et l'allemand, le traducteur (traducteur.js) est chargé aussi. */
 (function () {
@@ -31,6 +33,20 @@
     "2ndeab": ["2de AB", "2nde AB"], "2ndec": ["2de C", "2nde C"], "2nded": ["2de D", "2nde D"], "2ndee": ["2de E", "2nde E"],
     "1reab": ["1re AB", "1ère AB"], "1rec": ["1re C", "1ère C"], "1red": ["1re D", "1ère D"], "1ree": ["1re E", "1ère E"],
     "tleab": ["Tle AB", "Tle AB"], "tlec": ["Tle C", "Tle C"], "tled": ["Tle D", "Tle D"], "tlee": ["Tle E", "Tle E"]
+  };
+
+  // Programme officiel de mathématiques (repris de l'admin) : chaque séquence apparaît dès le départ,
+  // avec « bientôt disponible » tant que le cours n'a pas été ajouté. [clé, SA, séquence]
+  var PROGRAMME = {
+    "6e": { "Mathématiques": [["sa1_seq1","SA 1 - Configurations de l’espace","Séquence 1 - Cube et pavé droit"],["sa1_seq2","SA 1 - Configurations de l’espace","Séquence 2 - Cône de révolution"],["sa1_seq3","SA 1 - Configurations de l’espace","Séquence 3 - Sphère"],["sa2_seq1","SA 2 - Configurations du plan","Séquence 1 - Droites du plan"],["sa2_seq2","SA 2 - Configurations du plan","Séquence 2 - Segment de droite"],["sa2_seq3","SA 2 - Configurations du plan","Séquence 3 - Cercle"],["sa2_seq4","SA 2 - Configurations du plan","Séquence 4 - Angles"],["sa2_seq5","SA 2 - Configurations du plan","Séquence 5 - Triangles"],["sa2_seq6","SA 2 - Configurations du plan","Séquence 6 - Parallélogramme"],["sa2_seq7","SA 2 - Configurations du plan","Séquence 7 - Entiers naturels"],["sa2_seq8","SA 2 - Configurations du plan","Séquence 8 - Nombres décimaux"],["sa2_seq9","SA 2 - Configurations du plan","Séquence 9 - Fractions"],["sa2_seq11","SA 2 - Configurations du plan","Séquence 11 - Calcul littéral"],["sa3_seq1","SA 3 - Applications du plan","Séquence 1 - Figures symétriques par rapport à une droite"],["sa3_seq2","SA 3 - Applications du plan","Séquence 2 - Figures symétriques par rapport à un point"],["sa3_seq3","SA 3 - Applications du plan","Séquence 3 - Glissement"],["sa4_seq1","SA 4 - Organisation des données","Séquence 1 - Proportionnalité"],["sa4_seq2","SA 4 - Organisation des données","Séquence 2 - Statistiques"]] },
+    "5e": { "Mathématiques": [["sa1_seq1","SA 1 — Configurations de l’espace","Séquence 1 — Prisme droit"],["sa1_seq2","SA 1 — Configurations de l’espace","Séquence 2 — Division dans ℕ – Nombres premiers"],["sa2_seq1","SA 2 — Configurations du plan","Séquence 1 — Distance"],["sa2_seq2","SA 2 — Configurations du plan","Séquence 2 — Angles"],["sa2_seq3","SA 2 — Configurations du plan","Séquence 3 — Triangles"],["sa2_seq4","SA 2 — Configurations du plan","Séquence 4 — Cercle"],["sa2_seq5","SA 2 — Configurations du plan","Séquence 5 — Parallélogrammes"],["sa2_seq6","SA 2 — Configurations du plan","Séquence 6 — Polygones particuliers"],["sa2_seq7","SA 2 — Configurations du plan","Séquence 7 — Nombres décimaux relatifs"],["sa2_seq8","SA 2 — Configurations du plan","Séquence 8 — Fractions"],["sa2_seq9","SA 2 — Configurations du plan","Séquence 9 — Puissance"],["sa3_seq1","SA 3 — Applications du plan","Séquence 1 — Figures symétriques par rapport à une droite"],["sa3_seq2","SA 3 — Applications du plan","Séquence 2 — Figures symétriques par rapport à un point"],["sa3_seq3","SA 3 — Applications du plan","Séquence 3 — Glissement"],["sa4_seq1","SA 4 — Organisation des données","Séquence 1 — Équations"],["sa4_seq2","SA 4 — Organisation des données","Séquence 2 — Proportionnalité"]] },
+    "4e": { "Mathématiques": [["sa1_seq1","SA1 — Configurations du plan","Séquence 1 : Angle au centre d’un cercle"],["sa1_seq2","SA1 — Configurations du plan","Séquence 2 : Distance"],["sa1_seq3","SA1 — Configurations du plan","Séquence 3 : Triangles"],["sa1_seq4","SA1 — Configurations du plan","Séquence 4 : Polygones réguliers"],["sa1_seq5","SA1 — Configurations du plan","Séquence 5 : Nombres décimaux"],["sa1_seq6","SA1 — Configurations du plan","Séquence 6 : Nombres rationnels"],["sa1_seq7","SA1 — Configurations du plan","Séquence 7 : Puissances"],["sa1_seq8","SA1 — Configurations du plan","Séquence 8 : Calculs sur les expressions algébriques"],["sa2_seq1","SA2 — Configurations de l’espace","Séquence 1 : Pyramide"],["sa2_seq2","SA2 — Configurations de l’espace","Séquence 2 : Cône de révolution"],["sa2_seq3","SA2 — Configurations de l’espace","Séquence 3 : Perspective cavalière"],["sa2_seq4","SA2 — Configurations de l’espace","Séquence 4 : Boule et Sphère"],["sa2_seq5","SA2 — Configurations de l’espace","Séquence 5 : Notion de droites et plans"],["sa2_seq6","SA2 — Configurations de l’espace","Séquence 6 : PPCM et PGCD"],["sa3_seq1","SA3 — Applications du plan","Séquence 1 : Symétrie centrale"],["sa3_seq2","SA3 — Applications du plan","Séquence 2 : Symétrie orthogonale"],["sa3_seq3","SA3 — Applications du plan","Séquence 3 : Translation"],["sa3_seq4","SA3 — Applications du plan","Séquence 4 : Projection"],["sa4_seq1","SA4 — Organisation des données","Séquence 1 : Équations et inéquations"],["sa4_seq2","SA4 — Organisation des données","Séquence 2 : Proportionnalité"],["sa4_seq3","SA4 — Organisation des données","Séquence 3 : Statistique"]] },
+    "3e": { "Mathématiques": [["sa1_seq1","SA 1 — Triangles","Séquence 1 — Nombres réels"],["sa1_seq2","SA 1 — Triangles","Séquence 2 — Valeur absolue"],["sa1_seq3","SA 1 — Triangles","Séquence 3 — Trigonométrie (déjà rempli)"],["sa1_seq4","SA 1 — Triangles","Séquence 4 — Thalès"],["sa1_seq5","SA 1 — Triangles","Séquence 5 — Triangles semblables"],["sa1_seq6","SA 1 — Triangles","Séquence 6 — Triangle rectangle"],["sa1_seq7","SA 1 — Triangles","Séquence 7 — Angles et cercles"],["sa2_seq1","SA 2 — Configurations de l’espace","Séquence 1 — Cône de révolution"],["sa2_seq2","SA 2 — Configurations de l’espace","Séquence 2 — Sections planes"],["sa3_seq1","SA 3 — Calcul littéral","Séquence 1 — Polynômes"],["sa3_seq2","SA 3 — Calcul littéral","Séquence 2 — Équations de droite (déjà rempli)"],["sa3_seq3","SA 3 — Calcul littéral","Séquence 3 — Équations - Inéquations"],["sa3_seq4","SA 3 — Calcul littéral","Séquence 4 — Vecteurs"],["sa3_seq5","SA 3 — Calcul littéral","Séquence 5 — Coordonnées de vecteurs (déjà rempli)"],["sa4_seq1","SA 4 — Organisation des données","Séquence 1 — Application affine"],["sa4_seq2","SA 4 — Organisation des données","Séquence 2 — Application linéaire"],["sa4_seq3","SA 4 — Organisation des données","Séquence 3 — Statistique / Probabilités"]] },
+    "2de D": { "Mathématiques": [["sa1_seq1","SA 1 — Configurations de l’espace","Séquence 1 — Représentation dans le plan"],["sa1_seq2","SA 1 — Configurations de l’espace","Séquence 2 — Positions relatives droite/plan"],["sa1_seq3","SA 1 — Configurations de l’espace","Séquence 3 — Positions relatives de deux plans"],["sa1_seq4","SA 1 — Configurations de l’espace","Séquence 4 — Positions relatives de deux droites"],["sa1_seq5","SA 1 — Configurations de l’espace","Séquence 5 — Parallélisme"],["sa2_seq1","SA 2 — Organisation des données","Séquence 1 — Calcul dans ℝ"],["sa2_seq2","SA 2 — Organisation des données","Séquence 2 — Généralités sur les fonctions"],["sa2_seq3","SA 2 — Organisation des données","Séquence 3 — Applications"],["sa2_seq4","SA 2 — Organisation des données","Séquence 4 — Étude de quelques fonctions"],["sa2_seq5","SA 2 — Organisation des données","Séquence 5 — Équations et inéquations dans ℝ"],["sa2_seq6","SA 2 — Organisation des données","Séquence 6 — Statistique"],["sa2_seq7","SA 2 — Organisation des données","Séquence 7 — Polynômes et fractions rationnelles"],["sa3_seq1","SA 3 — Lieux géométriques","Séquence 1 — Vecteurs du plan"],["sa3_seq2","SA 3 — Lieux géométriques","Séquence 2 — Droites dans le plan"],["sa3_seq3","SA 3 — Lieux géométriques","Séquence 3 — Homothétie"],["sa3_seq4","SA 3 — Lieux géométriques","Séquence 4 — Symétries – translation"],["sa3_seq5","SA 3 — Lieux géométriques","Séquence 5 — Angles inscrits"],["sa3_seq6","SA 3 — Lieux géométriques","Séquence 6 — Angles orientés – Trigonométrie"],["sa3_seq7","SA 3 — Lieux géométriques","Séquence 7 — Produit scalaire"],["sa3_seq8","SA 3 — Lieux géométriques","Séquence 8 — Rotation"],["sa3_seq9","SA 3 — Lieux géométriques","Séquence 9 — Cercles dans le plan"],["sa3_seq10","SA 3 — Lieux géométriques","Séquence 10 — Équations et inéquations dans ℝ×ℝ"]] },
+    "1re AB": { "Mathématiques": [["sa1_seq1","SA 1 — Organisation des données","Séquence 1 — Équations et inéquations du second degré dans ℝ"],["sa1_seq2","SA 1 — Organisation des données","Séquence 2 — Systèmes d’équations et d’inéquations linéaires dans ℝ×ℝ"],["sa1_seq3","SA 1 — Organisation des données","Séquence 3 — Suites arithmétiques"],["sa1_seq4","SA 1 — Organisation des données","Séquence 4 — Suites géométriques"],["sa1_seq5","SA 1 — Organisation des données","Séquence 5 — Statistiques"],["sa1_seq6","SA 1 — Organisation des données","Séquence 6 — Dénombrements"],["sa2_seq1","SA 2 — Lieux géométriques","Séquence 1 — Fonctions – Applications"],["sa2_seq2","SA 2 — Lieux géométriques","Séquence 2 — Notion de limite"],["sa2_seq3","SA 2 — Lieux géométriques","Séquence 3 — Continuité"],["sa2_seq4","SA 2 — Lieux géométriques","Séquence 4 — Dérivation"]] },
+    "1re D": { "Mathématiques": [["sa1_seq1","SA 1 — Configurations de l'espace","Séquence 1 — Orthogonalité dans l'espace"],["sa1_seq2","SA 1 — Configurations de l'espace","Séquence 2 — Vecteurs de l'espace"],["sa2_seq1","SA 2 — Organisation des données","Séquence 1 — Équations et inéquations dans ℝ"],["sa2_seq2","SA 2 — Organisation des données","Séquence 2 — Statistique"],["sa2_seq3","SA 2 — Organisation des données","Séquence 3 — Dénombrement"],["sa2_seq4","SA 2 — Organisation des données","Séquence 4 — Fonctions – Applications"],["sa2_seq5","SA 2 — Organisation des données","Séquence 5 — Limites et continuité"],["sa2_seq6","SA 2 — Organisation des données","Séquence 6 — Dérivation – Étude de fonction"],["sa2_seq7","SA 2 — Organisation des données","Séquence 7 — Suites numériques"],["sa3_seq1","SA 3 — Lieux géométriques dans le plan","Séquence 1 — Trigonométrie"],["sa3_seq2","SA 3 — Lieux géométriques dans le plan","Séquence 2 — Barycentre de deux, trois ou quatre points pondérés"],["sa3_seq3","SA 3 — Lieux géométriques dans le plan","Séquence 3 — Cercle dans le plan"],["sa3_seq4","SA 3 — Lieux géométriques dans le plan","Séquence 4 — Isométrie"],["sa3_seq5","SA 3 — Lieux géométriques dans le plan","Séquence 5 — Représentations graphiques de fonctions et transformations du plan"]] },
+    "Tle D": { "Mathématiques": [["sa1_seq1","SA 1 — Configurations de l'espace","Séquence 1 — Vecteurs de l'espace"],["sa1_seq2","SA 1 — Configurations de l'espace","Séquence 2 — Barycentre de n points pondérés (n ≥ 2)"],["sa1_seq3","SA 1 — Configurations de l'espace","Séquence 3 — Produit scalaire"],["sa1_seq4","SA 1 — Configurations de l'espace","Séquence 4 — Équation cartésienne d'un plan – Représentations paramétriques d'un plan"],["sa1_seq5","SA 1 — Configurations de l'espace","Séquence 5 — Systèmes d'équations linéaires"],["sa1_seq6","SA 1 — Configurations de l'espace","Séquence 6 — Systèmes d'équations cartésiennes d'une droite de l'espace – Représentations paramétriques d'une droite"],["sa1_seq7","SA 1 — Configurations de l'espace","Séquence 7 — Produit vectoriel"],["sa2_seq1","SA 2 — Organisation des données","Séquence 1 — Nombres complexes"],["sa2_seq2","SA 2 — Organisation des données","Séquence 2 — Limites et continuité"],["sa2_seq3","SA 2 — Organisation des données","Séquence 3 — Dérivation – Étude de fonctions"],["sa2_seq4","SA 2 — Organisation des données","Séquence 4 — Primitives"],["sa2_seq5","SA 2 — Organisation des données","Séquence 5 — Fonction logarithme népérien"],["sa2_seq6","SA 2 — Organisation des données","Séquence 6 — Fonction exponentielle népérienne"],["sa2_seq7","SA 2 — Organisation des données","Séquence 7 — Fonctions exponentielles – Fonctions puissances"],["sa2_seq8","SA 2 — Organisation des données","Séquence 8 — Calcul intégral"],["sa2_seq9","SA 2 — Organisation des données","Séquence 9 — Équations différentielles linéaires à coefficients constants"],["sa2_seq10","SA 2 — Organisation des données","Séquence 10 — Probabilité"],["sa2_seq11","SA 2 — Organisation des données","Séquence 11 — Suites numériques"],["sa2_seq12","SA 2 — Organisation des données","Séquence 12 — Statistique"],["sa3_seq1","SA 3 — Lieux géométriques dans le plan","Séquence 1 — Application des nombres complexes aux transformations du plan"]] },
+    "Tle AB": { "Mathématiques": [["sa1_seq1","SA 1 — Lieux géométriques dans le plan","Séquence 1 — Fonctions"],["sa1_seq2","SA 1 — Lieux géométriques dans le plan","Séquence 2 — Fonctions polynômes – Fonctions rationnelles"],["sa1_seq3","SA 1 — Lieux géométriques dans le plan","Séquence 3 — Fonctions logarithme népérien et exponentielle"],["sa2_seq1","SA 2 — Organisation des données","Séquence 1 — Entiers naturels"],["sa2_seq2","SA 2 — Organisation des données","Séquence 2 — Équations – Inéquations – Systèmes"],["sa2_seq3","SA 2 — Organisation des données","Séquence 3 — Suites numériques"],["sa2_seq4","SA 2 — Organisation des données","Séquence 4 — Statistique"],["sa2_seq5","SA 2 — Organisation des données","Séquence 5 — Probabilités"]] }
   };
 
   function lireAdresse() {
@@ -200,7 +216,7 @@
 
   function corpsSequence(it) {
     var corps = el("div", "pc-corps");
-    var titre = (it.cours && it.cours.seqLabel) || (it.video && it.video.seqLabel) || "";
+    var titre = it.seq || "";
     if (aVideo(it.video)) {
       var bv = blocVideo(it.video, titre);
       if (bv) { corps.appendChild(bv); }
@@ -229,36 +245,73 @@
     return corps;
   }
 
-  function etiquetteSA(id, liste) {
-    for (var i = 0; i < liste.length; i++) {
-      var l = (liste[i].cours && liste[i].cours.saLabel) || (liste[i].video && liste[i].video.saLabel);
-      if (l) { return String(l); }
-    }
-    var m = String(id).match(/^sa(\d+)$/i);
-    return m ? "SA " + m[1] : (id ? String(id).toUpperCase() : "Cours");
+  /* Les matières « libres » (anglais, espagnol, allemand, français, SVT, histoire-géo...) sont
+     enregistrées par l'admin avec : voletLabel (Lecture / Communication écrite, en français 6e-3e),
+     saLabel (rubrique, facultative), seqLabel (titre) et ordre (numéro d'affichage).
+     Les séquences prédéfinies (maths : sa1_seq1...) gardent l'ordre de leurs clés. */
+  var VOLETS = ["Lecture", "Communication écrite"];
+
+  function texteDe(x) { return x == null ? "" : String(x).trim(); }
+
+  function decrire(it) {
+    var c = plein(it.cours) ? it.cours : {}, v = plein(it.video) ? it.video : {};
+    var cle = String(it.key);
+    var idSA = cle.indexOf("_") > 0 && !/^l_/.test(cle) ? cle.split("_")[0] : "";
+    var m = idSA.match(/^sa(\d+)$/i);
+    it.libre = c.libre === true || v.libre === true || /^l_/.test(cle);
+    it.volet = texteDe(c.voletLabel || v.voletLabel);
+    it.idSA = it.libre ? "" : idSA;
+    var pg = it.prog || null;
+    it.saDeclaree = texteDe(c.saLabel || v.saLabel) || (pg ? pg.sa : "");
+    it.sa = it.saDeclaree || (m ? "SA " + m[1] : (idSA ? idSA.toUpperCase() : ""));
+    var ms = cle.match(/seq(\d+)/i);
+    it.seq = texteDe(c.seqLabel || v.seqLabel || c.titre) || (pg ? pg.seq : "") || (ms ? "Séquence " + ms[1] : cle);
+    var o = typeof c.ordre === "number" ? c.ordre : (typeof v.ordre === "number" ? v.ordre : 1e12);
+    it.ordre = o;
+    it.groupe = it.volet + "|" + (it.idSA || it.sa);
+    it.groupeLabel = (it.volet ? it.volet + " — " : "") + (it.sa || "Cours");
+    return it;
   }
 
-  function etiquetteSeq(it) {
-    var l = (it.cours && it.cours.seqLabel) || (it.video && it.video.seqLabel);
-    if (l) { return String(l); }
-    var m = String(it.key).match(/seq(\d+)/i);
-    return m ? "Séquence " + m[1] : String(it.key);
+  // Séquences prédéfinies d'une même SA : toutes prennent le nom de SA écrit dans l'une d'elles
+  function harmoniser(liste) {
+    var noms = {};
+    liste.forEach(function (it) { if (it.idSA && it.saDeclaree && !noms[it.idSA]) { noms[it.idSA] = it.saDeclaree; } });
+    liste.forEach(function (it) {
+      if (it.idSA && noms[it.idSA]) { it.sa = noms[it.idSA]; it.groupeLabel = (it.volet ? it.volet + " — " : "") + it.sa; }
+    });
+    return liste;
   }
 
-  // Regroupe par SA (ordre des clés), SA et séquences repliées
+  function rangVolet(v) { var i = VOLETS.indexOf(v); return i === -1 ? (v ? 99 : -1) : i; }
+
+  function trier(liste) {
+    var cmp = function (a, b) { var x = cleNaturelle(a.key), y = cleNaturelle(b.key); return x < y ? -1 : x > y ? 1 : 0; };
+    if (!liste.some(function (it) { return it.libre; })) { return liste.sort(cmp); }
+    var min = {};
+    liste.forEach(function (it) { min[it.groupe] = Math.min(min.hasOwnProperty(it.groupe) ? min[it.groupe] : 1e12, it.ordre); });
+    return liste.sort(function (a, b) {
+      if (rangVolet(a.volet) !== rangVolet(b.volet)) { return rangVolet(a.volet) - rangVolet(b.volet); }
+      if (min[a.groupe] !== min[b.groupe]) { return min[a.groupe] - min[b.groupe]; }
+      if (a.sa !== b.sa) { return a.sa < b.sa ? -1 : 1; }
+      if (a.ordre !== b.ordre) { return a.ordre - b.ordre; }
+      return cmp(a, b);
+    });
+  }
+
+  // Regroupe par rubrique (SA), rubriques et titres repliés par défaut
   function remplir(panneau, liste, fabriquerCorps) {
     var groupes = [], index = {};
     liste.forEach(function (it) {
-      var id = String(it.key).split("_").length > 1 ? String(it.key).split("_")[0] : "";
-      if (!index.hasOwnProperty(id)) { index[id] = { id: id, items: [] }; groupes.push(index[id]); }
-      index[id].items.push(it);
+      if (!index.hasOwnProperty(it.groupe)) { index[it.groupe] = { label: it.groupeLabel, items: [] }; groupes.push(index[it.groupe]); }
+      index[it.groupe].items.push(it);
     });
     groupes.forEach(function (g) {
       var sa = el("details", "pc-sa");
-      sa.appendChild(el("summary", "", etiquetteSA(g.id, g.items)));
+      sa.appendChild(el("summary", "", g.label));
       g.items.forEach(function (it) {
         var seq = el("details", "pc-seq");
-        seq.appendChild(el("summary", "", etiquetteSeq(it)));
+        seq.appendChild(el("summary", "", it.seq));
         seq.appendChild(fabriquerCorps(it));
         sa.appendChild(seq);
       });
@@ -268,7 +321,7 @@
 
   function corpsVideoSeul(it) {
     var corps = el("div", "pc-corps");
-    var bv = blocVideo(it.video, etiquetteSeq(it));
+    var bv = blocVideo(it.video, it.seq);
     if (bv) { bv.open = false; corps.appendChild(bv); }
     var bf = blocFiches(it.video);
     if (bf) { corps.appendChild(bf); }
@@ -355,12 +408,17 @@
     if (plein(cours)) { Object.keys(cours).forEach(function (k) { if (plein(cours[k])) { item(k).cours = cours[k]; } }); }
     if (plein(videos)) { Object.keys(videos).forEach(function (k) { if (plein(videos[k])) { item(k).video = videos[k]; } }); }
 
-    var tous = Object.keys(items).sort(function (a, b) {
-      var x = cleNaturelle(a), y = cleNaturelle(b);
-      return x < y ? -1 : x > y ? 1 : 0;
-    }).map(function (k) { return items[k]; });
+    var officiel = PROGRAMME[PAGE.classeId] && PROGRAMME[PAGE.classeId][PAGE.matiere];
+    if (officiel) { officiel.forEach(function (p) { item(p[0]).prog = { sa: p[1], seq: p[2] }; }); }
 
-    var pourCours = tous.filter(function (it) { return aContenu(it.cours) || aVideo(it.video); });
+    var tous = trier(harmoniser(Object.keys(items).map(function (k) { return decrire(items[k]); })));
+    tous = tous.filter(function (it) {
+      if (plein(it.cours) && it.cours.actif === false) { it.cours = null; }
+      if (plein(it.video) && it.video.actif === false) { it.video = null; }
+      return it.cours || it.video || it.prog;
+    });
+
+    var pourCours = tous.filter(function (it) { return aContenu(it.cours) || aVideo(it.video) || it.prog; });
     var pourVideos = tous.filter(function (it) { return aVideo(it.video); });
 
     zones.pCours.textContent = "";
