@@ -38,6 +38,11 @@
 form button[type="submit"]{width:100%;margin-top:10px}
 .note{font-size:.9rem;color:var(--muted);margin-top:10px}
 #matiere{margin-bottom:2px}
+.notifs{margin:12px 0;padding:10px;border:2px solid var(--amber);border-radius:10px;background:var(--paper)}
+.notifs-t{font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.notifs button{width:auto;min-height:0;margin:0;box-shadow:none;text-transform:none;letter-spacing:0;cursor:pointer}
+.notifs .fermer{padding:2px 10px;font-size:.8rem;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font-weight:700}
+.notifs .notif{display:block;width:100%;text-align:left;margin:4px 0;padding:8px 10px;font-size:.9rem;font-weight:600;border-radius:8px;border:1.5px solid var(--line);background:var(--card,#fff);color:var(--ink)}
 .reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
 .msg .reacts button,.msg .picker button{width:auto;min-height:0;margin:0;padding:3px 10px;font-size:.85rem;line-height:1.3;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);box-shadow:none;font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer}
 .msg .reacts button.on,.msg .picker button.on{background:var(--amber);border-color:var(--amber);color:#14203F}
@@ -80,6 +85,7 @@ form button[type="submit"]{width:100%;margin-top:10px}
       <p class="aide">Pose tes questions à tes enseignants et échange avec ta classe. Reste poli et respectueux : les enseignants peuvent supprimer un message.</p>
       <div style="margin-top:14px"><label for="matiere">Matière</label>
       <select id="matiere"></select></div>
+      <div id="notifs" class="notifs cache"></div>
       <div class="tabs">
         <button id="tab-forum" class="on">Discussion de classe <span id="pastille-forum" class="pastille cache">0</span></button>
         <button id="tab-prive">Écrire à mon enseignant <span id="pastille" class="pastille cache">0</span></button>
@@ -140,7 +146,7 @@ auth.onAuthStateChanged(function(u){
     $("matiere").addEventListener("change",ouvrir);
     $("tab-forum").addEventListener("click",()=>onglet("forum"));$("tab-prive").addEventListener("click",()=>onglet("prive"));
     $("forum-form").addEventListener("submit",envoyerForum);$("mp-form").addEventListener("submit",envoyerPrive);
-    document.addEventListener("visibilitychange",verifLu);
+    document.addEventListener("visibilitychange",verifLu);document.addEventListener("visibilitychange",marquerNotifsLues);
     // dernier passage dans chaque discussion (enregistré en ligne, donc le même sur tous les appareils)
     db.ref("lectures/"+u.uid+"/"+E.classe).once("value").then(s=>s.val(),()=>null).then(function(LU){
       LU=LU||{};
@@ -151,6 +157,7 @@ auth.onAuthStateChanged(function(u){
       });
       demarrerBadges(mats);
       ouvrir();
+      ecouterNotifs();
     });
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
@@ -195,15 +202,63 @@ function onglet(n){
   const z=$(n==="forum"?"forum-fil":"mp-fil");z.scrollTop=z.scrollHeight;
   verifLu();
 }
+/* ---------- notifications de réactions ---------- */
+let NEW=[],VUS={},PEND=[];
+function ctxDe(chemin,id){
+  const p=chemin.split("/");
+  return p[0]==="forum"?{type:"forum",c:p[1],m:p[2],id:id}:{type:"prive",c:p[1],m:p[2],eleve:p[3],id:id};
+}
+function ecouterNotifs(){
+  db.ref("notifications/"+U.uid).orderByChild("date").limitToLast(50).on("value",function(s){
+    const ajout=[];PEND=[];
+    s.forEach(function(ch){
+      const v=ch.val()||{};
+      if(v.lu===false){PEND.push(ch.key);const k=ch.key+"_"+(v.date||0);if(!VUS[k]){VUS[k]=1;ajout.push({id:ch.key,v:v});}}
+    });
+    if(ajout.length){NEW=ajout.concat(NEW).sort((a,b)=>(b.v.date||0)-(a.v.date||0)).slice(0,20);rendreNotifs();}
+    marquerNotifsLues();
+  },function(){});
+}
+// Marquées comme lues dès que la page est affichée : rien à faire
+function marquerNotifsLues(){
+  if(!U||!PEND.length||document.visibilityState!=="visible")return;
+  const u={};PEND.forEach(function(id){u[id+"/lu"]=true;});PEND=[];
+  db.ref("notifications/"+U.uid).update(u).catch(function(){});
+}
+function rendreNotifs(){
+  const z=$("notifs");z.innerHTML="";
+  if(!NEW.length){z.classList.add("cache");return;}
+  z.classList.remove("cache");
+  const h=document.createElement("div");h.className="notifs-t";
+  const t=document.createElement("span");t.textContent="Nouvelles réactions";
+  const x=document.createElement("button");x.type="button";x.className="fermer";x.textContent="Fermer";
+  x.addEventListener("click",function(){NEW=[];rendreNotifs();});
+  h.appendChild(t);h.appendChild(x);z.appendChild(h);
+  NEW.forEach(function(n){
+    const v=n.v,r=REACTIONS.filter(q=>q.k===v.reaction)[0]||{e:"👍"};
+    const a=document.createElement("button");a.type="button";a.className="notif";
+    a.textContent=r.e+" "+(v.de||"Quelqu'un")+" a réagi à ton message « "+(v.extrait||"")+" »";
+    a.addEventListener("click",function(){allerA(v);});
+    z.appendChild(a);
+  });
+}
+function allerA(v){
+  if(v.matiere&&Array.prototype.some.call($("matiere").options,o=>o.value===v.matiere)){$("matiere").value=v.matiere;ouvrir();}
+  onglet(v.type==="prive"?"prive":"forum");
+}
 /* ---------- réactions ---------- */
-function reactions(d,m,ref){
+function reactions(d,m,ref,ctx){
   const R=m.reactions||{},mine=R[U.uid]||null,cnt={};
   Object.keys(R).forEach(u=>{cnt[R[u]]=(cnt[R[u]]||0)+1;});
   const bar=document.createElement("div");bar.className="reacts";
   const pk=document.createElement("div");pk.className="picker";
   function choisir(k){
     const r=ref.child("reactions/"+U.uid);
-    (mine===k?r.remove():r.set(k)).catch(function(e){$("msg").textContent="Réaction impossible : "+e.message;});
+    const nref=(m.auteurUid&&m.auteurUid!==U.uid)?db.ref("notifications/"+m.auteurUid+"/"+ctx.id+"_"+U.uid):null;
+    (mine===k
+      ?r.remove().then(function(){if(nref)nref.remove().catch(function(){});})
+      :r.set(k).then(function(){if(nref)nref.set({deUid:U.uid,de:NOM,reaction:k,extrait:String(m.texte||"").slice(0,80),type:ctx.type,classe:ctx.c,matiere:ctx.m,eleve:ctx.eleve||"",msgId:ctx.id,date:Date.now(),lu:false}).catch(function(){});})
+    ).catch(function(e){$("msg").textContent="Réaction impossible : "+e.message;});
   }
   REACTIONS.forEach(function(r){
     if(cnt[r.k]){
@@ -232,7 +287,7 @@ function rendre(zone,snap,base){
     const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
     const dt=document.createElement("div");dt.className="date";dt.textContent=fmtDate(m.date);
     d.appendChild(q);d.appendChild(t);d.appendChild(dt);
-    reactions(d,m,db.ref(base+"/"+it.id));
+    reactions(d,m,db.ref(base+"/"+it.id),ctxDe(base,it.id));
     zone.appendChild(d);
   });
   zone.scrollTop=proche?zone.scrollHeight:prev;zone.dataset.init="1";

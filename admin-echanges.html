@@ -49,6 +49,11 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .tag{background:#e3e7f6;color:var(--indigo);border-radius:8px;font-size:12px;font-weight:bold;padding:2px 8px;margin-right:4px}
 .pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
 .thread.nouveau b{color:#000}
+.notifs{margin:12px 0;padding:10px;border:2px solid var(--amber);border-radius:12px;background:#fff8ea}
+.notifs-t{font-weight:bold;color:var(--indigo);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.notifs .fermer{padding:2px 10px;font-size:12px}
+.notifs .notif{display:block;width:100%;text-align:left;margin:4px 0;font-size:14px;font-weight:normal;background:#fff;color:#333;border:1px solid #e3e7f6}
+
 .reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
 .msg .reacts button,.msg .picker button{padding:2px 9px;font-size:13px;font-weight:bold;border-radius:14px;background:#e3e7f6;color:var(--indigo)}
 .msg .reacts button.on,.msg .picker button.on{background:var(--amber);color:#fff}
@@ -87,6 +92,7 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
     <section class="card">
       <h2>Surveillance des échanges</h2>
       <p>Tu vois toutes les discussions de classe et tous les messages privés entre élèves et enseignants. Tu peux répondre en tant qu'« Administration » et supprimer un message inapproprié.</p>
+      <div id="notifs" class="notifs cache"></div>
       <div class="tabs">
         <button id="tab-prive" class="on">Messages privés <span id="pastille" class="pastille cache">0</span></button>
         <button id="tab-forum">Discussions de classe</button>
@@ -149,6 +155,7 @@ function init(){
   $("tab-prive").addEventListener("click",()=>onglet("prive"));$("tab-forum").addEventListener("click",()=>onglet("forum"));
   $("mp-retour").addEventListener("click",fermer);$("mp-form").addEventListener("submit",envoyerMp);
   $("fo-classe").addEventListener("change",ouvrirForum);$("fo-matiere").addEventListener("change",ouvrirForum);$("forum-form").addEventListener("submit",envoyerForum);
+  document.addEventListener("visibilitychange",marquerNotifsLues);ecouterNotifs();
   refIdx=db.ref("mp_index");
   refIdx.on("value",function(snap){
     THREADS=[];
@@ -183,14 +190,67 @@ function listeThreads(){
     d.addEventListener("click",()=>ouvrir(t));$("mp-liste").appendChild(d);
   });
 }
-function reactions(d,m,ref){
+/* ---------- notifications de réactions ---------- */
+let NEW=[],VUS={},PEND=[];
+function ctxDe(chemin,id){
+  const p=chemin.split("/");
+  return p[0]==="forum"?{type:"forum",c:p[1],m:p[2],id:id}:{type:"prive",c:p[1],m:p[2],eleve:p[3],id:id};
+}
+function ecouterNotifs(){
+  db.ref("notifications/"+U.uid).orderByChild("date").limitToLast(50).on("value",function(s){
+    const ajout=[];PEND=[];
+    s.forEach(function(ch){
+      const v=ch.val()||{};
+      if(v.lu===false){PEND.push(ch.key);const k=ch.key+"_"+(v.date||0);if(!VUS[k]){VUS[k]=1;ajout.push({id:ch.key,v:v});}}
+    });
+    if(ajout.length){NEW=ajout.concat(NEW).sort((a,b)=>(b.v.date||0)-(a.v.date||0)).slice(0,20);rendreNotifs();}
+    marquerNotifsLues();
+  },function(){});
+}
+// Marquées comme lues dès que la page est affichée : rien à faire
+function marquerNotifsLues(){
+  if(!U||!PEND.length||document.visibilityState!=="visible")return;
+  const u={};PEND.forEach(function(id){u[id+"/lu"]=true;});PEND=[];
+  db.ref("notifications/"+U.uid).update(u).catch(function(){});
+}
+function rendreNotifs(){
+  const z=$("notifs");z.innerHTML="";
+  if(!NEW.length){z.classList.add("cache");return;}
+  z.classList.remove("cache");
+  const h=document.createElement("div");h.className="notifs-t";
+  const t=document.createElement("span");t.textContent="Nouvelles réactions";
+  const x=document.createElement("button");x.type="button";x.className="fermer";x.textContent="Fermer";
+  x.addEventListener("click",function(){NEW=[];rendreNotifs();});
+  h.appendChild(t);h.appendChild(x);z.appendChild(h);
+  NEW.forEach(function(n){
+    const v=n.v,r=REACTIONS.filter(q=>q.k===v.reaction)[0]||{e:"👍"};
+    const a=document.createElement("button");a.type="button";a.className="notif";
+    a.textContent=r.e+" "+(v.de||"Quelqu'un")+" a réagi à ton message « "+(v.extrait||"")+" »";
+    a.addEventListener("click",function(){allerA(v);});
+    z.appendChild(a);
+  });
+}
+function allerA(v){
+  if(v.type==="prive"){
+    onglet("prive");
+    const t=THREADS.filter(q=>q.classe===v.classe&&q.matiere===v.matiere&&q.uid===v.eleve)[0];
+    if(t)ouvrir(t);
+  }else{
+    onglet("forum");$("fo-classe").value=v.classe;$("fo-matiere").value=v.matiere;ouvrirForum();
+  }
+}
+function reactions(d,m,ref,ctx){
   const R=m.reactions||{},mine=R[U.uid]||null,cnt={};
   Object.keys(R).forEach(u=>{cnt[R[u]]=(cnt[R[u]]||0)+1;});
   const bar=document.createElement("div");bar.className="reacts";
   const pk=document.createElement("div");pk.className="picker";
   function choisir(k){
     const r=ref.child("reactions/"+U.uid);
-    (mine===k?r.remove():r.set(k)).catch(function(e){$("msg").textContent="Réaction impossible : "+e.message;});
+    const nref=(m.auteurUid&&m.auteurUid!==U.uid)?db.ref("notifications/"+m.auteurUid+"/"+ctx.id+"_"+U.uid):null;
+    (mine===k
+      ?r.remove().then(function(){if(nref)nref.remove().catch(function(){});})
+      :r.set(k).then(function(){if(nref)nref.set({deUid:U.uid,de:NOM,reaction:k,extrait:String(m.texte||"").slice(0,80),type:ctx.type,classe:ctx.c,matiere:ctx.m,eleve:ctx.eleve||"",msgId:ctx.id,date:Date.now(),lu:false}).catch(function(){});})
+    ).catch(function(e){$("msg").textContent="Réaction impossible : "+e.message;});
   }
   REACTIONS.forEach(function(r){
     if(cnt[r.k]){
@@ -218,7 +278,7 @@ function rendre(zone,snap,suppr,chemin){
     q.appendChild(sup);
     const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
     const dt=document.createElement("div");dt.className="date";dt.textContent=fmt(m.date);
-    d.appendChild(q);d.appendChild(t);d.appendChild(dt);reactions(d,m,db.ref(chemin+"/"+it.id));zone.appendChild(d);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);reactions(d,m,db.ref(chemin+"/"+it.id),ctxDe(chemin,it.id));zone.appendChild(d);
   });
   zone.scrollTop=proche?zone.scrollHeight:prev;zone.dataset.init="1";
 }

@@ -79,6 +79,12 @@
     }).catch(function () { return 0; });
   }
 
+  // réactions reçues sur mes messages (non lues)
+  function compterReactions(db, uid) {
+    return db.ref("notifications/" + uid).orderByChild("date").limitToLast(50).once("value").then(function (s) {
+      var n = 0; s.forEach(function (ch) { if ((ch.val() || {}).lu === false) n++; }); return n;
+    }).catch(function () { return 0; });
+  }
   function afficher(a, n) {
     var b = a.querySelector(".cf-badge");
     if (!n) { if (b) b.remove(); return; }
@@ -101,8 +107,9 @@
       if (types.prof) calc.prof = compterProf(db, uid);
       if (types.admin) calc.admin = compterAdmin(db, uid);
       var cles = Object.keys(calc);
-      Promise.all(cles.map(function (k) { return calc[k]; })).then(function (r) {
-        var res = {}; cles.forEach(function (k, i) { res[k] = r[i]; });
+      Promise.all([compterReactions(db, uid)].concat(cles.map(function (k) { return calc[k]; }))).then(function (r0) {
+        var rx = r0[0], r = r0.slice(1);
+        var res = {}; cles.forEach(function (k, i) { res[k] = r[i] + rx; });
         var total = 0;
         liens.forEach(function (a) { var n = res[type(a)] || 0; afficher(a, n); total = Math.max(total, n); });
         document.title = total ? "(" + fmt(total) + ") " + TITRE : TITRE;
