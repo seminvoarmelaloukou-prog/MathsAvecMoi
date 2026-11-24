@@ -169,7 +169,7 @@ function listeThreads(){
   $("pastille").textContent=att>99?"99+":att;$("pastille").classList.toggle("cache",!att);
   $("mp-liste").innerHTML=l.length?"":'<p>Aucune conversation.</p>';
   l.forEach(function(t){
-    const d=document.createElement("div");d.className="thread"+(t.v.dernierAuteur==="eleve"?" attente":"")+(estNouveau(t)?" nouveau":"");
+    const d=document.createElement("div");d.className="thread"+(estNouveau(t)?" nouveau attente":"");
     const g=document.createElement("div");
     const n=document.createElement("b");n.textContent=t.v.nomEleve||"Élève";
     const tg=document.createElement("div");tg.style.margin="3px 0";
@@ -178,7 +178,7 @@ function listeThreads(){
     g.appendChild(n);g.appendChild(tg);g.appendChild(sm);d.appendChild(g);
     const dr=document.createElement("div");dr.style.cssText="display:flex;flex-direction:column;gap:4px;align-items:flex-end";
     if(estNouveau(t)){const b=document.createElement("span");b.className="pastille";b.textContent="Nouveau";dr.appendChild(b);}
-    if(t.v.dernierAuteur==="eleve"){const b=document.createElement("span");b.className="tag";b.style.margin="0";b.textContent="Sans réponse";dr.appendChild(b);}
+    if(estNouveau(t)&&t.v.dernierAuteur==="eleve"){const b=document.createElement("span");b.className="tag";b.style.margin="0";b.textContent="Sans réponse";dr.appendChild(b);}
     if(dr.children.length)d.appendChild(dr);
     d.addEventListener("click",()=>ouvrir(t));$("mp-liste").appendChild(d);
   });
