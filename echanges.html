@@ -38,6 +38,13 @@
 form button[type="submit"]{width:100%;margin-top:10px}
 .note{font-size:.9rem;color:var(--muted);margin-top:10px}
 #matiere{margin-bottom:2px}
+.reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+.msg .reacts button,.msg .picker button{width:auto;min-height:0;margin:0;padding:3px 10px;font-size:.85rem;line-height:1.3;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);box-shadow:none;font-weight:700;text-transform:none;letter-spacing:0;cursor:pointer}
+.msg .reacts button.on,.msg .picker button.on{background:var(--amber);border-color:var(--amber);color:#14203F}
+.msg .reacts .plus{font-weight:600;opacity:.9}
+.picker{display:none;gap:4px;flex-wrap:wrap;width:100%;margin-top:6px;padding:6px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper)}
+.picker.ouvert{display:flex}
+.msg .picker button{font-size:1.2rem;padding:4px 9px}
 </style>
 </head>
 <body>
@@ -74,8 +81,8 @@ form button[type="submit"]{width:100%;margin-top:10px}
       <div style="margin-top:14px"><label for="matiere">Matière</label>
       <select id="matiere"></select></div>
       <div class="tabs">
-        <button id="tab-forum" class="on">Discussion de classe</button>
-        <button id="tab-prive">Écrire à mon enseignant <span id="pastille" class="pastille cache">nouveau</span></button>
+        <button id="tab-forum" class="on">Discussion de classe <span id="pastille-forum" class="pastille cache">0</span></button>
+        <button id="tab-prive">Écrire à mon enseignant <span id="pastille" class="pastille cache">0</span></button>
       </div>
 
       <div id="vue-forum">
@@ -102,9 +109,14 @@ form button[type="submit"]{width:100%;margin-top:10px}
 <footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html">Contact</a></footer>
 <script>
 const MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Éducation civique","EPS","Espagnol","Allemand","Philosophie"];
+const REACTIONS=[{k:"jaime",e:"👍",l:"J'aime"},{k:"coeur",e:"❤️",l:"J'adore"},{k:"etonne",e:"😮",l:"Étonnant"},{k:"merci",e:"🙏",l:"Merci"},{k:"rire",e:"😂",l:"Drôle"}];
 const $=id=>document.getElementById(id);
 const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+const fmtN=n=>n>99?"99+":String(n);
+const visible=()=>document.visibilityState==="visible";
+const INC=n=>firebase.database.ServerValue.increment(n);
 let U=null,E=null,NOM="",refF=null,refP=null,refI=null,IDX=null;
+let LS={},FN={},PN={};   // LS : dernier passage dans la discussion ; FN : dates des messages reçus ; PN : messages privés non lus
 $("deconnexion").addEventListener("click",function(e){e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
 auth.onAuthStateChanged(function(u){
   if(!u){location.href="connexion.html";return;}
@@ -123,49 +135,120 @@ auth.onAuthStateChanged(function(u){
     NOM=((E.prenom||"")+" "+((E.nom||"").charAt(0)?(E.nom||"").charAt(0).toUpperCase()+".":"")).trim()||"Élève";
     $("verif").classList.add("cache");$("contenu").classList.remove("cache");
     $("titre").textContent="Classe : "+E.classe;
-    $("matiere").innerHTML=MATIERES.filter(m=>!window.CF_PROGRAMME||CF_PROGRAMME.autorisee(E.classe,m)).map(m=>'<option value="'+m+'">'+m+'</option>').join("");
+    const mats=MATIERES.filter(m=>!window.CF_PROGRAMME||CF_PROGRAMME.autorisee(E.classe,m));
+    $("matiere").innerHTML=mats.map(m=>'<option value="'+m+'">'+m+'</option>').join("");
     $("matiere").addEventListener("change",ouvrir);
     $("tab-forum").addEventListener("click",()=>onglet("forum"));$("tab-prive").addEventListener("click",()=>onglet("prive"));
     $("forum-form").addEventListener("submit",envoyerForum);$("mp-form").addEventListener("submit",envoyerPrive);
-    ouvrir();
+    document.addEventListener("visibilitychange",verifLu);
+    // dernier passage dans chaque discussion (enregistré en ligne, donc le même sur tous les appareils)
+    db.ref("lectures/"+u.uid+"/"+E.classe).once("value").then(s=>s.val(),()=>null).then(function(LU){
+      LU=LU||{};
+      mats.forEach(function(m){
+        let t=LU[m]&&LU[m].forum;
+        if(typeof t!=="number"){t=lireLocal(m)||Date.now();persister(m,t);}
+        LS[m]=t;
+      });
+      demarrerBadges(mats);
+      ouvrir();
+    });
   }).catch(e=>{$("verif-msg").textContent="Erreur : "+e.message;$("verif-msg").className="erreur";});
 });
+/* ---------- lecture / compteurs ---------- */
+function lireLocal(m){try{return parseInt(localStorage.getItem("cf_fvu_"+U.uid+"_"+E.classe+"_"+m))||0;}catch(e){return 0;}}
+function vuLocal(m){try{localStorage.setItem("cf_fvu_"+U.uid+"_"+E.classe+"_"+m,String(Date.now()));}catch(e){}}
+function persister(m,t){db.ref("lectures/"+U.uid+"/"+E.classe+"/"+m+"/forum").set(t).catch(()=>{});}
+function nbForum(m){const s=LS[m]||0;return (FN[m]||[]).filter(d=>d>s).length;}
+function nbPrive(v){return (v&&v.luEleve===false)?(v.nonLusEleve>0?v.nonLusEleve:1):0;}
+function pastille(id,n){const p=$(id);p.textContent=fmtN(n);p.classList.toggle("cache",!n);}
+function majBadges(){
+  const cur=$("matiere").value;
+  Array.prototype.forEach.call($("matiere").options,function(o){
+    const n=nbForum(o.value)+(PN[o.value]||0);o.textContent=o.value+(n?" ("+fmtN(n)+")":"");
+  });
+  pastille("pastille-forum",nbForum(cur));pastille("pastille",PN[cur]||0);
+}
+function demarrerBadges(mats){
+  mats.forEach(function(m){
+    db.ref("forum/"+E.classe+"/"+m).orderByChild("date").startAt((LS[m]||0)+1).on("value",function(s){
+      const a=[];s.forEach(ch=>{const v=ch.val()||{};if(v.auteurUid!==U.uid)a.push(v.date||0);});
+      FN[m]=a;majBadges();if(m===$("matiere").value)verifLu();
+    },()=>{});
+    db.ref("mp_index/"+E.classe+"/"+m+"/"+U.uid).on("value",function(s){PN[m]=nbPrive(s.val());majBadges();},()=>{});
+  });
+}
+// Marque comme lu ce que la personne a sous les yeux (sans qu'elle ait à répondre ou réagir)
+function verifLu(){
+  if(!E||!visible())return;
+  const m=$("matiere").value;
+  if(!$("vue-forum").classList.contains("cache")){
+    vuLocal(m);
+    const a=(FN[m]||[]).filter(d=>d>(LS[m]||0));
+    if(a.length){const t=Math.max(Date.now(),Math.max.apply(null,a));LS[m]=t;persister(m,t);majBadges();}
+  }else if(IDX&&IDX.luEleve===false&&refI){
+    refI.update({luEleve:true,nonLusEleve:0}).catch(()=>{});
+  }
+}
 function onglet(n){
   $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
   $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
-  if(n==="forum")vuForum();
-  if(n==="prive"&&IDX&&IDX.luEleve===false){db.ref("mp_index/"+E.classe+"/"+$("matiere").value+"/"+U.uid).update({luEleve:true}).catch(()=>{});$("pastille").classList.add("cache");}
+  const z=$(n==="forum"?"forum-fil":"mp-fil");z.scrollTop=z.scrollHeight;
+  verifLu();
 }
-function vuForum(){try{localStorage.setItem("cf_fvu_"+U.uid+"_"+E.classe+"_"+$("matiere").value,String(Date.now()));}catch(e){}}
-function rendre(zone,snap){
-  const items=[];snap.forEach(ch=>{items.push(ch.val());});
-  items.sort((a,b)=>(a.date||0)-(b.date||0));zone.innerHTML="";
+/* ---------- réactions ---------- */
+function reactions(d,m,ref){
+  const R=m.reactions||{},mine=R[U.uid]||null,cnt={};
+  Object.keys(R).forEach(u=>{cnt[R[u]]=(cnt[R[u]]||0)+1;});
+  const bar=document.createElement("div");bar.className="reacts";
+  const pk=document.createElement("div");pk.className="picker";
+  function choisir(k){
+    const r=ref.child("reactions/"+U.uid);
+    (mine===k?r.remove():r.set(k)).catch(function(e){$("msg").textContent="Réaction impossible : "+e.message;});
+  }
+  REACTIONS.forEach(function(r){
+    if(cnt[r.k]){
+      const b=document.createElement("button");b.type="button";b.className=mine===r.k?"on":"";
+      b.textContent=r.e+" "+cnt[r.k];b.title=r.l;b.addEventListener("click",()=>choisir(r.k));bar.appendChild(b);
+    }
+    const p=document.createElement("button");p.type="button";p.className=mine===r.k?"on":"";
+    p.textContent=r.e;p.title=r.l;p.setAttribute("aria-label",r.l);p.addEventListener("click",()=>choisir(r.k));pk.appendChild(p);
+  });
+  const plus=document.createElement("button");plus.type="button";plus.className="plus";plus.textContent="☺ Réagir";
+  plus.addEventListener("click",()=>pk.classList.toggle("ouvert"));
+  bar.appendChild(plus);d.appendChild(bar);d.appendChild(pk);
+}
+/* ---------- affichage des fils ---------- */
+function rendre(zone,snap,base){
+  const items=[];snap.forEach(ch=>{items.push({id:ch.key,v:ch.val()});});
+  items.sort((a,b)=>(a.v.date||0)-(b.v.date||0));
+  const proche=!zone.dataset.init||(zone.scrollHeight-zone.scrollTop-zone.clientHeight<80),prev=zone.scrollTop;
+  zone.innerHTML="";
   if(!items.length){zone.innerHTML='<div class="fil-vide">Aucun message pour le moment.</div>';return;}
-  items.forEach(function(m){
+  items.forEach(function(it){
+    const m=it.v;
     const d=document.createElement("div");d.className="msg"+(m.auteurUid===U.uid?" moi":"");
     const q=document.createElement("div");q.className="qui";q.textContent=m.auteurNom||"";
     if(m.role==="enseignant"){const b=document.createElement("span");b.className="badge";b.textContent="Enseignant";q.appendChild(b);}
     const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
     const dt=document.createElement("div");dt.className="date";dt.textContent=fmtDate(m.date);
-    d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);
+    reactions(d,m,db.ref(base+"/"+it.id));
+    zone.appendChild(d);
   });
-  zone.scrollTop=zone.scrollHeight;
-  if(zone.id==="forum-fil"&&!$("vue-forum").classList.contains("cache"))vuForum();
+  zone.scrollTop=proche?zone.scrollHeight:prev;zone.dataset.init="1";
 }
 function ouvrir(){
-  if(refF)refF.off();if(refP)refP.off();if(refI)refI.off();
-  $("msg").textContent="";const c=E.classe,m=$("matiere").value;
+  [refF,refP,refI].forEach(r=>{if(r)r.off();});
+  $("msg").textContent="";IDX=null;
+  $("forum-fil").dataset.init="";$("mp-fil").dataset.init="";
+  const c=E.classe,m=$("matiere").value;
   refF=db.ref("forum/"+c+"/"+m).orderByChild("date").limitToLast(200);
-  refF.on("value",s=>rendre($("forum-fil"),s),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
+  refF.on("value",s=>rendre($("forum-fil"),s,"forum/"+c+"/"+m),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
   refP=db.ref("messages_prives/"+c+"/"+m+"/"+U.uid).orderByChild("date").limitToLast(200);
-  refP.on("value",s=>rendre($("mp-fil"),s),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
-  IDX=null;
+  refP.on("value",s=>rendre($("mp-fil"),s,"messages_prives/"+c+"/"+m+"/"+U.uid),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
   refI=db.ref("mp_index/"+c+"/"+m+"/"+U.uid);
-  refI.on("value",function(s){
-    IDX=s.val();const prive=!$("vue-prive").classList.contains("cache");
-    if(IDX&&IDX.luEleve===false&&prive){refI.update({luEleve:true}).catch(()=>{});}
-    $("pastille").classList.toggle("cache",!(IDX&&IDX.luEleve===false&&!prive));
-  },()=>{});
+  refI.on("value",function(s){IDX=s.val();verifLu();majBadges();},()=>{});
+  majBadges();verifLu();
 }
 function envoyerForum(e){
   e.preventDefault();const t=$("forum-texte").value.trim();if(!t)return;
@@ -177,7 +260,7 @@ function envoyerPrive(e){
   const c=E.classe,m=$("matiere").value,now=Date.now();
   db.ref("messages_prives/"+c+"/"+m+"/"+U.uid).push({auteurUid:U.uid,auteurNom:NOM,role:"eleve",texte:t,date:now}).then(function(){
     $("mp-texte").value="";
-    return db.ref("mp_index/"+c+"/"+m+"/"+U.uid).update({nomEleve:((E.prenom||"")+" "+(E.nom||"")).trim(),dernierAuteur:"eleve",dernierTexte:t.slice(0,160),date:now,luEns:false,luEleve:true});
+    return db.ref("mp_index/"+c+"/"+m+"/"+U.uid).update({nomEleve:((E.prenom||"")+" "+(E.nom||"")).trim(),dernierAuteur:"eleve",dernierTexte:t.slice(0,160),date:now,luEns:false,nonLusEns:INC(1),luEleve:true,nonLusEleve:0});
   }).catch(er=>{$("msg").textContent="Envoi impossible : "+er.message;});
 }
 </script>

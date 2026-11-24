@@ -48,6 +48,13 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .thread small{color:var(--muted);display:block}
 .tag{background:#e3e7f6;color:var(--indigo);border-radius:8px;font-size:12px;font-weight:bold;padding:2px 8px;margin-right:4px}
 .pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
+.thread.nouveau b{color:#000}
+.reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.msg .reacts button,.msg .picker button{padding:2px 9px;font-size:13px;font-weight:bold;border-radius:14px;background:#e3e7f6;color:var(--indigo)}
+.msg .reacts button.on,.msg .picker button.on{background:var(--amber);color:#fff}
+.picker{display:none;gap:4px;flex-wrap:wrap;width:100%;margin-top:6px;padding:6px;border-radius:12px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.15)}
+.picker.ouvert{display:flex}
+.msg .picker button{font-size:18px;padding:4px 8px}
 .note{font-size:13px;color:#888;margin-top:6px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,6 +124,14 @@ const NOM="Administration";
 const $=id=>document.getElementById(id);
 const fmt=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
 let U=null,THREADS=[],cur=null,refIdx=null,refMp=null,refFo=null;
+const INC=n=>firebase.database.ServerValue.increment(n);
+const REACTIONS=[{k:"jaime",e:"👍",l:"J'aime"},{k:"coeur",e:"❤️",l:"J'adore"},{k:"etonne",e:"😮",l:"Étonnant"},{k:"merci",e:"🙏",l:"Merci"},{k:"rire",e:"😂",l:"Drôle"}];
+// « Nouveau » : un message est nouveau tant que tu n'as pas ouvert la conversation (mémorisé sur cet appareil)
+const vuCle=t=>"cf_adm_vu_"+U.uid+"_"+t.classe+"_"+t.matiere+"_"+t.uid;
+function base(){try{let b=parseInt(localStorage.getItem("cf_adm_base_"+U.uid));if(!b){b=Date.now();localStorage.setItem("cf_adm_base_"+U.uid,String(b));}return b;}catch(e){return 0;}}
+function dernierVu(t){try{return Math.max(base(),parseInt(localStorage.getItem(vuCle(t)))||0);}catch(e){return 0;}}
+function marquerVu(t,d){try{localStorage.setItem(vuCle(t),String(Math.max(d||0,Date.now())));}catch(e){}}
+const estNouveau=t=>(t.v.date||0)>dernierVu(t);
 $("deconnexion").addEventListener("click",e=>{e.preventDefault();auth.signOut().then(()=>{location.href="index.html";});});
 auth.onAuthStateChanged(function(u){
   if(!u){location.href="connexion.html";return;}
@@ -149,24 +164,50 @@ function onglet(n){
 function listeThreads(){
   const fc=$("f-classe").value,fs=$("f-statut").value;
   const l=THREADS.filter(t=>(!fc||t.classe===fc)&&(!fs||t.v.dernierAuteur==="eleve"));
-  const att=THREADS.filter(t=>t.v.dernierAuteur==="eleve").length;
-  $("pastille").textContent=att;$("pastille").classList.toggle("cache",!att);
+  if(cur){const c2=THREADS.find(t=>t.classe===cur.classe&&t.matiere===cur.matiere&&t.uid===cur.uid);if(c2&&estNouveau(c2))marquerVu(c2,c2.v.date);}
+  const att=THREADS.filter(estNouveau).length;
+  $("pastille").textContent=att>99?"99+":att;$("pastille").classList.toggle("cache",!att);
   $("mp-liste").innerHTML=l.length?"":'<p>Aucune conversation.</p>';
   l.forEach(function(t){
-    const d=document.createElement("div");d.className="thread"+(t.v.dernierAuteur==="eleve"?" attente":"");
+    const d=document.createElement("div");d.className="thread"+(t.v.dernierAuteur==="eleve"?" attente":"")+(estNouveau(t)?" nouveau":"");
     const g=document.createElement("div");
     const n=document.createElement("b");n.textContent=t.v.nomEleve||"Élève";
     const tg=document.createElement("div");tg.style.margin="3px 0";
     [t.classe,t.matiere].forEach(x=>{const s=document.createElement("span");s.className="tag";s.textContent=x;tg.appendChild(s);});
     const sm=document.createElement("small");sm.textContent=(t.v.dernierAuteur==="eleve"?"L'élève : ":"Enseignant : ")+(t.v.dernierTexte||"")+" · "+fmt(t.v.date);
     g.appendChild(n);g.appendChild(tg);g.appendChild(sm);d.appendChild(g);
-    if(t.v.dernierAuteur==="eleve"){const b=document.createElement("span");b.className="pastille";b.textContent="Sans réponse";d.appendChild(b);}
+    const dr=document.createElement("div");dr.style.cssText="display:flex;flex-direction:column;gap:4px;align-items:flex-end";
+    if(estNouveau(t)){const b=document.createElement("span");b.className="pastille";b.textContent="Nouveau";dr.appendChild(b);}
+    if(t.v.dernierAuteur==="eleve"){const b=document.createElement("span");b.className="tag";b.style.margin="0";b.textContent="Sans réponse";dr.appendChild(b);}
+    if(dr.children.length)d.appendChild(dr);
     d.addEventListener("click",()=>ouvrir(t));$("mp-liste").appendChild(d);
   });
 }
-function rendre(zone,snap,suppr){
+function reactions(d,m,ref){
+  const R=m.reactions||{},mine=R[U.uid]||null,cnt={};
+  Object.keys(R).forEach(u=>{cnt[R[u]]=(cnt[R[u]]||0)+1;});
+  const bar=document.createElement("div");bar.className="reacts";
+  const pk=document.createElement("div");pk.className="picker";
+  function choisir(k){
+    const r=ref.child("reactions/"+U.uid);
+    (mine===k?r.remove():r.set(k)).catch(function(e){$("msg").textContent="Réaction impossible : "+e.message;});
+  }
+  REACTIONS.forEach(function(r){
+    if(cnt[r.k]){
+      const b=document.createElement("button");b.type="button";b.className=mine===r.k?"on":"";
+      b.textContent=r.e+" "+cnt[r.k];b.title=r.l;b.addEventListener("click",()=>choisir(r.k));bar.appendChild(b);
+    }
+    const p=document.createElement("button");p.type="button";p.className=mine===r.k?"on":"";
+    p.textContent=r.e;p.title=r.l;p.setAttribute("aria-label",r.l);p.addEventListener("click",()=>choisir(r.k));pk.appendChild(p);
+  });
+  const plus=document.createElement("button");plus.type="button";plus.className="sec";plus.textContent="☺ Réagir";
+  plus.addEventListener("click",()=>pk.classList.toggle("ouvert"));
+  bar.appendChild(plus);d.appendChild(bar);d.appendChild(pk);
+}
+function rendre(zone,snap,suppr,chemin){
   const items=[];snap.forEach(ch=>{items.push({id:ch.key,v:ch.val()});});
-  items.sort((a,b)=>(a.v.date||0)-(b.v.date||0));zone.innerHTML="";
+  items.sort((a,b)=>(a.v.date||0)-(b.v.date||0));
+  const proche=!zone.dataset.init||(zone.scrollHeight-zone.scrollTop-zone.clientHeight<80),prev=zone.scrollTop;zone.innerHTML="";
   if(!items.length){zone.innerHTML='<div class="fil-vide">Aucun message.</div>';return;}
   items.forEach(function(it){
     const m=it.v,d=document.createElement("div");d.className="msg"+(m.auteurUid===U.uid?" moi":"");
@@ -177,29 +218,29 @@ function rendre(zone,snap,suppr){
     q.appendChild(sup);
     const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
     const dt=document.createElement("div");dt.className="date";dt.textContent=fmt(m.date);
-    d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);reactions(d,m,db.ref(chemin+"/"+it.id));zone.appendChild(d);
   });
-  zone.scrollTop=zone.scrollHeight;
+  zone.scrollTop=proche?zone.scrollHeight:prev;zone.dataset.init="1";
 }
 function ouvrir(t){
-  cur=t;$("mp-liste").classList.add("cache");$("f-classe").parentNode.classList.add("cache");$("mp-zone").classList.remove("cache");
+  cur=t;marquerVu(t,t.v.date);$("mp-fil").dataset.init="";listeThreads();$("mp-liste").classList.add("cache");$("f-classe").parentNode.classList.add("cache");$("mp-zone").classList.remove("cache");
   $("mp-titre").textContent=(t.v.nomEleve||"Élève")+" — "+t.classe+" · "+t.matiere;
   if(refMp)refMp.off();
   refMp=db.ref("messages_prives/"+t.classe+"/"+t.matiere+"/"+t.uid).orderByChild("date").limitToLast(200);
-  refMp.on("value",s=>rendre($("mp-fil"),s,id=>db.ref("messages_prives/"+t.classe+"/"+t.matiere+"/"+t.uid+"/"+id).remove()),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
+  refMp.on("value",s=>rendre($("mp-fil"),s,id=>db.ref("messages_prives/"+t.classe+"/"+t.matiere+"/"+t.uid+"/"+id).remove(),"messages_prives/"+t.classe+"/"+t.matiere+"/"+t.uid),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
 }
 function fermer(){if(refMp){refMp.off();refMp=null;}cur=null;$("mp-zone").classList.add("cache");$("mp-liste").classList.remove("cache");$("f-classe").parentNode.classList.remove("cache");}
 function envoyerMp(e){
   e.preventDefault();const t=$("mp-texte").value.trim();if(!t||!cur)return;const now=Date.now(),c=cur;
   db.ref("messages_prives/"+c.classe+"/"+c.matiere+"/"+c.uid).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:now}).then(function(){
-    $("mp-texte").value="";
-    return db.ref("mp_index/"+c.classe+"/"+c.matiere+"/"+c.uid).update({dernierAuteur:"enseignant",dernierTexte:t.slice(0,160),date:now,luEns:true,luEleve:false});
+    $("mp-texte").value="";marquerVu(c,now);
+    return db.ref("mp_index/"+c.classe+"/"+c.matiere+"/"+c.uid).update({dernierAuteur:"enseignant",dernierTexte:t.slice(0,160),date:now,luEns:true,nonLusEns:0,luEleve:false,nonLusEleve:INC(1)});
   }).catch(er=>{$("msg").textContent="Envoi impossible : "+er.message;});
 }
 function ouvrirForum(){
-  if(refFo){refFo.off();refFo=null;}const c=$("fo-classe").value,m=$("fo-matiere").value;if(!c||!m)return;
+  if(refFo){refFo.off();refFo=null;}$("forum-fil").dataset.init="";const c=$("fo-classe").value,m=$("fo-matiere").value;if(!c||!m)return;
   refFo=db.ref("forum/"+c+"/"+m).orderByChild("date").limitToLast(200);
-  refFo.on("value",s=>rendre($("forum-fil"),s,id=>db.ref("forum/"+c+"/"+m+"/"+id).remove()),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
+  refFo.on("value",s=>rendre($("forum-fil"),s,id=>db.ref("forum/"+c+"/"+m+"/"+id).remove(),"forum/"+c+"/"+m),e=>{$("msg").textContent="Lecture impossible : "+e.message;});
 }
 function envoyerForum(e){
   e.preventDefault();const t=$("forum-texte").value.trim(),c=$("fo-classe").value,m=$("fo-matiere").value;if(!t)return;

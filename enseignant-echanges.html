@@ -55,6 +55,12 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
 .thread small{color:var(--muted);display:block}
 .pastille{background:var(--amber);color:#fff;border-radius:10px;font-size:12px;font-weight:bold;padding:2px 8px}
 .note{font-size:13px;color:#888;margin-top:6px}
+.reacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center}
+.msg .reacts button,.msg .picker button{padding:2px 9px;font-size:13px;font-weight:bold;border-radius:14px;background:#e3e7f6;color:var(--indigo)}
+.msg .reacts button.on,.msg .picker button.on{background:var(--amber);color:#fff}
+.picker{display:none;gap:4px;flex-wrap:wrap;width:100%;margin-top:6px;padding:6px;border-radius:12px;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.15)}
+.picker.ouvert{display:flex}
+.msg .picker button{font-size:18px;padding:4px 8px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:8px}
 .stat{background:#f5f7ff;border-left:4px solid var(--indigo,#2c3e8c);border-radius:8px;padding:10px 12px}
 .stat b{display:block;font-size:18px;color:var(--indigo,#2c3e8c)}
@@ -117,7 +123,7 @@ button.sec{background:#e3e7f6;color:var(--indigo)}
         <select id="ex-matiere"></select>
       </div>
       <div class="tabs">
-        <button id="tab-forum" class="on">Discussion de classe</button>
+        <button id="tab-forum" class="on">Discussion de classe <span id="pastille-forum" class="pastille cache">0</span></button>
         <button id="tab-prive">Messages privés <span id="pastille-nonlus" class="pastille cache">0</span></button>
       </div>
 
@@ -153,6 +159,11 @@ const fmtDate=t=>t?new Date(t).toLocaleString("fr-FR",{day:"2-digit",month:"2-di
 const fmtJour=t=>t?new Date(t).toLocaleDateString("fr-FR"):"-";
 let U=null,PROFIL=null,NOM="";
 let refForum=null,refMp=null,refIdx=null,mpEleve=null;
+let LSF=0,FN=[],tok=0,THR=[];
+const fmtN=n=>n>99?"99+":String(n);
+const visible=()=>document.visibilityState==="visible";
+const INC=n=>firebase.database.ServerValue.increment(n);
+const REACTIONS=[{k:"jaime",e:"👍",l:"J'aime"},{k:"coeur",e:"❤️",l:"J'adore"},{k:"etonne",e:"😮",l:"Étonnant"},{k:"merci",e:"🙏",l:"Merci"},{k:"rire",e:"😂",l:"Drôle"}];
 // après un rechargement : conversation privée qui était ouverte
 let MEM=null;
 try{
@@ -195,13 +206,41 @@ function initEchanges(){
   $("forum-form").addEventListener("submit",envoyerForum);
   $("mp-form").addEventListener("submit",envoyerPrive);
   $("mp-retour").addEventListener("click",fermerFil);
+  document.addEventListener("visibilitychange",function(){verifLuForum();marquerFilLu();});
   ouvrirEchanges();
 }
 function vuForum(c,m){try{localStorage.setItem("cf_fvu_"+U.uid+"_"+c+"_"+m,String(Date.now()));}catch(e){}}
+function pastille(id,n){const p=$(id);p.textContent=fmtN(n);p.classList.toggle("cache",!n);}
+function majBadgeForum(){pastille("pastille-forum",FN.filter(d=>d>LSF).length);}
+function persister(c,m,t){db.ref("lectures/"+U.uid+"/"+c+"/"+m+"/forum").set(t).catch(()=>{});}
+function lireLu(c,m){
+  return db.ref("lectures/"+U.uid+"/"+c+"/"+m+"/forum").once("value").then(s=>s.val(),()=>null).then(function(v){
+    if(typeof v==="number")return v;
+    let t=0;try{t=parseInt(localStorage.getItem("cf_fvu_"+U.uid+"_"+c+"_"+m))||0;}catch(e){}
+    if(!t){t=Date.now();persister(c,m,t);}
+    return t;
+  });
+}
+// Discussion de classe : marquée comme lue dès qu'elle est affichée (sans répondre ni réagir)
+function verifLuForum(){
+  const x=cm();
+  if(!x.c||!x.m||!visible()||$("vue-forum").classList.contains("cache"))return;
+  vuForum(x.c,x.m);
+  const a=FN.filter(d=>d>LSF);
+  if(a.length){LSF=Math.max(Date.now(),Math.max.apply(null,a));persister(x.c,x.m,LSF);}
+  majBadgeForum();
+}
+// Conversation privée ouverte : marquée comme lue
+function marquerFilLu(){
+  if(!mpEleve||!visible()||$("vue-prive").classList.contains("cache")||$("mp-zone").classList.contains("cache"))return;
+  const t=THR.find(it=>it.uid===mpEleve),x=cm();
+  if(t&&t.v.luEns===false)db.ref("mp_index/"+x.c+"/"+x.m+"/"+mpEleve).update({luEns:true,nonLusEns:0}).catch(()=>{});
+}
 function onglet(n){
   $("tab-forum").classList.toggle("on",n==="forum");$("tab-prive").classList.toggle("on",n==="prive");
   $("vue-forum").classList.toggle("cache",n!=="forum");$("vue-prive").classList.toggle("cache",n!=="prive");
-  if(n==="forum"){const x=cm();if(x.c&&x.m)vuForum(x.c,x.m);}
+  const z=$(n==="forum"?"forum-fil":"mp-fil");z.scrollTop=z.scrollHeight;
+  verifLuForum();marquerFilLu();
 }
 const cm=()=>({c:$("ex-classe").value,m:$("ex-matiere").value});
 function detacher(){
@@ -213,14 +252,45 @@ function ouvrirEchanges(){
   detacher();$("ex-msg").textContent="";
   const x=cm();
   if(!x.c||!x.m){$("forum-fil").innerHTML='<div class="fil-vide">Choisis une classe et une matière.</div>';$("mp-liste").innerHTML="";return;}
-  refForum=db.ref("forum/"+x.c+"/"+x.m).orderByChild("date").limitToLast(200);
-  refForum.on("value",function(s){rendreFil($("forum-fil"),s,"forum");if(!$("vue-forum").classList.contains("cache"))vuForum(x.c,x.m);},function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
-  refIdx=db.ref("mp_index/"+x.c+"/"+x.m);
-  refIdx.on("value",rendreThreads,function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  const jeton=++tok;LSF=0;FN=[];majBadgeForum();$("forum-fil").dataset.init="";$("mp-fil").dataset.init="";
+  lireLu(x.c,x.m).then(function(t){
+    if(jeton!==tok)return;
+    LSF=t;
+    refForum=db.ref("forum/"+x.c+"/"+x.m).orderByChild("date").limitToLast(200);
+    refForum.on("value",function(s){
+      rendreFil($("forum-fil"),s,"forum");
+      FN=[];s.forEach(ch=>{const v=ch.val()||{};if(v.auteurUid!==U.uid)FN.push(v.date||0);});
+      verifLuForum();majBadgeForum();
+    },function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+    refIdx=db.ref("mp_index/"+x.c+"/"+x.m);
+    refIdx.on("value",rendreThreads,function(e){$("ex-msg").textContent="Lecture impossible : "+e.message;});
+  });
+}
+function reactions(d,m,ref){
+  const R=m.reactions||{},mine=R[U.uid]||null,cnt={};
+  Object.keys(R).forEach(u=>{cnt[R[u]]=(cnt[R[u]]||0)+1;});
+  const bar=document.createElement("div");bar.className="reacts";
+  const pk=document.createElement("div");pk.className="picker";
+  function choisir(k){
+    const r=ref.child("reactions/"+U.uid);
+    (mine===k?r.remove():r.set(k)).catch(function(e){$("ex-msg").textContent="Réaction impossible : "+e.message;});
+  }
+  REACTIONS.forEach(function(r){
+    if(cnt[r.k]){
+      const b=document.createElement("button");b.type="button";b.className=mine===r.k?"on":"";
+      b.textContent=r.e+" "+cnt[r.k];b.title=r.l;b.addEventListener("click",()=>choisir(r.k));bar.appendChild(b);
+    }
+    const p=document.createElement("button");p.type="button";p.className=mine===r.k?"on":"";
+    p.textContent=r.e;p.title=r.l;p.setAttribute("aria-label",r.l);p.addEventListener("click",()=>choisir(r.k));pk.appendChild(p);
+  });
+  const plus=document.createElement("button");plus.type="button";plus.className="sec";plus.textContent="☺ Réagir";
+  plus.addEventListener("click",()=>pk.classList.toggle("ouvert"));
+  bar.appendChild(plus);d.appendChild(bar);d.appendChild(pk);
 }
 function rendreFil(zone,snap,type){
   const items=[];snap.forEach(ch=>{items.push({id:ch.key,v:ch.val()});});
   items.sort((a,b)=>(a.v.date||0)-(b.v.date||0));
+  const proche=!zone.dataset.init||(zone.scrollHeight-zone.scrollTop-zone.clientHeight<80),prev=zone.scrollTop;
   zone.innerHTML="";
   if(!items.length){zone.innerHTML='<div class="fil-vide">Aucun message pour le moment.</div>';return;}
   items.forEach(function(it){
@@ -238,9 +308,12 @@ function rendreFil(zone,snap,type){
     q.appendChild(sup);
     const t=document.createElement("div");t.className="texte";t.textContent=m.texte||"";
     const dt=document.createElement("div");dt.className="date";dt.textContent=fmtDate(m.date);
-    d.appendChild(q);d.appendChild(t);d.appendChild(dt);zone.appendChild(d);
+    d.appendChild(q);d.appendChild(t);d.appendChild(dt);
+    const xx=cm();
+    reactions(d,m,type==="forum"?db.ref("forum/"+xx.c+"/"+xx.m+"/"+it.id):db.ref("messages_prives/"+xx.c+"/"+xx.m+"/"+mpEleve+"/"+it.id));
+    zone.appendChild(d);
   });
-  zone.scrollTop=zone.scrollHeight;
+  zone.scrollTop=proche?zone.scrollHeight:prev;zone.dataset.init="1";
 }
 function envoyerForum(e){
   e.preventDefault();const x=cm(),t=$("forum-texte").value.trim();
@@ -248,33 +321,36 @@ function envoyerForum(e){
   db.ref("forum/"+x.c+"/"+x.m).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:Date.now()})
     .then(()=>{$("forum-texte").value="";}).catch(er=>{$("ex-msg").textContent="Envoi impossible : "+er.message;});
 }
+const nbEns=v=>v.luEns===false?(v.nonLusEns>0?v.nonLusEns:1):0;
 function rendreThreads(snap){
   const l=[];let nonlus=0;
-  snap.forEach(ch=>{const v=ch.val();l.push({uid:ch.key,v:v});if(v.luEns===false)nonlus++;});
-  l.sort((a,b)=>(b.v.date||0)-(a.v.date||0));
-  const p=$("pastille-nonlus");p.textContent=nonlus;p.classList.toggle("cache",!nonlus);
+  snap.forEach(ch=>{const v=ch.val();l.push({uid:ch.key,v:v});nonlus+=nbEns(v);});
+  l.sort((a,b)=>(b.v.date||0)-(a.v.date||0));THR=l;
+  pastille("pastille-nonlus",nonlus);
   const po=$("outil-pastille");if(po){po.textContent=nonlus;po.classList.toggle("cache",!nonlus);}
   $("mp-liste").innerHTML=l.length?"":'<p>Aucun élève ne t\'a encore écrit en privé dans cette matière.</p>';
   l.forEach(function(it){
-    const d=document.createElement("div");d.className="thread"+(it.v.luEns===false?" nonlu":"");
+    const n=nbEns(it.v);
+    const d=document.createElement("div");d.className="thread"+(n?" nonlu":"");
     const g=document.createElement("div");
-    const n=document.createElement("b");n.textContent=it.v.nomEleve||"Élève";
+    const nm=document.createElement("b");nm.textContent=it.v.nomEleve||"Élève";
     const s=document.createElement("small");s.textContent=(it.v.dernierAuteur==="enseignant"?"Toi : ":"")+(it.v.dernierTexte||"")+" · "+fmtDate(it.v.date);
-    g.appendChild(n);g.appendChild(s);d.appendChild(g);
-    if(it.v.luEns===false){const b=document.createElement("span");b.className="pastille";b.textContent="Nouveau";d.appendChild(b);}
+    g.appendChild(nm);g.appendChild(s);d.appendChild(g);
+    if(n){const b=document.createElement("span");b.className="pastille";b.textContent=fmtN(n);d.appendChild(b);}
     d.addEventListener("click",()=>ouvrirFil(it.uid,it.v.nomEleve));
     $("mp-liste").appendChild(d);
   });
   if(MEM){const x=cm();if(x.c===MEM.c&&x.m===MEM.m){const t=MEM;MEM=null;onglet("prive");ouvrirFil(t.uid,t.nom);}}
+  marquerFilLu();
 }
 function ouvrirFil(uid,nom){
-  const x=cm();mpEleve=uid;
+  const x=cm();mpEleve=uid;$("mp-fil").dataset.init="";
   try{sessionStorage.setItem("cf_mp_ouvert",JSON.stringify({c:x.c,m:x.m,uid:uid,nom:nom||""}));}catch(e){}
   $("mp-liste").classList.add("cache");$("mp-zone").classList.remove("cache");$("mp-titre").textContent="Conversation avec "+(nom||"l'élève");
   if(refMp)refMp.off();
   refMp=db.ref("messages_prives/"+x.c+"/"+x.m+"/"+uid).orderByChild("date").limitToLast(200);
   refMp.on("value",s=>rendreFil($("mp-fil"),s,"prive"),e=>{$("ex-msg").textContent="Lecture impossible : "+e.message;});
-  db.ref("mp_index/"+x.c+"/"+x.m+"/"+uid).update({luEns:true}).catch(()=>{});
+  db.ref("mp_index/"+x.c+"/"+x.m+"/"+uid).update({luEns:true,nonLusEns:0}).catch(()=>{});
 }
 function fermerFil(){
   if(refMp){refMp.off();refMp=null;}mpEleve=null;
@@ -287,7 +363,7 @@ function envoyerPrive(e){
   const now=Date.now();
   db.ref("messages_prives/"+x.c+"/"+x.m+"/"+mpEleve).push({auteurUid:U.uid,auteurNom:NOM,role:"enseignant",texte:t,date:now}).then(function(){
     $("mp-texte").value="";
-    return db.ref("mp_index/"+x.c+"/"+x.m+"/"+mpEleve).update({dernierAuteur:"enseignant",dernierTexte:t.slice(0,160),date:now,luEns:true,luEleve:false});
+    return db.ref("mp_index/"+x.c+"/"+x.m+"/"+mpEleve).update({dernierAuteur:"enseignant",dernierTexte:t.slice(0,160),date:now,luEns:true,nonLusEns:0,luEleve:false,nonLusEleve:INC(1)});
   }).catch(er=>{$("ex-msg").textContent="Envoi impossible : "+er.message;});
 }
 </script>
