@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cours en direct – Campus Flex</title>
+<style>
+:root{--ind:#3730a3;--ind2:#eef0ff;--txt:#1f2430;--mut:#667085;--bord:#d9dce6;--ok:#157347;--ko:#b42318}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:#f7f8fc}
+header{background:var(--ind);color:#fff;padding:14px 16px}
+header a{color:#fff;font-size:14px}
+header h1{margin:4px 0 0;font-size:20px}
+main{max-width:720px;margin:0 auto;padding:16px}
+h2{font-size:17px;margin:20px 0 8px}
+.seance{background:#fff;border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:12px}
+.seance.live{border-color:var(--ok);border-width:2px}
+.seance b{display:block;font-size:17px}
+.meta{color:var(--mut);font-size:14px}
+.etat{display:inline-block;font-size:13px;padding:2px 8px;border-radius:99px;background:var(--ind2);color:var(--ind);margin-top:6px}
+.live .etat{background:#e2f5ea;color:var(--ok)}
+button,a.btn{font:inherit;font-size:15px;border:0;border-radius:8px;padding:10px 14px;background:var(--ind);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
+button:disabled{background:#c9cbd8;cursor:not-allowed}
+button.sec,a.sec{background:var(--ind2);color:var(--ind)}
+button:focus-visible,a:focus-visible{outline:3px solid #f5a524;outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#visio{background:#fff;border:1px solid var(--bord);border-radius:10px;padding:10px;margin-bottom:16px}
+#cadre{height:70vh;min-height:360px;background:#111;border-radius:8px;overflow:hidden}
+#note{font-size:14px;color:var(--mut);margin:8px 0}
+#msg{font-size:14px;margin:8px 0}
+.ko{color:var(--ko)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <a href="matieres.html">← Matières</a>
+  <h1>Cours en direct</h1>
+</header>
+<main>
+  <p id="msg" role="status"></p>
+
+  <section id="visio" hidden>
+    <div class="actions" style="margin:0 0 10px">
+      <button id="quitter" type="button" class="sec">Quitter la visio</button>
+      <a id="ouvrir" class="btn sec" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>
+    </div>
+    <div id="cadre"></div>
+    <p id="note">Caméra et micro sont coupés au départ pour économiser la connexion. Activez le micro seulement pour parler.</p>
+  </section>
+
+  <h2>À venir et en cours</h2>
+  <div id="avenir"><p class="meta">Chargement…</p></div>
+  <h2>Cours passés</h2>
+  <div id="passes"></div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
+<script>
+var JITSI_DOMAIN="meet.jit.si";
+var AVANT=10*60000;   /* le bouton s'active 10 min avant le début */
+var APRES=30*60000;   /* et reste actif 30 min après la fin prévue */
+
+var db=firebase.database();
+function $(id){return document.getElementById(id);}
+function dire(t,cls){var m=$("msg");m.textContent=t;m.className=cls||"";}
+function fmt(ts){return new Date(ts).toLocaleString("fr-FR",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"});}
+
+var seances=[],nom="Élève",uid=null,api=null;
+
+var idEleve=(localStorage.getItem("cf_active")||"").replace(/^"|"$/g,"");
+if(!idEleve){location.href="profil.html";}
+
+firebase.auth().onAuthStateChanged(function(u){
+  if(!u||!idEleve)return;
+  uid=u.uid;
+  db.ref("eleves/"+idEleve).once("value").then(function(s){
+    var p=s.val()||{};
+    if(!p.classe){location.href="profil.html";return;}
+    nom=((p.prenom||"")+" "+(p.nom||"")).trim()||"Élève";
+    return db.ref("direct/"+p.classe).once("value").then(function(snap){
+      seances=[];
+      snap.forEach(function(m){m.forEach(function(x){
+        var v=x.val();v.id=x.key;v.matiere=m.key;seances.push(v);
+      });});
+      seances.sort(function(a,b){return a.debut-b.debut;});
+      afficher();
+      setInterval(afficher,30000);
+    });
+  }).catch(function(e){dire("Impossible de charger les cours : "+e.message,"ko");$("avenir").innerHTML="";});
+});
+
+function etat(s,now){
+  var fin=s.debut+s.duree*60000;
+  if(now<s.debut-AVANT)return{t:"À venir",ouvert:false,passe:false};
+  if(now<=fin+APRES)return{t:now<s.debut?"Ouvre dans quelques minutes":"En cours",ouvert:true,passe:false};
+  return{t:"Terminé",ouvert:false,passe:true};
+}
+
+function carte(s,e){
+  var d=document.createElement("div");d.className="seance"+(e.ouvert&&Date.now()>=s.debut?" live":"");
+  var b=document.createElement("b");b.textContent=s.titre;
+  var m=document.createElement("span");m.className="meta";m.textContent=s.matiere+" · "+fmt(s.debut)+" · "+s.duree+" min";
+  var t=document.createElement("span");t.className="etat";t.textContent=e.t;
+  var a=document.createElement("div");a.className="actions";
+  if(!e.passe){
+    var j=document.createElement("button");j.type="button";j.textContent="Rejoindre le cours";j.disabled=!e.ouvert;
+    j.onclick=function(){rejoindre(s);};a.appendChild(j);
+  }
+  if(s.replay){
+    var r=document.createElement("a");r.className="btn sec";r.href=s.replay;r.target="_blank";r.rel="noopener";r.textContent="Voir le replay";a.appendChild(r);
+  }
+  d.appendChild(b);d.appendChild(m);d.appendChild(document.createElement("br"));d.appendChild(t);d.appendChild(a);
+  return d;
+}
+
+function afficher(){
+  var now=Date.now(),A=$("avenir"),P=$("passes");
+  A.innerHTML="";P.innerHTML="";
+  var nbA=0,nbP=0;
+  seances.forEach(function(s){
+    var e=etat(s,now);
+    if(e.passe){P.insertBefore(carte(s,e),P.firstChild);nbP++;}
+    else{A.appendChild(carte(s,e));nbA++;}
+  });
+  if(!nbA){var p=document.createElement("p");p.className="meta";p.textContent="Aucun cours en direct programmé pour votre classe.";A.appendChild(p);}
+  if(!nbP){var q=document.createElement("p");q.className="meta";q.textContent="Pas encore de cours passé.";P.appendChild(q);}
+}
+
+function chargerJitsi(){
+  return new Promise(function(ok,ko){
+    if(window.JitsiMeetExternalAPI)return ok();
+    var sc=document.createElement("script");
+    sc.src="https://"+JITSI_DOMAIN+"/external_api.js";
+    sc.onload=ok;sc.onerror=ko;
+    document.head.appendChild(sc);
+  });
+}
+
+function rejoindre(s){
+  $("visio").hidden=false;
+  $("visio").scrollIntoView({behavior:"smooth"});
+  $("ouvrir").href="https://"+JITSI_DOMAIN+"/"+encodeURIComponent(s.salle);
+  if(uid){db.ref("presences/"+s.id+"/"+uid).set({nom:nom,heure:Date.now()}).catch(function(){});}
+  chargerJitsi().then(function(){
+    if(api){api.dispose();api=null;}
+    api=new JitsiMeetExternalAPI(JITSI_DOMAIN,{
+      roomName:s.salle,
+      parentNode:$("cadre"),
+      width:"100%",height:"100%",
+      userInfo:{displayName:nom},
+      configOverwrite:{startWithVideoMuted:true,startWithAudioMuted:true,prejoinPageEnabled:false,disableDeepLinking:true,subject:s.titre},
+      interfaceConfigOverwrite:{MOBILE_APP_PROMO:false}
+    });
+    api.addListener("readyToClose",quitter);
+  }).catch(function(){
+    dire("La visio intégrée ne s’ouvre pas. Utilisez « Ouvrir dans un nouvel onglet ».","ko");
+  });
+}
+
+function quitter(){
+  if(api){api.dispose();api=null;}
+  $("visio").hidden=true;dire("");
+}
+$("quitter").onclick=quitter;
+</script>
+</body>
+</html>

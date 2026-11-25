@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cours en direct (admin) – Campus Flex</title>
+<style>
+:root{--ind:#3730a3;--ind2:#eef0ff;--txt:#1f2430;--mut:#667085;--bord:#d9dce6;--ok:#157347;--ko:#b42318}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:#f7f8fc}
+header{background:var(--ind);color:#fff;padding:14px 16px}
+header a{color:#fff;font-size:14px}
+header h1{margin:4px 0 0;font-size:20px}
+main{max-width:720px;margin:0 auto;padding:16px}
+.carte{background:#fff;border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:16px}
+h2{font-size:17px;margin:0 0 10px}
+label{display:block;font-size:14px;font-weight:600;margin:10px 0 4px}
+select,input{width:100%;padding:10px;border:1px solid var(--bord);border-radius:8px;font:inherit;background:#fff}
+button{font:inherit;border:0;border-radius:8px;padding:10px 14px;background:var(--ind);color:#fff;cursor:pointer}
+button.sec{background:var(--ind2);color:var(--ind)}
+button.dang{background:#fde8e6;color:var(--ko)}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #f5a524;outline-offset:2px}
+.ligne{display:flex;gap:10px}.ligne>*{flex:1}
+#msg{margin:10px 0 0;font-size:14px;min-height:20px}
+.ok{color:var(--ok)}.ko{color:var(--ko)}
+.seance{border-top:1px solid var(--bord);padding:12px 0}
+.seance:first-of-type{border-top:0}
+.seance b{display:block}
+.meta{color:var(--mut);font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.actions a,.actions button{font-size:14px;padding:8px 12px;text-decoration:none;border-radius:8px}
+.actions a{background:var(--ind);color:#fff}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <a href="admin.html">← Administration</a>
+  <h1>Cours en direct</h1>
+</header>
+<main>
+  <p id="refus" class="carte ko" hidden>Ce compte n’est pas enregistré comme administrateur.</p>
+
+  <div id="app" hidden>
+    <section class="carte">
+      <h2>Programmer un cours</h2>
+      <label for="classe">Classe</label>
+      <select id="classe"></select>
+      <label for="matiere">Matière</label>
+      <select id="matiere"></select>
+      <label for="titre">Titre du cours</label>
+      <input id="titre" type="text" placeholder="Ex. SA1 – Séquence 2 : Thalès">
+      <div class="ligne">
+        <div>
+          <label for="debut">Date et heure</label>
+          <input id="debut" type="datetime-local">
+        </div>
+        <div>
+          <label for="duree">Durée (min)</label>
+          <input id="duree" type="number" min="15" max="240" value="90">
+        </div>
+      </div>
+      <p style="margin:14px 0 0"><button id="btnSave" type="button">Programmer le cours</button></p>
+      <p id="msg" role="status"></p>
+    </section>
+
+    <section class="carte">
+      <h2>Cours programmés</h2>
+      <div id="liste"><p class="meta">Chargement…</p></div>
+    </section>
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="auth-guard.js"></script>
+<script>
+/* Doivent être EXACTEMENT les valeurs enregistrées par profil.html (champ classe de eleves/{id}) */
+var CLASSES=["6ème","5ème","4ème","3ème","2nde A-B","2nde C","2nde D","1ère A-B","1ère C","1ère D","Tle A-B","Tle C","Tle D"];
+var MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Philosophie","EPS","Espagnol","Allemand"];
+var JITSI="https://meet.jit.si/";
+
+var db=firebase.database();
+function $(id){return document.getElementById(id);}
+function fill(sel,arr){arr.forEach(function(v){var o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o);});}
+fill($("classe"),CLASSES);fill($("matiere"),MATIERES);
+
+function slug(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"");}
+function rnd(){return Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,6);}
+function dire(t,cls){var m=$("msg");m.textContent=t;m.className=cls||"";}
+function fmt(ts){return new Date(ts).toLocaleString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});}
+
+firebase.auth().onAuthStateChanged(function(u){
+  if(!u)return;
+  db.ref("administrateurs/"+u.uid).once("value").then(function(s){
+    if(s.exists()){$("app").hidden=false;charger();}else{$("refus").hidden=false;}
+  }).catch(function(){$("refus").hidden=false;});
+});
+
+$("btnSave").onclick=function(){
+  var classe=$("classe").value,matiere=$("matiere").value,titre=$("titre").value.trim();
+  var debut=new Date($("debut").value).getTime(),duree=parseInt($("duree").value,10);
+  if(!titre){return dire("Écrivez le titre du cours.","ko");}
+  if(!debut||isNaN(debut)){return dire("Choisissez la date et l’heure.","ko");}
+  if(!duree||duree<15){return dire("Indiquez une durée d’au moins 15 minutes.","ko");}
+  /* Nom de salle difficile à deviner : seuls les élèves connectés voient ce nom */
+  var salle="cf-"+slug(classe)+"-"+slug(matiere)+"-"+rnd();
+  $("btnSave").disabled=true;
+  db.ref("direct/"+classe+"/"+matiere).push({titre:titre,debut:debut,duree:duree,salle:salle,replay:"",cree:Date.now()})
+   .then(function(){dire("Cours programmé.","ok");$("titre").value="";charger();})
+   .catch(function(e){dire("Échec de l’enregistrement : "+e.message,"ko");})
+   .then(function(){$("btnSave").disabled=false;});
+};
+
+function charger(){
+  db.ref("direct").once("value").then(function(snap){
+    var rows=[];
+    snap.forEach(function(c){c.forEach(function(m){m.forEach(function(s){
+      var v=s.val();v.id=s.key;v.classe=c.key;v.matiere=m.key;rows.push(v);
+    });});});
+    rows.sort(function(a,b){return b.debut-a.debut;});
+    afficher(rows);
+  }).catch(function(e){$("liste").innerHTML="";var p=document.createElement("p");p.className="ko";p.textContent="Lecture impossible : "+e.message+" (vérifiez les règles Firebase du nœud direct).";$("liste").appendChild(p);});
+}
+
+function afficher(rows){
+  var L=$("liste");L.innerHTML="";
+  if(!rows.length){var p=document.createElement("p");p.className="meta";p.textContent="Aucun cours programmé pour le moment.";L.appendChild(p);return;}
+  rows.forEach(function(s){
+    var d=document.createElement("div");d.className="seance";
+    var b=document.createElement("b");b.textContent=s.titre;
+    var m=document.createElement("span");m.className="meta";
+    m.textContent=s.classe+" · "+s.matiere+" · "+fmt(s.debut)+" · "+s.duree+" min";
+    var pr=document.createElement("span");pr.className="meta";pr.style.display="block";pr.textContent="Présences : …";
+    var a=document.createElement("div");a.className="actions";
+
+    var go=document.createElement("a");go.href=JITSI+encodeURIComponent(s.salle);go.target="_blank";go.rel="noopener";go.textContent="Démarrer la salle";
+    var rp=document.createElement("button");rp.type="button";rp.className="sec";rp.textContent=s.replay?"Changer le replay":"Ajouter le replay";
+    rp.onclick=function(){
+      var u=prompt("Lien du replay (YouTube, Drive…) :",s.replay||"");
+      if(u===null)return;
+      db.ref("direct/"+s.classe+"/"+s.matiere+"/"+s.id+"/replay").set(u.trim()).then(charger);
+    };
+    var del=document.createElement("button");del.type="button";del.className="dang";del.textContent="Supprimer";
+    del.onclick=function(){
+      if(!confirm("Supprimer ce cours ?"))return;
+      db.ref("direct/"+s.classe+"/"+s.matiere+"/"+s.id).remove().then(charger);
+    };
+    a.appendChild(go);a.appendChild(rp);a.appendChild(del);
+    d.appendChild(b);d.appendChild(m);d.appendChild(pr);d.appendChild(a);L.appendChild(d);
+
+    db.ref("presences/"+s.id).once("value").then(function(p){pr.textContent="Présences : "+p.numChildren();}).catch(function(){pr.textContent="";});
+  });
+}
+</script>
+</body>
+</html>
