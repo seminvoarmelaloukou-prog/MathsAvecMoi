@@ -222,7 +222,7 @@
     function rejoindre(s) {
       $("card-visio").hidden = false;
       $("visio-titre").textContent = s.titre;
-      $("lien-onglet").href = "https://" + JITSI_DOMAIN + "/" + encodeURIComponent(s.salle);
+      $("lien-onglet").href = "https://" + JITSI_DOMAIN + "/" + encodeURIComponent(s.salle) + "#config.disableDeepLinking=true&config.defaultLanguage=%22fr%22";
       $("card-visio").scrollIntoView({ behavior: "smooth" });
       dire("");
       if (uid) {
