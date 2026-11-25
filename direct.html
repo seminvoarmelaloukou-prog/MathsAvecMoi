@@ -72,13 +72,10 @@ function fmt(ts){return new Date(ts).toLocaleString("fr-FR",{weekday:"long",day:
 
 var seances=[],nom="Élève",uid=null,api=null;
 
-var idEleve=(localStorage.getItem("cf_active")||"").replace(/^"|"$/g,"");
-if(!idEleve){location.href="profil.html";}
-
 firebase.auth().onAuthStateChanged(function(u){
-  if(!u||!idEleve)return;
+  if(!u)return;
   uid=u.uid;
-  db.ref("eleves/"+idEleve).once("value").then(function(s){
+  db.ref("eleves/"+uid).once("value").then(function(s){
     var p=s.val()||{};
     if(!p.classe){location.href="profil.html";return;}
     nom=((p.prenom||"")+" "+(p.nom||"")).trim()||"Élève";
