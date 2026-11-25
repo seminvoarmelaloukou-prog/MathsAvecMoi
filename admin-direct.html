@@ -1,159 +1,327 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cours en direct (admin) – Campus Flex</title>
-<style>
-:root{--ind:#3730a3;--ind2:#eef0ff;--txt:#1f2430;--mut:#667085;--bord:#d9dce6;--ok:#157347;--ko:#b42318}
-*{box-sizing:border-box}
-body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:#f7f8fc}
-header{background:var(--ind);color:#fff;padding:14px 16px}
-header a{color:#fff;font-size:14px}
-header h1{margin:4px 0 0;font-size:20px}
-main{max-width:720px;margin:0 auto;padding:16px}
-.carte{background:#fff;border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:16px}
-h2{font-size:17px;margin:0 0 10px}
-label{display:block;font-size:14px;font-weight:600;margin:10px 0 4px}
-select,input{width:100%;padding:10px;border:1px solid var(--bord);border-radius:8px;font:inherit;background:#fff}
-button{font:inherit;border:0;border-radius:8px;padding:10px 14px;background:var(--ind);color:#fff;cursor:pointer}
-button.sec{background:var(--ind2);color:var(--ind)}
-button.dang{background:#fde8e6;color:var(--ko)}
-button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #f5a524;outline-offset:2px}
-.ligne{display:flex;gap:10px}.ligne>*{flex:1}
-#msg{margin:10px 0 0;font-size:14px;min-height:20px}
-.ok{color:var(--ok)}.ko{color:var(--ko)}
-.seance{border-top:1px solid var(--bord);padding:12px 0}
-.seance:first-of-type{border-top:0}
-.seance b{display:block}
-.meta{color:var(--mut);font-size:14px}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.actions a,.actions button{font-size:14px;padding:8px 12px;text-decoration:none;border-radius:8px}
-.actions a{background:var(--ind);color:#fff}
-[hidden]{display:none!important}
-</style>
-</head>
-<body>
-<header>
-  <a href="admin.html">← Administration</a>
-  <h1>Cours en direct</h1>
-</header>
-<main>
-  <p id="refus" class="carte ko" hidden>Ce compte n’est pas enregistré comme administrateur.</p>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cours en direct - Campus Flex</title>
 
-  <div id="app" hidden>
-    <section class="carte">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root {
+      --indigo: #2c3e8c;
+      --indigo-dark: #1e2c66;
+      --amber: #f39c12;
+      --background: #f5f7ff;
+      --text: #333333;
+      --muted: #666666;
+      --error: #c0392b;
+      --success: #27ae60;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; font-family: Arial, sans-serif; background: var(--background); color: var(--text); display: flex; flex-direction: column; }
+    main { flex: 1; width: 100%; max-width: 900px; margin: 35px auto; padding: 0 20px; }
+    .cache { display: none !important; }
+
+    .card { background: white; padding: 24px 20px; border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,.10); margin-bottom: 22px; }
+    .card h2 { color: var(--indigo); font-size: 22px; margin-bottom: 12px; }
+    .card p { color: var(--muted); line-height: 1.55; font-size: 15px; margin-bottom: 14px; }
+
+    label { display: block; font-size: 14px; font-weight: bold; color: var(--indigo); margin: 14px 0 6px; }
+    select, input[type=text], input[type=number], input[type=datetime-local] {
+      width: 100%; font: inherit; font-size: 15px; padding: 11px; border: 1px solid #cfd6f0; border-radius: 10px; background: #fff; color: #333;
+    }
+    select:focus, input:focus { outline: 3px solid var(--amber); outline-offset: 1px; }
+    .deux { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+
+    button, .btn { font: inherit; font-size: 15px; font-weight: bold; border: 0; border-radius: 10px; padding: 11px 16px; cursor: pointer; background: var(--indigo); color: #fff; text-decoration: none; display: inline-block; text-align: center; }
+    button:hover, .btn:hover { background: var(--indigo-dark); }
+    button.sec { background: #e3e7f6; color: var(--indigo); }
+    button.danger { background: #fdecea; color: var(--error); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-principal { margin-top: 18px; width: 100%; padding: 14px; }
+
+    .message { font-size: 14px; margin-top: 12px; min-height: 18px; }
+    .message.success { color: var(--success); }
+    .message.error { color: var(--error); }
+
+    .seance { border: 1px solid #e3e7f6; border-left: 4px solid var(--indigo); border-radius: 10px; padding: 14px; margin-top: 12px; background: #fbfcff; }
+    .seance.passee { border-left-color: #b7bcd3; background: #f6f6fa; }
+    .seance b { display: block; color: var(--indigo); font-size: 16px; }
+    .seance .meta { color: var(--muted); font-size: 14px; margin-top: 4px; }
+    .seance .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .seance .actions .btn, .seance .actions button { font-size: 14px; padding: 9px 13px; }
+    .vide { color: var(--muted); font-size: 15px; }
+
+    .loader { width: 32px; height: 32px; border: 3px solid #e3e7f6; border-top-color: var(--amber); border-radius: 50%; animation: tourner .8s linear infinite; }
+    @keyframes tourner { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      main { margin: 20px auto; padding: 0 14px; }
+      .deux { grid-template-columns: 1fr; }
+    }
+  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="campus-menu.css">
+<link rel="stylesheet" href="campus-admin.css">
+<script src="campus-menu.js" defer></script>
+</head>
+
+<body>
+
+  <header class="barre">
+  <div class="barre-haut">
+    <a class="marque" href="index.html"><img data-garder src="logo-icone.png" alt="">Campus Flex</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu-principal" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+  </div>
+  <div class="menu-panneau" id="menu-principal" role="navigation" aria-label="Navigation principale">
+    <div class="interieur"><div class="liens">
+        <a href="admin.html" id="lien-retour-admin" class="cache">Tableau de bord</a>
+        <a href="enseignant.html" id="lien-retour-prof" class="cache">Espace enseignant</a>
+        <a href="admin-cours.html">Cours</a>
+        <a href="admin-devoirs.html">Devoirs</a>
+        <a href="admin-evaluations.html">Évaluations</a>
+        <a href="index.html">Accueil</a>
+        <a href="#" class="sortie" data-deconnexion id="lien-deconnexion" data-propre>Déconnexion</a>
+    </div></div>
+  </div>
+</header>
+
+  <main>
+
+    <p class="salut ecrit">Cours en direct</p>
+
+    <section class="card" id="card-verif">
+      <h2>Vérification</h2>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="loader" id="loader"></div>
+        <p id="message-verif" style="margin:0">Vérification de ton compte...</p>
+      </div>
+    </section>
+
+    <section class="card cache" id="card-form">
       <h2>Programmer un cours</h2>
+      <p>Les élèves de la classe verront le cours sur leur page « Cours en direct » et pourront le rejoindre 10 minutes avant l'heure.</p>
+
       <label for="classe">Classe</label>
       <select id="classe"></select>
+
       <label for="matiere">Matière</label>
       <select id="matiere"></select>
+
       <label for="titre">Titre du cours</label>
-      <input id="titre" type="text" placeholder="Ex. SA1 – Séquence 2 : Thalès">
-      <div class="ligne">
+      <input type="text" id="titre" maxlength="200" placeholder="Ex. SA1 – Séquence 2 : Thalès">
+
+      <div class="deux">
         <div>
           <label for="debut">Date et heure</label>
-          <input id="debut" type="datetime-local">
+          <input type="datetime-local" id="debut">
         </div>
         <div>
-          <label for="duree">Durée (min)</label>
-          <input id="duree" type="number" min="15" max="240" value="90">
+          <label for="duree">Durée (minutes)</label>
+          <input type="number" id="duree" min="15" max="240" value="90">
         </div>
       </div>
-      <p style="margin:14px 0 0"><button id="btnSave" type="button">Programmer le cours</button></p>
-      <p id="msg" role="status"></p>
+
+      <button type="button" class="btn-principal" id="btn-programmer">Programmer le cours</button>
+      <p class="message" id="message-form" role="status"></p>
     </section>
 
-    <section class="carte">
+    <section class="card cache" id="card-liste">
       <h2>Cours programmés</h2>
-      <div id="liste"><p class="meta">Chargement…</p></div>
+      <div id="liste"><p class="vide">Chargement...</p></div>
     </section>
-  </div>
-</main>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="auth-guard.js"></script>
-<script>
-/* Doivent être EXACTEMENT les valeurs enregistrées par profil.html (champ classe de eleves/{id}) */
-var CLASSES=["6ème","5ème","4ème","3ème","2nde A-B","2nde C","2nde D","1ère A-B","1ère C","1ère D","Tle A-B","Tle C","Tle D"];
-var MATIERES=["Mathématiques","Français","Anglais","PCT","SVT","Histoire-Géographie","Philosophie","EPS","Espagnol","Allemand"];
-var JITSI="https://meet.jit.si/";
+  </main>
 
-var db=firebase.database();
-function $(id){return document.getElementById(id);}
-function fill(sel,arr){arr.forEach(function(v){var o=document.createElement("option");o.value=v;o.textContent=v;sel.appendChild(o);});}
-fill($("classe"),CLASSES);fill($("matiere"),MATIERES);
+  <script>
+    /* Noms de classes normalisés (comme dans admin.html) */
+    const CLASSES_STD = ["6e", "5e", "4e", "3e", "2de AB", "2de C", "2de D", "2de E", "1re AB", "1re C", "1re D", "1re E", "Tle AB", "Tle C", "Tle D", "Tle E"];
+    const MATIERES_STD = ["Mathématiques", "Français", "Anglais", "PCT", "SVT", "Histoire-Géographie", "Philosophie", "EPS", "Espagnol", "Allemand"];
+    const SALLE_URL = "https://meet.jit.si/";
 
-function slug(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"");}
-function rnd(){return Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,6);}
-function dire(t,cls){var m=$("msg");m.textContent=t;m.className=cls||"";}
-function fmt(ts){return new Date(ts).toLocaleString("fr-FR",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});}
+    const $ = function(id) { return document.getElementById(id); };
+    let ROLE = null, PROFIL = null, UID = null;
 
-firebase.auth().onAuthStateChanged(function(u){
-  if(!u)return;
-  db.ref("administrateurs/"+u.uid).once("value").then(function(s){
-    if(s.exists()){$("app").hidden=false;charger();}else{$("refus").hidden=false;}
-  }).catch(function(){$("refus").hidden=false;});
-});
+    function cleClasse(x) {
+      return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/terminale/g, "tle").replace(/premiere|1ere/g, "1re").replace(/seconde|2nde/g, "2de")
+        .replace(/[^a-z0-9]/g, "").replace(/^([3-6])eme$/, "$1e");
+    }
+    function slug(s) { return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, ""); }
+    function alea() { return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6); }
+    function fmt(ts) { return new Date(ts).toLocaleString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+    function dire(texte, cls) { const m = $("message-form"); m.textContent = texte; m.className = "message " + (cls || ""); }
+    function cles(o) { return Object.keys(o || {}).filter(function(k) { return o[k] === true; }); }
+    function remplir(sel, liste) {
+      sel.innerHTML = "";
+      liste.forEach(function(v) { const o = document.createElement("option"); o.value = v; o.textContent = v; sel.appendChild(o); });
+    }
+    function droit(nom) { return ROLE === "admin" || (PROFIL && PROFIL.droits && PROFIL.droits[nom] === true); }
 
-$("btnSave").onclick=function(){
-  var classe=$("classe").value,matiere=$("matiere").value,titre=$("titre").value.trim();
-  var debut=new Date($("debut").value).getTime(),duree=parseInt($("duree").value,10);
-  if(!titre){return dire("Écrivez le titre du cours.","ko");}
-  if(!debut||isNaN(debut)){return dire("Choisissez la date et l’heure.","ko");}
-  if(!duree||duree<15){return dire("Indiquez une durée d’au moins 15 minutes.","ko");}
-  /* Nom de salle difficile à deviner : seuls les élèves connectés voient ce nom */
-  var salle="cf-"+slug(classe)+"-"+slug(matiere)+"-"+rnd();
-  $("btnSave").disabled=true;
-  db.ref("direct/"+classe+"/"+matiere).push({titre:titre,debut:debut,duree:duree,salle:salle,replay:"",cree:Date.now()})
-   .then(function(){dire("Cours programmé.","ok");$("titre").value="";charger();})
-   .catch(function(e){dire("Échec de l’enregistrement : "+e.message,"ko");})
-   .then(function(){$("btnSave").disabled=false;});
-};
+    function refuser(texte) {
+      $("loader").style.display = "none";
+      const m = $("message-verif");
+      m.textContent = texte || "Ce compte n'a pas accès à cette page.";
+      m.style.color = "var(--error)";
+    }
 
-function charger(){
-  db.ref("direct").once("value").then(function(snap){
-    var rows=[];
-    snap.forEach(function(c){c.forEach(function(m){m.forEach(function(s){
-      var v=s.val();v.id=s.key;v.classe=c.key;v.matiere=m.key;rows.push(v);
-    });});});
-    rows.sort(function(a,b){return b.debut-a.debut;});
-    afficher(rows);
-  }).catch(function(e){$("liste").innerHTML="";var p=document.createElement("p");p.className="ko";p.textContent="Lecture impossible : "+e.message+" (vérifiez les règles Firebase du nœud direct).";$("liste").appendChild(p);});
-}
+    function demarrer() {
+      $("card-verif").classList.add("cache");
+      $("card-form").classList.remove("cache");
+      $("card-liste").classList.remove("cache");
+      if (ROLE === "admin") {
+        $("lien-retour-admin").classList.remove("cache");
+        remplir($("classe"), CLASSES_STD);
+        remplir($("matiere"), MATIERES_STD);
+      } else {
+        $("lien-retour-prof").classList.remove("cache");
+        remplir($("classe"), cles(PROFIL.classes));
+        remplir($("matiere"), cles(PROFIL.matieres));
+      }
+      charger();
+    }
 
-function afficher(rows){
-  var L=$("liste");L.innerHTML="";
-  if(!rows.length){var p=document.createElement("p");p.className="meta";p.textContent="Aucun cours programmé pour le moment.";L.appendChild(p);return;}
-  rows.forEach(function(s){
-    var d=document.createElement("div");d.className="seance";
-    var b=document.createElement("b");b.textContent=s.titre;
-    var m=document.createElement("span");m.className="meta";
-    m.textContent=s.classe+" · "+s.matiere+" · "+fmt(s.debut)+" · "+s.duree+" min";
-    var pr=document.createElement("span");pr.className="meta";pr.style.display="block";pr.textContent="Présences : …";
-    var a=document.createElement("div");a.className="actions";
+    $("btn-programmer").addEventListener("click", function() {
+      const classe = $("classe").value, matiere = $("matiere").value, titre = $("titre").value.trim();
+      const debut = new Date($("debut").value).getTime(), duree = parseInt($("duree").value, 10);
+      if (!classe || !matiere) return dire("Choisis la classe et la matière.", "error");
+      if (!titre) return dire("Écris le titre du cours.", "error");
+      if (!debut || isNaN(debut)) return dire("Choisis la date et l'heure.", "error");
+      if (!duree || duree < 15 || duree > 240) return dire("La durée doit être entre 15 et 240 minutes.", "error");
 
-    var go=document.createElement("a");go.href=JITSI+encodeURIComponent(s.salle);go.target="_blank";go.rel="noopener";go.textContent="Démarrer la salle";
-    var rp=document.createElement("button");rp.type="button";rp.className="sec";rp.textContent=s.replay?"Changer le replay":"Ajouter le replay";
-    rp.onclick=function(){
-      var u=prompt("Lien du replay (YouTube, Drive…) :",s.replay||"");
-      if(u===null)return;
-      db.ref("direct/"+s.classe+"/"+s.matiere+"/"+s.id+"/replay").set(u.trim()).then(charger);
-    };
-    var del=document.createElement("button");del.type="button";del.className="dang";del.textContent="Supprimer";
-    del.onclick=function(){
-      if(!confirm("Supprimer ce cours ?"))return;
-      db.ref("direct/"+s.classe+"/"+s.matiere+"/"+s.id).remove().then(charger);
-    };
-    a.appendChild(go);a.appendChild(rp);a.appendChild(del);
-    d.appendChild(b);d.appendChild(m);d.appendChild(pr);d.appendChild(a);L.appendChild(d);
+      /* Nom de salle difficile à deviner : seuls les élèves connectés le voient */
+      const salle = "cf-" + slug(classe) + "-" + slug(matiere) + "-" + alea();
+      $("btn-programmer").disabled = true;
+      db.ref("direct/" + classe + "/" + matiere).push({ titre: titre, debut: debut, duree: duree, salle: salle, replay: "", cree: Date.now(), par: UID })
+        .then(function() { dire("Cours programmé.", "success"); $("titre").value = ""; charger(); })
+        .catch(function(e) { dire("Échec de l'enregistrement : " + e.message, "error"); })
+        .then(function() { $("btn-programmer").disabled = false; });
+    });
 
-    db.ref("presences/"+s.id).once("value").then(function(p){pr.textContent="Présences : "+p.numChildren();}).catch(function(){pr.textContent="";});
-  });
-}
-</script>
+    function charger() {
+      db.ref("direct").once("value").then(function(snap) {
+        const lignes = [];
+        const mesClasses = ROLE === "prof" ? cles(PROFIL.classes) : null;
+        const mesMatieres = ROLE === "prof" ? cles(PROFIL.matieres) : null;
+        snap.forEach(function(c) { c.forEach(function(m) { m.forEach(function(s) {
+          if (mesClasses && (mesClasses.indexOf(c.key) < 0 || mesMatieres.indexOf(m.key) < 0)) return;
+          const v = s.val() || {};
+          v.id = s.key; v.classe = c.key; v.matiere = m.key;
+          lignes.push(v);
+        }); }); });
+        lignes.sort(function(a, b) { return b.debut - a.debut; });
+        afficher(lignes);
+      }).catch(function(e) {
+        $("liste").innerHTML = "";
+        const p = document.createElement("p");
+        p.className = "message error";
+        p.textContent = "Lecture impossible : " + e.message + " (les règles Firebase du nœud direct sont-elles publiées ?)";
+        $("liste").appendChild(p);
+      });
+    }
+
+    function afficher(lignes) {
+      const L = $("liste");
+      L.innerHTML = "";
+      if (!lignes.length) {
+        const p = document.createElement("p");
+        p.className = "vide";
+        p.textContent = "Aucun cours programmé pour le moment.";
+        L.appendChild(p);
+        return;
+      }
+      const maintenant = Date.now();
+      lignes.forEach(function(s) {
+        const fin = s.debut + s.duree * 60000;
+        const d = document.createElement("div");
+        d.className = "seance" + (fin < maintenant ? " passee" : "");
+
+        const t = document.createElement("b");
+        t.textContent = s.titre;
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = s.classe + " · " + s.matiere + " · " + fmt(s.debut) + " · " + s.duree + " min";
+        const pres = document.createElement("div");
+        pres.className = "meta";
+
+        const act = document.createElement("div");
+        act.className = "actions";
+
+        const go = document.createElement("a");
+        go.className = "btn";
+        go.href = SALLE_URL + encodeURIComponent(s.salle);
+        go.target = "_blank";
+        go.rel = "noopener";
+        go.textContent = "Démarrer la salle";
+        act.appendChild(go);
+
+        if (droit("modifier")) {
+          const rp = document.createElement("button");
+          rp.type = "button";
+          rp.className = "sec";
+          rp.textContent = s.replay ? "Changer le replay" : "Ajouter le replay";
+          rp.addEventListener("click", function() {
+            const u = prompt("Lien du replay (YouTube, Drive...) :", s.replay || "");
+            if (u === null) return;
+            db.ref("direct/" + s.classe + "/" + s.matiere + "/" + s.id + "/replay").set(u.trim())
+              .then(charger)
+              .catch(function(e) { alert("Échec : " + e.message); });
+          });
+          act.appendChild(rp);
+        }
+        if (droit("supprimer")) {
+          const del = document.createElement("button");
+          del.type = "button";
+          del.className = "danger";
+          del.textContent = "Supprimer";
+          del.addEventListener("click", function() {
+            if (!confirm("Supprimer ce cours ?")) return;
+            db.ref("direct/" + s.classe + "/" + s.matiere + "/" + s.id).remove()
+              .then(charger)
+              .catch(function(e) { alert("Échec : " + e.message); });
+          });
+          act.appendChild(del);
+        }
+
+        d.appendChild(t); d.appendChild(meta); d.appendChild(pres); d.appendChild(act);
+        L.appendChild(d);
+
+        if (ROLE === "admin") {
+          pres.textContent = "Présences : ...";
+          db.ref("presences/" + s.id).once("value")
+            .then(function(p) { pres.textContent = "Présences : " + p.numChildren(); })
+            .catch(function() { pres.textContent = ""; });
+        }
+      });
+    }
+
+    $("lien-deconnexion").addEventListener("click", function(e) {
+      e.preventDefault();
+      auth.signOut().then(function() { window.location.href = "index.html"; });
+    });
+
+    (function init() {
+      if (!auth || !db) { refuser("Firebase n'est pas correctement configuré."); return; }
+      auth.onAuthStateChanged(function(u) {
+        if (!u) { window.location.href = "connexion.html"; return; }
+        UID = u.uid;
+        db.ref("administrateurs/" + u.uid).once("value").then(function(a) {
+          if (a.exists()) { ROLE = "admin"; demarrer(); return; }
+          return db.ref("enseignants/" + u.uid).once("value").then(function(s) {
+            const p = s.val();
+            if (p && p.statut === "actif") { ROLE = "prof"; PROFIL = p; demarrer(); }
+            else { refuser("Cette page est réservée aux administrateurs et aux enseignants actifs."); }
+          });
+        }).catch(function(e) { refuser("Erreur : " + e.message); });
+      });
+    })();
+  </script>
+
 </body>
 </html>

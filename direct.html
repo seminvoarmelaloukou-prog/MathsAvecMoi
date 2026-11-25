@@ -1,169 +1,286 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cours en direct – Campus Flex</title>
-<style>
-:root{--ind:#3730a3;--ind2:#eef0ff;--txt:#1f2430;--mut:#667085;--bord:#d9dce6;--ok:#157347;--ko:#b42318}
-*{box-sizing:border-box}
-body{margin:0;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--txt);background:#f7f8fc}
-header{background:var(--ind);color:#fff;padding:14px 16px}
-header a{color:#fff;font-size:14px}
-header h1{margin:4px 0 0;font-size:20px}
-main{max-width:720px;margin:0 auto;padding:16px}
-h2{font-size:17px;margin:20px 0 8px}
-.seance{background:#fff;border:1px solid var(--bord);border-radius:10px;padding:14px;margin-bottom:12px}
-.seance.live{border-color:var(--ok);border-width:2px}
-.seance b{display:block;font-size:17px}
-.meta{color:var(--mut);font-size:14px}
-.etat{display:inline-block;font-size:13px;padding:2px 8px;border-radius:99px;background:var(--ind2);color:var(--ind);margin-top:6px}
-.live .etat{background:#e2f5ea;color:var(--ok)}
-button,a.btn{font:inherit;font-size:15px;border:0;border-radius:8px;padding:10px 14px;background:var(--ind);color:#fff;cursor:pointer;text-decoration:none;display:inline-block}
-button:disabled{background:#c9cbd8;cursor:not-allowed}
-button.sec,a.sec{background:var(--ind2);color:var(--ind)}
-button:focus-visible,a:focus-visible{outline:3px solid #f5a524;outline-offset:2px}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-#visio{background:#fff;border:1px solid var(--bord);border-radius:10px;padding:10px;margin-bottom:16px}
-#cadre{height:70vh;min-height:360px;background:#111;border-radius:8px;overflow:hidden}
-#note{font-size:14px;color:var(--mut);margin:8px 0}
-#msg{font-size:14px;margin:8px 0}
-.ko{color:var(--ko)}
-[hidden]{display:none!important}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cours en direct - Campus Flex</title>
+  <meta name="theme-color" content="#2c3e8c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="pwa-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap">
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <style>
+    :root{
+      --bg:#FFFFFF; --paper:#F4F8FD; --grid:#D3DEF1; --ink:#2c3e8c; --text:#14203F; --muted:#46547A;
+      --line:#AEBBDA; --btn-bg:#2c3e8c; --btn-fg:#FFFFFF; --card:#FFFFFF; --amber:#f39c12; --hl:#FFF3CF;
+      --error:#B3261E; --ok:#1B7A3E; --indigo:#2c3e8c;
+    }
+    @media (prefers-color-scheme:dark){
+      :root{
+        --bg:#0E1630; --paper:#16213F; --grid:#243256; --ink:#A9BEFF; --text:#E8EDFB; --muted:#A3B0D2;
+        --line:#3F507F; --btn-bg:#A9BEFF; --btn-fg:#0E1630; --card:#0E1630; --hl:#2A2A1E;
+        --error:#FF8A80; --ok:#6FD39A; --indigo:#A9BEFF;
+      }
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;display:flex;flex-direction:column;color:var(--text);
+      font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;
+      background-color:var(--paper);
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:30px 30px}
+    :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+    [hidden]{display:none !important}
+
+    .barre{background:#2c3e8c;padding:10px 20px}
+    .marque{display:inline-flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+    .barre a:focus-visible{outline-color:#fff}
+
+    main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:26px 20px 40px}
+    .salut{font-family:Caveat,"Segoe Print","Bradley Hand",cursive;font-weight:600;font-size:clamp(2.1rem,10vw,2.8rem);line-height:1.1;color:var(--ink);margin-bottom:14px}
+
+    .carte{background:var(--card);border:2px solid var(--ink);border-radius:6px;padding:22px 20px;margin-bottom:20px;animation:monter .5s ease both}
+    .carte h2{font-size:1.4rem;line-height:1.2;letter-spacing:-.015em;font-weight:800;color:var(--ink);margin-bottom:8px}
+    .description{color:var(--muted);margin-bottom:16px}
+    .carte p{line-height:1.5}
+
+    .seance{border-left:7px solid var(--ink);background:var(--paper);border-radius:10px;padding:14px 16px;margin-top:12px}
+    .seance.live{border-left-color:var(--ok);background:var(--hl)}
+    .seance.passee{border-left-color:var(--line)}
+    .seance b{display:block;font-size:1.1rem;color:var(--text)}
+    .seance .meta{font-size:.92rem;color:var(--muted);margin-top:2px}
+    .etat{display:inline-block;margin-top:8px;padding:2px 10px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:.78rem;font-weight:800}
+    .seance.live .etat{background:var(--ok);color:#fff}
+    .seance .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+
+    .btn,.btn-sec{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:12px 22px;border-radius:10px;
+      background:var(--btn-bg);color:var(--btn-fg);border:2px solid var(--btn-bg);font:inherit;font-weight:700;text-decoration:none;text-align:center;cursor:pointer}
+    .btn-sec{background:transparent;color:var(--ink);border-color:var(--ink)}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .btn:active,.btn-sec:active{transform:scale(.97)}
+
+    #cadre{height:min(72vh,560px);min-height:340px;background:#111;border-radius:6px;overflow:hidden;margin-top:12px}
+    .barre-visio{display:flex;flex-wrap:wrap;gap:10px}
+    .note{font-size:.92rem;color:var(--muted);margin-top:10px}
+    .message{font-size:.95rem;margin-top:10px;color:var(--muted)}
+    .message.error{color:var(--error);font-weight:600}
+
+    .loader{width:38px;height:38px;margin:14px 0;border:4px solid var(--line);border-top-color:var(--amber);border-radius:50%;animation:tourner .8s linear infinite}
+    @keyframes tourner{to{transform:rotate(360deg)}}
+    @keyframes monter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+    @keyframes ecrire{to{clip-path:inset(0 0 0 0)}}
+    .salut.ecrit{clip-path:inset(0 100% 0 0);animation:ecrire .9s steps(14,end) .1s forwards}
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation:none !important;transition:none !important}
+      .salut.ecrit{clip-path:none}
+    }
+
+    footer{background:#2c3e8c;color:#fff;text-align:center;padding:16px;font-size:.9rem}
+    footer a{color:inherit;text-decoration:underline}
+  </style>
+  <script src="campus-menu.js" defer></script>
 </head>
+
 <body>
-<header>
-  <a href="matieres.html">← Matières</a>
-  <h1>Cours en direct</h1>
-</header>
-<main>
-  <p id="msg" role="status"></p>
 
-  <section id="visio" hidden>
-    <div class="actions" style="margin:0 0 10px">
-      <button id="quitter" type="button" class="sec">Quitter la visio</button>
-      <a id="ouvrir" class="btn sec" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>
-    </div>
-    <div id="cadre"></div>
-    <p id="note">Caméra et micro sont coupés au départ pour économiser la connexion. Activez le micro seulement pour parler.</p>
-  </section>
+  <header class="barre">
+    <a class="marque" href="index.html">Campus Flex</a>
+  </header>
 
-  <h2>À venir et en cours</h2>
-  <div id="avenir"><p class="meta">Chargement…</p></div>
-  <h2>Cours passés</h2>
-  <div id="passes"></div>
-</main>
+  <main>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="firebase-config.js"></script>
-<script src="auth-guard.js"></script>
-<script>
-var JITSI_DOMAIN="meet.jit.si";
-var AVANT=10*60000;   /* le bouton s'active 10 min avant le début */
-var APRES=30*60000;   /* et reste actif 30 min après la fin prévue */
+    <p class="salut ecrit">Cours en direct</p>
 
-var db=firebase.database();
-function $(id){return document.getElementById(id);}
-function dire(t,cls){var m=$("msg");m.textContent=t;m.className=cls||"";}
-function fmt(ts){return new Date(ts).toLocaleString("fr-FR",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"});}
+    <section class="carte" id="card-visio" hidden>
+      <h2 id="visio-titre">Cours en cours</h2>
+      <div class="barre-visio">
+        <button type="button" class="btn-sec" id="btn-quitter">Quitter la visio</button>
+        <a class="btn-sec" id="lien-onglet" target="_blank" rel="noopener">Ouvrir dans un nouvel onglet</a>
+      </div>
+      <div id="cadre"></div>
+      <p class="note">Ta caméra et ton micro sont coupés au départ pour économiser ta connexion. Active le micro seulement pour parler.</p>
+    </section>
 
-var seances=[],nom="Élève",uid=null,api=null;
+    <section class="carte" id="card-chargement">
+      <h2>Chargement</h2>
+      <div class="loader"></div>
+      <p id="message-chargement">Récupération de tes cours en direct...</p>
+    </section>
 
-firebase.auth().onAuthStateChanged(function(u){
-  if(!u)return;
-  uid=u.uid;
-  db.ref("eleves/"+uid).once("value").then(function(s){
-    var p=s.val()||{};
-    if(!p.classe){location.href="profil.html";return;}
-    nom=((p.prenom||"")+" "+(p.nom||"")).trim()||"Élève";
-    return db.ref("direct/"+p.classe).once("value").then(function(snap){
-      seances=[];
-      snap.forEach(function(m){m.forEach(function(x){
-        var v=x.val();v.id=x.key;v.matiere=m.key;seances.push(v);
-      });});
-      seances.sort(function(a,b){return a.debut-b.debut;});
-      afficher();
-      setInterval(afficher,30000);
+    <section class="carte" id="card-avenir" hidden>
+      <h2>À venir et en cours</h2>
+      <p class="description">Le bouton « Rejoindre » s'active 10 minutes avant le début du cours.</p>
+      <div id="avenir"></div>
+    </section>
+
+    <section class="carte" id="card-passes" hidden>
+      <h2>Cours passés</h2>
+      <p class="description">Retrouve ici les replays quand ton enseignant les ajoute.</p>
+      <div id="passes"></div>
+    </section>
+
+    <p class="message" id="message" role="status"></p>
+
+    <a href="matieres.html" class="btn-sec">Retour aux cours</a>
+
+  </main>
+
+  <footer>© 2026 Campus Flex - Tous droits réservés - <a href="contact.html">Contact</a></footer>
+
+  <script>
+    const JITSI_DOMAIN = "meet.jit.si";
+    const AVANT = 10 * 60000;   /* le bouton s'active 10 min avant le début */
+    const APRES = 30 * 60000;   /* et reste actif 30 min après la fin prévue */
+
+    const $ = function(id) { return document.getElementById(id); };
+    let seances = [], nom = "Élève", uid = null, api = null;
+
+    function cleClasse(x) {
+      return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/terminale/g, "tle").replace(/premiere|1ere/g, "1re").replace(/seconde|2nde/g, "2de")
+        .replace(/[^a-z0-9]/g, "").replace(/^([3-6])eme$/, "$1e");
+    }
+    function fmt(ts) {
+      return new Date(ts).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+    }
+    function dire(texte, erreur) { const m = $("message"); m.textContent = texte; m.className = "message" + (erreur ? " error" : ""); }
+
+    function etat(s, maintenant) {
+      const fin = s.debut + s.duree * 60000;
+      if (maintenant < s.debut - AVANT) return { t: "À venir", ouvert: false, passe: false, live: false };
+      if (maintenant <= fin + APRES) return { t: maintenant < s.debut ? "Ouvre bientôt" : "En cours", ouvert: true, passe: false, live: maintenant >= s.debut };
+      return { t: "Terminé", ouvert: false, passe: true, live: false };
+    }
+
+    function carte(s, e) {
+      const d = document.createElement("div");
+      d.className = "seance" + (e.live ? " live" : "") + (e.passe ? " passee" : "");
+      const b = document.createElement("b");
+      b.textContent = s.titre;
+      const m = document.createElement("div");
+      m.className = "meta";
+      m.textContent = s.matiere + " · " + fmt(s.debut) + " · " + s.duree + " min";
+      const t = document.createElement("span");
+      t.className = "etat";
+      t.textContent = e.t;
+      const a = document.createElement("div");
+      a.className = "actions";
+      if (!e.passe) {
+        const j = document.createElement("button");
+        j.type = "button";
+        j.className = "btn";
+        j.textContent = "Rejoindre le cours";
+        j.disabled = !e.ouvert;
+        j.addEventListener("click", function() { rejoindre(s); });
+        a.appendChild(j);
+      }
+      if (s.replay) {
+        const r = document.createElement("a");
+        r.className = "btn-sec";
+        r.href = s.replay;
+        r.target = "_blank";
+        r.rel = "noopener";
+        r.textContent = "Voir le replay";
+        a.appendChild(r);
+      }
+      d.appendChild(b); d.appendChild(m); d.appendChild(t);
+      if (a.children.length) d.appendChild(a);
+      return d;
+    }
+
+    function afficher() {
+      const maintenant = Date.now();
+      const A = $("avenir"), P = $("passes");
+      A.innerHTML = ""; P.innerHTML = "";
+      let nbA = 0, nbP = 0;
+      seances.forEach(function(s) {
+        const e = etat(s, maintenant);
+        if (e.passe) { P.insertBefore(carte(s, e), P.firstChild); nbP++; }
+        else { A.appendChild(carte(s, e)); nbA++; }
+      });
+      if (!nbA) { const p = document.createElement("p"); p.textContent = "Aucun cours en direct programmé pour ta classe."; A.appendChild(p); }
+      $("card-avenir").hidden = false;
+      $("card-passes").hidden = !nbP;
+    }
+
+    function chargerJitsi() {
+      return new Promise(function(ok, ko) {
+        if (window.JitsiMeetExternalAPI) return ok();
+        const sc = document.createElement("script");
+        sc.src = "https://" + JITSI_DOMAIN + "/external_api.js";
+        sc.onload = ok; sc.onerror = ko;
+        document.head.appendChild(sc);
+      });
+    }
+
+    function rejoindre(s) {
+      $("card-visio").hidden = false;
+      $("visio-titre").textContent = s.titre;
+      $("lien-onglet").href = "https://" + JITSI_DOMAIN + "/" + encodeURIComponent(s.salle);
+      $("card-visio").scrollIntoView({ behavior: "smooth" });
+      dire("");
+      if (uid) {
+        db.ref("presences/" + s.id + "/" + uid).set({ nom: nom, heure: Date.now() }).catch(function() {});
+      }
+      chargerJitsi().then(function() {
+        if (api) { api.dispose(); api = null; }
+        api = new JitsiMeetExternalAPI(JITSI_DOMAIN, {
+          roomName: s.salle,
+          parentNode: $("cadre"),
+          width: "100%", height: "100%",
+          userInfo: { displayName: nom },
+          configOverwrite: { startWithVideoMuted: true, startWithAudioMuted: true, prejoinPageEnabled: false, disableDeepLinking: true, subject: s.titre },
+          interfaceConfigOverwrite: { MOBILE_APP_PROMO: false }
+        });
+        api.addListener("readyToClose", quitter);
+      }).catch(function() {
+        dire("La visio intégrée ne s'ouvre pas. Utilise « Ouvrir dans un nouvel onglet ».", true);
+      });
+    }
+
+    function quitter() {
+      if (api) { api.dispose(); api = null; }
+      $("card-visio").hidden = true;
+    }
+    $("btn-quitter").addEventListener("click", quitter);
+
+    function erreur(texte) {
+      $("card-chargement").hidden = true;
+      dire(texte, true);
+    }
+
+    auth.onAuthStateChanged(function(u) {
+      if (!u) { window.location.href = "connexion.html"; return; }
+      uid = u.uid;
+      db.ref("eleves/" + uid).once("value").then(function(snap) {
+        const p = snap.val();
+        if (!p || !p.classe) { erreur("Ton profil n'a pas encore de classe. Ouvre « Mon profil » pour la renseigner."); return; }
+        nom = ((p.prenom || "") + " " + (p.nom || "")).trim() || "Élève";
+        const maClasse = cleClasse(p.classe);
+        return db.ref("direct").once("value").then(function(tout) {
+          seances = [];
+          tout.forEach(function(c) {
+            if (cleClasse(c.key) !== maClasse) return;
+            c.forEach(function(m) { m.forEach(function(x) {
+              const v = x.val() || {};
+              v.id = x.key; v.matiere = m.key;
+              seances.push(v);
+            }); });
+          });
+          seances.sort(function(a, b) { return a.debut - b.debut; });
+          $("card-chargement").hidden = true;
+          afficher();
+          setInterval(afficher, 30000);
+        });
+      }).catch(function(e) { erreur("Impossible de charger les cours : " + e.message); });
     });
-  }).catch(function(e){dire("Impossible de charger les cours : "+e.message,"ko");$("avenir").innerHTML="";});
-});
+  </script>
 
-function etat(s,now){
-  var fin=s.debut+s.duree*60000;
-  if(now<s.debut-AVANT)return{t:"À venir",ouvert:false,passe:false};
-  if(now<=fin+APRES)return{t:now<s.debut?"Ouvre dans quelques minutes":"En cours",ouvert:true,passe:false};
-  return{t:"Terminé",ouvert:false,passe:true};
-}
-
-function carte(s,e){
-  var d=document.createElement("div");d.className="seance"+(e.ouvert&&Date.now()>=s.debut?" live":"");
-  var b=document.createElement("b");b.textContent=s.titre;
-  var m=document.createElement("span");m.className="meta";m.textContent=s.matiere+" · "+fmt(s.debut)+" · "+s.duree+" min";
-  var t=document.createElement("span");t.className="etat";t.textContent=e.t;
-  var a=document.createElement("div");a.className="actions";
-  if(!e.passe){
-    var j=document.createElement("button");j.type="button";j.textContent="Rejoindre le cours";j.disabled=!e.ouvert;
-    j.onclick=function(){rejoindre(s);};a.appendChild(j);
-  }
-  if(s.replay){
-    var r=document.createElement("a");r.className="btn sec";r.href=s.replay;r.target="_blank";r.rel="noopener";r.textContent="Voir le replay";a.appendChild(r);
-  }
-  d.appendChild(b);d.appendChild(m);d.appendChild(document.createElement("br"));d.appendChild(t);d.appendChild(a);
-  return d;
-}
-
-function afficher(){
-  var now=Date.now(),A=$("avenir"),P=$("passes");
-  A.innerHTML="";P.innerHTML="";
-  var nbA=0,nbP=0;
-  seances.forEach(function(s){
-    var e=etat(s,now);
-    if(e.passe){P.insertBefore(carte(s,e),P.firstChild);nbP++;}
-    else{A.appendChild(carte(s,e));nbA++;}
-  });
-  if(!nbA){var p=document.createElement("p");p.className="meta";p.textContent="Aucun cours en direct programmé pour votre classe.";A.appendChild(p);}
-  if(!nbP){var q=document.createElement("p");q.className="meta";q.textContent="Pas encore de cours passé.";P.appendChild(q);}
-}
-
-function chargerJitsi(){
-  return new Promise(function(ok,ko){
-    if(window.JitsiMeetExternalAPI)return ok();
-    var sc=document.createElement("script");
-    sc.src="https://"+JITSI_DOMAIN+"/external_api.js";
-    sc.onload=ok;sc.onerror=ko;
-    document.head.appendChild(sc);
-  });
-}
-
-function rejoindre(s){
-  $("visio").hidden=false;
-  $("visio").scrollIntoView({behavior:"smooth"});
-  $("ouvrir").href="https://"+JITSI_DOMAIN+"/"+encodeURIComponent(s.salle);
-  if(uid){db.ref("presences/"+s.id+"/"+uid).set({nom:nom,heure:Date.now()}).catch(function(){});}
-  chargerJitsi().then(function(){
-    if(api){api.dispose();api=null;}
-    api=new JitsiMeetExternalAPI(JITSI_DOMAIN,{
-      roomName:s.salle,
-      parentNode:$("cadre"),
-      width:"100%",height:"100%",
-      userInfo:{displayName:nom},
-      configOverwrite:{startWithVideoMuted:true,startWithAudioMuted:true,prejoinPageEnabled:false,disableDeepLinking:true,subject:s.titre},
-      interfaceConfigOverwrite:{MOBILE_APP_PROMO:false}
-    });
-    api.addListener("readyToClose",quitter);
-  }).catch(function(){
-    dire("La visio intégrée ne s’ouvre pas. Utilisez « Ouvrir dans un nouvel onglet ».","ko");
-  });
-}
-
-function quitter(){
-  if(api){api.dispose();api=null;}
-  $("visio").hidden=true;dire("");
-}
-$("quitter").onclick=quitter;
-</script>
 </body>
 </html>
